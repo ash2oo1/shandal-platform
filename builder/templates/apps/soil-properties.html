@@ -1,0 +1,39 @@
+{% extends "app_base.html" %}
+{% import "apps/_m.html" as m with context %}
+{% block ws %}
+<div class="ws-wrap">
+<div class="ws wide-side">
+  <aside class="ws-side">
+    {{ m.panel_open(1, 'Location', 'الموقع') }}
+      <div class="row2">
+        {{ m.fld('sLat', 'Latitude', 'دائرة العرض', 'number', '33.10', '°', '', '', '', '0.0001') }}
+        {{ m.fld('sLon', 'Longitude', 'خط الطول', 'number', '44.50', '°', '', '', '', '0.0001') }}
+      </div>
+      <div class="row2"><button class="btn btn-ink btn-sm" id="sGps" type="button">{{ icon('crosshair', 'ico ico-sm') }}{{ m.L('My location', 'موقعي') }}</button><span class="xsmall muted" style="align-self:center">{{ m.L('or click the map', 'أو انقر الخريطة') }}</span></div>
+      <div class="fig-b pad0" style="border-radius:12px;overflow:hidden;border:1px solid var(--line)"><div class="map" id="sMap" style="height:260px"></div></div>
+    {{ m.panel_close() }}
+    <button class="btn btn-gold btn-block" id="sRun" type="button">{{ icon('sprout', 'ico ico-sm') }}{{ m.L('Query SoilGrids', 'استعلم من SoilGrids') }}</button>
+    <p class="pn-note">{{ m.L('ISRIC SoilGrids 2.0 at 250 m. The service allows about five requests per minute.', 'ISRIC SoilGrids 2.0 بدقة 250 م. تسمح الخدمة بنحو خمسة طلبات في الدقيقة.') }}</p>
+  </aside>
+  <div class="ws-main">
+    <div id="sEmpty" class="pn">{{ m.empty('sprout', 'Soil properties for any point on Earth', 'خصائص التربة لأي نقطة على الأرض', 'Texture, density, organic carbon, pH, cation exchange and coarse fragments at six depths to 2 m, with USDA texture and water-retention estimates.', 'القوام والكثافة والكربون العضوي ودرجة الحموضة والسعة التبادلية الكاتيونية والقطع الخشنة عند ست أعماق حتى 2 م، مع قوام USDA وتقديرات الاحتفاظ بالماء.') }}</div>
+    <div id="sOut" hidden style="display:grid;gap:18px">
+      <div class="kpis" id="sKpis"></div>
+      <div class="grid2">
+        {{ m.fig_open('fs1', '1', 'Particle-size profile', 'مقطع حجم الحبيبات') }}
+          <div class="fig-b"><div class="plot" id="sTex" style="height:340px"></div></div>
+        {{ m.fig_close() }}
+        {{ m.fig_open('fs2', '2', 'USDA texture triangle', 'مثلث القوام USDA', '<button class="btn btn-line btn-xs" data-svg="sTri">PNG</button>') }}
+          <div class="fig-b"><svg class="chart" id="sTri" viewBox="0 0 520 440" role="img" aria-label="USDA texture triangle"></svg></div>
+        {{ m.fig_close() }}
+      </div>
+      {{ m.fig_open('fs3', '3', 'Chemical and physical properties with depth (mean and 5–95 % range)', 'الخصائص الكيميائية والفيزيائية مع العمق (المتوسط ومدى 5–95 %)') }}
+        <div class="fig-b"><div class="plot" id="sProp" style="height:360px"></div></div>
+      {{ m.fig_close() }}
+      <section class="pn"><div class="pn-h">{{ icon('table') }}<h2>{{ m.L('Profile table', 'جدول المقطع') }}</h2><div class="sp no-print"><button class="btn btn-line btn-xs" id="sCsv">{{ icon('download', 'ico ico-sm') }}CSV</button></div></div><div class="pn-b flush tbl-wrap"><table class="tbl" id="sTbl"></table></div>
+        <div class="pn-b"><p class="xsmall muted" style="margin:0">{{ m.L('Water retention by Saxton & Rawls (2006) from sand, clay and organic matter (OM = 1.724 × SOC). Predicted values for screening; confirm with sampling and laboratory tests.', 'الاحتفاظ بالماء وفق Saxton & Rawls (2006) من الرمل والطين والمادة العضوية (OM = 1.724 × SOC). قيم متنبأة للفرز الأولي؛ أكدها بالنمذجة والفحوص المختبرية.') }}</p></div></section>
+    </div>
+  </div>
+</div>
+</div>
+{% endblock %}
