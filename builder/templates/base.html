@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="{{ lang }}" dir="{{ 'rtl' if lang == 'ar' else 'ltr' }}">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>{{ title }}</title>
+<meta name="description" content="{{ desc }}">
+<meta name="theme-color" content="#0A141E">
+<meta name="sh-base" content="{{ u('assets/')[:-7] }}">
+<meta property="og:type" content="website">
+<meta property="og:title" content="{{ title }}">
+<meta property="og:description" content="{{ desc }}">
+<meta property="og:image" content="{{ u('assets/img/og.png') }}">
+<meta property="og:locale" content="{{ 'ar_IQ' if lang == 'ar' else 'en_US' }}">
+<link rel="alternate" hreflang="en" href="{{ u_lang('en') }}">
+<link rel="alternate" hreflang="ar" href="{{ u_lang('ar') }}">
+<link rel="icon" type="image/png" sizes="32x32" href="{{ u('assets/img/favicon-32.png') }}">
+<link rel="apple-touch-icon" href="{{ u('assets/img/emblem-192.png') }}">
+<link rel="preload" href="{{ u('assets/fonts/' + ('plex-arabic-regular.woff' if lang == 'ar' else 'manrope-var.woff')) }}" as="font" type="font/woff" crossorigin>
+<link rel="stylesheet" href="{{ u('assets/css/site.css') }}?v={{ version }}">
+<script>(function(){try{var t=localStorage.getItem('shandal-theme');if(t)document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
+{% block head %}{% endblock %}
+</head>
+<body{% block bodyattr %}{% endblock %}>
+<a class="skip" href="#main">{{ t('skip') }}</a>
+
+<header class="site-header on-dark{{ ' scrolled' if solid_header }}">
+  <div class="wrap hdr">
+    <a class="brand" href="{{ u('') }}" aria-label="{{ t('brand_full') }}">
+      <img src="{{ u('assets/img/emblem-64.png') }}" srcset="{{ u('assets/img/emblem-192.png') }} 3x" width="42" height="42" alt="">
+      <span class="wm"><b>{{ t('brand') }}</b><span>{{ t('brand_sub') }}</span></span>
+    </a>
+    <ul class="nav">
+      <li class="static">
+        <button class="nav-btn" type="button" data-menu aria-expanded="false" aria-controls="mPlatform">{{ t('nav_platform') }} {{ icon('chevron-down', 'chev') }}</button>
+        <div class="mega mega-wide" id="mPlatform">
+          <div class="mega-grid">
+            {% for c in cats %}
+            <div class="mega-col">
+              <h4>{{ t('cat_' + c) }}</h4>
+              {% for tl in tools if tl.cat == c %}
+              <a class="mi" href="{{ u('tools/' + tl.slug + '/') }}">{{ icon(tl.icon) }}<span>{{ tr(tl.name) }}</span></a>
+              {% endfor %}
+            </div>
+            {% endfor %}
+          </div>
+          <div class="mega-foot">
+            <span class="small muted">{{ tr(home.cta_p) }}</span>
+            <a class="link" href="{{ u('platform/') }}">{{ t('nav_all_tools') }} {{ icon('arrow-right', 'ico ico-sm flip') }}</a>
+          </div>
+        </div>
+      </li>
+      <li>
+        <button class="nav-btn" type="button" data-menu aria-expanded="false" aria-controls="mData">{{ t('nav_data') }} {{ icon('chevron-down', 'chev') }}</button>
+        <div class="mega narrow" id="mData"><div class="mega-grid"><div class="mega-col">
+          <a class="mi" href="{{ u('data/') }}">{{ icon('database') }}<span>{{ t('menu_data_hub') }}<small>{{ t('menu_data_hub_d') }}</small></span></a>
+          <a class="mi" href="{{ u('earth-now/') }}">{{ icon('activity') }}<span>{{ t('menu_earth_now') }}<small>{{ t('menu_earth_now_d') }}</small></span></a>
+          <a class="mi" href="{{ u('geoheritage/') }}">{{ icon('landmark') }}<span>{{ t('menu_geoheritage') }}<small>{{ t('menu_geoheritage_d') }}</small></span></a>
+        </div></div></div>
+      </li>
+      <li>
+        <button class="nav-btn" type="button" data-menu aria-expanded="false" aria-controls="mLearn">{{ t('nav_learn') }} {{ icon('chevron-down', 'chev') }}</button>
+        <div class="mega narrow" id="mLearn"><div class="mega-grid"><div class="mega-col">
+          <a class="mi" href="{{ u('academy/') }}">{{ icon('graduation-cap') }}<span>{{ t('menu_academy') }}<small>{{ t('menu_academy_d') }}</small></span></a>
+          <a class="mi" href="{{ u('library/') }}">{{ icon('book-open') }}<span>{{ t('menu_library') }}<small>{{ t('menu_library_d') }}</small></span></a>
+          <a class="mi" href="{{ u('verify/') }}">{{ icon('qr-code') }}<span>{{ t('menu_verify') }}<small>{{ t('menu_verify_d') }}</small></span></a>
+        </div></div></div>
+      </li>
+      <li>
+        <button class="nav-btn" type="button" data-menu aria-expanded="false" aria-controls="mCompany">{{ t('nav_company') }} {{ icon('chevron-down', 'chev') }}</button>
+        <div class="mega narrow" id="mCompany"><div class="mega-grid"><div class="mega-col">
+          <a class="mi" href="{{ u('about/') }}">{{ icon('award') }}<span>{{ t('menu_about') }}<small>{{ t('menu_about_d') }}</small></span></a>
+          <a class="mi" href="{{ u('contact/') }}">{{ icon('message-square-text') }}<span>{{ t('menu_contact') }}<small>{{ t('menu_contact_d') }}</small></span></a>
+        </div></div></div>
+      </li>
+      <li><a class="nav-btn" href="{{ u('pricing/') }}">{{ t('nav_pricing') }}</a></li>
+    </ul>
+    <div class="hdr-end">
+      <button class="icon-btn" type="button" data-open-search aria-label="{{ t('nav_search') }}">{{ icon('search', 'ico ico-sm') }}</button>
+      <a class="lang-btn" href="{{ u_lang(other) }}" lang="{{ other }}" data-lang-link="{{ other }}" aria-label="{{ t('lang_switch_label') }}">{{ icon('languages', 'ico ico-sm') }}<span class="lbl">{{ t('lang_switch') }}</span></a>
+      <button class="icon-btn" id="themeBtn" type="button" aria-label="{{ t('theme_toggle') }}">{{ icon('moon', 'ico ico-sm theme-moon') }}{{ icon('sun', 'ico ico-sm theme-sun') }}</button>
+      <a class="btn btn-line btn-sm btn-signin" href="{{ u('login/') }}" data-signin>{{ t('nav_signin') }}</a>
+      <div class="user-wrap" data-user hidden style="position:relative"><button class="user-chip" type="button" aria-haspopup="true" aria-expanded="false"><span class="av"></span><span class="nm"></span></button>
+        <div class="user-menu" hidden><div class="who"><span>{{ t('signed_in_as') }}</span><b class="who-n"></b><small class="who-x"></small></div>
+          <a href="{{ u('account/') }}">{{ icon('user', 'ico ico-sm') }}{{ t('my_account') }}</a>
+          <a href="{{ u('platform/') }}">{{ icon('layers', 'ico ico-sm') }}{{ t('nav_all_tools') }}</a>
+          <button type="button" data-logout>{{ icon('log-out', 'ico ico-sm') }}{{ t('sign_out') }}</button></div></div>
+      <a class="btn btn-gold btn-sm btn-access" href="{{ u('pricing/') }}">{{ t('nav_access') }}</a>
+      <button class="icon-btn burger" id="burger" type="button" aria-label="{{ t('nav_menu') }}" aria-expanded="false" aria-controls="drawer">{{ icon('menu', 'ico ico-sm') }}</button>
+    </div>
+  </div>
+</header>
+
+<div class="drawer" id="drawer" aria-label="{{ t('nav_menu') }}">
+  <div class="wrap drawer-top">
+    <a class="brand" href="{{ u('') }}"><img src="{{ u('assets/img/emblem-64.png') }}" width="38" height="38" alt=""><span class="wm"><b>{{ t('brand') }}</b></span></a>
+    <button class="icon-btn" id="drawerClose" type="button" aria-label="{{ t('nav_close') }}">{{ icon('x', 'ico ico-sm') }}</button>
+  </div>
+  <div class="wrap drawer-body">
+    <details open><summary>{{ t('nav_platform') }} {{ icon('chevron-down', 'ico ico-sm chev') }}</summary>
+      {% for tl in tools %}<a class="dl" href="{{ u('tools/' + tl.slug + '/') }}">{{ icon(tl.icon, 'ico ico-sm') }}{{ tr(tl.name) }}</a>{% endfor %}
+    </details>
+    <details><summary>{{ t('nav_data') }} {{ icon('chevron-down', 'ico ico-sm chev') }}</summary>
+      <a class="dl" href="{{ u('data/') }}">{{ icon('database', 'ico ico-sm') }}{{ t('menu_data_hub') }}</a>
+      <a class="dl" href="{{ u('earth-now/') }}">{{ icon('activity', 'ico ico-sm') }}{{ t('menu_earth_now') }}</a>
+      <a class="dl" href="{{ u('geoheritage/') }}">{{ icon('landmark', 'ico ico-sm') }}{{ t('menu_geoheritage') }}</a>
+    </details>
+    <details><summary>{{ t('nav_learn') }} {{ icon('chevron-down', 'ico ico-sm chev') }}</summary>
+      <a class="dl" href="{{ u('academy/') }}">{{ icon('graduation-cap', 'ico ico-sm') }}{{ t('menu_academy') }}</a>
+      <a class="dl" href="{{ u('library/') }}">{{ icon('book-open', 'ico ico-sm') }}{{ t('menu_library') }}</a>
+      <a class="dl" href="{{ u('verify/') }}">{{ icon('qr-code', 'ico ico-sm') }}{{ t('menu_verify') }}</a>
+    </details>
+    <a class="dlink" href="{{ u('about/') }}">{{ t('menu_about') }}</a>
+    <a class="dlink" href="{{ u('pricing/') }}">{{ t('nav_pricing') }}</a>
+    <a class="dlink" href="{{ u('contact/') }}">{{ t('menu_contact') }}</a>
+    <div class="drawer-theme"><span>{{ t('theme_toggle') }}</span><button class="icon-btn" type="button" data-theme-toggle aria-label="{{ t('theme_toggle') }}">{{ icon('moon', 'ico ico-sm theme-moon') }}{{ icon('sun', 'ico ico-sm theme-sun') }}</button></div>
+    <div class="drawer-cta">
+      <a class="btn btn-gold" href="{{ u('pricing/') }}">{{ t('nav_access') }}</a>
+      <a class="btn btn-line" href="{{ u('login/') }}">{{ t('nav_signin') }}</a>
+    </div>
+  </div>
+</div>
+
+<div class="search" id="search" hidden data-empty="{{ t('search_empty') }}" role="dialog" aria-modal="true" aria-label="{{ t('nav_search') }}">
+  <div class="search-box">
+    <div class="search-in">{{ icon('search') }}<input id="searchInput" type="search" placeholder="{{ t('search_ph') }}" autocomplete="off" aria-label="{{ t('nav_search') }}"></div>
+    <div class="search-res" id="searchRes"></div>
+  </div>
+</div>
+
+<main id="main">
+{% block main %}{% endblock %}
+</main>
+
+{% block footer %}
+<footer class="site-footer band-dark">
+  <div class="wrap">
+    <div class="f-grid">
+      <div class="f-about">
+        <a class="brand" href="{{ u('') }}"><img src="{{ u('assets/img/emblem-64.png') }}" srcset="{{ u('assets/img/emblem-192.png') }} 3x" width="46" height="46" alt=""><span class="wm"><b>{{ t('brand') }}</b><span>{{ t('brand_sub') }}</span></span></a>
+        <p>{{ t('f_tagline') }}</p>
+        <div class="socials">
+          <a href="{{ P.FACEBOOK }}" target="_blank" rel="noopener" aria-label="Facebook">{{ brandicon('facebook') }}</a>
+          <a href="{{ P.YOUTUBE }}" target="_blank" rel="noopener" aria-label="YouTube">{{ brandicon('youtube') }}</a>
+          <a href="{{ P.INSTAGRAM }}" target="_blank" rel="noopener" aria-label="Instagram">{{ brandicon('instagram') }}</a>
+          <a href="https://wa.me/{{ P.WA }}" target="_blank" rel="noopener" aria-label="WhatsApp">{{ brandicon('whatsapp') }}</a>
+        </div>
+      </div>
+      <div><h4>{{ t('f_platform') }}</h4><ul>{% for c in cats %}<li><a href="{{ u('platform/') }}#{{ c }}">{{ t('cat_' + c) }}</a></li>{% endfor %}</ul></div>
+      <div><h4>{{ t('f_resources') }}</h4><ul>
+        <li><a href="{{ u('platform/') }}">{{ t('nav_all_tools') }}</a></li>
+        <li><a href="{{ u('data/') }}">{{ t('menu_data_hub') }}</a></li>
+        <li><a href="{{ u('earth-now/') }}">{{ t('menu_earth_now') }}</a></li>
+        <li><a href="{{ u('geoheritage/') }}">{{ t('menu_geoheritage') }}</a></li>
+        <li><a href="{{ u('academy/') }}">{{ t('menu_academy') }}</a></li>
+        <li><a href="{{ u('library/') }}">{{ t('menu_library') }}</a></li>
+      </ul></div>
+      <div><h4>{{ t('f_company') }}</h4><ul>
+        <li><a href="{{ u('about/') }}">{{ t('menu_about') }}</a></li>
+        <li><a href="{{ u('pricing/') }}">{{ t('nav_pricing') }}</a></li>
+        <li><a href="{{ u('contact/') }}">{{ t('menu_contact') }}</a></li>
+        <li><a href="{{ u('verify/') }}">{{ t('menu_verify') }}</a></li>
+        <li><a href="{{ u('legal/privacy/') }}">{{ t('f_privacy') }}</a></li>
+        <li><a href="{{ u('legal/terms/') }}">{{ t('f_terms') }}</a></li>
+        <li><a href="{{ u('legal/disclaimer/') }}">{{ t('f_disclaimer') }}</a></li>
+      </ul></div>
+    </div>
+    <div class="f-bottom">
+      <div>{{ t('f_reg') }}</div>
+      <div class="r"><span>{{ t('f_copy') }}</span><span>{{ t('f_credits') }}</span></div>
+    </div>
+  </div>
+</footer>
+{% endblock %}
+
+<div class="ai-fab">
+  <button class="btn btn-gold" id="aiBtn" type="button" aria-expanded="false" aria-controls="aiPanel">{{ icon('sparkles', 'ico ico-sm') }}<span>{{ ai.btn }}</span></button>
+</div>
+<div class="ai-panel" id="aiPanel" hidden data-endpoint="{{ P.AI_ENDPOINT }}" data-wait="{{ ai.wait }}" data-fail="{{ ai.fail }}" role="dialog" aria-label="{{ ai.title }}">
+  <div class="ai-head"><img src="{{ u('assets/img/emblem-64.png') }}" alt=""><div><b>{{ ai.title }}</b><span>{{ ai.sub }}</span></div>
+    <button class="icon-btn" id="aiClose" type="button" aria-label="{{ t('nav_close') }}">{{ icon('x', 'ico ico-sm') }}</button></div>
+  <div class="ai-body" id="aiBody">
+    <div class="msg bot">{{ ai.hello }}</div>
+    <div class="ai-sugg">{% for q in ai.sugg %}<button type="button" data-ask>{{ q }}</button>{% endfor %}</div>
+  </div>
+  <div class="ai-foot"><input id="aiInput" type="text" placeholder="{{ ai.ph }}" aria-label="{{ ai.ph }}"><button class="icon-btn" id="aiSend" type="button" aria-label="{{ ai.send }}">{{ icon('arrow-up-right', 'ico ico-sm flip') }}</button></div>
+  <p class="ai-note">{{ ai.note }}</p>
+</div>
+
+<script>window.SHANDAL_INDEX={{ search_index }};</script>
+<script src="{{ u('assets/js/site.js') }}?v={{ version }}" defer></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

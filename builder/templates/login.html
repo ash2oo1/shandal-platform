@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block main %}
+<div class="auth">
+  <div class="auth-art band-dark">
+    <canvas data-contours aria-hidden="true"></canvas>
+    <div><img src="{{ u('assets/img/emblem.png') }}" width="120" height="120" alt=""></div>
+    <div>
+      <h1 class="h2" style="max-width:16ch">{{ tr(X.art_h) }}</h1>
+      <p class="lead" style="margin-top:14px">{{ tr(X.art_p) }}</p>
+    </div>
+  </div>
+  <div class="auth-form">
+    <h2 class="h2">{{ t('nav_signin') }}</h2>
+    <p class="muted" style="margin-top:8px">{{ tr(X.sub) }}</p>
+    <form class="form" data-notice="loginNote" style="margin-top:28px">
+      <div class="field"><label for="lName">{{ tr(X.user) }}</label><input id="lName" name="user" required autocomplete="username"></div>
+      <div class="field"><label for="lPass">{{ tr(X.pass) }}</label><input id="lPass" name="password" type="password" required autocomplete="current-password"></div>
+      <button class="btn btn-gold btn-lg" type="submit">{{ t('nav_signin') }}</button>
+      <div class="form-msg" id="loginNote" hidden tabindex="-1">{{ tr(X.notice) }} <a href="{{ P.FIELD_SYSTEM }}" target="_blank" rel="noopener">{{ tr(X.open_field) }}</a></div>
+    </form>
+    <div style="margin-top:28px;padding-top:24px;border-top:1px solid var(--line);display:grid;gap:12px">
+      <a class="btn btn-line" href="{{ P.FIELD_SYSTEM }}" target="_blank" rel="noopener">{{ tr(X.open_field) }} {{ icon('arrow-up-right', 'ico ico-sm flip') }}</a>
+      <p class="small muted">{{ tr(X.no_acc) }} <a href="{{ u('pricing/') }}" style="color:var(--accent);font-weight:700">{{ t('nav_access') }}</a> · <a href="https://wa.me/{{ P.WA }}?text={{ tr(X.status_msg)|urlencode }}" target="_blank" rel="noopener" style="color:var(--accent);font-weight:700">{{ tr(X.status) }}</a></p>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}<script src="{{ u('assets/js/globe.js') }}?v={{ version }}" defer></script>{% endblock %}

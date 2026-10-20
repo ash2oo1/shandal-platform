@@ -1,0 +1,9 @@
+<a class="tool-card" href="{{ u('tools/' + tl.slug + '/') }}" data-cat="{{ tl.cat }}" data-k="{{ tr(tl.name) }} {{ tl.name.en }} {{ tr(tl.summary) }} {{ tl.slug }}">
+  <span class="art">{{ illus(tl.illus, tr(tl.name)) }}</span>
+  <span class="body">
+    <span class="meta">{{ icon(tl.icon) }}{{ t('cat_' + tl.cat) }}</span>
+    <h3>{{ tr(tl.name) }}</h3>
+    <p>{{ tr(tl.tagline) }}</p>
+    <span class="go">{{ t('learn_more') }} {{ icon('arrow-right', 'ico ico-sm flip') }}</span>
+  </span>
+</a>

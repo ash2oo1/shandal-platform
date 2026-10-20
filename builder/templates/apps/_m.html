@@ -1,0 +1,16 @@
+{# Workspace form macros. Import with context. #}
+{% macro tipx(en, ar) %}{% if en %}<span class="tip" tabindex="0" data-tip="{{ ar if lang == 'ar' else en }}">?</span>{% endif %}{% endmacro %}
+{% macro fld(id, en, ar, type='number', value='', unit='', tip_en='', tip_ar='', ph='', step='any', attrs='', cls='') %}
+<div class="fg {{ cls }}"><label for="{{ id }}">{{ ar if lang == 'ar' else en }}{% if unit %} <bdi class="u" dir="ltr">({{ unit }})</bdi>{% endif %} {{ tipx(tip_en, tip_ar) }}</label>
+<input id="{{ id }}" type="{{ type }}"{% if type == 'number' %} step="{{ step }}" inputmode="decimal"{% endif %} value="{{ value }}" placeholder="{{ ph }}" {{ attrs|safe }}></div>
+{% endmacro %}
+{% macro sel(id, en, ar, opts, tip_en='', tip_ar='', cls='') %}
+<div class="fg {{ cls }}"><label for="{{ id }}">{{ ar if lang == 'ar' else en }} {{ tipx(tip_en, tip_ar) }}</label>
+<select id="{{ id }}">{% for o in opts %}<option value="{{ o[0] }}"{% if o|length > 3 and o[3] %} selected{% endif %}>{{ o[2] if lang == 'ar' else o[1] }}</option>{% endfor %}</select></div>
+{% endmacro %}
+{% macro panel_open(n, en, ar, ic='') %}<section class="pn"><div class="pn-h">{% if n %}<span class="stepn">{{ n }}</span>{% elif ic %}{{ icon(ic) }}{% endif %}<h2>{{ ar if lang == 'ar' else en }}</h2></div><div class="pn-b">{% endmacro %}
+{% macro panel_close() %}</div></section>{% endmacro %}
+{% macro fig_open(id, n, en, ar, actions='') %}<section class="fig" id="{{ id }}"><div class="fig-h">{% if n %}<span class="n">{{ n }}</span>{% endif %}<h3>{{ ar if lang == 'ar' else en }}</h3><div class="sp no-print">{{ actions|safe }}</div></div>{% endmacro %}
+{% macro fig_close() %}</section>{% endmacro %}
+{% macro empty(ic, en_h, ar_h, en_p, ar_p) %}<div class="empty-s"><span class="ei">{{ icon(ic, 'ico ico-lg') }}</span><h3>{{ ar_h if lang == 'ar' else en_h }}</h3><p>{{ ar_p if lang == 'ar' else en_p }}</p></div>{% endmacro %}
+{% macro L(en, ar) %}{{ ar if lang == 'ar' else en }}{% endmacro %}

@@ -1,0 +1,369 @@
+/* Shandal System — workspace core (SH). Shared by every tool page. No dependencies. */
+(function (w) {
+  'use strict';
+  var d = document, root = d.documentElement;
+  var lang = root.lang === 'ar' ? 'ar' : 'en';
+  var SH = w.SH = {};
+  SH.lang = lang;
+  SH.t = function (en, ar) { return lang === 'ar' ? (ar == null ? en : ar) : en; };
+  SH.base = (d.querySelector('meta[name="sh-base"]') || {}).content || './';
+  SH.cfg = {
+    gate: true,
+    authUrl: 'https://script.google.com/macros/s/AKfycbxjbge1wg7soV51_ZedXgmxZsF3KOPDxUZ89qnrly6vpqnaxa-GtmjIZxZgZ1xLIDHQmg/exec',
+    sessionHours: 24,
+    ai: 'https://shandal-ai-backend.shandal-geosystem.workers.dev'
+  };
+  var $ = SH.$ = function (s, c) { return (c || d).querySelector(s); };
+  var $$ = SH.$$ = function (s, c) { return Array.prototype.slice.call((c || d).querySelectorAll(s)); };
+  SH.el = function (tag, attrs, html) { var e = d.createElement(tag); if (attrs) for (var k in attrs) e.setAttribute(k, attrs[k]); if (html != null) e.innerHTML = html; return e; };
+  SH.esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); };
+  SH.store = {
+    get: function (k, def) { try { var v = localStorage.getItem(k); return v == null ? def : JSON.parse(v); } catch (e) { return def; } },
+    set: function (k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} },
+    del: function (k) { try { localStorage.removeItem(k); } catch (e) {} }
+  };
+
+  /* ---------------------------------------------------------------- icons */
+  var IC = {
+    ok: '<path d="M20 6 9 17l-5-5"/>',
+    bad: '<circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/>',
+    warn: '<path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4M12 17h.01"/>',
+    info: '<circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/>',
+    x: '<path d="M18 6 6 18M6 6l12 12"/>'
+  };
+  SH.icon = function (n, cls) { return '<svg class="ico ' + (cls || '') + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + (IC[n] || IC.info) + '</svg>'; };
+
+  /* ---------------------------------------------------------------- toast & modal */
+  var toastBox;
+  SH.toast = function (msg, type, ms) {
+    if (!toastBox) { toastBox = SH.el('div', { class: 'toasts', role: 'status', 'aria-live': 'polite' }); d.body.appendChild(toastBox); }
+    var t = SH.el('div', { class: 'toast ' + (type || 'info') }, SH.icon(type || 'info') + '<span>' + msg + '</span>');
+    toastBox.appendChild(t);
+    setTimeout(function () { t.style.opacity = '0'; t.style.transition = 'opacity .3s'; setTimeout(function () { t.remove(); }, 320); }, ms || 3600);
+  };
+  SH.modal = function (title, html, buttons) {
+    return new Promise(function (res) {
+      var m = SH.el('div', { class: 'modal', role: 'dialog', 'aria-modal': 'true' });
+      var btns = (buttons || [{ label: SH.t('Close', 'إغلاق'), value: true, cls: 'btn-ink' }]).map(function (b, i) { return '<button class="btn btn-sm ' + (b.cls || 'btn-line') + '" data-i="' + i + '">' + b.label + '</button>'; }).join('');
+      m.innerHTML = '<div class="modal-box"><div class="mh"><h3>' + title + '</h3><button class="icon-btn" data-x aria-label="' + SH.t('Close', 'إغلاق') + '">' + SH.icon('x', 'ico-sm') + '</button></div><div class="mb">' + html + '</div><div class="mf">' + btns + '</div></div>';
+      function done(v) { m.remove(); d.removeEventListener('keydown', esc); res(v); }
+      function esc(e) { if (e.key === 'Escape') done(false); }
+      m.addEventListener('click', function (e) {
+        if (e.target === m || e.target.closest('[data-x]')) return done(false);
+        var b = e.target.closest('[data-i]'); if (b) done((buttons || [{ value: true }])[+b.getAttribute('data-i')].value);
+      });
+      d.addEventListener('keydown', esc); d.body.appendChild(m);
+      var f = m.querySelector('.mf .btn:last-child'); f && f.focus();
+    });
+  };
+  SH.confirm = function (msg) {
+    return SH.modal(SH.t('Please confirm', 'يرجى التأكيد'), '<p>' + msg + '</p>', [{ label: SH.t('Cancel', 'إلغاء'), value: false }, { label: SH.t('Confirm', 'تأكيد'), value: true, cls: 'btn-gold' }]);
+  };
+  SH.busy = function (host, on, text) {
+    if (!host) return; var l = host.querySelector(':scope > .loading');
+    if (!l) { l = SH.el('div', { class: 'loading' }, '<div style="display:grid;justify-items:center"><div class="spin"></div><div class="lt"></div></div>'); if (getComputedStyle(host).position === 'static') host.style.position = 'relative'; host.appendChild(l); }
+    l.querySelector('.lt').textContent = text || SH.t('Loading…', 'جارٍ التحميل…'); l.hidden = !on;
+  };
+
+  /* ---------------------------------------------------------------- numbers */
+  SH.fmt = function (v, dp, opt) {
+    if (v == null || isNaN(v)) return '—';
+    return Number(v).toLocaleString(lang === 'ar' ? 'en-US' : 'en-US', { minimumFractionDigits: dp == null ? 0 : dp, maximumFractionDigits: dp == null ? 2 : dp, useGrouping: !(opt && opt.nogroup) });
+  };
+  SH.num = function (id) { var e = typeof id === 'string' ? d.getElementById(id) : id; if (!e) return NaN; var v = String(e.value).replace(',', '.').trim(); return v === '' ? NaN : parseFloat(v); };
+  SH.val = function (id) { var e = d.getElementById(id); return e ? e.value : ''; };
+  SH.selText = function (id) { var e = d.getElementById(id); return e && e.options ? e.options[e.selectedIndex].text : ''; };
+  SH.clamp = function (v, a, b) { return Math.max(a, Math.min(b, v)); };
+  SH.rad = function (x) { return x * Math.PI / 180; };
+  SH.deg = function (x) { return x * 180 / Math.PI; };
+  SH.dir8 = function (az) { var a = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW']; return a[Math.round(((az % 360) + 360) % 360 / 45) % 8]; };
+  SH.dir16 = function (az) { var a = ['N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE', 'S', 'SSW', 'SW', 'WSW', 'W', 'WNW', 'NW', 'NNW']; return a[Math.round(((az % 360) + 360) % 360 / 22.5) % 16]; };
+  SH.rng = function (seed) { var s = seed >>> 0 || 1; return function () { s ^= s << 13; s ^= s >>> 17; s ^= s << 5; return ((s >>> 0) % 100000) / 100000; }; };
+  SH.uid = function (prefix) {
+    var a = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789', s = '';
+    var buf = new Uint32Array(8); (w.crypto || w.msCrypto).getRandomValues(buf);
+    for (var i = 0; i < 8; i++) s += a[buf[i] % a.length];
+    return (prefix || 'SHD') + '-' + new Date().getFullYear() + '-' + s.slice(0, 4) + '-' + s.slice(4);
+  };
+
+  /* ---------------------------------------------------------------- downloads */
+  SH.download = function (name, data, mime) {
+    var blob = data instanceof Blob ? data : new Blob([data], { type: mime || 'text/plain;charset=utf-8' });
+    var a = SH.el('a', { href: URL.createObjectURL(blob), download: name }); a.style.display = 'none';
+    d.body.appendChild(a); a.click(); setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 400);
+  };
+  SH.csv = function (name, rows) {
+    var txt = rows.map(function (r) { return r.map(function (c) { c = c == null ? '' : String(c); return /[",\n]/.test(c) ? '"' + c.replace(/"/g, '""') + '"' : c; }).join(','); }).join('\r\n');
+    SH.download(name, '﻿' + txt, 'text/csv;charset=utf-8');
+  };
+  SH.tableRows = function (table) { return $$('tr', table).map(function (tr) { return $$('th,td', tr).filter(function (c) { return !c.hasAttribute('data-noexport'); }).map(function (c) { return c.innerText.trim(); }); }); };
+  SH.json = function (name, obj) { SH.download(name, JSON.stringify(obj, null, 1), 'application/geo+json'); };
+  SH.svgPng = function (svg, name, scale, bg) {
+    scale = scale || 2;
+    var clone = svg.cloneNode(true), vb = svg.viewBox && svg.viewBox.baseVal, wdt = vb && vb.width || svg.clientWidth, hgt = vb && vb.height || svg.clientHeight;
+    clone.setAttribute('width', wdt); clone.setAttribute('height', hgt); clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+    // inline computed styles for every element so the PNG matches the screen
+    var src = svg.querySelectorAll('*'), dst = clone.querySelectorAll('*');
+    var props = ['fill', 'stroke', 'stroke-width', 'stroke-dasharray', 'opacity', 'fill-opacity', 'stroke-opacity', 'font-size', 'font-weight', 'font-family', 'text-anchor', 'dominant-baseline'];
+    for (var i = 0; i < src.length; i++) { var cs = getComputedStyle(src[i]), st = ''; props.forEach(function (p) { var v = cs.getPropertyValue(p); if (v) st += p + ':' + v + ';'; }); dst[i].setAttribute('style', st); }
+    var xml = new XMLSerializer().serializeToString(clone);
+    var img = new Image(); img.onload = function () {
+      var c = d.createElement('canvas'); c.width = wdt * scale; c.height = hgt * scale; var x = c.getContext('2d');
+      x.fillStyle = bg || getComputedStyle(svg).getPropertyValue('--il-bg') || '#fff'; x.fillRect(0, 0, c.width, c.height);
+      x.drawImage(img, 0, 0, c.width, c.height); c.toBlob(function (b) { SH.download(name, b); });
+    };
+    img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(xml);
+  };
+  SH.canvasPng = function (canvas, name) { canvas.toBlob(function (b) { SH.download(name, b); }); };
+
+  /* ---------------------------------------------------------------- tiny SVG builder */
+  SH.svgB = function (svg) {
+    var NS = 'http://www.w3.org/2000/svg';
+    svg = typeof svg === 'string' ? d.getElementById(svg) : svg; svg.innerHTML = '';
+    var api = {
+      el: svg,
+      add: function (tag, a, txt, parent) { var e = d.createElementNS(NS, tag); for (var k in a) if (a[k] != null) e.setAttribute(k, a[k]); if (txt != null) e.textContent = txt; (parent || svg).appendChild(e); return e; },
+      g: function (a, parent) { return api.add('g', a || {}, null, parent); },
+      line: function (x1, y1, x2, y2, a, parent) { return api.add('line', Object.assign({ x1: x1, y1: y1, x2: x2, y2: y2 }, a || {}), null, parent); },
+      path: function (dd, a, parent) { return api.add('path', Object.assign({ d: dd }, a || {}), null, parent); },
+      text: function (x, y, s, a, parent) { return api.add('text', Object.assign({ x: x, y: y, 'font-family': 'inherit' }, a || {}), s, parent); },
+      circle: function (cx, cy, r, a, parent) { return api.add('circle', Object.assign({ cx: cx, cy: cy, r: r }, a || {}), null, parent); },
+      poly: function (pts, a, parent) { return api.add('polygon', Object.assign({ points: pts.map(function (p) { return p[0].toFixed(1) + ',' + p[1].toFixed(1); }).join(' ') }, a || {}), null, parent); },
+      pl: function (pts) { return 'M' + pts.map(function (p) { return p[0].toFixed(1) + ' ' + p[1].toFixed(1); }).join('L'); },
+      arrow: function (x1, y1, x2, y2, col, w, label, a) {
+        var ang = Math.atan2(y2 - y1, x2 - x1), h = 9 + (w || 2);
+        api.line(x1, y1, x2, y2, { stroke: col, 'stroke-width': w || 2, 'stroke-linecap': 'round' });
+        api.poly([[x2, y2], [x2 - h * Math.cos(ang - 0.4), y2 - h * Math.sin(ang - 0.4)], [x2 - h * Math.cos(ang + 0.4), y2 - h * Math.sin(ang + 0.4)]], { fill: col });
+        if (label) api.text(x2 + (a && a.dx || 8 * Math.cos(ang)), y2 + (a && a.dy || 8 * Math.sin(ang) + 5), label, { fill: col, 'font-size': 14, 'font-weight': 800, 'text-anchor': 'middle' });
+      }
+    };
+    return api;
+  };
+
+  /* ---------------------------------------------------------------- css colours */
+  SH.css = function (v, el) { return getComputedStyle(el || root).getPropertyValue(v).trim(); };
+  SH.alpha = function (hex, a) { hex = (hex || '#888').trim(); if (hex[0] !== '#') return hex; if (hex.length === 4) hex = '#' + hex[1] + hex[1] + hex[2] + hex[2] + hex[3] + hex[3]; var n = parseInt(hex.slice(1), 16); return 'rgba(' + (n >> 16 & 255) + ',' + (n >> 8 & 255) + ',' + (n & 255) + ',' + a + ')'; };
+  SH.isDark = function () { var t = root.getAttribute('data-theme'); return t ? t === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches; };
+  SH.palette = function () {
+    return { text: SH.css('--text'), text2: SH.css('--text-2'), text3: SH.css('--text-3'), line: SH.css('--line'), line2: SH.css('--line-2'), bg: SH.css('--surface'), bg2: SH.css('--surface-2'),
+      accent: SH.css('--accent'), data: SH.css('--data'), warn: SH.css('--warn'), ok: SH.css('--ok'),
+      series: SH.isDark() ? ['#D6B66B', '#64B9B5', '#E08A5E', '#9BB0E8', '#B8D27A', '#D79AD6', '#E6E1D4', '#7EC8E3'] : ['#9A7631', '#2F7F7C', '#B4552D', '#4B63B5', '#6C8F2E', '#9C4D9A', '#33414C', '#2A8FB8'] };
+  };
+
+  /* ---------------------------------------------------------------- Plotly */
+  SH.plotLayout = function (extra) {
+    var p = SH.palette(), font = lang === 'ar' ? '"Plex Arabic", Tahoma, sans-serif' : 'Manrope, system-ui, sans-serif';
+    var ax = { gridcolor: p.line, zerolinecolor: p.line2, linecolor: p.line2, tickcolor: p.line2, tickfont: { color: p.text2, size: 11 }, title: { font: { color: p.text2, size: 12 } }, automargin: true };
+    var L = { paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)', font: { family: font, color: p.text, size: 12 }, margin: { l: 60, r: 20, t: 20, b: 50 },
+      colorway: p.series, hoverlabel: { font: { family: font } }, legend: { orientation: 'h', y: -0.18, font: { color: p.text2 } },
+      xaxis: JSON.parse(JSON.stringify(ax)), yaxis: JSON.parse(JSON.stringify(ax)) };
+    return deepMerge(L, extra || {});
+  };
+  function deepMerge(a, b) { for (var k in b) { if (b[k] && typeof b[k] === 'object' && !Array.isArray(b[k]) && a[k] && typeof a[k] === 'object') deepMerge(a[k], b[k]); else a[k] = b[k]; } return a; }
+  SH.merge = deepMerge;
+  var plots = [];
+  SH.plot = function (el, traces, layout, cfg) {
+    el = typeof el === 'string' ? d.getElementById(el) : el;
+    if (!w.Plotly) { el.innerHTML = '<div class="empty-s"><p>' + SH.t('Chart library failed to load. Refresh the page.', 'تعذر تحميل مكتبة المخططات. أعد تحميل الصفحة.') + '</p></div>'; return; }
+    var conf = Object.assign({ displaylogo: false, responsive: true, modeBarButtonsToRemove: ['select2d', 'lasso2d', 'autoScale2d', 'toggleSpikelines', 'hoverCompareCartesian'], toImageButtonOptions: { format: 'png', scale: 2, filename: (cfg && cfg.filename) || 'shandal-chart' } }, cfg || {});
+    var lay = typeof layout === 'function' ? layout() : layout;
+    w.Plotly.react(el, traces, SH.plotLayout(JSON.parse(JSON.stringify(lay || {}))), conf);
+    var rec = plots.filter(function (p) { return p.el === el; })[0];
+    if (!rec) plots.push({ el: el, layout: layout, traces: traces, cfg: conf }); else { rec.layout = layout; rec.traces = traces; }
+    return el;
+  };
+  SH.plotPng = function (el, name) { el = typeof el === 'string' ? d.getElementById(el) : el; if (w.Plotly) w.Plotly.downloadImage(el, { format: 'png', scale: 2, filename: name || 'shandal-chart' }); };
+  d.addEventListener('themechange', function () {
+    setTimeout(function () {
+      plots.forEach(function (p) { if (d.body.contains(p.el)) w.Plotly.react(p.el, p.traces, SH.plotLayout(JSON.parse(JSON.stringify((typeof p.layout === 'function' ? p.layout() : p.layout) || {}))), p.cfg); });
+      d.dispatchEvent(new CustomEvent('sh:redraw'));
+    }, 30);
+  });
+
+  /* ---------------------------------------------------------------- geolocation */
+  SH.locate = function (opts) {
+    return new Promise(function (res, rej) {
+      if (!navigator.geolocation) return rej(new Error(SH.t('This browser does not support location.', 'هذا المتصفح لا يدعم تحديد الموقع.')));
+      navigator.geolocation.getCurrentPosition(function (p) { res({ lat: p.coords.latitude, lon: p.coords.longitude, acc: p.coords.accuracy, alt: p.coords.altitude, altAcc: p.coords.altitudeAccuracy }); },
+        function (e) { rej(new Error(e.code === 1 ? SH.t('Location permission was denied. Allow location for this site in your browser settings.', 'تم رفض إذن الموقع. اسمح بالموقع لهذا الموقع من إعدادات المتصفح.') : SH.t('Could not get a GPS fix. Move to open sky and try again.', 'تعذر الحصول على إشارة GPS. انتقل إلى مكان مكشوف وحاول مجدداً.'))); },
+        Object.assign({ enableHighAccuracy: true, timeout: 20000, maximumAge: 0 }, opts || {}));
+    });
+  };
+  /* best-of-N fix: keeps sampling for `ms` and returns the most accurate reading */
+  SH.locateBest = function (ms, onUpdate) {
+    return new Promise(function (res, rej) {
+      if (!navigator.geolocation) return rej(new Error(SH.t('This browser does not support location.', 'هذا المتصفح لا يدعم تحديد الموقع.')));
+      var best = null, id = navigator.geolocation.watchPosition(function (p) {
+        var r = { lat: p.coords.latitude, lon: p.coords.longitude, acc: p.coords.accuracy, alt: p.coords.altitude, altAcc: p.coords.altitudeAccuracy };
+        if (!best || r.acc < best.acc) best = r; onUpdate && onUpdate(best);
+      }, function (e) { navigator.geolocation.clearWatch(id); if (!best) rej(new Error(e.code === 1 ? SH.t('Location permission was denied.', 'تم رفض إذن الموقع.') : SH.t('Could not get a GPS fix.', 'تعذر الحصول على إشارة GPS.'))); }, { enableHighAccuracy: true, maximumAge: 0, timeout: ms + 5000 });
+      setTimeout(function () { navigator.geolocation.clearWatch(id); best ? res(best) : rej(new Error(SH.t('Could not get a GPS fix.', 'تعذر الحصول على إشارة GPS.'))); }, ms);
+    });
+  };
+
+  /* ---------------------------------------------------------------- geodesy */
+  var A = 6378137, F = 1 / 298.257223563, K0 = 0.9996, E2 = F * (2 - F), EP2 = E2 / (1 - E2);
+  SH.utmZone = function (lat, lon) {
+    var z = Math.floor((lon + 180) / 6) + 1;
+    if (lat >= 56 && lat < 64 && lon >= 3 && lon < 12) z = 32;
+    if (lat >= 72 && lat < 84) { if (lon >= 0 && lon < 9) z = 31; else if (lon >= 9 && lon < 21) z = 33; else if (lon >= 21 && lon < 33) z = 35; else if (lon >= 33 && lon < 42) z = 37; }
+    return z;
+  };
+  SH.utmBand = function (lat) { return 'CDEFGHJKLMNPQRSTUVWXX'.charAt(Math.floor((SH.clamp(lat, -80, 84) + 80) / 8)); };
+  /* Snyder (1987) transverse Mercator series, WGS 84 */
+  SH.toUTM = function (lat, lon, forceZone) {
+    var zone = forceZone || SH.utmZone(lat, lon), l0 = SH.rad((zone - 1) * 6 - 180 + 3), phi = SH.rad(lat), lam = SH.rad(lon);
+    var N = A / Math.sqrt(1 - E2 * Math.sin(phi) * Math.sin(phi)), T = Math.tan(phi) * Math.tan(phi), C = EP2 * Math.cos(phi) * Math.cos(phi), Aa = Math.cos(phi) * (lam - l0);
+    var M = A * ((1 - E2 / 4 - 3 * E2 * E2 / 64 - 5 * E2 * E2 * E2 / 256) * phi - (3 * E2 / 8 + 3 * E2 * E2 / 32 + 45 * E2 * E2 * E2 / 1024) * Math.sin(2 * phi) + (15 * E2 * E2 / 256 + 45 * E2 * E2 * E2 / 1024) * Math.sin(4 * phi) - (35 * E2 * E2 * E2 / 3072) * Math.sin(6 * phi));
+    var x = K0 * N * (Aa + (1 - T + C) * Math.pow(Aa, 3) / 6 + (5 - 18 * T + T * T + 72 * C - 58 * EP2) * Math.pow(Aa, 5) / 120) + 500000;
+    var y = K0 * (M + N * Math.tan(phi) * (Aa * Aa / 2 + (5 - T + 9 * C + 4 * C * C) * Math.pow(Aa, 4) / 24 + (61 - 58 * T + T * T + 600 * C - 330 * EP2) * Math.pow(Aa, 6) / 720));
+    if (lat < 0) y += 10000000;
+    return { zone: zone, band: SH.utmBand(lat), hemi: lat < 0 ? 'S' : 'N', E: x, N: y };
+  };
+  SH.fromUTM = function (E, N, zone, south) {
+    var x = E - 500000, y = south ? N - 10000000 : N, l0 = SH.rad((zone - 1) * 6 - 180 + 3);
+    var M = y / K0, mu = M / (A * (1 - E2 / 4 - 3 * E2 * E2 / 64 - 5 * E2 * E2 * E2 / 256)), e1 = (1 - Math.sqrt(1 - E2)) / (1 + Math.sqrt(1 - E2));
+    var p1 = mu + (3 * e1 / 2 - 27 * Math.pow(e1, 3) / 32) * Math.sin(2 * mu) + (21 * e1 * e1 / 16 - 55 * Math.pow(e1, 4) / 32) * Math.sin(4 * mu) + (151 * Math.pow(e1, 3) / 96) * Math.sin(6 * mu) + (1097 * Math.pow(e1, 4) / 512) * Math.sin(8 * mu);
+    var N1 = A / Math.sqrt(1 - E2 * Math.sin(p1) * Math.sin(p1)), T1 = Math.tan(p1) * Math.tan(p1), C1 = EP2 * Math.cos(p1) * Math.cos(p1), R1 = A * (1 - E2) / Math.pow(1 - E2 * Math.sin(p1) * Math.sin(p1), 1.5), D = x / (N1 * K0);
+    var lat = p1 - (N1 * Math.tan(p1) / R1) * (D * D / 2 - (5 + 3 * T1 + 10 * C1 - 4 * C1 * C1 - 9 * EP2) * Math.pow(D, 4) / 24 + (61 + 90 * T1 + 298 * C1 + 45 * T1 * T1 - 252 * EP2 - 3 * C1 * C1) * Math.pow(D, 6) / 720);
+    var lon = l0 + (D - (1 + 2 * T1 + C1) * Math.pow(D, 3) / 6 + (5 - 2 * C1 + 28 * T1 - 3 * C1 * C1 + 8 * EP2 + 24 * T1 * T1) * Math.pow(D, 5) / 120) / Math.cos(p1);
+    return { lat: SH.deg(lat), lon: SH.deg(lon) };
+  };
+  SH.dist = function (a, b) { var R = 6371008.8, p1 = SH.rad(a.lat), p2 = SH.rad(b.lat), dp = p2 - p1, dl = SH.rad(b.lon - a.lon); var h = Math.sin(dp / 2) * Math.sin(dp / 2) + Math.cos(p1) * Math.cos(p2) * Math.sin(dl / 2) * Math.sin(dl / 2); return 2 * R * Math.asin(Math.sqrt(h)); };
+  SH.bearing = function (a, b) { var p1 = SH.rad(a.lat), p2 = SH.rad(b.lat), dl = SH.rad(b.lon - a.lon); return (SH.deg(Math.atan2(Math.sin(dl) * Math.cos(p2), Math.cos(p1) * Math.sin(p2) - Math.sin(p1) * Math.cos(p2) * Math.cos(dl))) + 360) % 360; };
+  SH.dest = function (p, brg, m) { var R = 6371008.8, dr = m / R, b = SH.rad(brg), p1 = SH.rad(p.lat), l1 = SH.rad(p.lon); var p2 = Math.asin(Math.sin(p1) * Math.cos(dr) + Math.cos(p1) * Math.sin(dr) * Math.cos(b)); var l2 = l1 + Math.atan2(Math.sin(b) * Math.sin(dr) * Math.cos(p1), Math.cos(dr) - Math.sin(p1) * Math.sin(p2)); return { lat: SH.deg(p2), lon: ((SH.deg(l2) + 540) % 360) - 180 }; };
+  SH.fmtLatLon = function (lat, lon, dp) { dp = dp == null ? 5 : dp; return Math.abs(lat).toFixed(dp) + '° ' + (lat >= 0 ? 'N' : 'S') + ', ' + Math.abs(lon).toFixed(dp) + '° ' + (lon >= 0 ? 'E' : 'W'); };
+  SH.dms = function (v, pos, neg) { var a = Math.abs(v), dd = Math.floor(a), mm = Math.floor((a - dd) * 60), ss = ((a - dd) * 60 - mm) * 60; return dd + '°' + String(mm).padStart(2, '0') + '′' + ss.toFixed(1).padStart(4, '0') + '″' + (v >= 0 ? pos : neg); };
+
+  /* ---------------------------------------------------------------- Leaflet helpers */
+  SH.basemaps = function () {
+    var L = w.L; if (!L) return {};
+    var osm = '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
+    return {
+      light: { name: SH.t('Light', 'فاتح'), layer: L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', { maxZoom: 20, subdomains: 'abcd', attribution: osm + ' © <a href="https://carto.com/attributions">CARTO</a>' }) },
+      dark: { name: SH.t('Dark', 'داكن'), layer: L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 20, subdomains: 'abcd', attribution: osm + ' © <a href="https://carto.com/attributions">CARTO</a>' }) },
+      streets: { name: SH.t('Streets', 'شوارع'), layer: L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: osm }) },
+      topo: { name: SH.t('Topographic', 'طبوغرافية'), layer: L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', { maxZoom: 17, subdomains: 'abc', attribution: 'Map data ' + osm + ', SRTM | Style © <a href="https://opentopomap.org">OpenTopoMap</a> (CC-BY-SA)' }) },
+      satellite: { name: SH.t('Satellite', 'فضائية'), layer: L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 19, attribution: 'Imagery © Esri, Maxar, Earthstar Geographics, and the GIS User Community' }) }
+    };
+  };
+  SH.map = function (el, opts) {
+    var L = w.L; el = typeof el === 'string' ? d.getElementById(el) : el;
+    if (!L) { el.innerHTML = '<div class="empty-s"><p>' + SH.t('Map library failed to load. Refresh the page.', 'تعذر تحميل مكتبة الخرائط. أعد تحميل الصفحة.') + '</p></div>'; return null; }
+    opts = opts || {};
+    var m = L.map(el, { center: opts.center || [33.31, 44.37], zoom: opts.zoom || 6, zoomControl: true, worldCopyJump: true, preferCanvas: !!opts.canvas, attributionControl: true });
+    var bm = SH.basemaps(), layers = {}, def = opts.base || (SH.isDark() ? 'dark' : 'light');
+    (opts.bases || ['light', 'dark', 'streets', 'topo', 'satellite']).forEach(function (k) { if (bm[k]) layers[bm[k].name] = bm[k].layer; });
+    (bm[def] || bm.light).layer.addTo(m);
+    m._shBase = def;
+    m.attributionControl.setPrefix('<a href="https://leafletjs.com">Leaflet</a>');
+    L.control.scale({ metric: true, imperial: false }).addTo(m);
+    m._shLayers = L.control.layers(layers, opts.overlays || {}, { position: 'topleft', collapsed: true }).addTo(m);
+    if (opts.locate !== false) {
+      var Loc = L.Control.extend({ options: { position: 'topleft' }, onAdd: function () {
+        var b = L.DomUtil.create('div', 'leaflet-bar'); b.innerHTML = '<a href="#" role="button" title="' + SH.t('My location', 'موقعي') + '" style="display:grid;place-items:center"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/><circle cx="12" cy="12" r="8"/></svg></a>';
+        L.DomEvent.on(b, 'click', function (e) { L.DomEvent.preventDefault(e); L.DomEvent.stopPropagation(e); SH.locate().then(function (p) { m.setView([p.lat, p.lon], Math.max(m.getZoom(), 14)); L.circle([p.lat, p.lon], { radius: p.acc, color: SH.css('--data'), weight: 1, fillOpacity: .1 }).addTo(m); m.fire('sh:located', p); }).catch(function (er) { SH.toast(er.message, 'bad'); }); });
+        return b;
+      } });
+      new Loc().addTo(m);
+    }
+    d.addEventListener('themechange', function () {
+      if (m._shBase !== 'light' && m._shBase !== 'dark') return;
+      var want = SH.isDark() ? 'dark' : 'light'; if (want === m._shBase) return;
+      m.removeLayer(bm[m._shBase].layer); bm[want].layer.addTo(m); m._shBase = want;
+    });
+    m.on('baselayerchange', function (e) { for (var k in bm) if (bm[k].layer === e.layer) m._shBase = k; });
+    setTimeout(function () { m.invalidateSize(); }, 200);
+    return m;
+  };
+  SH.pin = function (html, cls, size) { return w.L.divIcon({ className: '', html: '<div class="' + (cls || 'mk') + '">' + (html || '') + '</div>', iconSize: size || [14, 14], iconAnchor: size ? [size[0] / 2, size[1] / 2] : [7, 7] }); };
+  /* draw a rectangle on the map by two clicks or by dragging */
+  SH.drawRect = function (map, onDone, hintEl) {
+    var L = w.L, start = null, rect = null, active = true;
+    map.dragging.disable(); map.getContainer().style.cursor = 'crosshair'; if (hintEl) hintEl.hidden = false;
+    function finish(b) { active = false; map.dragging.enable(); map.getContainer().style.cursor = ''; if (hintEl) hintEl.hidden = true; map.off('mousedown', md); map.off('mousemove', mm); map.off('mouseup', mu); map.off('click', ck); onDone(b, rect); }
+    function md(e) { start = e.latlng; rect = rect || L.rectangle([start, start], { color: SH.css('--accent'), weight: 2, fillOpacity: .08, dashArray: '6 4' }).addTo(map); rect.setBounds([start, start]); }
+    function mm(e) { if (start && rect) rect.setBounds([start, e.latlng]); }
+    function mu(e) { if (!start) return; var b = L.latLngBounds(start, e.latlng); if (map.latLngToContainerPoint(start).distanceTo(e.containerPoint) < 8) return; start = null; finish(b); }
+    function ck(e) { if (!active) return; }
+    map.on('mousedown', md); map.on('mousemove', mm); map.on('mouseup', mu); map.on('click', ck);
+    // touch: two taps
+    var taps = [];
+    map.getContainer().addEventListener('touchend', function te(ev) {
+      if (!active) { map.getContainer().removeEventListener('touchend', te); return; }
+      var t = ev.changedTouches[0], r = map.getContainer().getBoundingClientRect(); var ll = map.containerPointToLatLng([t.clientX - r.left, t.clientY - r.top]);
+      taps.push(ll); if (!rect) rect = L.rectangle([ll, ll], { color: SH.css('--accent'), weight: 2, fillOpacity: .08, dashArray: '6 4' }).addTo(map);
+      if (taps.length === 2) { var b = L.latLngBounds(taps[0], taps[1]); rect.setBounds(b); map.getContainer().removeEventListener('touchend', te); finish(b); }
+    });
+    return { cancel: function () { if (active) { active = false; map.dragging.enable(); map.getContainer().style.cursor = ''; if (hintEl) hintEl.hidden = true; if (rect) map.removeLayer(rect); } } };
+  };
+
+  /* ---------------------------------------------------------------- fetch helpers */
+  SH.getJSON = function (url, opts) {
+    var ctl = new AbortController(), t = setTimeout(function () { ctl.abort(); }, (opts && opts.timeout) || 30000);
+    return fetch(url, Object.assign({ signal: ctl.signal }, opts || {})).then(function (r) { clearTimeout(t); if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+      .catch(function (e) { clearTimeout(t); throw new Error(e.name === 'AbortError' ? SH.t('The data service took too long to answer. Try again.', 'استغرقت خدمة البيانات وقتاً طويلاً. حاول مجدداً.') : (/HTTP/.test(e.message) ? SH.t('The data service returned an error (', 'أعادت خدمة البيانات خطأ (') + e.message + ').' : SH.t('Could not reach the data service. Check your internet connection.', 'تعذر الوصول إلى خدمة البيانات. تحقق من اتصالك بالإنترنت.'))); });
+  };
+
+  /* ---------------------------------------------------------------- session & gate */
+  SH.session = function () { var s = SH.store.get('shandal_session', null); if (!s || !s.name || !s.exp || s.exp < Date.now()) return null; return s; };
+  SH.deviceToken = function () {
+    var t = null; try { t = localStorage.getItem('shandal_device_token'); } catch (e) {}
+    if (!t) { var b = new Uint32Array(4); crypto.getRandomValues(b); t = 'DEV-' + Array.prototype.map.call(b, function (x) { return x.toString(36); }).join('') + Date.now(); try { localStorage.setItem('shandal_device_token', t); } catch (e) {} }
+    return t;
+  };
+  SH.login = function (name, code) {
+    return fetch(SH.cfg.authUrl, { method: 'POST', body: JSON.stringify({ name: name, password: code, deviceToken: SH.deviceToken() }) })
+      .then(function (r) { return r.json(); })
+      .then(function (res) {
+        if (res && res.success) { var s = { name: name, since: Date.now(), exp: Date.now() + SH.cfg.sessionHours * 3600e3 }; SH.store.set('shandal_session', s); return s; }
+        throw new Error((res && res.message) || SH.t('The name or access code is not correct.', 'الاسم أو رمز الدخول غير صحيح.'));
+      }, function () { throw new Error(SH.t('Could not reach the subscriber service. Check your connection and try again.', 'تعذر الوصول إلى خدمة المشتركين. تحقق من الاتصال وحاول مجدداً.')); });
+  };
+  SH.logout = function () { SH.store.del('shandal_session'); };
+  SH.gate = function () {
+    var g = d.getElementById('gate'); if (!g) return true;
+    var ok = !SH.cfg.gate || !!SH.session(); g.hidden = ok;
+    var ws = d.getElementById('ws-root'); if (ws) { ws.inert = !ok; ws.setAttribute('aria-hidden', ok ? 'false' : 'true'); }
+    return ok;
+  };
+
+  /* ---------------------------------------------------------------- report */
+  SH.report = function (title) {
+    var h = d.getElementById('repHead'); if (!h) { w.print(); return; }
+    var s = SH.session(), code = SH.uid('SHD');
+    h.querySelector('[data-r=title]').textContent = title || d.title;
+    h.querySelector('[data-r=meta]').textContent = SH.t('Prepared by ', 'إعداد: ') + ((d.getElementById('geoName') && d.getElementById('geoName').value) || (s && s.name) || '—') + ' · ' + new Date().toLocaleString(lang === 'ar' ? 'ar-IQ' : 'en-GB');
+    h.querySelector('[data-r=code]').textContent = code;
+    var q = h.querySelector('.qr'); q.innerHTML = '';
+    if (w.QRCode) { try { new w.QRCode(q, { text: location.origin + location.pathname.replace(/tools\/.*$/, '') + (lang === 'ar' ? '' : '') + 'verify/index.html?code=' + code, width: 148, height: 148, correctLevel: w.QRCode.CorrectLevel.M }); } catch (e) {} }
+    setTimeout(function () { w.print(); }, 250);
+  };
+
+  /* ---------------------------------------------------------------- persist simple inputs */
+  SH.persist = function (key, ids) {
+    var k = 'shandal_tool_' + key, saved = SH.store.get(k, {});
+    ids.forEach(function (id) { var e = d.getElementById(id); if (!e) return; if (saved[id] != null) { if (e.type === 'checkbox') e.checked = saved[id]; else e.value = saved[id]; } e.addEventListener('change', save); });
+    function save() { var o = {}; ids.forEach(function (id) { var e = d.getElementById(id); if (e) o[id] = e.type === 'checkbox' ? e.checked : e.value; }); SH.store.set(k, o); }
+    return { save: save, clear: function () { SH.store.del(k); } };
+  };
+
+  /* ---------------------------------------------------------------- tip buttons: open a modal with long help */
+  d.addEventListener('click', function (e) {
+    var t = e.target.closest('[data-help]'); if (!t) return;
+    e.preventDefault(); var tpl = d.getElementById(t.getAttribute('data-help')); if (tpl) SH.modal(tpl.getAttribute('data-title') || '', tpl.innerHTML);
+  });
+  d.addEventListener('click', function (e) {
+    var s = e.target.closest('.seg button'); if (!s) return;
+    $$('button', s.parentElement).forEach(function (b) { b.setAttribute('aria-pressed', b === s ? 'true' : 'false'); });
+    s.parentElement.dispatchEvent(new CustomEvent('segchange', { detail: s.getAttribute('data-v'), bubbles: true }));
+  });
+  SH.seg = function (id) { var b = d.querySelector('#' + id + ' button[aria-pressed=true]'); return b ? b.getAttribute('data-v') : null; };
+  d.addEventListener('input', function (e) { var r = e.target; if (r.type === 'range' && r.nextElementSibling && r.nextElementSibling.tagName === 'OUTPUT') r.nextElementSibling.textContent = r.value; });
+
+  d.addEventListener('DOMContentLoaded', function () {
+    SH.gate();
+    $$('.range input[type=range]').forEach(function (r) { if (r.nextElementSibling && r.nextElementSibling.tagName === 'OUTPUT') r.nextElementSibling.textContent = r.value; });
+    var rb = d.getElementById('reportBtn'); if (rb) rb.addEventListener('click', function () { if (d.dispatchEvent(new CustomEvent('sh:beforereport', { cancelable: true }))) SH.report(rb.getAttribute('data-title')); });
+  });
+})(window);

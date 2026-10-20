@@ -1,0 +1,188 @@
+{% extends "base.html" %}
+{% block main %}
+<section class="hero band-dark">
+  <div class="wrap hero-grid">
+    <div>
+      <span class="kicker"><span class="dot"></span>{{ tr(H.kicker) }}</span>
+      <h1 class="display" style="margin-top:18px">{{ tr(H.h1a) }} <span class="gold">{{ tr(H.h1b) }}</span></h1>
+      <p class="lead">{{ tr(H.lead) }}</p>
+      <div class="hero-cta">
+        <a class="btn btn-gold btn-lg" href="{{ u('platform/') }}">{{ t('explore_platform') }} {{ icon('arrow-right', 'ico ico-sm flip') }}</a>
+        <a class="btn btn-line btn-lg" href="{{ u('pricing/') }}">{{ t('nav_access') }}</a>
+      </div>
+      <div class="hero-meta">
+        <span>{{ icon('languages') }}{{ tr(H.meta1) }}</span>
+        <span>{{ icon('file-check') }}{{ tr(H.meta2) }}</span>
+        <span>{{ icon('earth') }}{{ tr(H.meta3) }}</span>
+      </div>
+    </div>
+    <div class="globe-wrap">
+      <canvas data-globe data-dots="{{ u('assets/data/land-dots.json') }}" aria-label="Globe" role="img"></canvas>
+      <div class="float-card fc1"><div class="t">{{ icon('compass') }}{{ tr(H.fc1t) }}</div><div class="v num">{{ tr(H.fc1v) }}</div><div class="s">{{ tr(H.fc1s) }}</div></div>
+      <div class="float-card fc2"><div class="t">{{ icon('pickaxe') }}{{ tr(H.fc2t) }}</div><div class="v num">{{ tr(H.fc2v) }}</div><div class="s">{{ tr(H.fc2s) }}</div></div>
+      <div class="float-card fc3"><div class="t">{{ icon('activity') }}{{ tr(H.fc3t) }}</div><div class="v num" dir="ltr">{{ tr(H.fc3v) }}</div><div class="s">{{ tr(H.fc3s) }}</div></div>
+    </div>
+  </div>
+</section>
+
+<div class="trust">
+  <div class="wrap trust-row">
+    <span class="ti">{{ icon('badge-check') }}<b>{{ tr(H.trust1) }}</b></span>
+    <span class="ti">{{ icon('handshake') }}{{ tr(H.trust2) }}</span>
+    <span class="ti">{{ icon('satellite') }}{{ tr(H.trust3) }}</span>
+    <span class="ti">{{ icon('map-pin') }}{{ tr(H.trust4) }}</span>
+  </div>
+</div>
+
+<section class="section">
+  <div class="wrap">
+    <div class="sec-head">
+      <div><span class="kicker"><span class="dot"></span>{{ tr(H.disc_k) }}</span><h2 class="h2">{{ tr(H.disc_h) }}</h2></div>
+      <p class="lead">{{ tr(H.disc_p) }}</p>
+    </div>
+    <div class="disc-grid">
+      {% for c in cats %}
+      <a class="disc" href="{{ u('platform/') }}#{{ c }}">
+        <span class="count num">{{ tools|selectattr('cat','equalto',c)|list|length }} {{ tr(H.tools_count) }}</span>
+        <span class="badge-ico">{{ icon(cat_icons[c], 'ico ico-lg') }}</span>
+        <h3>{{ t('cat_' + c) }}</h3>
+        <p>{{ t('cat_' + c + '_d') }}</p>
+        <ul>{% for tl in tools if tl.cat == c %}{% if loop.index <= 4 %}<li>{{ tr(tl.name) }}</li>{% endif %}{% endfor %}</ul>
+      </a>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<section class="section band-dark">
+  <div class="wrap preview">
+    <div>
+      <span class="kicker"><span class="dot"></span>{{ tr(H.prev_k) }}</span>
+      <h2 class="h2" style="margin-top:12px">{{ tr(H.prev_h) }}</h2>
+      <p class="lead" style="margin-top:16px">{{ tr(H.prev_p) }}</p>
+      <div class="feature-list">
+        <div class="fi"><span class="badge-ico">{{ icon('compass') }}</span><div><h3>{{ tr(H.f1h) }}</h3><p>{{ tr(H.f1p) }}</p></div></div>
+        <div class="fi"><span class="badge-ico">{{ icon('book-open') }}</span><div><h3>{{ tr(H.f2h) }}</h3><p>{{ tr(H.f2p) }}</p></div></div>
+        <div class="fi"><span class="badge-ico">{{ icon('qr-code') }}</span><div><h3>{{ tr(H.f3h) }}</h3><p>{{ tr(H.f3p) }}</p></div></div>
+        <div class="fi"><span class="badge-ico">{{ icon('sparkles') }}</span><div><h3>{{ tr(H.f4h) }}</h3><p>{{ tr(H.f4p) }}</p></div></div>
+      </div>
+    </div>
+    <div class="app-win" aria-hidden="true">
+      <div class="app-bar"><i></i><i></i><i></i><span class="url">{{ tr(H.app_url) }}</span></div>
+      <div class="app-body">
+        <div class="app-side">
+          <div class="fld"><span>{{ tr(H.app_dip) }}</span><b>38° / 045°</b></div>
+          <div class="fld"><span>{{ tr(H.app_slope) }}</span><b>62° / 060°</b></div>
+          <div class="fld"><span>{{ tr(H.app_phi) }}</span><b>30°</b></div>
+          <div class="fld"><span>{{ tr(H.app_rmr) }}</span><b>47 · III</b></div>
+          <div class="run">{{ tr(H.app_run) }}</div>
+        </div>
+        <div class="app-main">{{ illus('stereonet', 'Stereonet') }}</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="wrap">
+    <div class="sec-head">
+      <div><span class="kicker"><span class="dot"></span>{{ tr(H.feat_k) }}</span><h2 class="h2">{{ tr(H.feat_h) }}</h2></div>
+      <p class="lead">{{ tr(H.feat_p) }}</p>
+    </div>
+    <div class="tool-grid">
+      {% for tl in featured %}{% include "_toolcard.html" %}{% endfor %}
+    </div>
+    <div style="margin-top:36px;display:flex;justify-content:center"><a class="btn btn-ink" href="{{ u('platform/') }}">{{ t('nav_all_tools') }} {{ icon('arrow-right', 'ico ico-sm flip') }}</a></div>
+  </div>
+</section>
+
+<section class="section alt">
+  <div class="wrap">
+    <div class="sec-head">
+      <div><span class="kicker"><span class="dot"></span>{{ tr(H.flow_k) }}</span><h2 class="h2">{{ tr(H.flow_h) }}</h2></div>
+    </div>
+    <div class="steps">
+      <div class="step"><h3>{{ tr(H.s1h) }}</h3><p>{{ tr(H.s1p) }}</p></div>
+      <div class="step"><h3>{{ tr(H.s2h) }}</h3><p>{{ tr(H.s2p) }}</p></div>
+      <div class="step"><h3>{{ tr(H.s3h) }}</h3><p>{{ tr(H.s3p) }}</p></div>
+      <div class="step"><h3>{{ tr(H.s4h) }}</h3><p>{{ tr(H.s4p) }}</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="wrap split">
+    <div>
+      <span class="kicker"><span class="dot"></span>{{ tr(H.data_k) }}</span>
+      <h2 class="h2" style="margin-top:12px">{{ tr(H.data_h) }}</h2>
+      <p class="lead" style="margin-top:16px">{{ tr(H.data_p) }}</p>
+      <div class="table-wrap" style="margin-top:28px">
+        <table class="src-table">
+          {% for s in sources[:6] %}
+          <tr><td>{{ s[0] if lang == 'en' else s[1] }}</td><td class="muted" dir="ltr" style="text-align:start">{{ s[2] }}</td><td><span class="pill {{ 'live' if s[4] in ('live','in_use') else '' }}">{{ t(s[4]) }}</span></td></tr>
+          {% endfor %}
+        </table>
+      </div>
+      <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:24px">
+        <a class="btn btn-ink" href="{{ u('data/') }}">{{ tr(H.data_cta1) }}</a>
+        <a class="btn btn-line" href="{{ u('earth-now/') }}">{{ icon('activity', 'ico ico-sm') }}{{ tr(H.data_cta2) }}</a>
+      </div>
+    </div>
+    <div class="world"><canvas data-worldmap data-dots="{{ u('assets/data/land-dots.json') }}" id="homeMap"></canvas></div>
+  </div>
+</section>
+
+<section class="section alt">
+  <div class="wrap">
+    <div class="sec-head">
+      <div><span class="kicker"><span class="dot"></span>{{ tr(H.her_k) }}</span><h2 class="h2">{{ tr(H.her_h) }}</h2></div>
+      <p class="lead">{{ tr(H.her_p) }}</p>
+    </div>
+    <div class="mosaic">
+      {% for s in sites %}
+      <a href="{{ u('geoheritage/') }}#{{ s.slug }}"><img src="{{ u('assets/img/sites/' + s.img + '.webp') }}" alt="{{ tr(s.name) }}" loading="lazy"><span class="cap"><b>{{ tr(s.name) }}</b><span>{{ tr(s.where) }} · {{ tr(s.rock) }}</span></span></a>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="wrap">
+    <div class="sec-head">
+      <div><span class="kicker"><span class="dot"></span>{{ tr(H.learn_k) }}</span><h2 class="h2">{{ tr(H.learn_h) }}</h2></div>
+    </div>
+    <div class="card-grid two">
+      <a class="card" href="{{ u('academy/') }}" style="text-decoration:none;display:grid;grid-template-columns:auto 1fr;gap:20px;align-items:start;padding:30px">
+        <img src="{{ u('assets/img/training-192.png') }}" width="88" height="88" alt="" style="border-radius:50%">
+        <div><h3 class="h3">{{ tr(H.acad_h) }}</h3><p>{{ tr(H.acad_p) }}</p><span class="link" style="margin-top:14px">{{ t('learn_more') }} {{ icon('arrow-right', 'ico ico-sm flip') }}</span></div>
+      </a>
+      <a class="card" href="{{ u('library/') }}" style="text-decoration:none;display:grid;grid-template-columns:auto 1fr;gap:20px;align-items:start;padding:30px">
+        <span class="badge-ico" style="width:88px;height:88px;border-radius:50%;margin:0">{{ icon('library', 'ico ico-lg') }}</span>
+        <div><h3 class="h3">{{ tr(H.lib_h) }}</h3><p>{{ tr(H.lib_p) }}</p><span class="link" style="margin-top:14px">{{ t('learn_more') }} {{ icon('arrow-right', 'ico ico-sm flip') }}</span></div>
+      </a>
+    </div>
+  </div>
+</section>
+
+<section class="section alt">
+  <div class="wrap founder">
+    <div class="portrait band-dark"><img src="{{ u('assets/img/emblem.png') }}" alt="" width="300" height="300"></div>
+    <div>
+      <span class="kicker"><span class="dot"></span>{{ t('menu_about') }}</span>
+      <blockquote class="q" style="margin-top:18px">“{{ tr(H.quote) }}”</blockquote>
+      <div class="q-by"><div><b>{{ tr(H.quote_by) }}</b><span>{{ tr(H.quote_role) }}</span></div></div>
+      <a class="link" href="{{ u('about/') }}" style="margin-top:22px">{{ t('read_more') }} {{ icon('arrow-right', 'ico ico-sm flip') }}</a>
+    </div>
+  </div>
+</section>
+
+<section class="section-sm">
+  <div class="wrap">
+    <div class="cta-band band-dark">
+      <div><h2 class="h2">{{ tr(H.cta_h) }}</h2><p class="lead" style="margin-top:12px">{{ tr(H.cta_p) }}</p></div>
+      <div class="actions"><a class="btn btn-gold btn-lg" href="{{ u('pricing/') }}">{{ t('see_plans') }}</a><a class="btn btn-line btn-lg" href="{{ u('contact/') }}">{{ t('menu_contact') }}</a></div>
+    </div>
+  </div>
+</section>
+{% endblock %}
+{% block scripts %}<script src="{{ u('assets/js/globe.js') }}?v={{ version }}" defer></script>{% endblock %}

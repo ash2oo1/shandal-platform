@@ -1,0 +1,42 @@
+{% extends "app_base.html" %}
+{% import "apps/_m.html" as m with context %}
+{% block ws %}
+<div class="ws-wrap">
+<div class="ws">
+  <aside class="ws-side">
+    {{ m.panel_open(1, 'Organic-matter counts', 'أعداد المادة العضوية') }}
+      {{ m.fld('pName', 'Sample name', 'اسم العينة', 'text', '', '', 'Identifies the sample in the table and on the diagram.', 'يميز العينة في الجدول وعلى المخطط.', 'Ora Shale 1') }}
+      {{ m.fld('pAom', 'AOM', 'AOM (المادة غير المتبلورة)', 'number', '', 'count', 'Amorphous organic matter. Lower-left apex of the diagram.', 'المادة العضوية غير المتبلورة، الرأس السفلي الأيسر من المخطط.', '180') }}
+      {{ m.fld('pPhy', 'Phytoclasts', 'الفايتوكلاست', 'number', '', 'count', 'Land-plant fragments (wood, cuticle). Top apex.', 'شظايا النباتات الأرضية (الخشب والبشرة). الرأس العلوي.', '60') }}
+      {{ m.fld('pPal', 'Palynomorphs', 'البالينومورف', 'number', '', 'count', 'Spores, pollen, dinoflagellate cysts and acritarchs. Lower-right apex.', 'الأبواغ وحبوب اللقاح وأكياس السوطيات والأكريتارك. الرأس السفلي الأيمن.', '40') }}
+      <div class="pn-note" id="pSum">{{ m.L('Counts are converted to percentages of their total.', 'تُحوّل الأعداد إلى نسب مئوية من مجموعها.') }}</div>
+      <button class="btn btn-gold btn-block" id="pAdd" type="button">{{ icon('plus', 'ico ico-sm') }}{{ m.L('Plot sample', 'أسقط العينة') }}</button>
+      <div class="btns"><button class="btn btn-line btn-xs" id="pDemo" type="button">{{ m.L('Load example data', 'تحميل بيانات مثال') }}</button></div>
+    {{ m.panel_close() }}
+    <section class="pn"><div class="pn-h">{{ icon('book-open') }}<h2>{{ m.L('Palynofacies fields (Tyson 1995)', 'حقول السحنات (Tyson 1995)') }}</h2></div>
+      <div class="pn-b flush"><table class="kv" id="pGuide"></table></div>
+    </section>
+  </aside>
+  <div class="ws-main">
+    <div class="kpis">
+      <div class="kpi info"><span class="k">{{ m.L('Samples', 'العينات') }}</span><span class="v" id="pN">0</span><span class="s">{{ m.L('plotted', 'مُسقطة') }}</span></div>
+      <div class="kpi"><span class="k">{{ m.L('Field (last)', 'الحقل (الأخيرة)') }}</span><span class="v" id="pF">—</span><span class="s" id="pFs">—</span></div>
+      <div class="kpi"><span class="k">{{ m.L('Kerogen (last)', 'الكيروجين (الأخيرة)') }}</span><span class="v" id="pK">—</span><span class="s" id="pKs">—</span></div>
+    </div>
+    {{ m.fig_open('figT', '1', 'Tyson (1995) palynofacies ternary diagram', 'مخطط تايسون (1995) الثلاثي للسحنات البالينولوجية', '<button class="btn btn-line btn-xs" id="pPng">PNG</button>') }}
+      <div class="fig-b"><svg class="chart" id="pSvg" viewBox="0 0 760 620" role="img" aria-label="Tyson ternary diagram"></svg></div>
+      <div class="legend"><span><i style="background:var(--b2)"></i>{{ m.L('Gas-prone fields I–V', 'حقول منتجة للغاز I–V') }}</span><span><i style="background:color-mix(in srgb,var(--ok) 30%,transparent)"></i>{{ m.L('Oil-prone fields VI–IX', 'حقول منتجة للنفط VI–IX') }}</span><span><i class="dot" style="background:var(--accent)"></i>{{ m.L('Samples (numbered)', 'العينات (مرقمة)') }}</span></div>
+      <div class="fig-cap">{{ m.L('Each sample is placed by barycentric coordinates from its AOM, phytoclast and palynomorph percentages. Fields follow the boundaries used for classification in the table, so the point and the class always agree.', 'توضع كل عينة بالإحداثيات المركزية من نسب AOM والفايتوكلاست والبالينومورف. تتبع الحقول الحدود نفسها المستخدمة في التصنيف بالجدول، فيتطابق موقع النقطة مع الصنف دائماً.') }}</div>
+    {{ m.fig_close() }}
+    <section class="pn">
+      <div class="pn-h">{{ icon('table') }}<h2>{{ m.L('Palaeoenvironment record', 'سجل البيئات القديمة') }}</h2>
+        <div class="sp no-print"><button class="btn btn-line btn-xs" id="pCsv" type="button">{{ icon('download', 'ico ico-sm') }}CSV</button><button class="btn btn-danger btn-xs" id="pClear" type="button">{{ m.L('Clear all', 'مسح الكل') }}</button></div></div>
+      <div class="pn-b flush tbl-wrap">
+        <table class="tbl" id="pTable"><thead><tr><th>#</th><th>{{ m.L('Sample', 'العينة') }}</th><th class="num">AOM %</th><th class="num">{{ m.L('Phyto %', 'فايتو %') }}</th><th class="num">{{ m.L('Paly %', 'بالينو %') }}</th><th>{{ m.L('Field', 'الحقل') }}</th><th>{{ m.L('Environment', 'البيئة الترسيبية') }}</th><th>{{ m.L('Kerogen', 'الكيروجين') }}</th><th>{{ m.L('Potential', 'الجهد') }}</th><th data-noexport></th></tr></thead><tbody id="pBody"></tbody></table>
+        <div id="pEmpty">{{ m.empty('microscope', 'No samples yet', 'لا توجد عينات بعد', 'Enter the three counts from your palynofacies slide and press Plot sample.', 'أدخل الأعداد الثلاثة من شريحة السحنات واضغط أسقط العينة.') }}</div>
+      </div>
+    </section>
+  </div>
+</div>
+</div>
+{% endblock %}

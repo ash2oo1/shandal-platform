@@ -1,0 +1,72 @@
+{% extends "app_base.html" %}
+{% import "apps/_m.html" as m with context %}
+{% block ws %}
+<div class="ws-wrap">
+<div class="ws wide-side">
+  <aside class="ws-side">
+    {{ m.panel_open(1, 'Log header', 'ترويسة العمود') }}
+      <div class="row2">
+        {{ m.fld('geoName', 'Geologist', 'الجيولوجي', 'text', '', '', '', '', '') }}
+        {{ m.fld('cTitle', 'Column title', 'عنوان العمود', 'text', '', '', '', '', m.L('Section A, outcrop 1', 'المقطع A، المكشف 1')) }}
+      </div>
+      <div class="row2">
+        {{ m.fld('cLoc', 'Location', 'الموقع', 'text', '', '', '', '', m.L('Gara anticline, N Iraq', 'طية كارة، شمال العراق')) }}
+        {{ m.sel('cProf', 'Profile width shows', 'عرض العمود يمثل', [('hard', 'Weathering resistance (1–5)', 'مقاومة التجوية (1–5)', true), ('grain', 'Grain size (Wentworth)', 'الحجم الحبيبي (Wentworth)')]) }}
+      </div>
+    {{ m.panel_close() }}
+
+    {{ m.panel_open(2, 'Add or edit a bed (top to bottom)', 'أضف طبقة أو عدّلها (من الأعلى للأسفل)') }}
+      <div class="row2">
+        {{ m.fld('bFm', 'Formation or unit', 'التكوين أو الوحدة', 'text', '', '', '', '', 'Fatha Fm.') }}
+        <div class="fg"><label for="bAge">{{ m.L('Age', 'العمر') }}</label><input id="bAge" list="ages" placeholder="{{ m.L('e.g. Middle Miocene', 'مثال: الميوسين الأوسط') }}"><datalist id="ages"></datalist></div>
+      </div>
+      <div class="row2">
+        {{ m.sel('bCat', 'Rock class', 'صنف الصخر', [('sed', 'Sedimentary', 'رسوبي', true), ('carb', 'Carbonate', 'كربوناتي'), ('evap', 'Evaporite', 'متبخرات'), ('ign', 'Igneous', 'ناري'), ('meta', 'Metamorphic', 'متحول')]) }}
+        <div class="fg"><label for="bRock">{{ m.L('Primary rock', 'الصخر الرئيسي') }}</label><select id="bRock"></select></div>
+      </div>
+      <label class="chk"><input type="checkbox" id="bMix"> {{ m.L('Mixed or interbedded with a second rock', 'مختلط أو متعاقب مع صخر ثانٍ') }}</label>
+      <div class="row2" id="bMixRow" hidden>
+        <div class="fg"><label for="bRock2">{{ m.L('Secondary rock', 'الصخر الثانوي') }}</label><select id="bRock2"></select></div>
+        {{ m.sel('bMixStyle', 'Relationship', 'طبيعة العلاقة', [('inter', 'Interbedded (alternating bands)', 'متعاقب (أشرطة متناوبة)', true), ('mixed', 'Mixed within the bed', 'مختلط داخل الطبقة')]) }}
+      </div>
+      <div class="row3">
+        {{ m.fld('bTh', 'Thickness', 'السمك', 'number', '5', 'm', '', '', '', '0.1', 'min="0.1"') }}
+        {{ m.sel('bHard', 'Resistance', 'المقاومة', [('1', '1 · very soft', '1 · لين جداً'), ('2', '2 · soft', '2 · لين'), ('3', '3 · moderate', '3 · متوسط', true), ('4', '4 · hard', '4 · صلب'), ('5', '5 · very hard', '5 · صلب جداً')]) }}
+        {{ m.sel('bGrain', 'Grain size', 'الحجم الحبيبي', [('1', 'Clay', 'طين'), ('2', 'Silt', 'غرين'), ('3', 'Very fine sand', 'رمل ناعم جداً'), ('4', 'Fine sand', 'رمل ناعم', true), ('5', 'Medium sand', 'رمل متوسط'), ('6', 'Coarse sand', 'رمل خشن'), ('7', 'Very coarse sand', 'رمل خشن جداً'), ('8', 'Granule', 'حبيبات'), ('9', 'Pebble', 'حصى'), ('10', 'Cobble', 'جلاميد'), ('11', 'Boulder', 'كتل')]) }}
+      </div>
+      <div class="row2">
+        {{ m.sel('bContact', 'Lower contact', 'الحد السفلي', [('sharp', 'Sharp', 'حاد', true), ('grad', 'Gradational', 'متدرج'), ('eros', 'Erosional', 'تعروي'), ('unconf', 'Unconformity', 'عدم توافق'), ('uncert', 'Uncertain or covered', 'غير مؤكد أو مغطى')]) }}
+        <div class="fg"><label>{{ m.L('Colours', 'الألوان') }}</label><div style="display:flex;gap:8px"><input type="color" id="bColor" value="#E9D58C" style="padding:3px;height:42px;flex:1" aria-label="{{ m.L('Fill colour', 'لون التعبئة') }}"><input type="color" id="bPat" value="#2B2B2B" style="padding:3px;height:42px;flex:1" aria-label="{{ m.L('Pattern colour', 'لون النقش') }}"></div></div>
+      </div>
+      <div class="fg"><span class="lb">{{ m.L('Fossils and structures', 'الأحافير والتراكيب') }}</span>
+        <div class="chks" id="bAcc" style="grid-template-columns:repeat(2,minmax(0,1fr))">
+          <label class="chk"><input type="checkbox" value="fossil"> {{ m.L('Fossils', 'أحافير') }}</label>
+          <label class="chk"><input type="checkbox" value="xbed"> {{ m.L('Cross-bedding', 'تطبق متقاطع') }}</label>
+          <label class="chk"><input type="checkbox" value="ripple"> {{ m.L('Ripple marks', 'علامات تموج') }}</label>
+          <label class="chk"><input type="checkbox" value="nodule"> {{ m.L('Nodules', 'عقد') }}</label>
+          <label class="chk"><input type="checkbox" value="chert"> {{ m.L('Chert', 'صوان') }}</label>
+          <label class="chk"><input type="checkbox" value="bio"> {{ m.L('Bioturbation', 'تعكير حيوي') }}</label>
+        </div></div>
+      <div class="fg"><label for="bDesc">{{ m.L('Description (optional)', 'الوصف (اختياري)') }}</label><input id="bDesc" placeholder="{{ m.L('Leave empty for an automatic description', 'اتركه فارغاً لوصف تلقائي') }}"></div>
+      <div class="row2"><button class="btn btn-gold" id="bAdd" type="button">{{ icon('plus', 'ico ico-sm') }}<span id="bAddTxt">{{ m.L('Add bed', 'أضف الطبقة') }}</span></button><button class="btn btn-line" id="bCancel" type="button" hidden>{{ m.L('Cancel edit', 'إلغاء التعديل') }}</button></div>
+      <button class="btn btn-line btn-xs" id="bDemo" type="button">{{ m.L('Load example section', 'تحميل مقطع مثال') }}</button>
+    {{ m.panel_close() }}
+  </aside>
+  <div class="ws-main">
+    <div class="kpis">
+      <div class="kpi info"><span class="k">{{ m.L('Beds', 'الطبقات') }}</span><span class="v" id="kBeds">0</span><span class="s">{{ m.L('top to bottom', 'من الأعلى للأسفل') }}</span></div>
+      <div class="kpi"><span class="k">{{ m.L('Total thickness', 'السمك الكلي') }}</span><span class="v" id="kThk">0</span><span class="s">m</span></div>
+      <div class="kpi"><span class="k">{{ m.L('Formations', 'التكوينات') }}</span><span class="v" id="kFm">0</span><span class="s" id="kFmS">—</span></div>
+    </div>
+    {{ m.fig_open('figC', '', 'Stratigraphic column', 'العمود الطباقي', '<button class="btn btn-line btn-xs" id="cSvg">SVG</button><button class="btn btn-line btn-xs" id="cPng">PNG</button>') }}
+      <div class="fig-b" style="overflow:auto"><svg class="chart" id="colSvg" viewBox="0 0 900 600" role="img" aria-label="Stratigraphic column" style="min-width:640px"></svg></div>
+    {{ m.fig_close() }}
+    <section class="pn">
+      <div class="pn-h">{{ icon('layers') }}<h2>{{ m.L('Beds', 'الطبقات') }}</h2><div class="sp no-print"><button class="btn btn-line btn-xs" id="bCsv">{{ icon('download', 'ico ico-sm') }}CSV</button><button class="btn btn-danger btn-xs" id="bClear">{{ m.L('Clear all', 'مسح الكل') }}</button></div></div>
+      <div class="pn-b flush tbl-wrap"><table class="tbl" id="bTable"><thead><tr><th>#</th><th>{{ m.L('Unit', 'الوحدة') }}</th><th>{{ m.L('Age', 'العمر') }}</th><th>{{ m.L('Lithology', 'الصخارية') }}</th><th class="num">{{ m.L('Thickness m', 'السمك م') }}</th><th class="num">{{ m.L('Top m', 'القمة م') }}</th><th class="num">{{ m.L('Base m', 'القاعدة م') }}</th><th>{{ m.L('Lower contact', 'الحد السفلي') }}</th><th data-noexport></th></tr></thead><tbody id="bBody"></tbody></table>
+      <div id="bEmpty">{{ m.empty('layers', 'No beds yet', 'لا توجد طبقات بعد', 'Add beds from the top of the section downward. The column redraws after every change.', 'أضف الطبقات من قمة المقطع نحو الأسفل. يُعاد رسم العمود بعد كل تغيير.') }}</div></div>
+    </section>
+  </div>
+</div>
+</div>
+{% endblock %}

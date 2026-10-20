@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block bodyattr %} class="ws-page" data-tool="{{ tool.name.en }}"{% endblock %}
+{% block head %}
+<link rel="stylesheet" href="{{ u('assets/css/ws.css') }}?v={{ version }}">
+{% if 'map' in tool.libs %}<link rel="stylesheet" href="{{ u('assets/vendor/leaflet/leaflet.css') }}">{% endif %}
+{% block apphead %}{% endblock %}
+{% endblock %}
+{% block main %}
+<div class="ws-bar">
+  <div class="wrap">
+    <div class="ws-id">
+      <span class="ib">{{ icon(tool.icon) }}</span>
+      <div style="min-width:0"><small>{{ t('cat_' + tool.cat) }} · {{ t('workspace') }}</small><h1>{{ tr(tool.name) }}</h1></div>
+    </div>
+    <div class="ws-actions">
+      <a class="btn btn-line btn-sm" href="{{ u('tools/' + tool.slug + '/') }}">{{ icon('book-open', 'ico ico-sm') }}<span>{{ t('about_tool') }}</span></a>
+      {% if not tool.noreport %}<button class="btn btn-gold btn-sm" id="reportBtn" type="button" data-title="{{ tr(tool.name) }}">{{ icon('file-text', 'ico ico-sm') }}<span>{{ t('report_pdf') }}</span></button>{% endif %}
+    </div>
+  </div>
+</div>
+<div id="ws-root">
+<div class="rep-head" id="repHead"><img src="{{ u('assets/img/emblem-192.png') }}" alt=""><div><h1 data-r="title"></h1><p>{{ t('brand_full') }} · geologicalfieldsurvey.com</p><p data-r="meta"></p></div><div><div class="qr"></div><div class="code" data-r="code"></div></div></div>
+{% block ws %}{% endblock %}
+</div>
+{% if tool.gate is not sameas false %}
+<div class="gate" id="gate" hidden>
+  <div class="gate-card">
+    <img src="{{ u('assets/img/emblem-192.png') }}" alt="">
+    <h2>{{ t('gate_h') }}</h2>
+    <p>{{ t('gate_p') }}</p>
+    <div class="btns"><a class="btn btn-gold" href="{{ u('login/') }}?next={{ ('tools/' + tool.slug + '/app/')|urlencode }}">{{ t('nav_signin') }}</a><a class="btn btn-line" href="{{ u('pricing/') }}">{{ t('see_plans') }}</a></div>
+  </div>
+</div>
+{% endif %}
+{% endblock %}
+{% block footer %}
+<footer class="no-print" style="border-top:1px solid var(--line);padding:18px 0;font-size:.78rem;color:var(--text-3)"><div class="wrap" style="max-width:1520px;display:flex;flex-wrap:wrap;gap:8px 24px;justify-content:space-between"><span>{{ t('f_copy') }}</span><span>{{ t('disclaimer_short') }}</span></div></footer>
+{% endblock %}
+{% block scripts %}
+{% if 'map' in tool.libs %}<script src="{{ u('assets/vendor/leaflet/leaflet.js') }}"></script>{% endif %}
+{% if 'plot' in tool.libs %}<script src="{{ u('assets/vendor/plotly/plotly-cartesian.min.js') }}"></script>{% endif %}
+<script src="{{ u('assets/vendor/qrcode/qrcode.min.js') }}" defer></script>
+<script src="{{ u('assets/js/ws.js') }}?v={{ version }}"></script>
+{% block appscripts %}{% endblock %}
+<script src="{{ u('assets/js/tools/' + tool.slug + '.js') }}?v={{ version }}" defer></script>
+{% endblock %}

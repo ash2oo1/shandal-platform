@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block main %}
+<section class="page-hero band-dark">
+  <div class="contour-bg" aria-hidden="true">{{ bgcontours }}</div>
+  <div class="wrap">
+    <nav class="crumbs" aria-label="Breadcrumb"><a href="{{ u('') }}">{{ t('home') }}</a>{{ icon('chevron-right', 'ico flip') }}<span>{{ crumb }}</span></nav>
+    {% block hero %}
+    <h1 class="h1" style="max-width:20ch">{{ h1 }}</h1>
+    <p class="lead" style="margin-top:18px">{{ lead }}</p>
+    {% endblock %}
+  </div>
+</section>
+{% block body %}{% endblock %}
+{% endblock %}

@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block main %}
+<section class="page-hero band-dark">
+  <div class="contour-bg" aria-hidden="true">{{ bgcontours }}</div>
+  <div class="wrap">
+    <nav class="crumbs" aria-label="Breadcrumb"><a href="{{ u('') }}">{{ t('home') }}</a>{{ icon('chevron-right', 'ico flip') }}<span>{{ t('nav_platform') }}</span></nav>
+    <h1 class="h1" style="max-width:18ch">{{ tr(PG.h) }}</h1>
+    <p class="lead" style="margin-top:18px">{{ tr(PG.p) }}</p>
+    <div class="stat-row" style="margin-top:36px;max-width:820px">
+      {% for c in cats %}<div class="stat"><b class="num">{{ tools|selectattr('cat','equalto',c)|list|length }}</b><span>{{ t('cat_' + c) }}</span></div>{% endfor %}
+    </div>
+  </div>
+</section>
+<section class="section">
+  <div class="wrap">
+    <div class="filters" role="toolbar">
+      <button class="chip" type="button" data-filter="all" aria-pressed="true">{{ t('all') }}</button>
+      {% for c in cats %}<button class="chip" type="button" data-filter="{{ c }}" aria-pressed="false">{{ icon(cat_icons[c]) }}{{ t('cat_' + c) }}</button>{% endfor %}
+      <label class="find">{{ icon('search') }}<span class="sr-only">{{ t('nav_search') }}</span><input id="findTool" type="search" placeholder="{{ t('nav_search') }}"></label>
+    </div>
+    {% for c in cats %}
+    <div class="cat-block" id="{{ c }}">
+      <header><div><h2 class="h3">{{ t('cat_' + c) }}</h2><p>{{ t('cat_' + c + '_d') }}</p></div></header>
+      <div class="tool-grid">{% for tl in tools if tl.cat == c %}{% include "_toolcard.html" %}{% endfor %}</div>
+    </div>
+    {% endfor %}
+    <p class="empty" id="noTools" hidden>{{ t('search_empty') }}</p>
+  </div>
+</section>
+{% endblock %}

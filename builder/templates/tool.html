@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+{% block main %}
+<section class="page-hero band-dark">
+  <div class="contour-bg" aria-hidden="true">{{ bgcontours }}</div>
+  <div class="wrap">
+    <nav class="crumbs" aria-label="Breadcrumb"><a href="{{ u('') }}">{{ t('home') }}</a>{{ icon('chevron-right', 'ico flip') }}<a href="{{ u('platform/') }}">{{ t('tools') }}</a>{{ icon('chevron-right', 'ico flip') }}<span>{{ tr(tool.name) }}</span></nav>
+    <div class="tool-hero">
+      <div>
+        <span class="cat"><span class="ib">{{ icon(tool.icon) }}</span>{{ t('cat_' + tool.cat) }}{% if tool.live %}<span class="pill live" style="margin-inline-start:8px">{{ t('live_data') }}</span>{% endif %}{% if tool.gate is sameas false %}<span class="pill gold" style="margin-inline-start:6px">{{ t('free_tool') }}</span>{% endif %}</span>
+        <h1 class="h1">{{ tr(tool.name) }}</h1>
+        <p class="tag">{{ tr(tool.tagline) }}</p>
+        <p class="lead">{{ tr(tool.summary) }}</p>
+        <div class="actions">
+          <a class="btn btn-gold btn-lg" href="{{ u('tools/' + tool.slug + '/app/') }}">{{ t('open_workspace') }} {{ icon('arrow-right', 'ico ico-sm flip') }}</a>
+          {% if tool.gate is not sameas false %}<a class="btn btn-line btn-lg" href="{{ u('pricing/') }}">{{ t('see_plans') }}</a>{% endif %}
+        </div>
+      </div>
+      <div class="art-frame">
+        <div class="bar"><i></i><i></i><i></i><span>{{ tr(tool.name) }}</span></div>
+        {{ illus(tool.illus, tr(tool.name)) }}
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="wrap doc">
+    <aside class="toc" aria-label="{{ t('on_this_page') }}">
+      <h4>{{ t('on_this_page') }}</h4>
+      <ol>
+        <li><a href="#overview">{{ t('overview') }}</a></li>
+        <li><a href="#io">{{ t('inputs') }} · {{ t('outputs') }}</a></li>
+        <li><a href="#workflow">{{ t('workflow') }}</a></li>
+        <li><a href="#method">{{ t('method') }}</a></li>
+        <li><a href="#users">{{ t('who_uses') }}</a></li>
+        <li><a href="#refs">{{ t('references') }}</a></li>
+      </ol>
+    </aside>
+    <div class="doc-main">
+      <section id="overview">
+        <h2>{{ t('overview') }}</h2>
+        {% for p in tool.overview %}<p>{{ tr(p) }}</p>{% endfor %}
+      </section>
+      <section id="io">
+        <h2>{{ t('inputs') }} · {{ t('outputs') }}</h2>
+        <div class="io">
+          <div class="card"><h3>{{ icon('scan-line') }}{{ t('inputs') }}</h3><ul class="checks">{% for i in tool.inputs %}<li>{{ icon('check') }}<span>{{ tr(i) }}</span></li>{% endfor %}</ul></div>
+          <div class="card"><h3>{{ icon('file-check') }}{{ t('outputs') }}</h3><ul class="checks">{% for i in tool.outputs %}<li>{{ icon('check') }}<span>{{ tr(i) }}</span></li>{% endfor %}</ul></div>
+        </div>
+      </section>
+      <section id="workflow">
+        <h2>{{ t('workflow') }}</h2>
+        <div class="flow" style="--n:{{ tool.workflow|length }}">{% for s in tool.workflow %}<div>{{ tr(s) }}</div>{% endfor %}</div>
+      </section>
+      <section id="method">
+        <h2>{{ t('method') }}</h2>
+        <div class="method">
+          {% for m in tool.method %}
+          <div class="m"><div class="mh"><h3>{{ tr(m.h) }}</h3><p>{{ tr(m.p) }}</p></div>{% if m.eq %}<div class="eq">{{ m.eq|safe }}</div>{% else %}<div style="height:18px"></div>{% endif %}</div>
+          {% endfor %}
+        </div>
+      </section>
+      <section id="users">
+        <h2>{{ t('who_uses') }}</h2>
+        <div class="users">{% for us in tool.users %}<span>{{ icon('users') }}{{ tr(us) }}</span>{% endfor %}</div>
+      </section>
+      <section id="refs">
+        <h2>{{ t('references') }}</h2>
+        <ol class="refs">{% for r in tool.refs %}<li>{{ r }}</li>{% endfor %}</ol>
+        <div class="note" style="margin-top:24px">{{ icon('info') }}<span>{{ t('disclaimer_short') }}</span></div>
+      </section>
+    </div>
+    <div class="aside">
+      <div class="specs">
+        <h4>{{ t('specs') }}</h4>
+        <dl>
+          <div><dt>{{ t('spec_category') }}</dt><dd>{{ t('cat_' + tool.cat) }}</dd></div>
+          <div><dt>{{ t('spec_platform') }}</dt><dd>{{ t('spec_platform_v') }}</dd></div>
+          <div><dt>{{ t('spec_export') }}</dt><dd>{{ tr(tool.exports) }}</dd></div>
+          <div><dt>{{ t('spec_access') }}</dt><dd>{{ t('free_tool') if tool.gate is sameas false else t('spec_access_v') }}</dd></div>
+        </dl>
+      </div>
+      <div class="card related">
+        <h4 style="margin-bottom:6px">{{ t('related_tools') }}</h4>
+        {% for r in related %}<a href="{{ u('tools/' + r.slug + '/') }}"><span class="ib">{{ icon(r.icon, 'ico ico-sm') }}</span>{{ tr(r.name) }}</a>{% endfor %}
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section-sm" style="padding-top:0">
+  <div class="wrap">
+    <div class="cta-band band-dark">
+      <div><h2 class="h2">{{ t('tool_cta_h') }}</h2><p class="lead" style="margin-top:12px">{{ t('tool_cta_p') }}</p></div>
+      <div class="actions"><a class="btn btn-gold btn-lg" href="{{ u('pricing/') }}">{{ t('see_plans') }}</a><a class="btn btn-line btn-lg" href="{{ u('platform/') }}">{{ t('nav_all_tools') }}</a></div>
+    </div>
+  </div>
+</section>
+{% endblock %}

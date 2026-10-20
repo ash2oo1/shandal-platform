@@ -1,0 +1,57 @@
+{% extends "app_base.html" %}
+{% import "apps/_m.html" as m with context %}
+{% block ws %}
+<div class="ws-wrap">
+<div class="ws">
+  <aside class="ws-side">
+    {{ m.panel_open(1, 'Well or sample', 'البئر أو العينة') }}
+      {{ m.fld('gName', 'Well name or sample ID', 'اسم البئر أو العينة', 'text', '', '', '', '', 'Kirkuk-109') }}
+      <div class="row2">
+        {{ m.fld('gDepth', 'Depth', 'العمق', 'number', '', 'm', 'True vertical depth of the measured formation temperature.', 'العمق الرأسي الحقيقي الذي قيست عنده حرارة التكوين.', '2400') }}
+        {{ m.fld('gTf', 'Formation temp.', 'حرارة التكوين', 'number', '', '°C', 'Corrected (true) formation temperature at that depth, e.g. Horner-corrected BHT.', 'حرارة التكوين المصححة عند ذلك العمق، مثل حرارة قاع البئر المصححة بطريقة Horner.', '92') }}
+      </div>
+      <div class="row2">
+        {{ m.fld('gTs', 'Surface temp.', 'حرارة السطح', 'number', '25', '°C', 'Mean annual surface (or sea-floor) temperature.', 'متوسط حرارة السطح السنوية (أو قاع البحر).') }}
+        {{ m.fld('gK', 'Conductivity', 'الموصلية الحرارية', 'number', '', 'W/m·K', 'Optional bulk thermal conductivity for heat-flow estimation (shale ≈ 1.5, sandstone ≈ 2.5, limestone ≈ 2.5–3, salt ≈ 5).', 'اختياري لحساب التدفق الحراري (طفل ≈ 1.5، رمل ≈ 2.5، جيري ≈ 2.5–3، ملح ≈ 5).', '2.2') }}
+      </div>
+      <div class="row2">
+        {{ m.fld('gRo', 'Vitrinite Ro', 'انعكاسية الفترينايت Ro', 'number', '', '%', 'Measured vitrinite reflectance. Oil window 0.6–1.1 %.', 'انعكاسية الفترينايت المقاسة. نافذة النفط 0.6–1.1%.', '0.85') }}
+        {{ m.fld('gTmax', 'Rock-Eval Tmax', 'Tmax', 'number', '', '°C', 'Oil zone 430–465 °C.', 'نطاق النفط 430–465 °م.', '442') }}
+      </div>
+      <button class="btn btn-gold btn-block" id="gAdd" type="button">{{ icon('plus', 'ico ico-sm') }}{{ m.L('Analyse and add', 'حلّل وأضف') }}</button>
+      <div class="btns"><button class="btn btn-line btn-xs" id="gDemo" type="button">{{ m.L('Load example data', 'تحميل بيانات مثال') }}</button></div>
+    {{ m.panel_close() }}
+    <section class="pn"><div class="pn-h">{{ icon('book-open') }}<h2>{{ m.L('Reference windows', 'النوافذ المرجعية') }}</h2></div>
+      <div class="pn-b flush"><table class="kv">
+        <tr><th>{{ m.L('Immature', 'غير ناضج') }}</th><td class="ltr">Ro &lt; 0.6 % · Tmax &lt; 430 °C</td></tr>
+        <tr><th>{{ m.L('Oil window', 'نافذة النفط') }}</th><td class="ltr">Ro 0.6–1.1 % · Tmax 430–465 °C</td></tr>
+        <tr><th>{{ m.L('Wet-gas window', 'نافذة الغاز الرطب') }}</th><td class="ltr">Ro 1.1–1.4 %</td></tr>
+        <tr><th>{{ m.L('Dry-gas generation', 'توليد الغاز الجاف') }}</th><td class="ltr">Ro 1.4–2.2 % · Tmax &gt; 465 °C</td></tr>
+        <tr><th>{{ m.L('Dry-gas preservation', 'حفظ الغاز الجاف') }}</th><td class="ltr">Ro 2.2–3.2 %</td></tr>
+        <tr><th>{{ m.L('Gas destruction', 'تحطم الغاز') }}</th><td class="ltr">Ro &gt; 3.2 %</td></tr>
+      </table></div>
+    </section>
+  </aside>
+  <div class="ws-main">
+    <div class="kpis">
+      <div class="kpi info"><span class="k">{{ m.L('Gradient (last)', 'التدرج (الأخير)') }}</span><span class="v" id="gG">—</span><span class="s" dir="ltr">°C/km</span></div>
+      <div class="kpi"><span class="k">{{ m.L('Heat flow (last)', 'التدفق الحراري (الأخير)') }}</span><span class="v" id="gQ">—</span><span class="s" dir="ltr">mW/m²</span></div>
+      <div class="kpi"><span class="k">{{ m.L('Ro window (last)', 'نافذة Ro (الأخيرة)') }}</span><span class="v" id="gW" style="font-size:1.15rem">—</span><span class="s" id="gWs">—</span></div>
+      <div class="kpi"><span class="k">{{ m.L('Top of oil window (≈ 60 °C)', 'قمة نافذة النفط (≈ 60 °م)') }}</span><span class="v" id="gZ">—</span><span class="s">m</span></div>
+    </div>
+    {{ m.fig_open('figG', '1', 'Temperature–depth profile', 'منحنى الحرارة مع العمق', '<button class="btn btn-line btn-xs" data-png="gP1">PNG</button>') }}
+      <div class="fig-b"><div class="plot tall" id="gP1"></div></div>
+      <div class="fig-cap">{{ m.L('Each well is drawn from the surface temperature to its measured formation temperature and extrapolated to 6 km. Shaded bands mark the approximate oil (60–120 °C) and gas (120–200 °C) generation temperatures.', 'يُرسم كل بئر من حرارة السطح إلى حرارة التكوين المقاسة ويُمدّ إلى عمق 6 كم. تشير الأشرطة المظللة إلى درجات الحرارة التقريبية لتوليد النفط (60–120 °م) والغاز (120–200 °م).') }}</div>
+    {{ m.fig_close() }}
+    <section class="pn">
+      <div class="pn-h">{{ icon('table') }}<h2>{{ m.L('Thermal maturity record', 'سجل النضج الحراري') }}</h2>
+        <div class="sp no-print"><button class="btn btn-line btn-xs" id="gCsv" type="button">{{ icon('download', 'ico ico-sm') }}CSV</button><button class="btn btn-danger btn-xs" id="gClear" type="button">{{ m.L('Clear all', 'مسح الكل') }}</button></div></div>
+      <div class="pn-b flush tbl-wrap">
+        <table class="tbl" id="gTable"><thead><tr><th>{{ m.L('Well', 'البئر') }}</th><th class="num">{{ m.L('Depth m', 'العمق م') }}</th><th class="num">Tf °C</th><th class="num">{{ m.L('Gradient °C/km', 'التدرج °م/كم') }}</th><th class="num">q mW/m²</th><th class="num">Ro %</th><th>{{ m.L('Ro window', 'نافذة Ro') }}</th><th class="num">Tmax</th><th>{{ m.L('Tmax zone', 'نطاق Tmax') }}</th><th class="num">{{ m.L('Ro from Tmax', 'Ro من Tmax') }}</th><th class="num">{{ m.L('Depth 60 °C', 'عمق 60 °م') }}</th><th class="num">{{ m.L('Depth 120 °C', 'عمق 120 °م') }}</th><th data-noexport></th></tr></thead><tbody id="gBody"></tbody></table>
+        <div id="gEmpty">{{ m.empty('flame', 'No wells yet', 'لا توجد آبار بعد', 'Enter a depth and formation temperature to compute the geothermal gradient.', 'أدخل العمق وحرارة التكوين لحساب التدرج الحراري الأرضي.') }}</div>
+      </div>
+    </section>
+  </div>
+</div>
+</div>
+{% endblock %}

@@ -1,0 +1,310 @@
+{% extends "_page.html" %}
+{% block hero %}
+<h1 class="h1" style="max-width:20ch">{{ h1 }}</h1>
+<p class="lead" style="margin-top:18px">{{ lead }}</p>
+{% if page == 'earth' %}
+<div class="stat-row" style="margin-top:36px">
+  <div class="stat"><b class="num" id="qCount">—</b><span>{{ tr(X.q_count) }}</span></div>
+  <div class="stat"><b class="num" id="qMax">—</b><span>{{ tr(X.q_max) }}</span></div>
+  <div class="stat"><b class="num" id="qNear">—</b><span>{{ tr(X.q_near) }}</span></div>
+  <div class="stat"><b class="num" id="qDeep">—</b><span>{{ tr(X.q_deep) }}</span></div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block body %}
+{# ================================================================ DATA HUB #}
+{% if page == 'data' %}
+<section class="section">
+  <div class="wrap">
+    <div class="world"><canvas data-worldmap data-dots="{{ u('assets/data/land-dots.json') }}"></canvas></div>
+    <div class="sec-head" style="margin-top:72px">
+      <div><span class="kicker"><span class="dot"></span>{{ tr(X.src_k) }}</span><h2 class="h2">{{ tr(X.src_h) }}</h2></div>
+      <p class="lead">{{ tr(X.src_p) }}</p>
+    </div>
+    <div class="table-wrap">
+      <table class="src-table">
+        <thead><tr><th>{{ tr(X.th1) }}</th><th>{{ tr(X.th2) }}</th><th>{{ tr(X.th3) }}</th><th>{{ tr(X.th4) }}</th></tr></thead>
+        <tbody>
+        {% for s in sources %}
+        <tr><td>{{ s[0] if lang == 'en' else s[1] }}</td><td dir="ltr" style="text-align:start"><a href="{{ s[5] }}" target="_blank" rel="noopener">{{ s[2] }}</a></td><td class="muted">{{ tr(s[3]) }}</td><td><span class="pill {{ 'live' if s[4] in ('live','in_use') else '' }}">{{ t(s[4]) }}</span></td></tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+<section class="section alt">
+  <div class="wrap">
+    <div class="sec-head"><div><span class="kicker"><span class="dot"></span>{{ tr(X.use_k) }}</span><h2 class="h2">{{ tr(X.use_h) }}</h2></div></div>
+    <div class="card-grid">
+      {% for c in X.uses %}
+      <a class="card" href="{{ u(c[3]) }}" style="text-decoration:none"><span class="badge-ico">{{ icon(c[0]) }}</span><h3>{{ tr(c[1]) }}</h3><p>{{ tr(c[2]) }}</p></a>
+      {% endfor %}
+    </div>
+    <div class="note" style="margin-top:28px">{{ icon('info') }}<span>{{ tr(X.lic) }}</span></div>
+  </div>
+</section>
+
+{# ================================================================ EARTH NOW #}
+{% elif page == 'earth' %}
+<section class="section">
+  <div class="wrap">
+    <div class="world"><canvas data-worldmap id="quakeMap" data-dots="{{ u('assets/data/land-dots.json') }}"></canvas>
+      <div class="legend"><span><i style="background:var(--accent)"></i>M 4.5 – 5.9</span><span><i style="background:var(--warn)"></i>M 6.0 +</span><span>USGS · {{ tr(X.last7) }}</span></div></div>
+    <div class="split" style="margin-top:56px;align-items:start">
+      <div>
+        <h2 class="h3" style="margin-bottom:18px">{{ tr(X.q_h) }}</h2>
+        <div class="feed" id="quakeList" data-fail="{{ tr(X.fail) }}">{% for i in range(6) %}<div class="skeleton"></div>{% endfor %}</div>
+      </div>
+      <div>
+        <h2 class="h3" style="margin-bottom:18px">{{ tr(X.e_h) }}</h2>
+        <div class="feed" id="eonetList" data-fail="{{ tr(X.fail) }}">{% for i in range(6) %}<div class="skeleton"></div>{% endfor %}</div>
+      </div>
+    </div>
+    <div class="note" style="margin-top:32px">{{ icon('info') }}<span>{{ tr(X.attrib) }}</span></div>
+  </div>
+</section>
+
+{# ================================================================ GEOHERITAGE #}
+{% elif page == 'heritage' %}
+<section class="section">
+  <div class="wrap">
+    <div class="split" style="margin-bottom:80px">
+      <div class="art-frame"><div class="bar"><i></i><i></i><i></i><span>{{ tr(X.map_t) }}</span></div>{{ illus('heritage', tr(X.map_t)) }}</div>
+      <div>
+        <h2 class="h2">{{ tr(X.why_h) }}</h2>
+        <p class="lead" style="margin-top:16px">{{ tr(X.why_p) }}</p>
+        <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:26px">
+          <a class="btn btn-gold" href="{{ P.FIELD_SYSTEM }}geopark.html" target="_blank" rel="noopener">{{ tr(X.open_atlas) }} {{ icon('arrow-up-right', 'ico ico-sm flip') }}</a>
+          <a class="btn btn-line" href="{{ u('tools/geoheritage/') }}">{{ t('learn_more') }}</a>
+        </div>
+      </div>
+    </div>
+    {% for s in sites %}
+    <article id="{{ s.slug }}" class="split" style="margin-bottom:72px;align-items:start">
+      <div class="mosaic" style="grid-template-columns:1fr 1fr;grid-template-rows:220px 140px">
+        {% for im in s.imgs[:3] %}<a href="{{ u('assets/img/sites/' + im + '.webp') }}" target="_blank" rel="noopener" {% if loop.first %}style="grid-column:span 2;grid-row:auto"{% endif %}><img src="{{ u('assets/img/sites/' + im + '.webp') }}" alt="{{ tr(s.name) }}" loading="lazy"></a>{% endfor %}
+      </div>
+      <div>
+        <span class="kicker"><span class="dot"></span>{{ tr(s.where) }}</span>
+        <h2 class="h2" style="margin-top:10px">{{ tr(s.name) }}</h2>
+        <p class="lead" style="margin-top:14px">{{ tr(s.text) }}</p>
+        <div class="specs" style="margin-top:24px"><dl>
+          <div><dt>{{ tr(X.rock) }}</dt><dd>{{ tr(s.rock) }}</dd></div>
+          <div><dt>{{ tr(X.setting) }}</dt><dd>{{ tr(s.setting) }}</dd></div>
+          <div><dt>{{ tr(X.age) }}</dt><dd>{{ tr(s.era) }}</dd></div>
+        </dl></div>
+      </div>
+    </article>
+    {% endfor %}
+    <h2 class="h3" style="margin-bottom:18px">{{ tr(X.more_h) }}</h2>
+    <div class="card-grid">{% for m in more_sites %}<div class="card"><span class="badge-ico">{{ icon('map-pinned') }}</span><h3>{{ tr(m[0]) }}</h3><p>{{ tr(m[1]) }}</p></div>{% endfor %}</div>
+  </div>
+</section>
+
+{# ================================================================ ACADEMY #}
+{% elif page == 'academy' %}
+<section class="section">
+  <div class="wrap">
+    <div class="sec-head"><div><span class="kicker"><span class="dot"></span>{{ tr(X.cat_k) }}</span><h2 class="h2">{{ tr(X.cat_h) }}</h2></div><p class="lead">{{ tr(X.cat_p) }}</p></div>
+    <div class="card-grid">
+      {% for c in courses %}
+      <article class="course">
+        <div class="cv">{{ illus(c.art, tr(c.name)) }}</div>
+        <div class="cb">
+          <div class="meta"><span>{{ icon(c.icon) }}{{ tr(c.level) }}</span><span>{{ icon('calendar') }}{{ tr(c.format) }}</span></div>
+          <h3 class="h4">{{ tr(c.name) }}</h3>
+          <p class="muted small">{{ tr(c.text) }}</p>
+          <div style="margin-top:6px">{% if c.status == 'contact' %}<a class="link" href="{{ u('contact/') }}">{{ tr(X.join) }} {{ icon('arrow-right', 'ico ico-sm flip') }}</a>{% else %}<span class="pill gold">{{ t('coming_soon') }}</span>{% endif %}</div>
+        </div>
+      </article>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+<section class="section alt">
+  <div class="wrap split">
+    <div>
+      <h2 class="h2">{{ tr(X.cert_h) }}</h2>
+      <p class="lead" style="margin-top:16px">{{ tr(X.cert_p) }}</p>
+      <ul class="checks" style="margin-top:24px">{% for c in X.cert_list %}<li>{{ icon('check') }}<span>{{ tr(c) }}</span></li>{% endfor %}</ul>
+      <a class="btn btn-ink" style="margin-top:28px" href="{{ u('verify/') }}">{{ t('menu_verify') }}</a>
+    </div>
+    <div class="card band-dark" style="padding:36px;border-radius:22px;display:grid;gap:18px;justify-items:start">
+      <img src="{{ u('assets/img/training-192.png') }}" width="84" height="84" alt="" style="border-radius:50%">
+      <div class="xsmall" style="color:var(--text-3)">{{ tr(X.cert_mock_t) }}</div>
+      <div class="h3">{{ tr(X.cert_mock_n) }}</div>
+      <div class="muted small">{{ tr(X.cert_mock_c) }}</div>
+      <div style="display:flex;gap:16px;align-items:center;margin-top:8px"><span class="badge-ico" style="margin:0;width:56px;height:56px">{{ icon('qr-code', 'ico ico-lg') }}</span><span class="xsmall num" dir="ltr">SHD-ACD-2026-0001</span></div>
+    </div>
+  </div>
+</section>
+
+{# ================================================================ LIBRARY #}
+{% elif page == 'library' %}
+<section class="section">
+  <div class="wrap">
+    <div class="sec-head"><div><span class="kicker"><span class="dot"></span>{{ tr(X.books_k) }}</span><h2 class="h2">{{ tr(X.books_h) }}</h2></div></div>
+    <div class="card-grid two">
+      {% for b in books %}
+      <article class="card book">
+        <div class="cover band-dark"><svg viewBox="0 0 150 200" aria-hidden="true"><rect width="150" height="200" fill="#0E1B27"/><g opacity=".9">{{ coverlines }}</g><rect x="0" y="0" width="8" height="200" fill="#CBA65A" opacity=".6"/><image href="{{ u('assets/img/emblem-192.png') }}" x="53" y="22" width="44" height="44"/><text x="75" y="178" text-anchor="middle" fill="#DEC07A" font-size="9" font-weight="700" font-family="Manrope,sans-serif">SHANDAL SYSTEM</text></svg></div>
+        <div>
+          <span class="pill gold">{{ tr(b.kind) }}</span>
+          <h3 class="h4" style="margin-top:12px">{{ tr(b.title) }}</h3>
+          <p class="small" style="margin-top:6px;color:var(--text-3)">{{ tr(b.author) }}</p>
+          <p>{{ tr(b.text) }}</p>
+          <a class="link" href="{{ u('contact/') }}" style="margin-top:14px">{{ tr(X.request) }} {{ icon('arrow-right', 'ico ico-sm flip') }}</a>
+        </div>
+      </article>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+<section class="section alt">
+  <div class="wrap split">
+    <div>
+      <span class="kicker"><span class="dot"></span>{{ tr(X.j_k) }}</span>
+      <h2 class="h2" style="margin-top:12px">{{ tr(X.j_h) }}</h2>
+      <p class="lead" style="margin-top:16px">{{ tr(X.j_p) }}</p>
+      <ul class="checks" style="margin-top:24px">{% for c in X.j_list %}<li>{{ icon('check') }}<span>{{ tr(c) }}</span></li>{% endfor %}</ul>
+      <a class="btn btn-gold" style="margin-top:28px" href="{{ u('contact/') }}">{{ tr(X.j_cta) }}</a>
+    </div>
+    <div class="card"><h3>{{ tr(X.pol_h) }}</h3><p>{{ tr(X.pol_p) }}</p></div>
+  </div>
+</section>
+
+{# ================================================================ ABOUT #}
+{% elif page == 'about' %}
+<section class="section">
+  <div class="wrap split" style="align-items:start">
+    <div><h2 class="h2">{{ tr(A.mission_h) }}</h2></div>
+    <div><p class="lead">{{ tr(A.mission_p1) }}</p><p class="lead" style="margin-top:16px">{{ tr(A.mission_p2) }}</p></div>
+  </div>
+</section>
+<section class="section alt">
+  <div class="wrap">
+    <div class="sec-head"><div><h2 class="h2">{{ tr(A.values_h) }}</h2></div></div>
+    <div class="card-grid four">
+      <div class="card"><span class="badge-ico">{{ icon('book-open') }}</span><h3>{{ tr(A.v1h) }}</h3><p>{{ tr(A.v1p) }}</p></div>
+      <div class="card"><span class="badge-ico">{{ icon('mountain') }}</span><h3>{{ tr(A.v2h) }}</h3><p>{{ tr(A.v2p) }}</p></div>
+      <div class="card"><span class="badge-ico">{{ icon('earth') }}</span><h3>{{ tr(A.v3h) }}</h3><p>{{ tr(A.v3p) }}</p></div>
+      <div class="card"><span class="badge-ico">{{ icon('lock') }}</span><h3>{{ tr(A.v4h) }}</h3><p>{{ tr(A.v4p) }}</p></div>
+    </div>
+  </div>
+</section>
+<section class="section" id="founder">
+  <div class="wrap founder" style="align-items:start">
+    <div class="portrait band-dark"><img src="{{ u('assets/img/emblem.png') }}" alt="" width="300" height="300"></div>
+    <div>
+      <span class="kicker"><span class="dot"></span>{{ tr(A.team_h) }}</span>
+      <h2 class="h2" style="margin-top:10px">{{ tr(A.founder_name) }}</h2>
+      <p style="color:var(--accent);font-weight:700;margin-top:8px">{{ tr(A.founder_role) }}</p>
+      <p class="lead" style="margin-top:16px">{{ tr(A.founder_bio) }}</p>
+      <p class="muted" style="margin-top:14px">{{ tr(A.founder_more) }}</p>
+      <div class="specs" style="margin-top:24px"><dl>{% for r in A.cv %}<div><dt class="num">{{ tr(r[0]) }}</dt><dd>{{ tr(r[1]) }}</dd></div>{% endfor %}</dl></div>
+    </div>
+  </div>
+</section>
+<section class="section alt">
+  <div class="wrap split" style="align-items:start">
+    <div><h2 class="h2">{{ tr(A.time_h) }}</h2></div>
+    <ol class="timeline">{% for e in A.tl %}<li><time>{{ tr(e[0]) }}</time><h3>{{ tr(e[1]) }}</h3><p>{{ tr(e[2]) }}</p></li>{% endfor %}</ol>
+  </div>
+</section>
+<section class="section" id="registration">
+  <div class="wrap">
+    <div class="sec-head"><div><h2 class="h2">{{ tr(A.reg_h) }}</h2></div></div>
+    <div class="card-grid two">
+      <div class="card reg"><span class="seal">{{ icon('shield-check', 'ico ico-lg') }}</span><div><h3>{{ tr(A.reg_title) }}</h3><p>{{ tr(A.reg_text) }}</p><dl>{% for r in A.reg_rows %}<dt>{{ tr(r[0]) }}</dt><dd>{{ tr(r[1]) }}</dd>{% endfor %}</dl></div></div>
+      <div class="card reg"><span class="seal">{{ icon('handshake', 'ico ico-lg') }}</span><div><h3>{{ tr(A.partner_title) }}</h3><p>{{ tr(A.partner_text) }}</p><a class="link" href="{{ u('pricing/') }}" style="margin-top:16px">{{ t('see_plans') }} {{ icon('arrow-right', 'ico ico-sm flip') }}</a></div></div>
+    </div>
+  </div>
+</section>
+
+{# ================================================================ PRICING #}
+{% elif page == 'pricing' %}
+<section class="section">
+  <div class="wrap">
+    <div class="plans">
+      {% for p in plans %}
+      <div class="plan {{ 'best' if p.best }}">
+        {% if p.best %}<span class="tag">{{ tr(X.best) }}</span>{% endif %}
+        <h3>{{ tr(p.name) }}</h3>
+        <div><div class="price num">{{ p.price }}</div><div class="per">{{ tr(p.per) }}</div></div>
+        <p class="muted small">{{ tr(p.text) }}</p>
+        <ul class="checks">{% for f in plan_features %}<li>{{ icon('check') }}<span>{{ tr(f) }}</span></li>{% endfor %}</ul>
+        <a class="btn {{ 'btn-gold' if p.best else 'btn-line' }}" href="https://wa.me/{{ P.WA }}?text={{ (tr(X.wa_msg) + ' — ' + tr(p.name))|urlencode }}" target="_blank" rel="noopener">{{ tr(X.subscribe) }}</a>
+      </div>
+      {% endfor %}
+    </div>
+    <div class="card band-dark" style="margin-top:22px;padding:30px;border-radius:22px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:20px;align-items:center">
+      <div><h3 class="h3">{{ tr(X.inst_h) }}</h3><p class="muted" style="margin-top:8px">{{ tr(X.inst_p) }}</p></div>
+      <a class="btn btn-gold" href="{{ u('contact/') }}">{{ tr(X.inst_cta) }}</a>
+    </div>
+    <div class="note" style="margin-top:22px">{{ icon('info') }}<span>{{ tr(X.pay) }}</span></div>
+  </div>
+</section>
+<section class="section alt">
+  <div class="wrap split" style="align-items:start">
+    <div><h2 class="h2">{{ tr(X.faq_h) }}</h2><p class="lead" style="margin-top:14px">{{ tr(X.faq_p) }}</p></div>
+    <div class="faq">{% for q in faq %}<details><summary>{{ tr(q[0]) }}{{ icon('plus') }}</summary><p>{{ tr(q[1]) }}</p></details>{% endfor %}</div>
+  </div>
+</section>
+
+{# ================================================================ CONTACT #}
+{% elif page == 'contact' %}
+<section class="section">
+  <div class="wrap split" style="align-items:start">
+    <form class="form card" id="contactForm" data-wa="{{ P.WA }}" style="padding:30px">
+      <div class="row">
+        <div class="field"><label for="cName">{{ tr(X.name) }}</label><input id="cName" name="name" required autocomplete="name"></div>
+        <div class="field"><label for="cOrg">{{ tr(X.org) }}</label><input id="cOrg" name="org" autocomplete="organization"></div>
+      </div>
+      <div class="row">
+        <div class="field"><label for="cEmail">{{ tr(X.email) }}</label><input id="cEmail" name="email" type="email" autocomplete="email"></div>
+        <div class="field"><label for="cTopic">{{ tr(X.topic) }}</label><select id="cTopic" name="topic">{% for o in X.topics %}<option>{{ tr(o) }}</option>{% endfor %}</select></div>
+      </div>
+      <div class="field"><label for="cMsg">{{ tr(X.msg) }}</label><textarea id="cMsg" name="message" required></textarea></div>
+      <button class="btn btn-gold btn-lg" type="submit">{{ brandicon('whatsapp') }}{{ tr(X.send) }}</button>
+      <p class="form-note">{{ tr(X.note) }}</p>
+      <div class="form-msg" id="contactOut" hidden>{{ tr(X.sent) }} <a id="waLink" href="#" target="_blank" rel="noopener">{{ tr(X.open_wa) }}</a></div>
+    </form>
+    <div style="display:grid;gap:16px">
+      <div class="card"><span class="badge-ico">{{ brandicon('whatsapp') }}</span><h3>WhatsApp</h3><p class="num" dir="ltr" style="text-align:start">+964 781 499 3629</p><a class="link" href="https://wa.me/{{ P.WA }}" target="_blank" rel="noopener" style="margin-top:10px">{{ tr(X.open_wa) }} {{ icon('arrow-up-right', 'ico ico-sm flip') }}</a></div>
+      <div class="card"><span class="badge-ico">{{ icon('mail') }}</span><h3>{{ tr(X.email) }}</h3><p dir="ltr" style="text-align:start">{{ P.EMAIL }}</p><button class="link" type="button" style="background:none;border:0;padding:0;margin-top:10px;cursor:pointer;font:inherit" data-copy="{{ P.EMAIL }}" data-done="{{ tr(X.copied) }}">{{ tr(X.copy_addr) }}</button></div>
+      <div class="card"><span class="badge-ico">{{ icon('map-pin') }}</span><h3>{{ tr(X.where_h) }}</h3><p>{{ tr(X.where_p) }}</p></div>
+    </div>
+  </div>
+</section>
+
+{# ================================================================ VERIFY #}
+{% elif page == 'verify' %}
+<section class="section">
+  <div class="wrap split" style="align-items:start">
+    <form class="form card" data-notice="verifyNote" style="padding:30px">
+      <div class="field"><label for="vCode">{{ tr(X.code) }}</label><input id="vCode" name="code" required placeholder="SHD-RPT-2026-XXXX" dir="ltr"></div>
+      <button class="btn btn-gold" type="submit">{{ tr(X.check) }}</button>
+      <div class="form-msg" id="verifyNote" hidden tabindex="-1">{{ tr(X.notice) }} <a href="https://wa.me/{{ P.WA }}" target="_blank" rel="noopener">WhatsApp</a></div>
+    </form>
+    <div>
+      <h2 class="h3">{{ tr(X.how_h) }}</h2>
+      <div class="flow" style="margin-top:18px">{% for s in X.how %}<div>{{ tr(s) }}</div>{% endfor %}</div>
+    </div>
+  </div>
+</section>
+
+{# ================================================================ LEGAL #}
+{% elif page == 'legal' %}
+<section class="section">
+  <div class="wrap">
+    <div class="prose">
+      <p class="small muted">{{ tr(X.updated) }}</p>
+      {% for s in legal %}<h2>{{ tr(s[0]) }}</h2>{% for p in s[1] %}<p>{{ tr(p) }}</p>{% endfor %}{% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+{% endblock %}
+{% block scripts %}{% if page in ('data', 'earth') %}<script src="{{ u('assets/js/globe.js') }}?v={{ version }}" defer></script>{% endif %}{% endblock %}
