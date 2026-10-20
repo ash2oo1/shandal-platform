@@ -1,0 +1,26 @@
+{% extends "app_base.html" %}
+{% import "apps/_m.html" as m with context %}
+{% block ws %}
+<div class="wsm">
+  <aside class="wsm-side">
+    <div class="sec">
+      <div class="fg"><label for="vQ">{{ m.L('Search volcanoes', 'ابحث عن بركان') }}</label><input id="vQ" type="search" placeholder="{{ m.L('Name, country or region', 'الاسم أو الدولة أو المنطقة') }}"></div>
+      <div class="row2">
+        {{ m.sel('vType', 'Type', 'النوع', [('all', 'All types', 'كل الأنواع', true), ('strato', 'Stratovolcano', 'بركان طبقي'), ('shield', 'Shield', 'درعي'), ('caldera', 'Caldera', 'كالديرا'), ('sub', 'Submarine', 'تحت بحري'), ('field', 'Fields and cones', 'حقول ومخاريط'), ('dome', 'Lava domes', 'قباب حممية'), ('other', 'Other', 'أخرى')]) }}
+        {{ m.sel('vAge', 'Last eruption', 'آخر ثوران', [('all', 'Any', 'أي وقت', true), ('D1', '1964 or later', '1964 فما بعد'), ('D2', '1900–1963', '1900–1963'), ('D35', '1500–1899', '1500–1899'), ('D67', 'Before 1500 (Holocene)', 'قبل 1500 (هولوسين)'), ('U', 'Undated or unknown', 'غير مؤرخ أو مجهول')]) }}
+      </div>
+      <div class="seg" id="vCol"><button type="button" data-v="age" aria-pressed="true">{{ m.L('Colour by recency', 'لوّن حسب الحداثة') }}</button><button type="button" data-v="type" aria-pressed="false">{{ m.L('Colour by type', 'لوّن حسب النوع') }}</button></div>
+      <label class="chk"><input type="checkbox" id="vAct" checked> {{ m.L('Active now (NASA EONET)', 'نشط الآن (NASA EONET)') }}</label>
+      <p class="xsmall muted" id="vSrc" style="margin:0">—</p>
+    </div>
+    <div class="sec">
+      <h3>{{ icon('crosshair') }}{{ m.L('Nearest volcanoes to a site', 'أقرب البراكين إلى موقع') }}</h3>
+      <div class="row2"><button class="btn btn-ink btn-sm" id="vMe" type="button">{{ m.L('My location', 'موقعي') }}</button><button class="btn btn-line btn-sm" id="vPick" type="button">{{ m.L('Click on map', 'انقر الخريطة') }}</button></div>
+      <div id="vNear"></div>
+    </div>
+    <div class="sec"><h3>{{ icon('chart-bar') }}{{ m.L('Counts in view', 'الأعداد في العرض') }}</h3><div class="plot" id="vChart" style="height:220px"></div></div>
+    <div id="vList" style="display:grid"></div>
+  </aside>
+  <div class="wsm-map"><div class="map" id="vMap"></div></div>
+</div>
+{% endblock %}

@@ -86,7 +86,7 @@
   function plates() {
     if (!map) return; if (!$('#zPlates').checked) { if (plateLayer) map.removeLayer(plateLayer); return; } if (plateLayer) { plateLayer.addTo(map); return; }
     SH.getJSON(SH.base + 'assets/data/plates.json').then(function (P) { plateLayer = L.layerGroup(); var rnd = L.canvas();
-      P.forEach(function (p) { var ll = []; for (var i = 0; i < p[3].length; i += 2) ll.push([p[3][i + 1], p[3][i]]); L.polyline(ll, { renderer: rnd, color: PCOL[p[1]] || '#aaa', weight: 1.6, opacity: .8 }).bindTooltip(p[0] + ' · ' + (PNAME[p[1]] || p[1]) + ' · ' + p[2] + ' mm/yr', { sticky: true }).addTo(plateLayer); });
+      P.forEach(function (p) { var parts = [[]]; for (var i = 0; i < p[3].length; i += 2) { var cur = parts[parts.length - 1], q = [p[3][i + 1], p[3][i]]; if (cur.length && Math.abs(q[1] - cur[cur.length - 1][1]) > 180) parts.push(cur = []); cur.push(q); } parts.forEach(function (ll) { if (ll.length < 2) return; L.polyline(ll, { renderer: rnd, color: PCOL[p[1]] || '#aaa', weight: 1.6, opacity: .8 }).bindTooltip(p[0] + ' · ' + (PNAME[p[1]] || p[1]) + ' · ' + p[2] + ' mm/yr', { sticky: true }).addTo(plateLayer); }); });
       plateLayer.addTo(map); plateLayer.eachLayer(function (l) { l.bringToBack && l.bringToBack(); }); }).catch(function () {});
   }
   plates(); refresh();
