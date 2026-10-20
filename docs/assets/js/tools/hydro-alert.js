@@ -108,14 +108,30 @@
 
   function plots(r) {
     var c = SH.palette(), rain = SH.css('--data') || '#2E86C1', dan = SH.css('--danger') || '#C0392B', shapes = [];
-    if (r.fc && r.nowI >= 0) shapes.push({ type: 'rect', xref: 'x', yref: 'paper', x0: r.time[r.nowI], x1: r.time[r.n - 1], y0: 0, y1: 1, fillcolor: SH.alpha(c.accent, .07), line: { width: 0 } }, { type: 'line', xref: 'x', yref: 'paper', x0: r.time[r.nowI], x1: r.time[r.nowI], y0: 0, y1: 1, line: { color: c.accent, width: 1.5, dash: 'dot' } });
-    shapes.push({ type: 'line', xref: 'paper', yref: 'y3', x0: 0, x1: 1, y0: 1, y1: 1, line: { color: dan, width: 1.5, dash: 'dash' } });
+    var dX = r.days.map(function (d) { return d + 'T12:00'; }), nowD = r.fc && r.nowI >= 0 ? String(r.time[r.nowI]).slice(0, 10) : null;
+    var obs = r.dP.map(function (v, i) { return !nowD || r.days[i] < nowD ? v : null; }), fcs = r.dP.map(function (v, i) { return nowD && r.days[i] >= nowD ? v : null; });
+    var above = r.ratio.map(function (v) { return v >= 1 ? v : null; });
     SH.plot('hTs', [
-      { type: 'bar', x: r.days.map(function (d) { return d + 'T12:00'; }), y: r.dP, name: t('Daily rain (mm)', 'المطر اليومي (مم)'), marker: { color: SH.alpha(rain, .65) }, hovertemplate: '%{x|%Y-%m-%d} · %{y:.1f} mm<extra></extra>' },
-      { x: r.days.map(function (d) { return d + 'T12:00'; }), y: r.api, name: t('API (mm)', 'مؤشر API (مم)'), yaxis: 'y2', line: { color: c.text2, width: 2 }, hovertemplate: 'API %{y:.1f} mm<extra></extra>' },
-      { x: r.time, y: r.ratio, name: t('Exceedance ratio', 'نسبة التجاوز'), yaxis: 'y3', line: { color: dan, width: 1.6 }, fill: 'tozeroy', fillcolor: SH.alpha(dan, .1), customdata: r.rDur, hovertemplate: '%{x} · %{y:.2f} (D %{customdata} h)<extra></extra>' }
-    ], function () { return SH.plotLayout({ bargap: 0.15, xaxis: { type: 'date', anchor: 'y3' }, yaxis: { domain: [0.42, 1], title: { text: t('mm/day', 'مم/يوم') }, rangemode: 'tozero' }, yaxis2: { overlaying: 'y', side: 'right', showgrid: false, rangemode: 'tozero' }, yaxis3: { domain: [0, 0.32], title: { text: 'I / I<sub>t</sub>' }, rangemode: 'tozero' }, shapes: shapes,
-      annotations: r.fc && r.nowI >= 0 ? [{ x: r.time[r.nowI], y: 1, yref: 'paper', text: t('forecast →', 'التنبؤ ←'), showarrow: false, xanchor: 'left', yanchor: 'top', font: { size: 11, color: c.accent } }] : [] }); }, { filename: 'shandal-rainfall' });
+      { type: 'bar', x: dX, y: obs, name: t('Observed daily rain', 'المطر اليومي المرصود'), marker: { color: SH.alpha(rain, .85), line: { color: rain, width: 1 } }, hovertemplate: '%{y:.1f} mm<extra>' + t('Observed', 'مرصود') + '</extra>' },
+      { type: 'bar', x: dX, y: fcs, name: t('Forecast daily rain', 'المطر اليومي المتوقع'), marker: { color: SH.alpha(rain, .35), line: { color: rain, width: 1 }, pattern: { shape: '/', fgcolor: rain, size: 6, solidity: .25 } }, hovertemplate: '%{y:.1f} mm<extra>' + t('Forecast', 'متوقع') + '</extra>' },
+      { x: dX, y: r.api, name: t('Antecedent precipitation index (API)', 'مؤشر الأمطار السابقة (API)'), yaxis: 'y2', mode: 'lines', line: { color: c.text, width: 2.4, shape: 'spline', smoothing: .9 }, hovertemplate: '%{y:.1f} mm<extra>API</extra>' },
+      { x: r.time, y: r.ratio, name: t('Exceedance ratio I / It', 'نسبة التجاوز I / It'), yaxis: 'y3', mode: 'lines', line: { color: '#C77D1F', width: 1.8, shape: 'spline', smoothing: .6 }, fill: 'tozeroy', fillcolor: SH.alpha('#C77D1F', .12), customdata: r.rDur, hovertemplate: '%{y:.2f} (D = %{customdata} h)<extra>I / It</extra>' },
+      { x: r.time, y: above, name: t('Above threshold', 'فوق العتبة'), yaxis: 'y3', mode: 'lines', line: { color: dan, width: 2.6 }, fill: 'tozeroy', fillcolor: SH.alpha(dan, .28), hoverinfo: 'skip', showlegend: r.breachH }
+    ], function () {
+      var sh = [], an = [];
+      if (nowD) { sh.push({ type: 'rect', xref: 'x', yref: 'paper', x0: r.time[r.nowI], x1: r.time[r.n - 1], y0: 0, y1: 1, fillcolor: SH.alpha(c.accent, .08), line: { width: 0 }, layer: 'below' }, { type: 'line', xref: 'x', yref: 'paper', x0: r.time[r.nowI], x1: r.time[r.nowI], y0: 0, y1: 1, line: { color: c.accent, width: 1.6, dash: 'dot' } });
+        an.push({ x: r.time[r.nowI], y: 1.0, yref: 'paper', text: t('Now', 'الآن'), showarrow: false, xanchor: 'center', yanchor: 'bottom', font: { size: 11, color: c.accent }, bgcolor: c.bg || '#fff' }, { x: r.time[Math.round((r.nowI + r.n - 1) / 2)], y: 1.0, yref: 'paper', text: '<b>' + t('Forecast (Open-Meteo)', 'التنبؤ (Open-Meteo)') + '</b>', showarrow: false, yanchor: 'bottom', font: { size: 11, color: c.accent } }); }
+      sh.push({ type: 'line', xref: 'paper', yref: 'y3', x0: 0, x1: 1, y0: 1, y1: 1, line: { color: dan, width: 1.4, dash: 'dash' } });
+      [[0, 1.0, 'left', t('Rain mm/day', 'المطر مم/يوم')], [1, 1.0, 'right', 'API mm'], [0, .34, 'left', 'I / It']].forEach(function (q) { an.push({ xref: 'paper', yref: 'paper', x: q[0], y: q[1], xanchor: q[2], yanchor: 'bottom', xshift: 0, yshift: 4, text: '<b>' + q[3] + '</b>', showarrow: false, font: { size: 10.5, color: c.text2 } }); });
+      an.push({ xref: 'paper', x: 0, y: 1, yref: 'y3', text: t('threshold', 'العتبة'), showarrow: false, xanchor: 'left', yanchor: 'bottom', font: { size: 10, color: dan } });
+      return SH.plotLayout({ bargap: .25, barmode: 'overlay', hovermode: 'x unified', margin: { l: 56, r: 56, t: 84, b: 46 },
+        legend: { orientation: 'h', x: .5, xanchor: 'center', y: 1.2, font: { size: 11 } },
+        xaxis: { type: 'date', anchor: 'y3', tickformat: '%d %b', nticks: 12, tickangle: 0, showspikes: true, spikemode: 'across', spikethickness: 1, spikedash: 'dot', spikecolor: c.text2, hoverformat: '%A %d %B %Y' },
+        yaxis: { domain: [.44, 1], rangemode: 'tozero', zeroline: false },
+        yaxis2: { overlaying: 'y', side: 'right', showgrid: false, rangemode: 'tozero' },
+        yaxis3: { domain: [0, .34], rangemode: 'tozero', range: [0, Math.max(1.3, (r.peak || 0) * 1.15)] },
+        shapes: sh, annotations: an });
+    }, { filename: 'shandal-rainfall' });
     var Dx = [], tC = [], tG = [], tU = []; for (var D = 0.5; D <= 400; D *= 1.15) { Dx.push(D); tC.push(14.82 * Math.pow(D, -0.39)); tG.push(2.2 * Math.pow(D, -0.44)); tU.push(r.T.a * Math.pow(D, -r.T.b)); }
     var env = r.env.map(function (e, i) { return { D: DUR[i], I: e.I, end: e.end }; }).filter(function (e) { return e.I > 0; });
     var tr = [{ x: Dx, y: tC, name: 'Caine 1980', line: { color: dan, width: 2 }, hoverinfo: 'skip' }, { x: Dx, y: tG, name: 'Guzzetti 2008', line: { color: '#D68910', width: 2, dash: 'dash' }, hoverinfo: 'skip' }];

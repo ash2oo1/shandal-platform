@@ -291,3 +291,4 @@ bdi.u{unicode-bidi:isolate}
 .rp-refs{margin:0;padding-inline-start:20px;font-size:11px;line-height:1.6}.rp-refs li{text-align:left}
 .rp-disc{margin:8px 0 0;font-size:10.5px;color:#68737e;border-top:1px dashed #dcd8cf;padding-top:8px}
 .rp-res .tbl-wrap{overflow:visible!important}.rp-res table{width:100%!important;table-layout:auto}.rp-res td,.rp-res th{white-space:normal!important;padding:5px 6px!important;font-size:10.5px}
+.plot,.js-plotly-plot{direction:ltr}
