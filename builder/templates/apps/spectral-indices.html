@@ -1,0 +1,38 @@
+{% extends "app_base.html" %}
+{% import "apps/_m.html" as m with context %}
+{% block ws %}
+<div class="wsm">
+  <aside class="wsm-side">
+    <div class="sec">
+      <h3>{{ icon('square-dashed') }}{{ m.L('1 · Area of interest', '1 · منطقة الدراسة') }}</h3>
+      <div class="row2"><button class="btn btn-ink btn-sm" id="xDraw" type="button">{{ m.L('Draw rectangle', 'ارسم مستطيلاً') }}</button><button class="btn btn-line btn-sm" id="xView" type="button">{{ m.L('Use map view', 'استخدم العرض') }}</button></div>
+      <p class="xsmall muted" id="xAoi" style="margin:0">{{ m.L('No area yet.', 'لم تُحدد منطقة بعد.') }}</p>
+    </div>
+    <div class="sec">
+      <h3>{{ icon('satellite') }}{{ m.L('2 · Sentinel-2 scenes', '2 · مشاهد Sentinel-2') }}</h3>
+      <div class="row2">
+        {{ m.fld('xFrom', 'From', 'من', 'date') }}
+        {{ m.fld('xTo', 'To', 'إلى', 'date') }}
+      </div>
+      <div class="fg"><label for="xCloud">{{ m.L('Maximum cloud cover', 'أقصى غطاء غيمي') }} <b class="ltr" id="xCloudV">20 %</b></label><input type="range" id="xCloud" min="0" max="80" step="5" value="20"></div>
+      <button class="btn btn-gold btn-sm" id="xFind" type="button">{{ icon('search', 'ico ico-sm') }}{{ m.L('Find scenes', 'ابحث عن المشاهد') }}</button>
+      <div id="xScenes" style="display:grid;gap:6px;max-height:260px;overflow:auto"></div>
+    </div>
+    <div class="sec">
+      <h3>{{ icon('layers') }}{{ m.L('3 · Index or composite', '3 · المؤشر أو التركيب') }}</h3>
+      <div class="fg"><select id="xIdx" aria-label="Index"></select></div>
+      <p class="xsmall muted" id="xIdxNote" style="margin:0"></p>
+      <div class="fg"><label for="xOp">{{ m.L('Layer opacity', 'شفافية الطبقة') }}</label><input type="range" id="xOp" min="0.2" max="1" step="0.05" value="0.85"></div>
+    </div>
+    <div class="sec">
+      <h3>{{ icon('chart-bar') }}{{ m.L('4 · Analysis', '4 · التحليل') }}</h3>
+      <div class="row2"><button class="btn btn-ink btn-sm" id="xStats" type="button">{{ m.L('Area statistics', 'إحصاءات المنطقة') }}</button><button class="btn btn-line btn-sm" id="xSeries" type="button">{{ m.L('Time series', 'سلسلة زمنية') }}</button></div>
+      <button class="btn btn-line btn-sm" id="xChange" type="button">{{ m.L('Change: oldest vs selected scene', 'التغير: الأقدم مقابل المشهد المختار') }}</button>
+      <div id="xOut" style="display:grid;gap:10px"></div>
+    </div>
+  </aside>
+  <div class="wsm-map"><div class="map" id="xMap"></div><div class="map-hint" id="xHint" hidden>{{ m.L('Drag a rectangle, or tap two corners', 'اسحب مستطيلاً أو انقر ركنين') }}</div>
+    <div id="xLeg" hidden style="position:absolute;bottom:26px;inset-inline-start:12px;z-index:600;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:8px 10px;min-width:220px;box-shadow:0 8px 24px rgba(0,0,0,.18)"></div>
+  </div>
+</div>
+{% endblock %}
