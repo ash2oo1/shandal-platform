@@ -47,5 +47,7 @@
   if (map) map.on('click', function (e) { query(e.latlng.lat, e.latlng.lng); });
   $('#uGo').addEventListener('click', function () { var a = SH.num('uLat'), b = SH.num('uLon'); if (isNaN(a) || isNaN(b)) { SH.toast(t('Enter coordinates.', 'أدخل الإحداثيات.'), 'warn'); return; } if (map) map.setView([a, b], Math.max(map.getZoom(), 9)); query(a, b); });
   $('#uMe').addEventListener('click', function () { var bt = this; bt.disabled = true; SH.locate().then(function (p) { if (map) map.setView([p.lat, p.lon], 10); query(p.lat, p.lon); }).catch(function (e) { SH.toast(e.message, 'bad'); }).then(function () { bt.disabled = false; }); });
+  var qs = new URLSearchParams(location.search), qa = parseFloat(qs.get('lat')), qb = parseFloat(qs.get('lon'));
+  if (isFinite(qa) && isFinite(qb)) { $('#uLat').value = qa; $('#uLon').value = qb; }
   var a0 = SH.num('uLat'), b0 = SH.num('uLon'); if (!isNaN(a0) && !isNaN(b0) && SH.val('uLat') !== '') { if (map) map.setView([a0, b0], 9); query(a0, b0); }
 })();
