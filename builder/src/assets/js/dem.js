@@ -243,7 +243,7 @@
     return d + '°' + (step < 1 ? String(m).padStart(2, '0') + '′' : '') + (step < 1 / 60 ? String(sc).padStart(2, '0') + '″' : '') + h; }
   function niceFloor(v) { var p = Math.pow(10, Math.floor(Math.log10(v))), m = v / p; return (m >= 5 ? 5 : m >= 2 ? 2 : 1) * p; }
   D.svgMap = function (svg, G, cs, opts) {
-    opts = opts || {}; var S = SH.svgB(svg), VW = 1120, VH = 800; svg.setAttribute('viewBox', '0 0 ' + VW + ' ' + VH);
+    opts = opts || {}; var S = SH.svgB(svg), VW = 1120, VH = 800; svg.setAttribute('viewBox', '0 0 ' + VW + ' ' + VH); svg.setAttribute('direction', 'ltr'); svg.style.direction = 'ltr';
     var ink = '#1B232B', mut = '#55616B', geo = opts.crs !== 'proj', latc = (G.b.n + G.b.s) / 2, kx = geo ? Math.cos(SH.rad(latc)) * 111320 : 1, ky = geo ? 110574 : 1;
     var PW = 246, ml = 96, mr = PW + 46, mt = opts.title ? 86 : 44, mb = opts.axisNames && !geo ? 76 : 58;
     var wM = (G.b.e - G.b.w) * kx, hM = (G.b.n - G.b.s) * ky, bw = VW - ml - mr, bh = VH - mt - mb, sc = Math.min(bw / wM, bh / hM), W = wM * sc, H = hM * sc, ox = ml + (bw - W) / 2, oy = mt + (bh - H) / 2;

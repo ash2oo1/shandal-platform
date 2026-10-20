@@ -113,7 +113,7 @@
     clone.setAttribute('width', wdt); clone.setAttribute('height', hgt); clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
     // inline computed styles for every element so the PNG matches the screen
     var src = svg.querySelectorAll('*'), dst = clone.querySelectorAll('*');
-    var props = ['fill', 'stroke', 'stroke-width', 'stroke-dasharray', 'opacity', 'fill-opacity', 'stroke-opacity', 'font-size', 'font-weight', 'font-family', 'text-anchor', 'dominant-baseline'];
+    var props = ['fill', 'stroke', 'stroke-width', 'stroke-dasharray', 'opacity', 'fill-opacity', 'stroke-opacity', 'font-size', 'font-weight', 'font-family', 'text-anchor', 'dominant-baseline', 'direction', 'paint-order'];
     for (var i = 0; i < src.length; i++) { var cs = getComputedStyle(src[i]), st = ''; props.forEach(function (p) { var v = cs.getPropertyValue(p); if (v) st += p + ':' + v + ';'; }); dst[i].setAttribute('style', st); }
     var xml = new XMLSerializer().serializeToString(clone);
     var img = new Image(); img.onload = function () {
