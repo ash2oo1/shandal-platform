@@ -1,0 +1,34 @@
+{% extends "app_base.html" %}
+{% import "apps/_m.html" as m with context %}
+{% block ws %}
+<div class="wsm">
+  <aside class="wsm-side">
+    <div class="sec">
+      <h3>{{ icon('radio') }}{{ m.L('Live feeds', 'المصادر اللحظية') }}</h3>
+      <div class="chks" id="zFeeds" style="grid-template-columns:1fr">
+        <label class="chk"><input type="checkbox" value="usgs" checked> <span style="flex:1">USGS · {{ m.L('earthquakes', 'زلازل') }}</span><b class="xsmall" data-n="usgs">–</b></label>
+        <label class="chk"><input type="checkbox" value="emsc" checked> <span style="flex:1">EMSC · {{ m.L('earthquakes', 'زلازل') }}</span><b class="xsmall" data-n="emsc">–</b></label>
+        <label class="chk"><input type="checkbox" value="eonet" checked> <span style="flex:1">NASA EONET · {{ m.L('fires, storms, floods, dust, volcanoes', 'حرائق، عواصف، فيضانات، غبار، براكين') }}</span><b class="xsmall" data-n="eonet">–</b></label>
+        <label class="chk"><input type="checkbox" value="gdacs" checked> <span style="flex:1">GDACS · {{ m.L('disaster alerts', 'إنذارات الكوارث') }}</span><b class="xsmall" data-n="gdacs">–</b></label>
+        <label class="chk"><input type="checkbox" value="firms"> <span style="flex:1">NASA FIRMS · {{ m.L('active fires (key)', 'حرائق نشطة (مفتاح)') }}</span><b class="xsmall" data-n="firms">–</b></label>
+        <label class="chk"><input type="checkbox" id="zPlates" checked> <span style="flex:1">{{ m.L('Plate boundaries (Bird 2003)', 'حدود الصفائح (Bird 2003)') }}</span></label>
+      </div>
+      <div class="row2">
+        {{ m.sel('zWin', 'Time window', 'النافذة الزمنية', [('hour', 'Past hour', 'آخر ساعة'), ('day', 'Past 24 hours', 'آخر 24 ساعة', true), ('week', 'Past 7 days', 'آخر 7 أيام'), ('month', 'Past 30 days', 'آخر 30 يوماً')]) }}
+        {{ m.sel('zMin', 'Minimum magnitude', 'القدر الأدنى', [('0', 'All', 'الكل'), ('2.5', 'M 2.5+', 'M 2.5+', true), ('4.5', 'M 4.5+', 'M 4.5+'), ('6', 'M 6+', 'M 6+')]) }}
+      </div>
+      <div class="fg" id="zKeyWrap" hidden><label for="zKey">{{ m.L('FIRMS MAP_KEY', 'مفتاح FIRMS MAP_KEY') }} {{ m.tipx('Free from firms.modaps.eosdis.nasa.gov/api/map_key. Stored only in this browser.', 'مجاني من firms.modaps.eosdis.nasa.gov/api/map_key. يُحفظ في هذا المتصفح فقط.') }}</label><input id="zKey" class="ltr" placeholder="32-character key"></div>
+      <div class="row2">
+        <button class="btn btn-gold btn-sm" id="zRef" type="button">{{ icon('refresh-cw', 'ico ico-sm') }}{{ m.L('Refresh', 'تحديث') }}</button>
+        <button class="btn btn-ink btn-sm" id="zMe" type="button">{{ icon('crosshair', 'ico ico-sm') }}{{ m.L('Near me', 'قربي') }}</button>
+      </div>
+      <p class="xsmall muted" id="zStamp" style="margin:0">—</p>
+    </div>
+    <div class="sec" style="gap:8px">
+      <div style="display:flex;gap:8px;align-items:center"><div class="seg" id="zSort" style="flex:1;padding:2px"><button type="button" data-v="time" aria-pressed="true">{{ m.L('Latest', 'الأحدث') }}</button><button type="button" data-v="mag" aria-pressed="false">{{ m.L('Strongest', 'الأقوى') }}</button><button type="button" data-v="dist" aria-pressed="false">{{ m.L('Nearest', 'الأقرب') }}</button></div><button class="btn btn-line btn-xs" id="zGeo" type="button">GeoJSON</button></div>
+    </div>
+    <div id="zList" style="display:grid"></div>
+  </aside>
+  <div class="wsm-map"><div class="map" id="zMap"></div></div>
+</div>
+{% endblock %}
