@@ -300,7 +300,9 @@
   };
 
   /* ---------------------------------------------------------------- fetch helpers */
+  SH.v = (function () { var s = d.currentScript, m = s && /[?&]v=([^&]+)/.exec(s.src); return m ? m[1] : ''; })();
   SH.getJSON = function (url, opts) {
+    if (SH.v && url.indexOf(SH.base + 'assets/') === 0 && url.indexOf('?') < 0) url += '?v=' + SH.v;
     var ctl = new AbortController(), t = setTimeout(function () { ctl.abort(); }, (opts && opts.timeout) || 30000);
     return fetch(url, Object.assign({ signal: ctl.signal }, opts || {})).then(function (r) { clearTimeout(t); if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
       .catch(function (e) { clearTimeout(t); throw new Error(e.name === 'AbortError' ? SH.t('The data service took too long to answer. Try again.', 'استغرقت خدمة البيانات وقتاً طويلاً. حاول مجدداً.') : (/HTTP/.test(e.message) ? SH.t('The data service returned an error (', 'أعادت خدمة البيانات خطأ (') + e.message + ').' : SH.t('Could not reach the data service. Check your internet connection.', 'تعذر الوصول إلى خدمة البيانات. تحقق من اتصالك بالإنترنت.'))); });

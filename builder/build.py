@@ -14,7 +14,8 @@ ROOT = os.path.dirname(os.path.abspath(__file__))
 OUT = os.path.join(os.path.dirname(ROOT), 'docs')
 LUCIDE = os.path.join(ROOT, 'vendor', 'icons')
 SIMPLE = os.path.join(ROOT, 'vendor', 'brand')
-VERSION = '20261019'
+import time as _time
+VERSION = _time.strftime('%Y%m%d%H%M')
 
 CAT_ICONS = {'geology': 'pickaxe', 'terrain': 'mountain', 'engineering': 'hard-hat', 'environment': 'leaf', 'hazards': 'siren', 'labs': 'flask-conical'}
 FEATURED = ['terrain-contours', 'structural-geotechnical', 'seismic-hazard', 'spectral-indices', 'hazards-monitor', 'grain-size']
