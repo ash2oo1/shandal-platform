@@ -496,3 +496,6 @@ for _t in TOOLS:
     _t.setdefault('libs', [])
     _t.setdefault('gate', True)
 
+from content_tools3 import OVERRIDES as _OV
+for _t in TOOLS:
+    _t.update(_OV.get(_t['slug'], {}))
