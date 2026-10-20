@@ -45,7 +45,7 @@
     var d = 0.11, u = 'https://maps.isric.org/mapserv?map=/map/clay.map&SERVICE=WCS&VERSION=2.0.1&REQUEST=GetCoverage&COVERAGEID=clay_0-5cm_mean&FORMAT=image/tiff&SUBSET=long(' + (lon - d).toFixed(5) + ',' + (lon + d).toFixed(5) + ')&SUBSET=lat(' + (lat - d).toFixed(5) + ',' + (lat + d).toFixed(5) + ')&SUBSETTINGCRS=http://www.opengis.net/def/crs/EPSG/0/4326&OUTPUTCRS=http://www.opengis.net/def/crs/EPSG/0/4326';
     return fetch(u).then(function (r) { if (!r.ok) throw new Error('WCS ' + r.status); return r.arrayBuffer(); }).then(tiff).then(function (G) {
       var best = null, n = 0;
-      for (var y = 0; y < G.H; y++) for (var x = 0; x < G.W; x++) { if (!(G.data[y * G.W + x] > 0)) continue; n++; var la = G.y0 - (y + .5) * G.dy, lo = G.x0 + (x + .5) * G.dx, dd = SH.dist ? SH.dist(lat, lon, la, lo) : Math.hypot((la - lat) * 110.57, (lo - lon) * 111.32 * Math.cos(SH.rad(lat))) * 1000; if (!best || dd < best.d) best = { lat: la, lon: lo, d: dd }; }
+      for (var y = 0; y < G.H; y++) for (var x = 0; x < G.W; x++) { if (!(G.data[y * G.W + x] > 0)) continue; n++; var la = G.y0 - (y + .5) * G.dy, lo = G.x0 + (x + .5) * G.dx, dd = Math.hypot((la - lat) * 110574, (lo - lon) * 111320 * Math.cos(SH.rad(lat))); if (!best || dd < best.d) best = { lat: la, lon: lo, d: dd }; }
       if (best) { best.masked = 1 - n / (G.W * G.H); best.az = (SH.deg(Math.atan2((best.lon - lon) * Math.cos(SH.rad(lat)), best.lat - lat)) + 360) % 360; }
       return best;
     });
