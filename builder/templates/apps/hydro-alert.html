@@ -1,0 +1,61 @@
+{% extends "app_base.html" %}
+{% import "apps/_m.html" as m with context %}
+{% block ws %}
+<div class="ws-wrap">
+<div class="ws wide-side">
+  <aside class="ws-side">
+    {{ m.panel_open(1, 'Study site', 'موقع الدراسة') }}
+      <div class="row2">
+        {{ m.fld('hLat', 'Latitude', 'دائرة العرض', 'number', '36.6527', '°', '', '', '', '0.0001') }}
+        {{ m.fld('hLon', 'Longitude', 'خط الطول', 'number', '44.5422', '°', '', '', '', '0.0001') }}
+      </div>
+      <p class="pn-note" id="hPlace">{{ m.L('Click the map or use your GPS to move the site.', 'انقر الخريطة أو استخدم GPS لتغيير الموقع.') }}</p>
+      {{ m.sel('hLith', 'Dominant soil or rock', 'التربة أو الصخر السائد', [('colluvium', 'Colluvium and loose debris', 'رواسب منحدرية وحطام مفكك', true), ('clay', 'Clay-rich soil (low permeability)', 'تربة طينية (نفاذية منخفضة)'), ('fractured', 'Fractured bedrock', 'صخر أساس متكسر'), ('marl', 'Marl and weathered shale', 'مارل وطفل متجوي'), ('gravel', 'Sandy gravel (free draining)', 'حصى رملي (جيد التصريف)')]) }}
+    {{ m.panel_close() }}
+
+    {{ m.panel_open(2, 'Rainfall period', 'فترة الأمطار') }}
+      <div class="seg" id="hMode"><button type="button" data-v="fc" aria-pressed="true">{{ m.L('Now and next 7 days', 'الآن والأيام السبعة القادمة') }}</button><button type="button" data-v="arc" aria-pressed="false">{{ m.L('Historical period', 'فترة تاريخية') }}</button></div>
+      <div class="row2" id="hDates" hidden>
+        {{ m.fld('hStart', 'Start', 'البداية', 'date', '2024-11-01') }}
+        {{ m.fld('hEnd', 'End', 'النهاية', 'date', '2024-12-15') }}
+      </div>
+      <p class="pn-note" id="hModeNote">{{ m.L('Forecast mode joins the last 14 days of observed hourly rain with the 7-day forecast, so antecedent wetness is counted.', 'وضع التنبؤ يدمج أمطار آخر 14 يوماً الساعية المرصودة مع تنبؤ 7 أيام، لتُحسب الرطوبة السابقة.') }}</p>
+    {{ m.panel_close() }}
+
+    {{ m.panel_open(3, 'Threshold', 'العتبة') }}
+      {{ m.sel('hThr', 'Intensity–duration threshold', 'عتبة الشدة–المدة', [('caine', 'Caine (1980) · I = 14.82 D^−0.39', 'Caine (1980) · I = 14.82 D^−0.39', true), ('guz', 'Guzzetti et al. (2008) global · I = 2.20 D^−0.44', 'Guzzetti وآخرون (2008) عالمية · I = 2.20 D^−0.44'), ('user', 'Custom · I = a D^−b', 'مخصصة · I = a D^−b')]) }}
+      <div class="row2" id="hUser" hidden>
+        {{ m.fld('hA', 'a', 'a', 'number', '10', 'mm/h', '', '', '', '0.1') }}
+        {{ m.fld('hB', 'b', 'b', 'number', '0.4', '', '', '', '', '0.01') }}
+      </div>
+      {{ m.fld('hK', 'Antecedent decay k', 'معامل تضاؤل الرطوبة k', 'number', '0.90', '', 'Daily decay constant of the antecedent precipitation index: API(t) = k · API(t−1) + P(t). Typical values 0.80–0.98.', 'ثابت التضاؤل اليومي لمؤشر الأمطار السابقة: API(t) = k · API(t−1) + P(t). القيم المعتادة 0.80–0.98.', '', '0.01') }}
+    {{ m.panel_close() }}
+    <button class="btn btn-gold btn-block" id="hRun" type="button">{{ icon('cloud-rain', 'ico ico-sm') }}{{ m.L('Fetch rainfall and assess', 'اجلب الأمطار وقيّم') }}</button>
+  </aside>
+
+  <div class="ws-main">
+    {{ m.fig_open('fh0', '', 'Site', 'الموقع') }}
+      <div class="fig-b pad0"><div class="map" id="hMap" style="height:340px"></div></div>
+    {{ m.fig_close() }}
+    <div id="hEmpty" class="pn">{{ m.empty('cloud-rain', 'Test rainfall against landslide thresholds', 'اختبر الأمطار مقابل عتبات الانزلاق', 'Pick the site and the period, then fetch hourly rainfall. Every storm is tested at durations from 1 hour to 10 days against the selected intensity–duration threshold.', 'اختر الموقع والفترة ثم اجلب الأمطار الساعية. تُختبر كل عاصفة عند مُدد من ساعة واحدة إلى 10 أيام مقابل عتبة الشدة–المدة المختارة.') }}</div>
+    <div id="hOut" hidden style="display:grid;gap:18px">
+      <div class="kpis" id="hKpis"></div>
+      <div id="hVerd" style="display:grid;gap:10px"></div>
+      {{ m.fig_open('fh1', '1', 'Rainfall, accumulation and threshold exceedance', 'الأمطار والتراكم وتجاوز العتبة') }}
+        <div class="fig-b"><div class="plot" id="hTs" style="height:420px"></div></div>
+        <div class="fig-cap">{{ m.L('Bars: daily rain. Line: antecedent precipitation index. Lower panel: exceedance ratio, the largest I / I(threshold) over all durations ending at each hour. Values above 1 cross the threshold.', 'الأعمدة: المطر اليومي. الخط: مؤشر الأمطار السابقة. اللوحة السفلى: نسبة التجاوز، أكبر قيمة لـ I / I(العتبة) عبر كل المُدد المنتهية عند كل ساعة. القيم فوق 1 تتجاوز العتبة.') }}</div>
+      {{ m.fig_close() }}
+      <div class="grid2">
+        {{ m.fig_open('fh2', '2', 'Intensity–duration plot', 'مخطط الشدة–المدة') }}
+          <div class="fig-b"><div class="plot" id="hID" style="height:360px"></div></div>
+          <div class="fig-cap">{{ m.L('Maximum mean intensity reached at each duration during the period, against the published thresholds (log–log).', 'أقصى شدة متوسطة بلغتها الأمطار عند كل مدة خلال الفترة، مقابل العتبات المنشورة (لوغاريتمي).') }}</div>
+        {{ m.fig_close() }}
+        <section class="pn"><div class="pn-h">{{ icon('table') }}<h2>{{ m.L('Critical durations', 'المُدد الحرجة') }}</h2><div class="sp no-print"><button class="btn btn-line btn-xs" id="hCsv">{{ icon('download', 'ico ico-sm') }}CSV</button></div></div>
+          <div class="pn-b flush tbl-wrap"><table class="tbl" id="hTbl"></table></div></section>
+      </div>
+      <section class="pn"><div class="pn-h">{{ icon('file-text') }}<h2>{{ m.L('Geological interpretation', 'التفسير الجيولوجي') }}</h2></div><div class="pn-b" id="hNarr" style="font-size:.92rem;line-height:1.8"></div></section>
+    </div>
+  </div>
+</div>
+</div>
+{% endblock %}
