@@ -1,0 +1,116 @@
+{% extends "app_base.html" %}
+{% import "apps/_m.html" as m with context %}
+{% block ws %}
+<div class="ws-wrap">
+<div class="ws wide-side">
+  <aside class="ws-side">
+    {{ m.panel_open(1, 'Supervisor and site', 'المشرف والموقع') }}
+      {{ m.fld('geoName', 'Supervising geologist', 'الجيولوجي المشرف', 'text') }}
+      <div class="row2">
+        {{ m.fld('qSite', 'Quarry or contract', 'المقلع أو رقم العقد', 'text', '', '', '', '', m.L('e.g. Nahrawan Q-12', 'مثال: مقلع النهروان 12')) }}
+        {{ m.sel('qCountry', 'Country', 'الدولة', [('iq', 'Iraq', 'العراق', true), ('other', 'Other country', 'دولة أخرى')]) }}
+      </div>
+      <div class="fg" id="qGovWrap"><label for="qGov">{{ m.L('Governorate', 'المحافظة') }}</label><select id="qGov"></select></div>
+      <div class="fg" id="qRegWrap" hidden><label for="qReg">{{ m.L('Region, state or province', 'المنطقة أو الولاية أو المقاطعة') }}</label><input id="qReg"></div>
+    {{ m.panel_close() }}
+
+    {{ m.panel_open(2, 'Contract and field measurements', 'العقد والقياسات الحقلية') }}
+      <div class="row2">
+        {{ m.fld('qDunam', 'Contract area', 'المساحة المتعاقد عليها', 'number', '', 'dunam', 'One Iraqi dunam = 2,500 m².', 'الدونم العراقي = 2,500 م².', '20') }}
+        {{ m.fld('qArea', 'Contract area', 'المساحة المتعاقد عليها', 'number', '', 'm²', '', '', '50000') }}
+      </div>
+      <div class="row2">
+        {{ m.fld('qVol', 'Contracted volume', 'الكمية المتعاقد عليها', 'number', '', 'm³', '', '', '100000') }}
+        {{ m.fld('qMaxD', 'Permitted depth', 'العمق المسموح', 'number', '', 'm', 'Maximum excavation depth allowed by the licence (optional).', 'أقصى عمق حفر يسمح به الترخيص (اختياري).', '6') }}
+      </div>
+      <div class="row3">
+        {{ m.fld('qL', 'Worked length', 'الطول المستثمر', 'number', '', 'm', '', '', '120') }}
+        {{ m.fld('qW', 'Worked width', 'العرض المستثمر', 'number', '', 'm', '', '', '100') }}
+        {{ m.fld('qD', 'Worked depth', 'العمق المستثمر', 'number', '', 'm', '', '', '6') }}
+      </div>
+    {{ m.panel_close() }}
+
+    {{ m.panel_open(3, 'Corner coordinates (GPS)', 'إحداثيات الأركان (GPS)') }}
+      <p class="pn-note">{{ m.L('Stand on each corner of the worked area and capture it. The phone samples GPS for 10 seconds and keeps the most accurate fix. You can also type coordinates.', 'قف على كل ركن من المساحة المستثمرة والتقطه. يجمع الهاتف قراءات GPS لمدة 10 ثوانٍ ويحتفظ بأدقها. ويمكنك كتابة الإحداثيات يدوياً.') }}</p>
+      <div id="qCorners" style="display:grid;gap:10px"></div>
+    {{ m.panel_close() }}
+
+    {{ m.panel_open(4, 'Geological assessment', 'التقييم الجيولوجي') }}
+      <div class="fg"><span class="lb">{{ m.L('Geological variations observed', 'المتغيرات الجيولوجية المرصودة') }}</span>
+      <div class="chks" id="qVar">
+        <label class="chk"><input type="checkbox" value="gyp"> {{ m.L('Gypsum or salt veins and lenses', 'عروق أو عدسات جبسية أو ملحية') }}</label>
+        <label class="chk"><input type="checkbox" value="sand"> {{ m.L('Interfingering sand lenses', 'عدسات رملية متداخلة') }}</label>
+        <label class="chk"><input type="checkbox" value="joint"> {{ m.L('Joints and fractures', 'فواصل وتشققات') }}</label>
+        <label class="chk"><input type="checkbox" value="fault"> {{ m.L('Local faults', 'فوالق محلية') }}</label>
+        <label class="chk"><input type="checkbox" value="xbed"> {{ m.L('Cross-bedding', 'تطبق متقاطع') }}</label>
+      </div></div>
+      {{ m.fld('qVarOther', 'Other (describe)', 'أخرى (صِف)', 'text') }}
+      {{ m.sel('qLab', 'Laboratory specification', 'المطابقة مع الفحص المختبري', [('ok', 'Matches the laboratory report', 'مطابقة لكتاب التحليل المختبري', true), ('no', 'Does not match the laboratory report', 'غير مطابقة لكتاب التحليل المختبري')]) }}
+    {{ m.panel_close() }}
+
+    {{ m.panel_open(5, 'Environment, safety and operations', 'البيئة والسلامة والعمليات') }}
+      <div class="fg"><span class="lb">{{ m.L('Pollution observed', 'التلوث المرصود') }}</span>
+      <div class="chks" id="qPol">
+        <label class="chk"><input type="checkbox" value="dust"> {{ m.L('Heavy dust and emissions', 'غبار كثيف وانبعاثات') }}</label>
+        <label class="chk"><input type="checkbox" value="waste"> {{ m.L('Plastic or chemical waste', 'نفايات بلاستيكية أو كيميائية') }}</label>
+        <label class="chk"><input type="checkbox" value="oil"> {{ m.L('Machinery residue and oil spills', 'مخلفات آليات وتسرب نفطي') }}</label>
+      </div></div>
+      {{ m.sel('qGw', 'Groundwater', 'المياه الجوفية', [('safe', 'Excavation is above the water table', 'الحفر آمن ولم يصل للمياه الجوفية', true), ('seen', 'Groundwater visible in the pit', 'المياه الجوفية ظاهرة في الحفرة'), ('impact', 'Negative impact: stop excavation', 'تأثير سلبي: يتطلب إيقاف الحفر')]) }}
+      {{ m.sel('qRehab', 'Rehabilitation', 'إعادة التأهيل', [('active', 'Site still being worked', 'الموقع قيد الاستثمار', true), ('hazard', 'Left as a dangerous open pit', 'متروك كحفرة خطرة'), ('done', 'Levelled and rehabilitated', 'تمت التسوية وإعادة التأهيل')]) }}
+      <div class="fg"><span class="lb">{{ m.L('Operations observed', 'العمليات المرصودة') }}</span>
+      <div class="chks" id="qOps" style="grid-template-columns:repeat(2,minmax(0,1fr))">
+        <label class="chk"><input type="checkbox" value="over"> {{ m.L('Overburden removal', 'إزالة الغطاء') }}</label>
+        <label class="chk"><input type="checkbox" value="exc"> {{ m.L('Excavation and stockpiling', 'القلع والتكديس') }}</label>
+        <label class="chk"><input type="checkbox" value="trans"> {{ m.L('Transport to plant', 'النقل إلى المعمل') }}</label>
+        <label class="chk"><input type="checkbox" value="proc"> {{ m.L('Screening and processing', 'الفرز والمعالجة') }}</label>
+      </div></div>
+      <div class="fg"><span class="lb">{{ m.L('Machinery on site', 'الآليات في الموقع') }}</span>
+      <div class="chks" id="qMach" style="grid-template-columns:repeat(2,minmax(0,1fr))">
+        <label class="chk"><input type="checkbox" value="ex"> {{ m.L('Excavator', 'حفارة') }}</label>
+        <label class="chk"><input type="checkbox" value="dt"> {{ m.L('Dump trucks', 'قلابات') }}</label>
+        <label class="chk"><input type="checkbox" value="ld"> {{ m.L('Loader', 'شفل') }}</label>
+        <label class="chk"><input type="checkbox" value="sc"> {{ m.L('Scraper', 'كاشطة') }}</label>
+      </div></div>
+    {{ m.panel_close() }}
+
+    {{ m.panel_open(6, 'Beds in the pit face (top to bottom)', 'طبقات واجهة المقلع (من الأعلى للأسفل)') }}
+      <div id="qBeds" style="display:grid;gap:10px"></div>
+      <button class="btn btn-line btn-sm" id="qAddBed" type="button">{{ icon('plus', 'ico ico-sm') }}{{ m.L('Add bed', 'أضف طبقة') }}</button>
+      <div class="row2">
+        <div class="fg"><label for="qColInv">{{ m.L('Worked area colour', 'لون المساحة المستثمرة') }}</label><input type="color" id="qColInv" value="#C0603A" style="padding:3px"></div>
+        <div class="fg"><label for="qColRem">{{ m.L('Remaining area colour', 'لون المساحة المتبقية') }}</label><input type="color" id="qColRem" value="#5D9C6B" style="padding:3px"></div>
+      </div>
+      <button class="btn btn-gold btn-block" id="qRun" type="button">{{ icon('activity', 'ico ico-sm') }}{{ m.L('Process and generate report', 'عالج البيانات وأنشئ التقرير') }}</button>
+      <button class="btn btn-line btn-xs" id="qDemo" type="button">{{ m.L('Load example data', 'تحميل بيانات مثال') }}</button>
+    {{ m.panel_close() }}
+  </aside>
+
+  <div class="ws-main">
+    <div id="qEmpty" class="pn">{{ m.empty('pickaxe', 'Survey the quarry', 'ابدأ مسح المقلع', 'Enter the contract, the worked dimensions, the corner coordinates and the beds in the face, then process the data.', 'أدخل بيانات العقد والأبعاد المستثمرة وإحداثيات الأركان وطبقات الواجهة، ثم عالج البيانات.') }}</div>
+    <div id="qOut" hidden style="display:grid;gap:18px">
+      <div class="kpis" id="qKpis"></div>
+      <div id="qVerd" style="display:grid;gap:10px"></div>
+      <div class="grid2">
+        {{ m.fig_open('fq1', '1', '2D plan of worked and remaining areas', 'المرتسم الثنائي للمساحات المستثمرة والمتبقية', '<button class="btn btn-line btn-xs" data-svg="qPlan">PNG</button>') }}
+          <div class="fig-b"><svg class="chart" id="qPlan" viewBox="0 0 560 420" role="img" aria-label="Quarry plan"></svg></div>
+          <div class="fig-cap" id="qPlanCap"></div>
+        {{ m.fig_close() }}
+        {{ m.fig_open('fq2', '2', 'Stratigraphic column of the pit face', 'العمود الطباقي لواجهة المقلع', '<button class="btn btn-line btn-xs" data-svg="qCol">PNG</button>') }}
+          <div class="fig-b"><svg class="chart" id="qCol" viewBox="0 0 560 420" role="img" aria-label="Stratigraphic column"></svg></div>
+        {{ m.fig_close() }}
+      </div>
+      {{ m.fig_open('fq3', '3', 'Satellite view of the site', 'الصورة الفضائية للموقع') }}
+        <div class="fig-b pad0" style="position:relative"><div class="map" id="qMap"></div></div>
+        <div class="fig-cap">{{ m.L('Worked area outlined from the GPS corners on satellite imagery. Corner labels show UTM coordinates.', 'المساحة المستثمرة محددة من أركان GPS فوق الصورة الفضائية، وتظهر تسميات الأركان بإحداثيات UTM.') }}</div>
+      {{ m.fig_close() }}
+      <section class="pn"><div class="pn-h">{{ icon('file-text') }}<h2>{{ m.L('Geological interpretation and lithological description', 'التفسير الجيولوجي والوصف الصخاري') }}</h2></div><div class="pn-b" id="qNarr" style="font-size:.92rem;line-height:1.8"></div></section>
+      <div class="grid2">
+        <section class="pn"><div class="pn-h">{{ icon('clipboard') }}<h2>{{ m.L('Site and contract', 'الموقع والعقد') }}</h2></div><div class="pn-b flush"><table class="kv" id="qSum1"></table></div></section>
+        <section class="pn"><div class="pn-h">{{ icon('map-pin') }}<h2>{{ m.L('Corner coordinates', 'إحداثيات الأركان') }}</h2></div><div class="pn-b flush tbl-wrap"><table class="tbl" id="qSum2"></table></div></section>
+      </div>
+      <section class="pn"><div class="pn-h">{{ icon('leaf') }}<h2>{{ m.L('Technical and environmental assessment', 'التقييم الفني والبيئي') }}</h2></div><div class="pn-b flush"><table class="kv" id="qSum3"></table></div></section>
+    </div>
+  </div>
+</div>
+</div>
+{% endblock %}
