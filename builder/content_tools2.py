@@ -7,7 +7,7 @@ def L(en, ar):
 NEW_TOOLS = [
 # ================================================================ TERRAIN
 {
- 'slug': 'terrain-contours', 'cat': 'terrain', 'icon': 'mountain', 'illus': 'contourfill', 'libs': ['map', 'plot'], 'live': True,
+ 'slug': 'terrain-contours', 'cat': 'terrain', 'icon': 'mountain', 'illus': 'contourfill', 'libs': ['map', 'plot', 'dem'], 'live': True,
  'name': L('Global Contour & Profile Studio', 'استوديو الخرائط الكنتورية والمقاطع العالمي'),
  'tagline': L('Contour any place on Earth, cut a profile, export it.', 'ارسم كنتور أي مكان على الأرض، واقطع مقطعاً، وصدّره.'),
  'summary': L('Select an area anywhere on Earth and the studio downloads a digital elevation model, draws contours at the interval you choose, shades the relief and cuts topographic profiles. Results export to GeoJSON, PNG, CSV and a PDF report.',

@@ -1,0 +1,77 @@
+{% extends "app_base.html" %}
+{% import "apps/_m.html" as m with context %}
+{% block ws %}
+<div class="ws-wrap">
+<div class="ws wide-side">
+  <aside class="ws-side">
+    {{ m.panel_open(1, 'Area', 'المنطقة') }}
+      <div class="row2">
+        <button class="btn btn-ink btn-sm" id="cDraw" type="button">{{ icon('square-dashed', 'ico ico-sm') }}{{ m.L('Draw on map', 'ارسم على الخريطة') }}</button>
+        <button class="btn btn-line btn-sm" id="cView" type="button">{{ icon('scan', 'ico ico-sm') }}{{ m.L('Use map view', 'استخدم عرض الخريطة') }}</button>
+      </div>
+      <div class="row2">
+        {{ m.fld('cN', 'North', 'الشمال', 'number', '', '°', '', '', '', '0.0001') }}
+        {{ m.fld('cS', 'South', 'الجنوب', 'number', '', '°', '', '', '', '0.0001') }}
+      </div>
+      <div class="row2">
+        {{ m.fld('cW', 'West', 'الغرب', 'number', '', '°', '', '', '', '0.0001') }}
+        {{ m.fld('cE', 'East', 'الشرق', 'number', '', '°', '', '', '', '0.0001') }}
+      </div>
+      <p class="pn-note" id="cArea">{{ m.L('Draw a rectangle or type the bounds.', 'ارسم مستطيلاً أو اكتب الحدود.') }}</p>
+    {{ m.panel_close() }}
+
+    {{ m.panel_open(2, 'Elevation model', 'نموذج الارتفاع') }}
+      {{ m.sel('cSrc', 'Source', 'المصدر', [('aws', 'AWS Terrain Tiles · ~30 m', 'بلاطات AWS للتضاريس · ~30 م', true), ('cop', 'Copernicus GLO-90 · 90 m', 'Copernicus GLO-90 · 90 م')]) }}
+      <div class="row2">
+        {{ m.sel('cCrs', 'Map coordinates', 'إحداثيات الخريطة', [('utm', 'UTM (metres)', 'UTM (أمتار)', true), ('geo', 'Geographic (degrees)', 'جغرافية (درجات)')]) }}
+        {{ m.fld('cStep', 'Grid spacing', 'تباعد الشبكة', 'number', '', 'm', 'Leave empty for an automatic spacing of about 250 nodes across the area.', 'اتركه فارغاً لتباعد تلقائي بنحو 250 عقدة عبر المنطقة.', m.L('auto', 'تلقائي'), '1', 'min="5"') }}
+      </div>
+    {{ m.panel_close() }}
+
+    {{ m.panel_open(3, 'Contours and style', 'الكنتور والأسلوب') }}
+      <div class="row3">
+        {{ m.fld('cInt', 'Interval', 'الفاصل', 'number', '', 'm', '', '', m.L('auto', 'تلقائي'), '0.5', 'min="0.1"') }}
+        {{ m.fld('cIdx', 'Index every', 'رئيسي كل', 'number', '5', '', 'Every Nth contour is drawn bold and labelled.', 'يُرسم كل خط رقم N بخط عريض ومع قيمته.', '', '1', 'min="2" max="10"') }}
+        {{ m.sel('cRamp', 'Colours', 'الألوان', [('hypso', 'Hypsometric', 'هبسومتري', true), ('terrain', 'Terrain', 'تضاريس'), ('viridis', 'Viridis', 'Viridis'), ('gray', 'Grey', 'رمادي')]) }}
+      </div>
+      <div class="chks" style="grid-template-columns:repeat(2,minmax(0,1fr))">
+        <label class="chk"><input type="checkbox" id="cFill" checked> {{ m.L('Tint and hillshade', 'تلوين وتظليل') }}</label>
+        <label class="chk"><input type="checkbox" id="cLab" checked> {{ m.L('Contour labels', 'قيم الكنتور') }}</label>
+        <label class="chk"><input type="checkbox" id="cSm" checked> {{ m.L('Smooth lines', 'تنعيم الخطوط') }}</label>
+        <label class="chk"><input type="checkbox" id="cGrid" checked> {{ m.L('Coordinate grid', 'شبكة الإحداثيات') }}</label>
+      </div>
+      {{ m.fld('cTitle', 'Map title', 'عنوان الخريطة', 'text', '', '', '', '', m.L('Topographic contour map', 'خريطة كنتورية طبوغرافية')) }}
+    {{ m.panel_close() }}
+    <button class="btn btn-gold btn-block" id="cRun" type="button">{{ icon('mountain', 'ico ico-sm') }}{{ m.L('Generate contour map', 'أنشئ الخريطة الكنتورية') }}</button>
+    <button class="btn btn-line btn-xs" id="cDemo" type="button">{{ m.L('Example: Safeen mountain, Erbil', 'مثال: جبل سفين، أربيل') }}</button>
+
+    {{ m.panel_open(4, 'Topographic profile', 'المقطع الطبوغرافي') }}
+      <p class="pn-note">{{ m.L('Click points on the map to trace the section line, then press Finish. Up to 20 vertices.', 'انقر نقاطاً على الخريطة لرسم خط المقطع ثم اضغط إنهاء. حتى 20 رأساً.') }}</p>
+      <div class="row2">
+        <button class="btn btn-ink btn-sm" id="pDraw" type="button">{{ icon('spline', 'ico ico-sm') }}<span id="pDrawT">{{ m.L('Trace section', 'ارسم المقطع') }}</span></button>
+        <button class="btn btn-line btn-sm" id="pClear" type="button">{{ m.L('Clear', 'مسح') }}</button>
+      </div>
+      {{ m.fld('pN', 'Samples', 'عدد العينات', 'number', '400', '', '', '', '', '10', 'min="50" max="2000"') }}
+    {{ m.panel_close() }}
+  </aside>
+
+  <div class="ws-main">
+    {{ m.fig_open('fc0', '', 'Map', 'الخريطة') }}
+      <div class="fig-b pad0" style="position:relative"><div class="map tall" id="cMap"></div><div class="map-hint" id="cHint" hidden>{{ m.L('Drag a rectangle, or tap two corners', 'اسحب مستطيلاً أو انقر ركنين') }}</div><div class="map-hint" id="pHint" hidden>{{ m.L('Click to add vertices · press Finish when done', 'انقر لإضافة رؤوس · اضغط إنهاء عند الانتهاء') }}</div></div>
+    {{ m.fig_close() }}
+    <div id="cEmpty" class="pn">{{ m.empty('mountain', 'Contour any place on Earth', 'ارسم كنتور أي مكان على الأرض', 'Mark an area and generate. The studio fetches the elevation model, contours it at the chosen interval and builds a print-ready map with grid, scale, north arrow and legend.', 'حدد منطقة وأنشئ الخريطة. يجلب الاستوديو نموذج الارتفاع ويرسم الكنتور بالفاصل المختار ويبني خريطة جاهزة للطباعة مع الشبكة ومقياس الرسم والشمال ومفتاح الخريطة.') }}</div>
+    <div id="cOut" hidden style="display:grid;gap:18px">
+      <div class="kpis" id="cKpis"></div>
+      {{ m.fig_open('fc1', '1', 'Contour map', 'الخريطة الكنتورية', '<button class="btn btn-line btn-xs" id="xSvg">SVG</button><button class="btn btn-line btn-xs" id="xPng">PNG</button><button class="btn btn-line btn-xs" id="xGeo">GeoJSON</button><button class="btn btn-line btn-xs" id="xDxf">DXF</button><button class="btn btn-line btn-xs" id="xCsv">CSV</button>') }}
+        <div class="fig-b" style="overflow:auto"><svg class="chart" id="cSvg" viewBox="0 0 1000 760" role="img" aria-label="Contour map" style="min-width:680px;background:#fff"></svg></div>
+        <div class="fig-cap" id="cCap"></div>
+      {{ m.fig_close() }}
+      {{ m.fig_open('fc2', '2', 'Topographic profile', 'المقطع الطبوغرافي', '<button class="btn btn-line btn-xs" id="xPcsv">CSV</button>') }}
+        <div class="fig-b"><div id="pEmpty">{{ m.empty('spline', 'No section yet', 'لا يوجد مقطع بعد', 'Use “Trace section” in the side panel and click across the relief.', 'استخدم «ارسم المقطع» في اللوحة الجانبية وانقر عبر التضاريس.') }}</div><div class="plot" id="pPlot" style="height:320px" hidden></div></div>
+        <div class="fig-b" style="padding-top:0"><div class="kpis" id="pKpis" hidden></div></div>
+      {{ m.fig_close() }}
+    </div>
+  </div>
+</div>
+</div>
+{% endblock %}
