@@ -19,6 +19,7 @@
   </div>
 </div>
 <div id="ws-root">
+<script type="application/json" id="toolMeta">{{ tool_meta }}</script>
 <div class="rep-head" id="repHead"><img src="{{ u('assets/img/emblem-192.png') }}" alt=""><div><h1 data-r="title"></h1><p>{{ t('brand_full') }} · geologicalfieldsurvey.com</p><p data-r="meta"></p></div><div><div class="qr"></div><div class="code" data-r="code"></div></div></div>
 {% block ws %}{% endblock %}
 </div>
@@ -43,6 +44,8 @@
 {% if 'dem' in tool.libs %}<script src="{{ u('assets/js/dem.js') }}?v={{ version }}" defer></script>{% endif %}
 <script src="{{ u('assets/vendor/qrcode/qrcode.min.js') }}" defer></script>
 <script src="{{ u('assets/js/ws.js') }}?v={{ version }}"></script>
+<script src="{{ u('assets/js/report.js') }}?v={{ version }}" defer></script>
+{% if 'strat' in tool.libs %}<script src="{{ u('assets/js/strat.js') }}?v={{ version }}" defer></script>{% endif %}
 {% block appscripts %}{% endblock %}
 <script src="{{ u('assets/js/tools/' + tool.slug + '.js') }}?v={{ version }}" defer></script>
 {% endblock %}

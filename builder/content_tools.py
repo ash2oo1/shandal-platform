@@ -8,7 +8,7 @@ def L(en, ar):
 TOOLS = [
 # ---------------------------------------------------------------- FIELD GEOLOGY
 {
- 'slug': 'quarry-survey', 'cat': 'geology', 'libs': ['map'], 'icon': 'pickaxe', 'illus': 'quarry',
+ 'slug': 'quarry-survey', 'cat': 'geology', 'libs': ['map', 'strat'], 'icon': 'pickaxe', 'illus': 'quarry',
  'name': L('Quarry & Earthworks Survey', 'مسح المقالع واستثمار التراب'),
  'tagline': L('Extracted and remaining volumes, measured on site.', 'الكميات المستخرجة والمتبقية، تُقاس في الموقع.'),
  'summary': L('Converts contract areas and field measurements into extracted and remaining volumes, maximum permitted depth, a 2D site plan and a stratigraphic column for the pit face.',

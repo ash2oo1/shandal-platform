@@ -67,7 +67,7 @@
       kpi('', t('Mean slope', 'متوسط الميل'), SH.fmt(r.meanSlope, 1) + '<small>°</small>', t('regional fall to the ', 'الانحدار العام نحو ') + r.dirFall) + kpi('', t('Contour interval', 'الفاصل الكنتوري'), SH.fmt(step, step < 1 ? 1 : 0) + '<small> m</small>', G.method === 'kriging' ? t('ordinary kriging', 'كريجنغ اعتيادي') : 'IDW') +
       (r.riv ? kpi(r.riv.drop <= 0 ? 'bad' : '', t('Channel gradient', 'انحدار المجرى'), SH.fmt(r.riv.grad * 1000, 1) + '<small> ‰</small>', t('sinuosity ', 'التعرج ') + SH.fmt(r.riv.sin, 2)) : '');
     var lines = r.riv ? [{ pts: r.R.map(function (p) { return [p.y, p.x]; }), color: '#1F6FB2', width: 3, arrow: true }] : [];
-    D.svgMap($('#gSvg'), G, CS, { crs: 'proj', interval: step, index: 5, ramp: SH.val('gRamp'), smooth: true, title: SH.val('gProj') || t('Geomorphological contour map', 'الخريطة الكنتورية الجيومورفولوجية'), subtitle: 'WGS 84 / UTM ' + G.zone + (r.A[0].lat < 0 ? 'S' : 'N') + ' · ' + (SH.val('geoName') || ''), axisNames: ['Easting (m)', 'Northing (m)'],
+    D.svgMap($('#gSvg'), G, CS, { crs: 'proj', interval: step, index: 5, ramp: SH.val('gRamp'), smooth: true, title: SH.val('gProj') || t('Geomorphological contour map', 'الخريطة الكنتورية الجيومورفولوجية'), subtitle: 'WGS 84 / UTM ' + G.zone + (r.A[0].lat < 0 ? 'S' : 'N') + (SH.val('geoName') ? ' · ' + SH.val('geoName') : ''), axisNames: ['Easting (m)', 'Northing (m)'],
       points: r.T.map(function (p, i) { return { x: p.x, y: p.y, label: 'P' + (i + 1) }; }), lines: lines, legend: r.riv ? [{ name: t('Channel course', 'مسار المجرى'), color: '#1F6FB2' }] : [] });
     drawMap(); drawLong(); narrative(); tables();
   }

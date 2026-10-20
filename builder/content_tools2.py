@@ -241,7 +241,7 @@ NEW_TOOLS = [
  'related': ['air-quality', 'env-monitoring', 'terrain-contours'],
 },
 {
- 'slug': 'air-quality', 'cat': 'environment', 'icon': 'wind', 'illus': 'aqi', 'libs': ['map', 'plot'], 'live': True,
+ 'slug': 'air-quality', 'cat': 'environment', 'icon': 'wind', 'illus': 'aqi', 'libs': ['map', 'plot', 'dem'], 'live': True,
  'name': L('Air Quality Monitor', 'مراقب جودة الهواء'),
  'tagline': L('PM2.5, dust, ozone and gases from CAMS for any location.', 'الجسيمات الدقيقة والغبار والأوزون والغازات من CAMS لأي موقع.'),
  'summary': L('Shows current and forecast air quality for any point from the Copernicus Atmosphere Monitoring Service: US and European AQI, PM2.5, PM10, dust, NO₂, SO₂, O₃, CO and aerosol optical depth, compared with the WHO 2021 guidelines, plus a regional AQI map.',

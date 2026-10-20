@@ -16,6 +16,7 @@
   var $ = SH.$ = function (s, c) { return (c || d).querySelector(s); };
   var $$ = SH.$$ = function (s, c) { return Array.prototype.slice.call((c || d).querySelectorAll(s)); };
   SH.el = function (tag, attrs, html) { var e = d.createElement(tag); if (attrs) for (var k in attrs) e.setAttribute(k, attrs[k]); if (html != null) e.innerHTML = html; return e; };
+  SH.ltr = function (s) { return '\u2066' + s + '\u2069'; };
   SH.esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); };
   SH.store = {
     get: function (k, def) { try { var v = localStorage.getItem(k); return v == null ? def : JSON.parse(v); } catch (e) { return def; } },
@@ -61,8 +62,15 @@
   };
   SH.busy = function (host, on, text) {
     if (!host) return; var l = host.querySelector(':scope > .loading');
-    if (!l) { l = SH.el('div', { class: 'loading' }, '<div style="display:grid;justify-items:center"><div class="spin"></div><div class="lt"></div></div>'); if (getComputedStyle(host).position === 'static') host.style.position = 'relative'; host.appendChild(l); }
-    l.querySelector('.lt').textContent = text || SH.t('Loading…', 'جارٍ التحميل…'); l.hidden = !on;
+    if (!l) {
+      l = SH.el('div', { class: 'loading', role: 'status', 'aria-live': 'polite' }, '<div class="ld-card"><div class="ld-em"><span class="ld-ring"></span><span class="ld-arc"></span><img src="' + SH.base + 'assets/img/emblem-64.png" alt="" width="40" height="40"></div><div class="ld-strata" aria-hidden="true"><i></i></div><div class="lt"></div><div class="ls">' + SH.t('Please wait — Shandal System is collecting the data for you.', 'يرجى الانتظار — يجمع نظام شندل البيانات من أجلك.') + '</div><div class="le ltr"></div></div>');
+      if (getComputedStyle(host).position === 'static') host.style.position = 'relative'; host.appendChild(l);
+    }
+    l.querySelector('.lt').textContent = text || SH.t('Loading…', 'جارٍ التحميل…');
+    clearInterval(l._tm); var le = l.querySelector('.le'); le.textContent = '';
+    var ls = l.querySelector('.ls'), ST = [SH.t('Connecting to the international data service…', 'جارٍ الاتصال بخدمة البيانات الدولية…'), SH.t('Receiving and checking the data…', 'جارٍ استلام البيانات والتحقق منها…'), SH.t('Computing results and drawing the figures…', 'جارٍ حساب النتائج ورسم الأشكال…'), SH.t('Large requests take a little longer — thank you for waiting.', 'الطلبات الكبيرة تستغرق وقتاً أطول قليلاً — شكراً لانتظارك.')];
+    if (on) { var t0 = Date.now(); ls.textContent = ST[0]; l._tm = setInterval(function () { var s = Math.round((Date.now() - t0) / 1000); ls.textContent = ST[s < 3 ? 0 : s < 7 ? 1 : s < 14 ? 2 : 3]; le.textContent = s >= 2 ? s + ' s' : ''; }, 1000); }
+    l.hidden = !on;
   };
 
   /* ---------------------------------------------------------------- numbers */
@@ -181,25 +189,40 @@
   });
 
   /* ---------------------------------------------------------------- geolocation */
-  SH.locate = function (opts) {
+  /* GNSS capture. Listens with high accuracy (the device then uses every constellation it supports:
+     GPS, GLONASS, Galileo, BeiDou), keeps all readings, averages the good ones (weights 1/σ²) and stops
+     early once the target accuracy is reached. With `prev`, earlier readings are merged and the result is
+     never worse than the previous fix. */
+  SH.gpsFix = function (o) {
+    o = o || {}; var ms = o.ms || 30000, target = o.target || 4, prev = o.prev || null;
     return new Promise(function (res, rej) {
       if (!navigator.geolocation) return rej(new Error(SH.t('This browser does not support location.', 'هذا المتصفح لا يدعم تحديد الموقع.')));
-      navigator.geolocation.getCurrentPosition(function (p) { res({ lat: p.coords.latitude, lon: p.coords.longitude, acc: p.coords.accuracy, alt: p.coords.altitude, altAcc: p.coords.altitudeAccuracy }); },
-        function (e) { rej(new Error(e.code === 1 ? SH.t('Location permission was denied. Allow location for this site in your browser settings.', 'تم رفض إذن الموقع. اسمح بالموقع لهذا الموقع من إعدادات المتصفح.') : SH.t('Could not get a GPS fix. Move to open sky and try again.', 'تعذر الحصول على إشارة GPS. انتقل إلى مكان مكشوف وحاول مجدداً.'))); },
-        Object.assign({ enableHighAccuracy: true, timeout: 20000, maximumAge: 0 }, opts || {}));
+      var fixes = (prev && prev.fixes ? prev.fixes.slice(-80) : []), t0 = Date.now(), done = false, id, tm;
+      function summary() {
+        if (!fixes.length) return null; var best = fixes.reduce(function (a, f) { return f.acc < a.acc ? f : a; }), good = fixes.filter(function (f) { return f.acc <= Math.max(best.acc * 1.6, best.acc + 3); });
+        var sw = 0, la = 0, lo = 0, al = 0, na = 0; good.forEach(function (f) { var w = 1 / (f.acc * f.acc); sw += w; la += f.lat * w; lo += f.lon * w; if (f.alt != null) { al += f.alt; na++; } });
+        return { lat: la / sw, lon: lo / sw, acc: best.acc, prec: Math.sqrt(1 / sw), n: fixes.length, used: good.length, alt: na ? al / na : null, fixes: fixes, t: Date.now() };
+      }
+      function finish(err) {
+        if (done) return; done = true; navigator.geolocation.clearWatch(id); clearInterval(tm); var r = summary();
+        if (!r) return rej(err || new Error(SH.t('No satellite fix yet. Go outdoors with an open view of the sky and turn on precise (GPS) location on the device. Desktop computers without a GNSS receiver only estimate an approximate position from Wi-Fi or the network.', 'لم يُلتقط أي إرسال من الأقمار الصناعية بعد. اخرج إلى مكان مفتوح على السماء وفعّل الموقع الدقيق (GPS) في الجهاز. الحواسيب المكتبية التي لا تحتوي مستقبِل GNSS تقدّر موقعاً تقريبياً فقط من شبكة Wi-Fi أو الإنترنت.')));
+        if (prev && prev.acc != null && prev.acc < r.acc && !prev.fixes) { prev.kept = true; return res(prev); }
+        res(r);
+      }
+      id = navigator.geolocation.watchPosition(function (p) {
+        var c = p.coords; if (!isFinite(c.accuracy) || c.accuracy > 5000) return;
+        fixes.push({ lat: c.latitude, lon: c.longitude, acc: c.accuracy, alt: c.altitude, t: p.timestamp });
+        var r = summary(); o.onUpdate && o.onUpdate(Object.assign({ elapsed: (Date.now() - t0) / 1000, ms: ms }, r));
+        var fresh = fixes.filter(function (f) { return f.t >= t0; }).length;
+        if (r.acc <= target && fresh >= 5) finish();
+      }, function (e) { if (e.code === 1) { done = true; navigator.geolocation.clearWatch(id); clearInterval(tm); rej(new Error(SH.t('Location permission was denied. Allow location for this site in the browser settings.', 'تم رفض إذن الموقع. اسمح بالموقع لهذا الموقع من إعدادات المتصفح.'))); } },
+      { enableHighAccuracy: true, maximumAge: 0 });
+      tm = setInterval(function () { var r = summary(); o.onUpdate && o.onUpdate(Object.assign({ elapsed: (Date.now() - t0) / 1000, ms: ms, waiting: !r }, r || {})); if (Date.now() - t0 >= ms) finish(); }, 1000);
+      if (o.control) o.control.stop = function () { finish(); };
     });
   };
-  /* best-of-N fix: keeps sampling for `ms` and returns the most accurate reading */
-  SH.locateBest = function (ms, onUpdate) {
-    return new Promise(function (res, rej) {
-      if (!navigator.geolocation) return rej(new Error(SH.t('This browser does not support location.', 'هذا المتصفح لا يدعم تحديد الموقع.')));
-      var best = null, id = navigator.geolocation.watchPosition(function (p) {
-        var r = { lat: p.coords.latitude, lon: p.coords.longitude, acc: p.coords.accuracy, alt: p.coords.altitude, altAcc: p.coords.altitudeAccuracy };
-        if (!best || r.acc < best.acc) best = r; onUpdate && onUpdate(best);
-      }, function (e) { navigator.geolocation.clearWatch(id); if (!best) rej(new Error(e.code === 1 ? SH.t('Location permission was denied.', 'تم رفض إذن الموقع.') : SH.t('Could not get a GPS fix.', 'تعذر الحصول على إشارة GPS.'))); }, { enableHighAccuracy: true, maximumAge: 0, timeout: ms + 5000 });
-      setTimeout(function () { navigator.geolocation.clearWatch(id); best ? res(best) : rej(new Error(SH.t('Could not get a GPS fix.', 'تعذر الحصول على إشارة GPS.'))); }, ms);
-    });
-  };
+  SH.locate = function () { return SH.gpsFix({ ms: 15000, target: 30 }); };
+  SH.locateBest = function (ms, onUpdate) { return SH.gpsFix({ ms: Math.max(ms || 20000, 20000), onUpdate: onUpdate }); };
 
   /* ---------------------------------------------------------------- geodesy */
   var A = 6378137, F = 1 / 298.257223563, K0 = 0.9996, E2 = F * (2 - F), EP2 = E2 / (1 - E2);

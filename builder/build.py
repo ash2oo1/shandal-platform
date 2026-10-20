@@ -116,7 +116,11 @@ def build():
                 ctx.update(title=CX.PLATFORM['title'][lang], desc=CX.PLATFORM['p'][lang])
             elif key == 'app':
                 tl = pg['tool']
-                ctx.update(tool=tl, title=f"{tl['name'][lang]} — {UI['workspace'][lang]} · {UI['brand'][lang]}", desc=tl['summary'][lang], solid_header=True)
+                L_ = lambda v: v[lang] if isinstance(v, dict) else v
+                meta = {'name': L_(tl['name']), 'cat': UI['cat_' + tl['cat']][lang], 'summary': L_(tl['summary']), 'overview': [L_(x) for x in tl.get('overview', [])],
+                        'method': [{'h': L_(m.get('h', '')), 'p': L_(m.get('p', '')), 'eq': m.get('eq', '')} for m in tl.get('method', [])], 'refs': list(tl.get('refs', []))}
+                ctx.update(tool=tl, title=f"{tl['name'][lang]} — {UI['workspace'][lang]} · {UI['brand'][lang]}", desc=tl['summary'][lang], solid_header=True,
+                           tool_meta=Markup(json.dumps(meta, ensure_ascii=False).replace('</', '<\\/')))
             elif key == 'tool':
                 tl = pg['tool']
                 ctx.update(tool=tl, related=[x for s in tl['related'] for x in TOOLS if x['slug'] == s],

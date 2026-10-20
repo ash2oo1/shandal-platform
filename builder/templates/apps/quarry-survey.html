@@ -77,6 +77,10 @@
       <div id="qBeds" style="display:grid;gap:10px"></div>
       <button class="btn btn-line btn-sm" id="qAddBed" type="button">{{ icon('plus', 'ico ico-sm') }}{{ m.L('Add bed', 'أضف طبقة') }}</button>
       <div class="row2">
+        {{ m.fld('qFace', 'Face azimuth', 'اتجاه الواجهة', 'number', '', '°', 'Direction the pit face looks towards, measured clockwise from north with a compass (0–360°). Shown on the column.', 'الاتجاه الذي تنظر إليه واجهة المقلع، مقاساً باتجاه عقارب الساعة من الشمال بالبوصلة (0–360°). يظهر على العمود.', 'e.g. 90') }}
+        {{ m.fld('qWt', 'Water table depth', 'عمق منسوب المياه', 'number', '', 'm', 'Leave empty if groundwater was not reached.', 'اتركه فارغاً إذا لم تصل الحفريات إلى المياه الجوفية.', '—') }}
+      </div>
+      <div class="row2">
         <div class="fg"><label for="qColInv">{{ m.L('Worked area colour', 'لون المساحة المستثمرة') }}</label><input type="color" id="qColInv" value="#C0603A" style="padding:3px"></div>
         <div class="fg"><label for="qColRem">{{ m.L('Remaining area colour', 'لون المساحة المتبقية') }}</label><input type="color" id="qColRem" value="#5D9C6B" style="padding:3px"></div>
       </div>
@@ -90,16 +94,22 @@
     <div id="qOut" hidden style="display:grid;gap:18px">
       <div class="kpis" id="qKpis"></div>
       <div id="qVerd" style="display:grid;gap:10px"></div>
-      <div class="grid2">
-        {{ m.fig_open('fq1', '1', '2D plan of worked and remaining areas', 'المرتسم الثنائي للمساحات المستثمرة والمتبقية', '<button class="btn btn-line btn-xs" data-svg="qPlan">PNG</button>') }}
-          <div class="fig-b"><svg class="chart" id="qPlan" viewBox="0 0 560 420" role="img" aria-label="Quarry plan"></svg></div>
-          <div class="fig-cap" id="qPlanCap"></div>
-        {{ m.fig_close() }}
-        {{ m.fig_open('fq2', '2', 'Stratigraphic column of the pit face', 'العمود الطباقي لواجهة المقلع', '<button class="btn btn-line btn-xs" data-svg="qCol">PNG</button>') }}
-          <div class="fig-b"><svg class="chart" id="qCol" viewBox="0 0 560 420" role="img" aria-label="Stratigraphic column"></svg></div>
-        {{ m.fig_close() }}
+      {{ m.fig_open('fq1', '1', '2D plan of worked and remaining areas', 'المرتسم الثنائي للمساحات المستثمرة والمتبقية', '<button class="btn btn-line btn-xs" data-svg="qPlan">PNG</button><button class="btn btn-line btn-xs" data-svgfile="qPlan">SVG</button>') }}
+        <div class="fig-b"><svg class="chart" id="qPlan" viewBox="0 0 1000 620" role="img" aria-label="Quarry plan"></svg></div>
+        <div class="fig-cap" id="qPlanCap"></div>
+      {{ m.fig_close() }}
+      <div id="qSiteWrap" hidden>
+      {{ m.fig_open('fq1b', '2', 'Site plan from the GPS corners (UTM)', 'مخطط الموقع من أركان GPS (UTM)', '<button class="btn btn-line btn-xs" data-svg="qSitePlan">PNG</button>') }}
+        <div class="fig-b"><svg class="chart" id="qSitePlan" viewBox="0 0 1000 620" role="img" aria-label="Site plan"></svg></div>
+        <div class="fig-cap" id="qSiteCap"></div>
+      {{ m.fig_close() }}
       </div>
-      {{ m.fig_open('fq3', '3', 'Satellite view of the site', 'الصورة الفضائية للموقع') }}
+      {{ m.fig_open('fq2', '3', 'Stratigraphic column of the pit face', 'العمود الطباقي لواجهة المقلع', '<button class="btn btn-line btn-xs" data-svg="qCol">PNG</button><button class="btn btn-line btn-xs" data-svgfile="qCol">SVG</button>') }}
+        <div class="fig-b"><svg class="chart" id="qCol" viewBox="0 0 1000 900" role="img" aria-label="Stratigraphic column"></svg></div>
+        <div class="fig-cap">{{ m.L('Column width follows grain size (clastics) or Dunham texture (carbonates), so resistant coarse beds stand out as in a weathered face. Contacts, structures and fossils use standard field symbols explained in the legend.', 'يتبع عرض العمود حجم الحبيبات (للفتاتيات) أو نسيج دنهام (للكربونات)، فتبرز الطبقات الخشنة المقاومة كما في واجهة مكشوفة. ترسم التماسات والتراكيب والأحافير برموز حقلية قياسية مشروحة في المفتاح.') }}</div>
+      {{ m.fig_close() }}
+      <section class="pn"><div class="pn-h">{{ icon('table') }}<h2>{{ m.L('Bed-by-bed lithological log', 'السجل الصخاري طبقة بطبقة') }}</h2></div><div class="pn-b flush tbl-wrap"><table class="tbl" id="qLog"></table></div></section>
+      {{ m.fig_open('fq3', '4', 'Satellite view of the site', 'الصورة الفضائية للموقع') }}
         <div class="fig-b pad0" style="position:relative"><div class="map" id="qMap"></div></div>
         <div class="fig-cap">{{ m.L('Worked area outlined from the GPS corners on satellite imagery. Corner labels show UTM coordinates.', 'المساحة المستثمرة محددة من أركان GPS فوق الصورة الفضائية، وتظهر تسميات الأركان بإحداثيات UTM.') }}</div>
       {{ m.fig_close() }}

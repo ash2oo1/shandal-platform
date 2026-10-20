@@ -1,5 +1,5 @@
 /* Air quality — CAMS through the Open-Meteo air-quality API: current US/EU AQI, pollutants, dust and AOD,
-   5-day hourly forecast, WHO 2021 guideline comparison and a 9 × 9 regional grid map. */
+   5-day hourly forecast, WHO 2021 guideline comparison and a smooth regional map with category isolines. */
 (function () {
   'use strict';
   var t = SH.t, $ = SH.$, L = window.L;
@@ -39,14 +39,65 @@
     SH.plot('qPlot', tr, function () { return SH.plotLayout({ xaxis: { type: 'date' }, yaxis: { title: { text: k === 'aqi' ? 'AQI' : 'µg/m³' }, rangemode: 'tozero' }, shapes: [{ type: 'line', xref: 'x', yref: 'paper', x0: now, x1: now, y0: 0, y1: 1, line: { color: p.accent, dash: 'dot' } }].concat(k === 'pm' ? [{ type: 'line', xref: 'paper', x0: 0, x1: 1, y0: 15, y1: 15, line: { color: '#B4552D', width: 1, dash: 'dash' } }, { type: 'line', xref: 'paper', x0: 0, x1: 1, y0: 45, y1: 45, line: { color: '#9A7631', width: 1, dash: 'dash' } }] : []) }); });
   }
   document.addEventListener('click', function (e) { if (e.target.closest('#qTab button')) setTimeout(function () { plot(SH.seg('qTab')); }, 0); });
+  /* Regional surface: CAMS global (native ~0.4°) sampled on an 11 × 11 grid at 0.4°, upsampled with
+     Catmull-Rom bicubic interpolation for display, coloured on a continuous scale anchored at the centre
+     of each official category, with isolines drawn exactly at the category breakpoints. */
+  var SCALES = {
+    us_aqi: { unit: 'AQI', br: [50, 100, 150, 200, 300], cols: ['#00E400', '#FFFF00', '#FF7E00', '#FF0000', '#8F3F97', '#7E0023'], max: 500, src: 'US EPA AQI' },
+    european_aqi: { unit: 'EAQI', br: [20, 40, 60, 80, 100], cols: ['#50F0E6', '#50CCAA', '#F0E641', '#FF5050', '#960032', '#7D2181'], max: 150, src: 'EEA European AQI' },
+    pm2_5: { unit: 'µg/m³', br: [9, 35.4, 55.4, 125.4, 225.4], cols: ['#00E400', '#FFFF00', '#FF7E00', '#FF0000', '#8F3F97', '#7E0023'], max: 325, src: 'US EPA PM2.5 breakpoints (2024)' },
+    dust: { unit: 'µg/m³', br: [54, 154, 254, 354, 424], cols: ['#00E400', '#FFFF00', '#FF7E00', '#FF0000', '#8F3F97', '#7E0023'], max: 600, src: t('US EPA PM10 breakpoints (dust is coarse particulate matter)', 'حدود PM10 لوكالة حماية البيئة الأمريكية (الغبار جسيمات خشنة)') }
+  };
+  var hex = function (h) { return [parseInt(h.slice(1, 3), 16), parseInt(h.slice(3, 5), 16), parseInt(h.slice(5, 7), 16)]; };
+  function colorAt(S, v) {
+    var c = [0].concat(S.br), ctr = S.cols.map(function (_, i) { return i < S.br.length ? (c[i] + S.br[i]) / 2 : S.br[S.br.length - 1] + (S.br[S.br.length - 1] - c[c.length - 2]) / 2; });
+    if (v <= ctr[0]) return hex(S.cols[0]); for (var i = 1; i < ctr.length; i++) if (v <= ctr[i]) { var f = (v - ctr[i - 1]) / (ctr[i] - ctr[i - 1]), A = hex(S.cols[i - 1]), B = hex(S.cols[i]); return [0, 1, 2].map(function (k) { return Math.round(A[k] + (B[k] - A[k]) * f); }); }
+    return hex(S.cols[S.cols.length - 1]);
+  }
+  function cr(p0, p1, p2, p3, x) { return p1 + 0.5 * x * (p2 - p0 + x * (2 * p0 - 5 * p1 + 4 * p2 - p3 + x * (3 * (p1 - p2) + p3 - p0))); }
+  function bicubic(C, n, fx, fy) {
+    var i = Math.floor(fx), j = Math.floor(fy), dx = fx - i, dy = fy - j, g = function (a, b) { a = Math.max(0, Math.min(n - 1, a)); b = Math.max(0, Math.min(n - 1, b)); return C[b * n + a]; };
+    var r = []; for (var m = -1; m <= 2; m++) r.push(cr(g(i - 1, j + m), g(i, j + m), g(i + 1, j + m), g(i + 2, j + m), dx));
+    return Math.max(0, cr(r[0], r[1], r[2], r[3], dy));
+  }
+  var legend = null, readout = null, field = null;
   function grid(lat, lon) {
-    if (!map) return; var n = 9, d = 0.5, la = [], lo = []; for (var i = 0; i < n; i++) for (var j = 0; j < n; j++) { la.push((lat + (i - 4) * d).toFixed(2)); lo.push((lon + (j - 4) * d).toFixed(2)); }
-    var v = SH.val('qIdx');
-    SH.getJSON('https://air-quality-api.open-meteo.com/v1/air-quality?latitude=' + la.join(',') + '&longitude=' + lo.join(',') + '&current=' + v, { timeout: 30000 }).then(function (arr) { if (!Array.isArray(arr)) arr = [arr]; if (gridLay) map.removeLayer(gridLay); gridLay = L.layerGroup().addTo(map);
-      arr.forEach(function (r, k) { var val = r.current && r.current[v]; if (val == null) return; var col = v === 'us_aqi' ? cat(val)[1] : v === 'european_aqi' ? (EUC.filter(function (x) { return val <= x[0]; })[0] || EUC[5])[1] : v === 'pm2_5' ? cat(val <= 9 ? 40 : val <= 35.4 ? 80 : val <= 55.4 ? 130 : val <= 125.4 ? 180 : 250)[1] : cat(val <= 50 ? 30 : val <= 150 ? 80 : val <= 300 ? 130 : val <= 600 ? 180 : 250)[1];
-        L.rectangle([[+la[k] - d / 2, +lo[k] - d / 2], [+la[k] + d / 2, +lo[k] + d / 2]], { stroke: false, fillColor: col, fillOpacity: .45 }).bindTooltip(SH.fmt(val, 0)).addTo(gridLay); });
-      if (mk) mk.bringToFront && mk.bringToFront(); map.fitBounds([[lat - 2.3, lon - 2.3], [lat + 2.3, lon + 2.3]]);
-      $('#qMapCap').textContent = t('Current ', 'القيم الحالية لـ ') + SH.selText('qIdx') + t(' on a 0.5° grid (CAMS global, about 40 km).', ' على شبكة 0.5° (CAMS العالمي، نحو 40 كم).'); }).catch(function () {});
+    if (!map) return; var n = 11, d = 0.4, h = (n - 1) / 2, la = [], lo = [], i, j;
+    for (i = 0; i < n; i++) for (j = 0; j < n; j++) { la.push((lat + (h - i) * d).toFixed(2)); lo.push((lon + (j - h) * d).toFixed(2)); }
+    var v = SH.val('qIdx'), S = SCALES[v] || SCALES.us_aqi;
+    SH.busy($('#qMap').parentElement, true, t('Reading the CAMS atmosphere model…', 'جارٍ قراءة نموذج الغلاف الجوي CAMS…'));
+    SH.getJSON('https://air-quality-api.open-meteo.com/v1/air-quality?latitude=' + la.join(',') + '&longitude=' + lo.join(',') + '&current=' + v, { timeout: 40000 }).then(function (arr) {
+      if (!Array.isArray(arr)) arr = [arr]; var C = arr.map(function (r) { var x = r.current && r.current[v]; return x == null ? NaN : x; });
+      var ok = C.filter(isFinite); if (!ok.length) throw new Error(t('No model values returned for this area.', 'لم تُرجع قيم للنموذج في هذه المنطقة.'));
+      var mean = ok.reduce(function (a, b) { return a + b; }, 0) / ok.length; C = C.map(function (x) { return isFinite(x) ? x : mean; });
+      var N = 121, bb = { n: lat + h * d, s: lat - h * d, w: lon - h * d, e: lon + h * d }, G = { nx: N, ny: N, b: bb, z: new Float32Array(N * N) };
+      for (j = 0; j < N; j++) for (i = 0; i < N; i++) G.z[j * N + i] = bicubic(C, n, i / (N - 1) * (n - 1), j / (N - 1) * (n - 1));
+      field = { G: G, S: S, v: v };
+      /* raster in Web Mercator rows so the image lines up with the base map */
+      var W = 360, H = 360, cv = document.createElement('canvas'); cv.width = W; cv.height = H; var cx = cv.getContext('2d'), im = cx.createImageData(W, H);
+      var my = function (la) { return Math.log(Math.tan(Math.PI / 4 + SH.rad(la) / 2)); }, yN = my(bb.n), yS = my(bb.s);
+      for (var py = 0; py < H; py++) { var yy = yN + (yS - yN) * (py + .5) / H, lt = (2 * Math.atan(Math.exp(yy)) - Math.PI / 2) * 180 / Math.PI, fy = (bb.n - lt) / (bb.n - bb.s) * (n - 1);
+        for (var px = 0; px < W; px++) { var fx = (px + .5) / W * (n - 1), val = bicubic(C, n, fx, fy), col = colorAt(S, val), o = (py * W + px) * 4; im.data[o] = col[0]; im.data[o + 1] = col[1]; im.data[o + 2] = col[2]; im.data[o + 3] = 255; } }
+      cx.putImageData(im, 0, 0);
+      if (gridLay) map.removeLayer(gridLay); gridLay = L.layerGroup().addTo(map);
+      L.imageOverlay(cv.toDataURL('image/png'), [[bb.s, bb.w], [bb.n, bb.e]], { opacity: .62, interactive: false }).addTo(gridLay);
+      L.rectangle([[bb.s, bb.w], [bb.n, bb.e]], { color: '#333', weight: 1, fill: false, dashArray: '4 4', interactive: false }).addTo(gridLay);
+      var lv = S.br.filter(function (b) { return b > G.z.reduce(function (a, b) { return Math.min(a, b); }, 1e9) && b < G.z.reduce(function (a, b) { return Math.max(a, b); }, -1e9); });
+      SH.dem.contours(G, lv).forEach(function (c) { c.lines.forEach(function (ln) { if (ln.length < 4) return; L.polyline(ln, { color: '#1b1b1b', weight: 1.6, opacity: .85, interactive: false }).addTo(gridLay); var m = ln[Math.floor(ln.length / 2)];
+        L.marker(m, { interactive: false, icon: L.divIcon({ className: '', html: '<span style="background:#fff;border:1px solid #333;border-radius:4px;padding:0 4px;font:700 11px/1.5 system-ui;color:#111;white-space:nowrap;transform:translate(-50%,-50%);display:inline-block">' + SH.fmt(c.level, c.level % 1 ? 1 : 0) + '</span>', iconSize: [0, 0] }) }).addTo(gridLay); }); });
+      if (mk) mk.setZIndexOffset && mk.setZIndexOffset(1000);
+      map.fitBounds([[bb.s, bb.w], [bb.n, bb.e]], { padding: [10, 10] });
+      if (!legend) { legend = L.control({ position: 'bottomright' }); legend.onAdd = function () { var dv = L.DomUtil.create('div'); dv.id = 'qLeg'; dv.style.cssText = 'background:var(--surface);color:var(--text);border:1px solid var(--line);border-radius:10px;padding:8px 10px;font-size:11px;line-height:1.5;box-shadow:0 6px 18px rgba(0,0,0,.18);min-width:170px'; return dv; }; legend.addTo(map); }
+      var names = [t('Good', 'جيدة'), t('Moderate', 'معتدلة'), t('Unhealthy for sensitive', 'غير صحية للحساسين'), t('Unhealthy', 'غير صحية'), t('Very unhealthy', 'غير صحية جداً'), t('Hazardous', 'خطرة')];
+      if (v === 'european_aqi') names = [t('Good', 'جيدة'), t('Fair', 'مقبولة'), t('Moderate', 'متوسطة'), t('Poor', 'رديئة'), t('Very poor', 'رديئة جداً'), t('Extremely poor', 'رديئة للغاية')];
+      var lim = [0].concat(S.br);
+      $('#qLeg').innerHTML = '<b style="font-size:11.5px">' + SH.esc(SH.selText('qIdx')) + '</b>' + S.cols.map(function (c, k) { return '<div style="display:flex;gap:6px;align-items:center"><i style="width:14px;height:10px;background:' + c + ';border:1px solid #555;display:inline-block"></i><span>' + names[k] + '</span><span class="ltr" style="margin-inline-start:auto;color:var(--text-2)">' + (k < S.br.length ? SH.fmt(lim[k], 0) + '–' + SH.fmt(S.br[k], S.br[k] % 1 ? 1 : 0) : '> ' + SH.fmt(S.br[S.br.length - 1], 0)) + '</span></div>'; }).join('') + '<div style="margin-top:4px;color:var(--text-2)">— ' + t('isoline at a category limit', 'خط تساوي عند حد الفئة') + '</div>';
+      if (!readout) { readout = L.control({ position: 'topright' }); readout.onAdd = function () { var dv = L.DomUtil.create('div'); dv.id = 'qRead'; dv.style.cssText = 'background:var(--surface);color:var(--text);border:1px solid var(--line);border-radius:10px;padding:6px 10px;font-size:12px;box-shadow:0 6px 18px rgba(0,0,0,.18)'; dv.textContent = t('Move over the map to read values', 'حرّك المؤشر فوق الخريطة لقراءة القيم'); return dv; }; readout.addTo(map);
+        map.on('mousemove', function (e) { if (!field) return; var g = field.G.b, n2 = 11; if (e.latlng.lat > g.n || e.latlng.lat < g.s || e.latlng.lng < g.w || e.latlng.lng > g.e) { $('#qRead').textContent = t('Outside the modelled area', 'خارج منطقة النموذج'); return; }
+          var val = bicubic(field.C, n2, (e.latlng.lng - g.w) / (g.e - g.w) * (n2 - 1), (g.n - e.latlng.lat) / (g.n - g.s) * (n2 - 1)); $('#qRead').innerHTML = '<b class="ltr">' + SH.fmt(val, field.S.unit === 'µg/m³' ? 1 : 0) + ' ' + field.S.unit + '</b> · <span class="ltr">' + e.latlng.lat.toFixed(2) + '°, ' + e.latlng.lng.toFixed(2) + '°</span>'; }); }
+      field.C = C;
+      $('#qMapCap').innerHTML = t('Current ', 'القيم الحالية لـ ') + '<b>' + SH.esc(SH.selText('qIdx')) + '</b>' + t(' from the CAMS global atmospheric composition forecast (native resolution about 0.4°, ≈ 45 km). The model was sampled on an 11 × 11 grid at its native spacing and interpolated bicubically for display; black isolines mark the official category limits (', ' من تنبؤ تركيب الغلاف الجوي العالمي CAMS (الدقة الأصلية نحو 0.4°، أي ≈ 45 كم). أُخذت قيم النموذج على شبكة 11 × 11 بتباعده الأصلي واستُكملت بالاستيفاء ثلاثي الدرجة للعرض؛ وتحدد الخطوط السوداء حدود الفئات الرسمية (') + SH.esc(S.src) + t('). Values between nodes are interpolated, so local sources such as a factory or a road are smoothed out.', '). القيم بين العقد مستوفاة، لذلك تُنعَّم المصادر المحلية كالمصانع والطرق.');
+    }).catch(function (e) { SH.toast(e.message, 'bad'); }).then(function () { SH.busy($('#qMap').parentElement, false); });
   }
   $('#qIdx').addEventListener('change', function () { persist.save(); if (last) grid(last.lat, last.lon); });
   $('#qRun').addEventListener('click', run);

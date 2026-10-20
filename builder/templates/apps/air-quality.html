@@ -16,8 +16,8 @@
   </aside>
   <div class="ws-main">
     {{ m.fig_open('fq0', '', 'Regional map', 'الخريطة الإقليمية') }}
-      <div class="fig-b pad0"><div class="map" id="qMap" style="height:380px"></div></div>
-      <div class="fig-cap" id="qMapCap">{{ m.L('After reading, a 9 × 9 grid of CAMS values around the site is drawn.', 'بعد القراءة تُرسم شبكة 9 × 9 من قيم CAMS حول الموقع.') }}</div>
+      <div class="fig-b pad0"><div class="map" id="qMap" style="height:500px"></div></div>
+      <div class="fig-cap" id="qMapCap">{{ m.L('After reading, a smooth map of the CAMS model around the site is drawn, with isolines at the official category limits.', 'بعد القراءة تُرسم خريطة ناعمة لنموذج CAMS حول الموقع، مع خطوط تساوٍ عند حدود الفئات الرسمية.') }}</div>
     {{ m.fig_close() }}
     <div id="qEmpty" class="pn">{{ m.empty('wind', 'What are you breathing?', 'ماذا تتنفس؟', 'Current and forecast air quality from the Copernicus Atmosphere Monitoring Service, compared with the WHO 2021 guidelines.', 'جودة الهواء الحالية والمتوقعة من خدمة كوبرنيكوس لرصد الغلاف الجوي، مقارنة بأدلة منظمة الصحة العالمية 2021.') }}</div>
     <div id="qOut" hidden style="display:grid;gap:18px">
