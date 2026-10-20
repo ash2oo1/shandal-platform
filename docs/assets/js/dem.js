@@ -248,7 +248,8 @@
     var PW = 246, ml = 96, mr = PW + 46, mt = opts.title ? 86 : 44, mb = opts.axisNames && !geo ? 76 : 58;
     var wM = (G.b.e - G.b.w) * kx, hM = (G.b.n - G.b.s) * ky, bw = VW - ml - mr, bh = VH - mt - mb, sc = Math.min(bw / wM, bh / hM), W = wM * sc, H = hM * sc, ox = ml + (bw - W) / 2, oy = mt + (bh - H) / 2;
     var X = function (x) { return ox + (x - G.b.w) * kx * sc; }, Y = function (y) { return oy + (G.b.n - y) * ky * sc; };
-    var txt = function (x, y, str, a, xr) { a = a || {}; if (isAr(str) && xr != null) { a.direction = 'rtl'; a['text-anchor'] = a['text-anchor'] === 'middle' ? 'middle' : 'start'; return S.text(a['text-anchor'] === 'middle' ? x : xr, y, str, a); } return S.text(x, y, str, a); };
+    var iso = function (s) { return String(s).replace(/[A-Za-z0-9][A-Za-z0-9 .,:\/°′″±+\-×()]*[A-Za-z0-9°′″)]|[A-Za-z0-9]/g, function (m) { return '⁦' + m + '⁩'; }); };
+    var txt = function (x, y, str, a, xr) { a = a || {}; if (isAr(str)) str = iso(str); if (isAr(str) && xr != null) { a.direction = 'rtl'; a['text-anchor'] = a['text-anchor'] === 'middle' ? 'middle' : 'start'; return S.text(a['text-anchor'] === 'middle' ? x : xr, y, str, a); } return S.text(x, y, str, a); };
     S.add('rect', { x: 0, y: 0, width: VW, height: VH, fill: '#FFFFFF' });
     S.add('rect', { x: 8, y: 8, width: VW - 16, height: VH - 16, fill: 'none', stroke: ink, 'stroke-width': 1.2 });
     if (opts.title) { var ar = isAr(opts.title); txt(ml - 6, 40, opts.title, { 'font-size': 20, 'font-weight': 800, fill: ink }, ox + W + 6);

@@ -120,7 +120,8 @@
 
   /* ---------- shared sheet helpers: neat line, north arrow, legend box, graphic scale */
   var INK = '#1B232B', MUT = '#55616B';
-  function sheetText(S, x, y, s, a, xr) { a = a || {}; if (/[؀-ۿ]/.test(String(s)) && xr != null) { a.direction = 'rtl'; a['text-anchor'] = 'start'; return S.text(xr, y, s, a); } return S.text(x, y, s, a); }
+  var iso = function (s) { return String(s).replace(/[A-Za-z0-9][A-Za-z0-9 .,:\/°′″±+\-×()]*[A-Za-z0-9°′″)]|[A-Za-z0-9]/g, function (m) { return '⁦' + m + '⁩'; }); };
+  function sheetText(S, x, y, s, a, xr) { a = a || {}; if (/[؀-ۿ]/.test(String(s))) s = iso(s); if (/[؀-ۿ]/.test(String(s)) && xr != null) { a.direction = 'rtl'; a['text-anchor'] = 'start'; return S.text(xr, y, s, a); } return S.text(x, y, s, a); }
   function niceFloor(v) { var p = Math.pow(10, Math.floor(Math.log10(v))), m = v / p; return (m >= 5 ? 5 : m >= 2 ? 2 : 1) * p; }
   function panel(S, PX, PY, PW, PH, sc, rot, items, extraRows) {
     S.add('rect', { x: PX, y: PY, width: PW, height: PH, fill: '#fff', stroke: INK, 'stroke-width': 1 }); var L0 = PX + 14, R0 = PX + PW - 14, y = PY + 22, cx = PX + PW / 2;
