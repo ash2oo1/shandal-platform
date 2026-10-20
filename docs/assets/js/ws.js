@@ -239,9 +239,10 @@
   SH.basemaps = function () {
     var L = w.L; if (!L) return {};
     var osm = '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
+    var esri = function (base, ref) { var u = 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/', o = { maxZoom: 19, maxNativeZoom: 16 }; return L.layerGroup([L.tileLayer(u + base + '/MapServer/tile/{z}/{y}/{x}', L.extend({ attribution: 'Basemap © Esri, HERE, Garmin, © OpenStreetMap contributors' }, o)), L.tileLayer(u + ref + '/MapServer/tile/{z}/{y}/{x}', L.extend({ pane: 'overlayPane' }, o))]); };
     return {
-      light: { name: SH.t('Light', 'فاتح'), layer: L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', { maxZoom: 20, subdomains: 'abcd', attribution: osm + ' © <a href="https://carto.com/attributions">CARTO</a>' }) },
-      dark: { name: SH.t('Dark', 'داكن'), layer: L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 20, subdomains: 'abcd', attribution: osm + ' © <a href="https://carto.com/attributions">CARTO</a>' }) },
+      light: { name: SH.t('Light', 'فاتح'), layer: esri('World_Light_Gray_Base', 'World_Light_Gray_Reference') },
+      dark: { name: SH.t('Dark', 'داكن'), layer: esri('World_Dark_Gray_Base', 'World_Dark_Gray_Reference') },
       streets: { name: SH.t('Streets', 'شوارع'), layer: L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: osm }) },
       topo: { name: SH.t('Topographic', 'طبوغرافية'), layer: L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', { maxZoom: 17, subdomains: 'abc', attribution: 'Map data ' + osm + ', SRTM | Style © <a href="https://opentopomap.org">OpenTopoMap</a> (CC-BY-SA)' }) },
       satellite: { name: SH.t('Satellite', 'فضائية'), layer: L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 19, attribution: 'Imagery © Esri, Maxar, Earthstar Geographics, and the GIS User Community' }) }
