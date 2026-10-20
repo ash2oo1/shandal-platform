@@ -1,0 +1,46 @@
+{% extends "app_base.html" %}
+{% import "apps/_m.html" as m with context %}
+{% block ws %}
+<div class="ws-wrap">
+<div class="ws wide-side">
+  <aside class="ws-side">
+    <div class="seg" id="mcMode"><button type="button" data-v="state" aria-pressed="true">{{ m.L('Stress state', 'حالة الإجهاد') }}</button><button type="button" data-v="tri" aria-pressed="false">{{ m.L('Triaxial series', 'سلسلة ثلاثية المحاور') }}</button></div>
+    <div id="mcState">
+    {{ m.panel_open(1, 'Stresses (compression positive)', 'الإجهادات (الانضغاط موجب)') }}
+      <div class="row3">
+        {{ m.fld('sx', 'σ<sub>x</sub>'|safe, 'σ<sub>x</sub>'|safe, 'number', '120', 'kPa', '', '', '', '1') }}
+        {{ m.fld('sy', 'σ<sub>y</sub>'|safe, 'σ<sub>y</sub>'|safe, 'number', '40', 'kPa', '', '', '', '1') }}
+        {{ m.fld('txy', 'τ<sub>xy</sub>'|safe, 'τ<sub>xy</sub>'|safe, 'number', '30', 'kPa', 'Positive when it acts counter-clockwise on the x-face (geotechnical convention).', 'موجب عندما يعمل عكس عقارب الساعة على وجه x (اصطلاح جيوتقني).', '', '1') }}
+      </div>
+      <div class="fg"><label for="th">{{ m.L('Plane angle θ from the x-face', 'زاوية المستوي θ من وجه x') }} <b class="ltr" id="thOut">30°</b></label><input type="range" id="th" min="0" max="180" step="1" value="30"></div>
+    {{ m.panel_close() }}
+    {{ m.panel_open(2, 'Mohr–Coulomb strength', 'مقاومة موهر–كولوم') }}
+      <div class="row2">
+        {{ m.fld('mc', 'Cohesion c', 'التماسك c', 'number', '10', 'kPa', '', '', '', '1', 'min="0"') }}
+        {{ m.fld('mphi', 'Friction angle φ', 'زاوية الاحتكاك φ', 'number', '30', '°', '', '', '', '0.5', 'min="0" max="60"') }}
+      </div>
+      {{ m.fld('mu', 'Pore pressure u', 'ضغط المسام u', 'number', '0', 'kPa', 'Subtracted from normal stresses to give effective stresses (Terzaghi).', 'يُطرح من الإجهادات العمودية لإعطاء الإجهادات الفعالة (ترزاكي).', '', '1') }}
+    {{ m.panel_close() }}
+    </div>
+    <div id="mcTri" hidden>
+    {{ m.panel_open(1, 'Triaxial results at failure', 'نتائج ثلاثية المحاور عند الانهيار') }}
+      <p class="pn-note">{{ m.L('One specimen per line: σ₃, σ₁ at failure (kPa). Use effective stresses for drained or CU tests with pore-pressure measurement.', 'عينة في كل سطر: σ₃، σ₁ عند الانهيار (kPa). استخدم الإجهادات الفعالة للفحوص المصرفة أو CU مع قياس ضغط المسام.') }}</p>
+      <textarea id="triData" rows="6" class="ltr" style="font-family:ui-monospace,monospace;font-size:.85rem;width:100%">50, 178
+100, 318
+200, 590</textarea>
+    {{ m.panel_close() }}
+    </div>
+    <button class="btn btn-line btn-xs" id="mcDemo" type="button">{{ m.L('Example values', 'قيم مثال') }}</button>
+  </aside>
+  <div class="ws-main">
+    <div class="kpis" id="mcKpis"></div>
+    <div id="mcVerd" style="display:grid;gap:10px"></div>
+    {{ m.fig_open('fm1', '1', 'Mohr circle', 'دائرة موهر', '<button class="btn btn-line btn-xs" data-svg="mcSvg">PNG</button>') }}
+      <div class="fig-b"><svg class="chart" id="mcSvg" viewBox="0 0 900 520" role="img" aria-label="Mohr circle"></svg></div>
+      <div class="fig-cap" id="mcCap"></div>
+    {{ m.fig_close() }}
+    <section class="pn"><div class="pn-h">{{ icon('table') }}<h2 id="mcTblH">{{ m.L('Results', 'النتائج') }}</h2></div><div class="pn-b flush"><table class="kv" id="mcTbl"></table></div></section>
+  </div>
+</div>
+</div>
+{% endblock %}

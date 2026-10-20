@@ -169,7 +169,7 @@ NEW_TOOLS = [
  'related': ['bearing-capacity', 'structural-geotechnical', 'atterberg-limits'],
 },
 {
- 'slug': 'atterberg-limits', 'cat': 'engineering', 'icon': 'droplet', 'illus': 'plasticity', 'libs': [],
+ 'slug': 'atterberg-limits', 'cat': 'engineering', 'icon': 'droplet', 'illus': 'plasticity', 'libs': ['plot'],
  'name': L('Atterberg Limits & Plasticity', 'حدود أتربرغ واللدونة'),
  'tagline': L('Liquid limit from the flow curve, class from the plasticity chart.', 'حد السيولة من منحنى الجريان، والصنف من مخطط اللدونة.'),
  'summary': L('Fits the Casagrande flow curve to find the liquid limit at 25 blows, combines it with the plastic limit, and reports plasticity, liquidity, consistency and activity indices with the USCS fine-grained class on the plasticity chart.',
@@ -191,7 +191,7 @@ NEW_TOOLS = [
  'related': ['grain-size', 'soil-properties', 'bearing-capacity'],
 },
 {
- 'slug': 'grain-size', 'cat': 'engineering', 'icon': 'chart-spline', 'illus': 'psd', 'libs': [],
+ 'slug': 'grain-size', 'cat': 'engineering', 'icon': 'chart-spline', 'illus': 'psd', 'libs': ['plot'],
  'name': L('Grain-Size Analysis', 'التحليل الحجمي الحبيبي'),
  'tagline': L('Sieve data to gradation curve, USCS class and Folk & Ward statistics.', 'من بيانات المناخل إلى منحنى التدرج وصنف USCS وإحصاءات Folk & Ward.'),
  'summary': L('Turns sieve masses into a particle-size distribution curve, reads D10, D30 and D60, computes uniformity and curvature coefficients, classifies the soil with USCS, and gives Folk & Ward graphic statistics for sedimentology.',

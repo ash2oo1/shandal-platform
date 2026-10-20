@@ -1,0 +1,48 @@
+{% extends "app_base.html" %}
+{% import "apps/_m.html" as m with context %}
+{% block ws %}
+<div class="ws-wrap">
+<div class="ws wide-side">
+  <aside class="ws-side">
+    {{ m.panel_open(1, 'Sample', 'العينة') }}
+      <div class="row2">
+        {{ m.fld('aId', 'Sample ID', 'رمز العينة', 'text', '', '', '', '', 'BH-2 · 3.0 m') }}
+        {{ m.fld('geoName', 'Tested by', 'الفاحص', 'text') }}
+      </div>
+    {{ m.panel_close() }}
+    {{ m.panel_open(2, 'Liquid limit (Casagrande cup)', 'حد السيولة (جهاز كاساغراندي)') }}
+      <p class="pn-note">{{ m.L('One trial per row: number of blows and water content. Aim for blows between 15 and 35 (ASTM D4318 multipoint).', 'محاولة في كل صف: عدد الضربات والمحتوى المائي. استهدف ضربات بين 15 و35 (ASTM D4318 متعدد النقاط).') }}</p>
+      <div id="aLL" style="display:grid;gap:6px"></div>
+      <button class="btn btn-line btn-sm" id="aAddLL" type="button">{{ icon('plus', 'ico ico-sm') }}{{ m.L('Add trial', 'أضف محاولة') }}</button>
+    {{ m.panel_close() }}
+    {{ m.panel_open(3, 'Plastic limit', 'حد اللدونة') }}
+      <div class="row3">
+        {{ m.fld('pl1', 'Trial 1', 'المحاولة 1', 'number', '', '%', '', '', '', '0.1') }}
+        {{ m.fld('pl2', 'Trial 2', 'المحاولة 2', 'number', '', '%', '', '', '', '0.1') }}
+        {{ m.fld('pl3', 'Trial 3', 'المحاولة 3', 'number', '', '%', '', '', '', '0.1') }}
+      </div>
+    {{ m.panel_close() }}
+    {{ m.panel_open(4, 'Optional', 'اختياري') }}
+      <div class="row2">
+        {{ m.fld('aW', 'Natural water content', 'المحتوى المائي الطبيعي', 'number', '', '%', '', '', '', '0.1') }}
+        {{ m.fld('aClay', 'Clay fraction (< 2 µm)', 'نسبة الطين (< 2 ميكرون)', 'number', '', '%', 'From the hydrometer test; used for activity.', 'من فحص الهيدروميتر؛ يُستخدم للفعالية.', '', '0.1') }}
+      </div>
+    {{ m.panel_close() }}
+    <button class="btn btn-line btn-xs" id="aDemo" type="button">{{ m.L('Example: lean clay from Baghdad', 'مثال: طين قليل اللدونة من بغداد') }}</button>
+  </aside>
+  <div class="ws-main">
+    <div class="kpis" id="aKpis"></div>
+    <div id="aVerd" style="display:grid;gap:10px"></div>
+    <div class="grid2">
+      {{ m.fig_open('fa1', '1', 'Flow curve', 'منحنى الجريان') }}
+        <div class="fig-b"><div class="plot" id="aFlow" style="height:340px"></div></div>
+      {{ m.fig_close() }}
+      {{ m.fig_open('fa2', '2', 'Casagrande plasticity chart', 'مخطط اللدونة لكاساغراندي') }}
+        <div class="fig-b"><div class="plot" id="aChart" style="height:340px"></div></div>
+      {{ m.fig_close() }}
+    </div>
+    <section class="pn"><div class="pn-h">{{ icon('table') }}<h2>{{ m.L('Indices', 'المؤشرات') }}</h2></div><div class="pn-b flush"><table class="kv" id="aTbl"></table></div></section>
+  </div>
+</div>
+</div>
+{% endblock %}

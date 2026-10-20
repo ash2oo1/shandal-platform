@@ -1,0 +1,38 @@
+{% extends "app_base.html" %}
+{% import "apps/_m.html" as m with context %}
+{% block ws %}
+<div class="ws-wrap">
+<div class="ws wide-side">
+  <aside class="ws-side">
+    {{ m.panel_open(1, 'Sample', 'العينة') }}
+      <div class="row2">
+        {{ m.fld('gId', 'Sample ID', 'رمز العينة', 'text', '', '', '', '', 'TP-1 · 1.5 m') }}
+        {{ m.fld('gTot', 'Total dry mass', 'الكتلة الجافة الكلية', 'number', '', 'g', 'Mass before washing. If empty, the sum of all retained masses including the pan is used.', 'الكتلة قبل الغسل. إن تُركت فارغة يُستخدم مجموع الكتل المحتجزة مع الوعاء.', '', '0.1') }}
+      </div>
+    {{ m.panel_close() }}
+    {{ m.panel_open(2, 'Sieve analysis (ASTM D6913)', 'التحليل المنخلي (ASTM D6913)') }}
+      <div id="gRows" style="display:grid;gap:5px"></div>
+      <div class="row2"><button class="btn btn-line btn-sm" id="gAdd" type="button">{{ icon('plus', 'ico ico-sm') }}{{ m.L('Add sieve', 'أضف منخلاً') }}</button><button class="btn btn-line btn-sm" id="gStd" type="button">{{ m.L('ASTM standard stack', 'مجموعة ASTM القياسية') }}</button></div>
+    {{ m.panel_close() }}
+    {{ m.panel_open(3, 'Plasticity of fines (optional)', 'لدونة الناعم (اختياري)') }}
+      <div class="row2">
+        {{ m.fld('gLL', 'Liquid limit LL', 'حد السيولة LL', 'number', '', '%', '', '', '', '0.1') }}
+        {{ m.fld('gPL', 'Plastic limit PL', 'حد اللدونة PL', 'number', '', '%', '', '', '', '0.1') }}
+      </div>
+    {{ m.panel_close() }}
+    <button class="btn btn-line btn-xs" id="gDemo" type="button">{{ m.L('Example: sandy gravel from a borrow pit', 'مثال: حصى رملي من مقلع اقتراض') }}</button>
+  </aside>
+  <div class="ws-main">
+    <div class="kpis" id="gKpis"></div>
+    <div id="gVerd" style="display:grid;gap:10px"></div>
+    {{ m.fig_open('fg1', '1', 'Particle-size distribution', 'منحنى التوزيع الحبيبي') }}
+      <div class="fig-b"><div class="plot" id="gPlot" style="height:420px"></div></div>
+    {{ m.fig_close() }}
+    <div class="grid2">
+      <section class="pn"><div class="pn-h">{{ icon('table') }}<h2>{{ m.L('Sieve table', 'جدول المناخل') }}</h2><div class="sp no-print"><button class="btn btn-line btn-xs" id="gCsv">{{ icon('download', 'ico ico-sm') }}CSV</button></div></div><div class="pn-b flush tbl-wrap"><table class="tbl" id="gTbl"></table></div></section>
+      <section class="pn"><div class="pn-h">{{ icon('sigma') }}<h2>{{ m.L('Gradation and sedimentological statistics', 'معاملات التدرج والإحصاءات الرسوبية') }}</h2></div><div class="pn-b flush"><table class="kv" id="gStat"></table></div></section>
+    </div>
+  </div>
+</div>
+</div>
+{% endblock %}

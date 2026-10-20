@@ -1,0 +1,46 @@
+{% extends "app_base.html" %}
+{% import "apps/_m.html" as m with context %}
+{% block ws %}
+<div class="ws-wrap">
+<div class="ws wide-side">
+  <aside class="ws-side">
+    {{ m.panel_open(1, 'Footing', 'الأساس') }}
+      {{ m.sel('bShape', 'Shape', 'الشكل', [('strip', 'Strip (continuous)', 'شريطي (مستمر)'), ('square', 'Square', 'مربع', true), ('circle', 'Circular', 'دائري'), ('rect', 'Rectangular', 'مستطيل')]) }}
+      <div class="row3">
+        {{ m.fld('bB', 'Width B', 'العرض B', 'number', '2', 'm', 'Diameter for a circular footing.', 'القطر للأساس الدائري.', '', '0.1', 'min="0.1"') }}
+        {{ m.fld('bL', 'Length L', 'الطول L', 'number', '3', 'm', '', '', '', '0.1', 'min="0.1"') }}
+        {{ m.fld('bDf', 'Depth Df', 'العمق Df', 'number', '1.5', 'm', '', '', '', '0.1', 'min="0"') }}
+      </div>
+      {{ m.fld('bBeta', 'Load inclination β from vertical', 'ميل الحمل β عن الرأسي', 'number', '0', '°', '', '', '', '1', 'min="0" max="45"') }}
+    {{ m.panel_close() }}
+    {{ m.panel_open(2, 'Soil', 'التربة') }}
+      <div class="row2">
+        {{ m.fld('bC', 'Cohesion c′', 'التماسك c′', 'number', '10', 'kPa', 'Effective cohesion for drained analysis, or undrained strength cu with φ = 0.', 'التماسك الفعال للتحليل المصرف، أو مقاومة القص غير المصرفة cu مع φ = 0.', '', '1', 'min="0"') }}
+        {{ m.fld('bPhi', 'Friction angle φ′', 'زاوية الاحتكاك φ′', 'number', '30', '°', '', '', '', '0.5', 'min="0" max="50"') }}
+      </div>
+      <div class="row3">
+        {{ m.fld('bG', 'Unit weight γ', 'وحدة الوزن γ', 'number', '18', 'kN/m³', '', '', '', '0.1') }}
+        {{ m.fld('bGs', 'γ<sub>sat</sub>'|safe, 'γ<sub>sat</sub>'|safe, 'number', '20', 'kN/m³', '', '', '', '0.1') }}
+        {{ m.fld('bDw', 'Water table', 'منسوب المياه', 'number', '10', 'm', 'Depth below ground surface.', 'العمق تحت سطح الأرض.', '', '0.1', 'min="0"') }}
+      </div>
+      {{ m.fld('bFS', 'Factor of safety', 'معامل الأمان', 'number', '3', '', '', '', '', '0.1', 'min="1"') }}
+    {{ m.panel_close() }}
+    <button class="btn btn-line btn-xs" id="bDemo" type="button">{{ m.L('Example: stiff sandy clay, 2 × 3 m pad', 'مثال: طين رملي متماسك، أساس 2 × 3 م') }}</button>
+  </aside>
+  <div class="ws-main">
+    <div class="kpis" id="bKpis"></div>
+    <div id="bVerd" style="display:grid;gap:10px"></div>
+    <div class="grid2">
+      {{ m.fig_open('fb1', '1', 'Failure mechanism (Prandtl–Terzaghi)', 'آلية الانهيار (Prandtl–Terzaghi)', '<button class="btn btn-line btn-xs" data-svg="bSk">PNG</button>') }}
+        <div class="fig-b"><svg class="chart" id="bSk" viewBox="0 0 560 360" role="img" aria-label="Failure mechanism"></svg></div>
+      {{ m.fig_close() }}
+      {{ m.fig_open('fb2', '2', 'Allowable net pressure against footing width', 'الضغط الصافي المسموح مقابل عرض الأساس') }}
+        <div class="fig-b"><div class="plot" id="bPlot" style="height:340px"></div></div>
+      {{ m.fig_close() }}
+    </div>
+    <section class="pn"><div class="pn-h">{{ icon('table') }}<h2>{{ m.L('Comparison of methods', 'مقارنة الطرق') }}</h2></div><div class="pn-b flush tbl-wrap"><table class="tbl" id="bTbl"></table></div>
+      <div class="pn-b"><p class="xsmall muted" id="bNote" style="margin:0"></p></div></section>
+  </div>
+</div>
+</div>
+{% endblock %}
