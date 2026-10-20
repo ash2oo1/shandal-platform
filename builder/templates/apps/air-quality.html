@@ -1,0 +1,34 @@
+{% extends "app_base.html" %}
+{% import "apps/_m.html" as m with context %}
+{% block ws %}
+<div class="ws-wrap">
+<div class="ws wide-side">
+  <aside class="ws-side">
+    {{ m.panel_open(1, 'Location', 'الموقع') }}
+      <div class="row2">
+        {{ m.fld('qLat', 'Latitude', 'دائرة العرض', 'number', '33.3152', '°', '', '', '', '0.0001') }}
+        {{ m.fld('qLon', 'Longitude', 'خط الطول', 'number', '44.3661', '°', '', '', '', '0.0001') }}
+      </div>
+      <div class="row2"><button class="btn btn-ink btn-sm" id="qGps" type="button">{{ icon('crosshair', 'ico ico-sm') }}{{ m.L('My location', 'موقعي') }}</button><span class="xsmall muted" style="align-self:center">{{ m.L('or click the map', 'أو انقر الخريطة') }}</span></div>
+      {{ m.sel('qIdx', 'Index for the regional map', 'المؤشر للخريطة الإقليمية', [('us_aqi', 'US AQI (EPA)', 'مؤشر US AQI (EPA)', true), ('european_aqi', 'European AQI (EEA)', 'المؤشر الأوروبي (EEA)'), ('pm2_5', 'PM₂.₅ µg/m³', 'PM₂.₅ µg/m³'), ('dust', 'Dust µg/m³', 'الغبار µg/m³')]) }}
+    {{ m.panel_close() }}
+    <button class="btn btn-gold btn-block" id="qRun" type="button">{{ icon('wind', 'ico ico-sm') }}{{ m.L('Read air quality', 'اقرأ جودة الهواء') }}</button>
+  </aside>
+  <div class="ws-main">
+    {{ m.fig_open('fq0', '', 'Regional map', 'الخريطة الإقليمية') }}
+      <div class="fig-b pad0"><div class="map" id="qMap" style="height:380px"></div></div>
+      <div class="fig-cap" id="qMapCap">{{ m.L('After reading, a 9 × 9 grid of CAMS values around the site is drawn.', 'بعد القراءة تُرسم شبكة 9 × 9 من قيم CAMS حول الموقع.') }}</div>
+    {{ m.fig_close() }}
+    <div id="qEmpty" class="pn">{{ m.empty('wind', 'What are you breathing?', 'ماذا تتنفس؟', 'Current and forecast air quality from the Copernicus Atmosphere Monitoring Service, compared with the WHO 2021 guidelines.', 'جودة الهواء الحالية والمتوقعة من خدمة كوبرنيكوس لرصد الغلاف الجوي، مقارنة بأدلة منظمة الصحة العالمية 2021.') }}</div>
+    <div id="qOut" hidden style="display:grid;gap:18px">
+      <div id="qHero"></div>
+      <div class="kpis" id="qKpis" style="grid-template-columns:repeat(auto-fit,minmax(140px,1fr))"></div>
+      {{ m.fig_open('fq1', '1', 'Hourly forecast', 'التنبؤ الساعي', '<div class="seg" id="qTab" style="padding:2px"><button data-v="pm" aria-pressed="true">PM</button><button data-v="gas" aria-pressed="false">' + ('Gases' if lang == 'en' else 'الغازات') + '</button><button data-v="aqi" aria-pressed="false">AQI</button></div>') }}
+        <div class="fig-b"><div class="plot" id="qPlot" style="height:340px"></div></div>
+      {{ m.fig_close() }}
+      <section class="pn"><div class="pn-h">{{ icon('shield-check') }}<h2>{{ m.L('Against the WHO 2021 air-quality guidelines (24-hour means, today)', 'مقارنة بأدلة منظمة الصحة العالمية 2021 (متوسطات 24 ساعة، اليوم)') }}</h2></div><div class="pn-b flush tbl-wrap"><table class="tbl" id="qWho"></table></div></section>
+    </div>
+  </div>
+</div>
+</div>
+{% endblock %}
