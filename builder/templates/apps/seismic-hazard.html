@@ -1,0 +1,56 @@
+{% extends "app_base.html" %}
+{% import "apps/_m.html" as m with context %}
+{% block ws %}
+<div class="ws-wrap">
+<div class="ws wide-side">
+  <aside class="ws-side">
+    {{ m.panel_open(1, 'Site', 'الموقع') }}
+      <div class="row2">
+        {{ m.fld('hzLat', 'Latitude', 'دائرة العرض', 'number', '36.19', '°', '', '', '', '0.001') }}
+        {{ m.fld('hzLon', 'Longitude', 'خط الطول', 'number', '44.01', '°', '', '', '', '0.001') }}
+      </div>
+      <div class="row2"><button class="btn btn-ink btn-sm" id="hzGps" type="button">{{ icon('crosshair', 'ico ico-sm') }}{{ m.L('My location', 'موقعي') }}</button><span class="xsmall muted" style="align-self:center">{{ m.L('or click the map', 'أو انقر الخريطة') }}</span></div>
+    {{ m.panel_close() }}
+    {{ m.panel_open(2, 'Catalogue query', 'استعلام الفهرس') }}
+      <div class="row2">
+        {{ m.fld('hzR', 'Search radius', 'نصف قطر البحث', 'number', '300', 'km', '', '', '', '10', 'min="20" max="1000"') }}
+        {{ m.fld('hzMin', 'Minimum magnitude', 'القدر الأدنى', 'number', '3.0', '', '', '', '', '0.1', 'min="1" max="6"') }}
+      </div>
+      <div class="row2">
+        {{ m.fld('hzY0', 'From year', 'من سنة', 'number', '1973', '', 'Global instrumental coverage improves markedly after 1973 (USGS NEIC).', 'تتحسن التغطية الآلية العالمية بوضوح بعد 1973 (USGS NEIC).', '', '1', 'min="1900"') }}
+        {{ m.fld('hzLife', 'Design life', 'العمر التصميمي', 'number', '50', 'yr', '', '', '', '1', 'min="1"') }}
+      </div>
+    {{ m.panel_close() }}
+    <button class="btn btn-gold btn-block" id="hzRun" type="button">{{ icon('radar', 'ico ico-sm') }}{{ m.L('Fetch catalogue and analyse', 'اجلب الفهرس وحلّل') }}</button>
+    <button class="btn btn-line btn-xs" id="hzDemo" type="button">{{ m.L('Example: Erbil, 300 km', 'مثال: أربيل، 300 كم') }}</button>
+  </aside>
+  <div class="ws-main">
+    {{ m.fig_open('fz0', '1', 'Epicentres, plate boundaries and search radius', 'البؤر وحدود الصفائح ونطاق البحث') }}
+      <div class="fig-b pad0"><div class="map" id="hzMap"></div></div>
+      <div class="fig-cap">{{ m.L('Circle size scales with magnitude; colour shows depth: red < 35 km, orange 35–70, green 70–300, blue > 300.', 'حجم الدائرة يتناسب مع القدر؛ اللون يمثل العمق: أحمر < 35 كم، برتقالي 35–70، أخضر 70–300، أزرق > 300.') }}</div>
+    {{ m.fig_close() }}
+    <div id="hzEmpty" class="pn">{{ m.empty('radar', 'Statistical seismic hazard for any site', 'الخطر الزلزالي الإحصائي لأي موقع', 'The USGS catalogue around the site is fitted with the Gutenberg–Richter law to give annual rates, return periods and the chance of exceedance during the design life.', 'يُطابق فهرس USGS حول الموقع بقانون غوتنبرغ–ريختر لإعطاء المعدلات السنوية وفترات التكرار واحتمال التجاوز خلال العمر التصميمي.') }}</div>
+    <div id="hzOut" hidden style="display:grid;gap:18px">
+      <div class="kpis" id="hzKpis"></div>
+      <div id="hzVerd" style="display:grid;gap:10px"></div>
+      <div class="grid2">
+        {{ m.fig_open('fz1', '2', 'Frequency–magnitude distribution', 'توزيع التكرار–القدر') }}
+          <div class="fig-b"><div class="plot" id="hzFmd" style="height:340px"></div></div>
+          <div class="fig-cap" id="hzFmdCap"></div>
+        {{ m.fig_close() }}
+        {{ m.fig_open('fz2', '3', 'Magnitude through time', 'القدر عبر الزمن') }}
+          <div class="fig-b"><div class="plot" id="hzTime" style="height:340px"></div></div>
+        {{ m.fig_close() }}
+      </div>
+      <div class="grid2">
+        <section class="pn"><div class="pn-h">{{ icon('table') }}<h2>{{ m.L('Rates, return periods and exceedance', 'المعدلات وفترات التكرار والتجاوز') }}</h2></div><div class="pn-b flush tbl-wrap"><table class="tbl" id="hzRates"></table></div></section>
+        <section class="pn"><div class="pn-h">{{ icon('list') }}<h2>{{ m.L('Largest events', 'أكبر الأحداث') }}</h2><div class="sp no-print"><button class="btn btn-line btn-xs" id="hzCsv">{{ icon('download', 'ico ico-sm') }}CSV</button></div></div><div class="pn-b flush tbl-wrap"><table class="tbl" id="hzBig"></table></div></section>
+      </div>
+      {{ m.fig_open('fz3', '4', 'Depth distribution', 'توزيع الأعماق') }}
+        <div class="fig-b"><div class="plot" id="hzDepth" style="height:260px"></div></div>
+      {{ m.fig_close() }}
+    </div>
+  </div>
+</div>
+</div>
+{% endblock %}
