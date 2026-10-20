@@ -41,7 +41,8 @@
     </div>
     {{ m.fig_open('figG', '1', 'Temperature–depth profile', 'منحنى الحرارة مع العمق', '<button class="btn btn-line btn-xs" data-png="gP1">PNG</button>') }}
       <div class="fig-b"><div class="plot tall" id="gP1"></div></div>
-      <div class="fig-cap">{{ m.L('Each well is drawn from the surface temperature to its measured formation temperature and extrapolated to 6 km. Shaded bands mark the approximate oil (60–120 °C) and gas (120–200 °C) generation temperatures.', 'يُرسم كل بئر من حرارة السطح إلى حرارة التكوين المقاسة ويُمدّ إلى عمق 6 كم. تشير الأشرطة المظللة إلى درجات الحرارة التقريبية لتوليد النفط (60–120 °م) والغاز (120–200 °م).') }}</div>
+      <div class="fig-b" id="gNarr" style="font-size:.9rem"></div>
+      <div class="fig-cap">{{ m.L('Thick coloured segments show where each geotherm crosses the immature, oil, wet-gas, dry-gas and over-mature zones; open circles mark the depths of the 60, 120 and 150 °C isotherms; diamonds are the measured temperatures. The column on the right shows the windows of the latest well.', 'تبين المقاطع الملونة السميكة أين يعبر كل منحنى حراري نطاقات عدم النضج والنفط والغاز الرطب والغاز الجاف وفرط النضج؛ والدوائر المفرغة أعماق خطوط الحرارة 60 و120 و150 °م؛ والمعينات الحرارات المقاسة. يبين العمود على اليمين نوافذ آخر بئر.') }}</div>
     {{ m.fig_close() }}
     <section class="pn">
       <div class="pn-h">{{ icon('table') }}<h2>{{ m.L('Thermal maturity record', 'سجل النضج الحراري') }}</h2>
