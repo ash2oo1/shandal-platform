@@ -243,3 +243,4 @@ html[lang=ar] .leaflet-container{font-family:var(--font-ar)!important}
 .ltr{direction:ltr;unicode-bidi:isolate}
 html[dir=rtl] .ltr{text-align:right}
 bdi.u{unicode-bidi:isolate}
+[dir=rtl] .kpi .v{direction:ltr;text-align:right}
