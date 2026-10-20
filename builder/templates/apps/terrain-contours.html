@@ -32,6 +32,8 @@
       <div class="row3">
         {{ m.fld('cInt', 'Interval', 'الفاصل', 'number', '', 'm', '', '', m.L('auto', 'تلقائي'), '0.5', 'min="0.1"') }}
         {{ m.fld('cIdx', 'Index every', 'رئيسي كل', 'number', '5', '', 'Every Nth contour is drawn bold and labelled.', 'يُرسم كل خط رقم N بخط عريض ومع قيمته.', '', '1', 'min="2" max="10"') }}
+        {{ m.sel('cStyle', 'Map style', 'نمط الخريطة', [('contours', 'Contour lines', 'خطوط كنتور', True), ('spots', 'Spot heights only (exercise)', 'نقاط ارتفاع فقط (تمرين)'), ('spotscont', 'Spot heights + contours', 'نقاط ارتفاع + خطوط كنتور')]) }}
+        {{ m.fld('cSp', 'Spot spacing', 'تباعد النقاط', 'number', '', 'm', 'Distance between printed spot heights. Empty = about 14 per side.', 'المسافة بين نقاط الارتفاع المطبوعة. فارغ = نحو 14 لكل ضلع.', 'auto') }}
         {{ m.sel('cRamp', 'Colours', 'الألوان', [('hypso', 'Hypsometric', 'هبسومتري', true), ('terrain', 'Terrain', 'تضاريس'), ('viridis', 'Viridis', 'Viridis'), ('gray', 'Grey', 'رمادي')]) }}
       </div>
       <div class="chks" style="grid-template-columns:repeat(2,minmax(0,1fr))">

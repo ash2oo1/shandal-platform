@@ -115,6 +115,7 @@
       b.hidden = !any;
     });
     var em = $('#noTools'); if (em) em.hidden = shown > 0;
+    var fn = $('#findN'); if (fn) fn.textContent = (q || cat !== 'all') ? (document.documentElement.lang === 'ar' ? 'عدد الأدوات المطابقة: ' + shown : shown + (shown === 1 ? ' tool matches' : ' tools match')) : '';
   }
   chips.forEach(function (c) { c.addEventListener('click', function () { chips.forEach(function (x) { x.setAttribute('aria-pressed', 'false'); }); c.setAttribute('aria-pressed', 'true'); applyFilter(); }); });
   if (findIn) findIn.addEventListener('input', applyFilter);

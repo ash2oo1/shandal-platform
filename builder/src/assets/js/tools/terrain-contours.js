@@ -52,7 +52,12 @@
   function drawSvg() {
     var lines = [], legend = [];
     if (prof) { lines.push({ pts: prof.line.map(function (p) { return toXY(p[0], p[1]); }), color: '#C0392B', width: 2.2, dash: '8 5' }); legend.push({ name: t('Profile A–B', 'المقطع A–B'), color: '#C0392B', dash: '8 5' }); }
-    var r = D.svgMap($('#cSvg'), G, CS, { crs: G.crs === 'utm' ? 'proj' : 'geo', interval: step, index: SH.num('cIdx') || 5, ramp: SH.val('cRamp'), fill: $('#cFill').checked, labels: $('#cLab').checked, smooth: $('#cSm').checked, grid: $('#cGrid').checked,
+    var stl = SH.val('cStyle') || 'contours', spots = [];
+    if (stl !== 'contours') { var sp = SH.num('cSp'), kk = Math.max(1, Math.round((sp > 0 ? sp : (G.nx - 1) * G.dx / 14) / G.dx)), off = Math.floor(kk / 2), hi = 0, lo = 0, j, i;
+      for (j = off; j < G.ny; j += kk) for (i = off; i < G.nx; i += kk) { var z = G.z[j * G.nx + i]; if (!isNaN(z)) spots.push({ x: G.lons[i], y: G.lats[j], v: z }); }
+      for (var k = 1; k < G.z.length; k++) { if (G.z[k] > G.z[hi]) hi = k; if (G.z[k] < G.z[lo]) lo = k; }
+      [hi, lo].forEach(function (q) { var sx = G.lons[q % G.nx], sy = G.lats[Math.floor(q / G.nx)], rr = kk * Math.abs(G.lons[1] - G.lons[0]) * .6; spots = spots.filter(function (p) { return Math.hypot(p.x - sx, p.y - sy) > rr; }); spots.push({ x: sx, y: sy, v: G.z[q], key: true }); }); }
+    var r = D.svgMap($('#cSvg'), G, stl === 'spots' ? [] : CS, { spots: spots, noContours: stl === 'spots', crs: G.crs === 'utm' ? 'proj' : 'geo', interval: step, index: SH.num('cIdx') || 5, ramp: SH.val('cRamp'), fill: stl === 'spots' ? false : $('#cFill').checked, labels: $('#cLab').checked, smooth: $('#cSm').checked, grid: $('#cGrid').checked,
       title: SH.val('cTitle') || t('Topographic contour map', 'خريطة كنتورية طبوغرافية'), subtitle: (G.crs === 'utm' ? 'WGS 84 / UTM ' + G.zone + (G.south ? 'S' : 'N') : 'WGS 84') + ' · ' + t('interval ', 'الفاصل ') + SH.ltr(step + ' m') + (SH.val('geoName') ? ' · ' + SH.val('geoName') : ''), lines: lines, legend: legend,
       axisNames: G.crs === 'utm' ? ['Easting (m)', 'Northing (m)'] : null, source: G.source === 'cop' ? 'DEM: Copernicus GLO-90 (ESA)' : 'DEM: Terrain Tiles on AWS (SRTM and others)' });
     if (prof && r) { var a = toXY(prof.line[0][0], prof.line[0][1]), b = toXY(prof.line[prof.line.length - 1][0], prof.line[prof.line.length - 1][1]); var S = $('#cSvg'), NS = 'http://www.w3.org/2000/svg';
@@ -65,7 +70,7 @@
     CS.forEach(function (c) { var isI = Math.round(c.level / step) % idx === 0; c.lines.forEach(function (ln) { if (ln.length < 2) return; L.polyline(ln.map(function (p) { return toLL(p[0], p[1]); }), { renderer: rnd, color: isI ? '#5B3A1E' : '#8A5A35', weight: isI ? 1.8 : .8, opacity: .9, interactive: isI }).bindTooltip(SH.fmt(c.level, step < 1 ? 1 : 0) + ' m', { sticky: true }).addTo(cLayer); }); });
     map.fitBounds([[G.geo.s, G.geo.w], [G.geo.n, G.geo.e]], { padding: [20, 20] });
   }
-  ['cIdx', 'cRamp', 'cFill', 'cLab', 'cSm', 'cGrid', 'cTitle'].forEach(function (id) { $('#' + id).addEventListener('change', function () { if (G) { persist.save(); render(); } }); });
+  ['cIdx', 'cRamp', 'cFill', 'cLab', 'cSm', 'cGrid', 'cTitle', 'cStyle', 'cSp'].forEach(function (id) { $('#' + id).addEventListener('change', function () { if (G) { persist.save(); render(); } }); });
   $('#cInt').addEventListener('change', function () { if (G) { persist.save(); contour(); } });
 
   /* ---------- profile */

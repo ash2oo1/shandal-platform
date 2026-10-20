@@ -4,19 +4,27 @@
   <div class="contour-bg" aria-hidden="true">{{ bgcontours }}</div>
   <div class="wrap">
     <nav class="crumbs" aria-label="Breadcrumb"><a href="{{ u('') }}">{{ t('home') }}</a>{{ icon('chevron-right', 'ico flip') }}<span>{{ t('nav_platform') }}</span></nav>
-    <h1 class="h1" style="max-width:18ch">{{ tr(PG.h) }}</h1>
+    <h1 class="h1">{{ tr(PG.h) }}</h1>
     <p class="lead" style="margin-top:18px">{{ tr(PG.p) }}</p>
-    <div class="stat-row" style="margin-top:36px;max-width:820px">
-      {% for c in cats %}<div class="stat"><b class="num">{{ tools|selectattr('cat','equalto',c)|list|length }}</b><span>{{ t('cat_' + c) }}</span></div>{% endfor %}
+    {% set nr = namespace(n=0) %}{% for tl in tools %}{% set nr.n = nr.n + (tl.refs|length) %}{% endfor %}
+    <div class="kfig">
+      <div class="kf"><span class="kf-i">{{ icon('layout-grid') }}</span><b class="num">{{ tools|length }}</b><span>{{ 'Specialist tools' if lang == 'en' else 'أداة تخصصية' }}</span></div>
+      <div class="kf"><span class="kf-i">{{ icon('layers') }}</span><b class="num">{{ cats|length }}</b><span>{{ 'Disciplines' if lang == 'en' else 'مجالات علمية' }}</span></div>
+      <div class="kf"><span class="kf-i">{{ icon('satellite') }}</span><b class="num">16</b><span>{{ 'Live international data services' if lang == 'en' else 'خدمة بيانات دولية مباشرة' }}</span></div>
+      <div class="kf"><span class="kf-i">{{ icon('book-open') }}</span><b class="num">{{ nr.n }}</b><span>{{ 'Cited scientific references' if lang == 'en' else 'مرجعاً علمياً موثقاً' }}</span></div>
+      <div class="kf"><span class="kf-i">{{ icon('file-text') }}</span><b>PDF</b><span>{{ 'Branded reports in Arabic and English' if lang == 'en' else 'تقارير موسومة بالعربية والإنجليزية' }}</span></div>
     </div>
   </div>
 </section>
 <section class="section">
   <div class="wrap">
-    <div class="filters" role="toolbar">
-      <button class="chip" type="button" data-filter="all" aria-pressed="true">{{ t('all') }}</button>
-      {% for c in cats %}<button class="chip" type="button" data-filter="{{ c }}" aria-pressed="false">{{ icon(cat_icons[c]) }}{{ t('cat_' + c) }}</button>{% endfor %}
-      <label class="find">{{ icon('search') }}<span class="sr-only">{{ t('nav_search') }}</span><input id="findTool" type="search" placeholder="{{ t('nav_search') }}"></label>
+    <div class="catalog-bar" role="search">
+      <label class="find-xl">{{ icon('search') }}<span class="sr-only">{{ t('nav_search') }}</span><input id="findTool" type="search" placeholder="{{ 'Search 27 tools by name, method or keyword…' if lang == 'en' else 'ابحث في الأدوات بالاسم أو الطريقة أو الكلمة المفتاحية…' }}" autocomplete="off"></label>
+      <div class="filters" role="toolbar">
+        <button class="chip" type="button" data-filter="all" aria-pressed="true">{{ t('all') }}<span class="cnt">{{ tools|length }}</span></button>
+        {% for c in cats %}<button class="chip" type="button" data-filter="{{ c }}" aria-pressed="false">{{ icon(cat_icons[c]) }}{{ t('cat_' + c) }}<span class="cnt">{{ tools|selectattr('cat','equalto',c)|list|length }}</span></button>{% endfor %}
+      </div>
+      <p class="find-n" id="findN" aria-live="polite"></p>
     </div>
     {% for c in cats %}
     <div class="cat-block" id="{{ c }}">

@@ -302,29 +302,61 @@ def mesh(uid, label):
 
 # ---------------------------------------------------------------- 9 magnetic
 MAG = ['il-m1', 'il-m2', 'il-m3', 'il-m4', 'il-m5', 'il-m6', 'il-m7']
+_MAG_IMG = None
+def _magfield(x, y):
+    """Total-field map: regional gradient (northward increase) plus an induced dipole at mid latitude
+    (positive lobe to the south-centre, negative lobe to the north), as over a buried magnetic body."""
+    base = 44700 + 1500 * (1 - y) + 300 * x
+    def body(cx, cy, k, d):
+        dx, dy = x - cx, y - cy
+        r2 = dx * dx + dy * dy + d * d
+        return k * (2 * (dy + .35 * d) ** 2 - dx * dx - d * d) / r2 ** 2.5 * d ** 3
+    return base + body(.56, .48, 1400, .16) + body(.2, .25, 380, .1)
+def _mag_png():
+    global _MAG_IMG
+    if _MAG_IMG: return _MAG_IMG
+    import io, base64
+    from PIL import Image
+    stops = [(0, (43, 74, 107)), (.17, (61, 110, 138)), (.33, (94, 154, 162)), (.5, (169, 195, 160)), (.67, (226, 201, 133)), (.83, (216, 147, 90)), (1, (180, 85, 45))]
+    w, h = 240, 160
+    vals = [[_magfield(i / (w - 1), j / (h - 1)) for i in range(w)] for j in range(h)]
+    lo, hi = min(map(min, vals)), max(map(max, vals))
+    im = Image.new('RGB', (w, h))
+    px = im.load()
+    for j in range(h):
+        for i in range(w):
+            t = (vals[j][i] - lo) / (hi - lo)
+            for k in range(len(stops) - 1):
+                if t <= stops[k + 1][0]:
+                    u = (t - stops[k][0]) / (stops[k + 1][0] - stops[k][0]); c0, c1 = stops[k][1], stops[k + 1][1]
+                    px[i, j] = tuple(int(c0[q] + (c1[q] - c0[q]) * u) for q in range(3)); break
+    bio = io.BytesIO(); im.save(bio, 'PNG', optimize=True)
+    _MAG_IMG = 'data:image/png;base64,' + base64.b64encode(bio.getvalue()).decode()
+    return _MAG_IMG
 def magnetic(uid, label):
-    nx, ny, cell = 81, 55, 6
-    def F(x, y):
-        base = 44000 + 2400 * (1 - y)
-        dx, dy = x - .58, y - .46
-        r2 = dx * dx + dy * dy + .012
-        anom = 900 * (2 * dy * dy - dx * dx) / (r2 ** 1.5) * .05
-        return base + anom
-    g = [[F(i / (nx - 1), j / (ny - 1)) for i in range(nx)] for j in range(ny)]
+    nx, ny, cell = 161, 108, 3
+    g = [[_magfield(i / (nx - 1), j / (ny - 1)) for i in range(nx)] for j in range(ny)]
     lo, hi = min(min(r) for r in g), max(max(r) for r in g)
-    o = []
-    for j in range(ny):
-        rs, rb = 0, None
-        for i in range(nx + 1):
-            b = None if i == nx else min(6, int((g[j][i] - lo) / (hi - lo) * 7))
-            if b != rb:
-                if rb is not None:
-                    o.append(f'<rect class="{MAG[rb]}" x="{rs * cell}" y="{j * cell}" width="{(i - rs) * cell + .6}" height="{cell + .6}"/>')
-                rs, rb = i, b
-    for lv in range(int(lo // 200 * 200), int(hi), 200):
-        segs = march(g, nx, ny, cell, 3, 3, lv)
-        o.append(f'<path class="il-isoline" d="{segs_path(segs)}"/>')
-    o.append(f'<g class="il-chip" transform="translate(300 18)"><rect width="162" height="74" rx="8"/><text x="12" y="22" class="il-small">IGRF total field</text><text x="12" y="44" class="il-value">45,812 nT</text><text x="12" y="62" class="il-small">I 51.3° · D 4.8° E</text></g>')
+    o = [f'<image href="{_mag_png()}" x="0" y="0" width="{W}" height="{H}" preserveAspectRatio="none"/>']
+    for lv in range(int(lo // 100 * 100) + 100, int(hi), 100):
+        segs = march(g, nx, ny, cell, 0, 0, lv)
+        major = lv % 500 == 0
+        o.append(f'<path d="{segs_path(segs)}" fill="none" stroke="#1d2a33" stroke-opacity="{.75 if major else .32}" stroke-width="{1.3 if major else .7}"/>')
+    # flight lines with stations
+    for xl in range(36, W, 48):
+        o.append(f'<line x1="{xl}" y1="8" x2="{xl}" y2="{H - 8}" stroke="#fff" stroke-opacity=".55" stroke-width=".8" stroke-dasharray="4 4"/>')
+        o.extend(f'<circle cx="{xl}" cy="{yy}" r="1.3" fill="#fff" fill-opacity=".8"/>' for yy in range(16, H - 8, 16))
+    # profile line A–A' through the anomaly and inset profile
+    ax = int(.56 * W)
+    o.append(f'<line x1="{ax}" y1="22" x2="{ax}" y2="{H - 22}" stroke="#111" stroke-width="1.6"/><text x="{ax + 5}" y="22" font-size="11" font-weight="800" fill="#111">A</text><text x="{ax + 5}" y="{H - 16}" font-size="11" font-weight="800" fill="#111">A′</text>')
+    prof = [_magfield(.56, k / 60) - (44700 + 1500 * (1 - k / 60) + 300 * .56) for k in range(61)]
+    pmin, pmax = min(prof), max(prof)
+    pts = ' '.join(f'{f(14 + k * 2.2)},{f(286 - (v - pmin) / (pmax - pmin) * 40)}' for k, v in enumerate(prof))
+    zero = 286 - (0 - pmin) / (pmax - pmin) * 40
+    o.append(f'<g><rect x="6" y="236" width="150" height="78" rx="8" fill="#fff" fill-opacity=".92"/><text x="14" y="252" style="fill:#1d2a33;font-size:10px;font-weight:700">ΔT profile A–A′ (nT)</text>'
+             f'<line x1="14" y1="{f(zero)}" x2="146" y2="{f(zero)}" stroke="#9aa3ad" stroke-dasharray="3 2" stroke-width=".8"/><polyline points="{pts}" fill="none" stroke="#B4552D" stroke-width="2"/></g>')
+    o.append('<g transform="translate(450 30)"><path d="M0 -14 L7 8 L0 3 L-7 8Z" fill="#111"/><text x="0" y="-18" text-anchor="middle" font-size="11" font-weight="800" fill="#111">N</text></g>')
+    o.append(f'<g class="il-chip" transform="translate(292 18)"><rect width="140" height="74" rx="8"/><text x="12" y="22" class="il-small">IGRF total field</text><text x="12" y="44" class="il-value">45,812 nT</text><text x="12" y="62" class="il-small">I 51.3° · D 4.8° E</text></g>')
     return svg(''.join(o), uid, label)
 
 # ---------------------------------------------------------------- 10 gauges
