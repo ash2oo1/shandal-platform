@@ -35,7 +35,7 @@ DATA = {
    ('magnet', L('Reduce magnetic data', 'صحّح البيانات المغناطيسية'), L('Fetch the IGRF reference field over your survey grid.', 'اجلب المجال المرجعي IGRF لشبكة مسحك.'), 'tools/magnetic-lab/'),
    ('thermometer-sun', L('Plan safe field days', 'خطط لأيام ميدانية آمنة'), L('Heat stress, air quality and UV before the team sets out.', 'الإجهاد الحراري وجودة الهواء والأشعة قبل خروج الفريق.'), 'tools/env-monitoring/'),
    ('activity', L('Watch seismic activity', 'راقب النشاط الزلزالي'), L('Live earthquakes of magnitude 4.5 and above, worldwide.', 'الزلازل اللحظية بقدر 4.5 فأكثر حول العالم.'), 'earth-now/'),
-   ('satellite', L('Track environmental change', 'تتبّع التغير البيئي'), L('Compare vegetation and water indices between two dates.', 'قارن مؤشرات النبات والمياه بين تاريخين.'), 'tools/geo-environmental-dynamics/'),
+   ('satellite', L('Track environmental change', 'تتبّع التغير البيئي'), L('Compare vegetation and water indices between two dates.', 'قارن مؤشرات النبات والمياه بين تاريخين.'), 'tools/spectral-indices/'),
  ],
  'lic': L('Each provider sets its own terms. Map tiles and data are shown with their attribution, and commercial use follows the provider’s licence.', 'لكل مزوّد شروطه. تُعرض الخرائط والبيانات مع ذكر مصدرها، ويخضع الاستخدام التجاري لترخيص المزوّد.'),
 }
