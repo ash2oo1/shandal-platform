@@ -258,6 +258,7 @@
     var body = S.g({ 'clip-path': 'url(#' + cid + ')' }), fillHost = body;
     if (opts.clipPoly) { var hid = cid + 'h', cp2 = S.add('clipPath', { id: hid }, null, defs); S.poly(opts.clipPoly.map(function (q) { return [X(q[0]), Y(q[1])]; }), {}, cp2); fillHost = S.g({ 'clip-path': 'url(#' + hid + ')' }, body); }
     if (opts.fill !== false) { var RG = opts.renderGrid || G; if (opts.renderGrid) { RG.min = G.min; RG.max = G.max; } S.add('image', { href: D.render(RG, { ramp: opts.ramp, tint: true, shade: opts.shade }), x: ox, y: oy, width: W, height: H, preserveAspectRatio: 'none', opacity: opts.fillOpacity || 0.9 }, null, fillHost); }
+    if (opts.image) S.add('image', { href: opts.image, x: ox, y: oy, width: W, height: H, preserveAspectRatio: 'none' }, null, fillHost);
     /* contours: index spacing adapts so at least three index lines are labelled */
     var step = opts.interval, base = opts.base || 0, idx = opts.index || 5; if (cs.length / idx < 3) idx = cs.length <= 9 ? 1 : 2;
     var labels = [], dpL = step < 1 ? (step < 0.1 ? 2 : 1) : 0;
@@ -301,7 +302,14 @@
       S.add('rect', { x: L0 + 6, y: y, width: bwid, height: 12, fill: 'url(#' + gid + ')', stroke: ink, 'stroke-width': .6 });
       var ltk = nice(G.max - G.min, 4), dpk = ltk < 1 ? (ltk < 0.1 ? 2 : 1) : 0; for (v = Math.ceil(G.min / ltk) * ltk; v <= G.max + 1e-9; v += ltk) { var xx = L0 + 6 + (v - G.min) / ((G.max - G.min) || 1) * bwid; S.line(xx, y + 12, xx, y + 16, { stroke: ink }); S.text(xx, y + 27, SH.fmt(v, dpk), { 'font-size': 9.5, fill: mut, 'text-anchor': 'middle', direction: 'ltr' }); }
       y += 44; }
+    else if (opts.gradient) { var gid2 = cid + 'g2', lg2 = S.add('linearGradient', { id: gid2, x1: 0, y1: 0, x2: 1, y2: 0 }, null, defs), bw2 = PW - 40, gs = opts.gradient.colors;
+      gs.forEach(function (c, k) { S.add('stop', { offset: k / (gs.length - 1), 'stop-color': c }, null, lg2); });
+      S.add('rect', { x: L0 + 6, y: y, width: bw2, height: 12, fill: 'url(#' + gid2 + ')', stroke: ink, 'stroke-width': .6 });
+      [0, .5, 1].forEach(function (f) { var vv = opts.gradient.min + f * (opts.gradient.max - opts.gradient.min), xx2 = L0 + 6 + f * bw2; S.line(xx2, y + 12, xx2, y + 16, { stroke: ink }); S.text(xx2, y + 27, SH.fmt(vv, Math.abs(opts.gradient.max - opts.gradient.min) < 5 ? 2 : 0), { 'font-size': 9.5, fill: mut, 'text-anchor': 'middle', direction: 'ltr' }); });
+      y += 44; }
     else y += 8;
+    (opts.swatches || []).forEach(function (sw) { row(function (x, yy) { S.add('rect', { x: x + 2, y: yy - 7, width: 26, height: 14, fill: sw.color, stroke: ink, 'stroke-width': .6 }); }, sw.name); });
+    if (!opts.noContours) {
     row(function (x, yy) { S.line(x, yy, x + 30, yy, { stroke: '#4A2E17', 'stroke-width': 1.5 }); }, SH.t('Index contour (labelled)', 'خط كنتور رئيسي (مرقّم)'));
     if (idx > 1) row(function (x, yy) { S.line(x, yy, x + 30, yy, { stroke: '#7E5636', 'stroke-width': .6 }); }, SH.t('Intermediate contour', 'خط كنتور ثانوي'));
     (opts.legend || []).forEach(function (e) { row(function (x, yy) { S.line(x, yy, x + 30, yy, { stroke: e.color, 'stroke-width': 2.5, 'stroke-dasharray': e.dash || null }); }, e.name); });
@@ -310,6 +318,7 @@
     var unit = (opts.unit == null ? ' m' : opts.unit).trim();
     txt(L0, y + 4, SH.t('Contour interval', 'الفاصل الكنتوري'), { 'font-size': 10.5, fill: ink }, R0); S.text(SH.lang === 'ar' ? L0 : R0, y + 4, SH.fmt(step, step < 1 ? 2 : 0) + (unit ? ' ' + unit : ''), { 'font-size': 10.5, 'font-weight': 800, fill: ink, direction: 'ltr', 'text-anchor': SH.lang === 'ar' ? 'start' : 'end' }); y += 12;
     if (idx > 1) { y += 8; txt(L0, y + 4, SH.t('Index every', 'خط رئيسي كل'), { 'font-size': 10.5, fill: ink }, R0); S.text(SH.lang === 'ar' ? L0 : R0, y + 4, SH.fmt(step * idx, step * idx < 1 ? 2 : 0) + (unit ? ' ' + unit : ''), { 'font-size': 10.5, 'font-weight': 800, fill: ink, direction: 'ltr', 'text-anchor': SH.lang === 'ar' ? 'start' : 'end' }); y += 12; }
+    }
     sep();
     // scale
     head('SCALE', 'مقياس الرسم');

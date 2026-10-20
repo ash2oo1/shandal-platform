@@ -97,6 +97,7 @@
   /* ---------------------------------------------------------------- downloads */
   SH.download = function (name, data, mime) {
     var blob = data instanceof Blob ? data : new Blob([data], { type: mime || 'text/plain;charset=utf-8' });
+    if (SH.saveFile) return SH.saveFile(blob, name, (blob.type || mime || 'application/octet-stream').split(';')[0]);
     var a = SH.el('a', { href: URL.createObjectURL(blob), download: name }); a.style.display = 'none';
     d.body.appendChild(a); a.click(); setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 400);
   };

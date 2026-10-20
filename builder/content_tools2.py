@@ -216,7 +216,7 @@ NEW_TOOLS = [
 },
 # ================================================================ ENVIRONMENT & REMOTE SENSING
 {
- 'slug': 'spectral-indices', 'cat': 'environment', 'icon': 'satellite', 'illus': 'ndvi', 'libs': ['map', 'plot'], 'live': True,
+ 'slug': 'spectral-indices', 'cat': 'environment', 'icon': 'satellite', 'illus': 'ndvi', 'libs': ['map', 'plot', 'dem'], 'live': True,
  'name': L('Sentinel-2 Spectral Indices', 'المؤشرات الطيفية لـ Sentinel-2'),
  'tagline': L('Vegetation, water, built-up and alteration minerals from real imagery.', 'النبات والمياه والعمران ومعادن التغاير من صور حقيقية.'),
  'summary': L('Finds Sentinel-2 Level-2A scenes over your area, renders spectral indices such as NDVI, NDWI, NDBI, NBR and the clay, ferrous and iron-oxide mineral ratios as map layers, computes area statistics, and compares two dates to measure change.',
