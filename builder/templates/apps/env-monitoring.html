@@ -1,0 +1,79 @@
+{% extends "app_base.html" %}
+{% import "apps/_m.html" as m with context %}
+{% block ws %}
+<div class="ws-wrap">
+<div class="ws wide-side">
+  <aside class="ws-side">
+    {{ m.panel_open(1, 'Site and scope', 'الموقع ونطاق الدراسة') }}
+      <div class="row2">
+        {{ m.fld('geoName', 'Researcher', 'الباحث', 'text') }}
+        {{ m.sel('eScope', 'Study scope', 'نطاق الدراسة', [('geo', 'Geotechnical and rock assessment', 'دراسة جيوتقنية وتقييم صخري', true), ('env', 'Environmental impact and air quality', 'الأثر البيئي وجودة الهواء'), ('hyd', 'Hydrological and surface survey', 'مسح هيدرولوجي وسطحي')]) }}
+      </div>
+      <div class="row2">
+        {{ m.fld('eLat', 'Latitude', 'دائرة العرض', 'number', '30.5085', '°', '', '', '', '0.0001') }}
+        {{ m.fld('eLon', 'Longitude', 'خط الطول', 'number', '47.7804', '°', '', '', '', '0.0001') }}
+      </div>
+      <button class="btn btn-ink btn-sm" id="eGps" type="button">{{ icon('crosshair', 'ico ico-sm') }}{{ m.L('Use my GPS', 'استخدم GPS') }}</button>
+    {{ m.panel_close() }}
+
+    {{ m.panel_open(2, 'Emission source (Gaussian plume)', 'مصدر الانبعاث (النموذج الغاوسي)') }}
+      <label class="chk"><input type="checkbox" id="pOn"> {{ m.L('Model a point source near the site', 'نمذج مصدراً نقطياً قرب الموقع') }}</label>
+      <div id="pBox" hidden style="display:grid;gap:12px">
+        <p class="pn-note">{{ m.L('Press “Place source” and click the stack, flare or chimney on the map.', 'اضغط «حدد المصدر» ثم انقر المدخنة أو الشعلة على الخريطة.') }}</p>
+        <button class="btn btn-line btn-sm" id="pPlace" type="button">{{ icon('factory', 'ico ico-sm') }}<span id="pPlaceT">{{ m.L('Place source', 'حدد المصدر') }}</span></button>
+        <div class="row3">
+          {{ m.sel('pGas', 'Pollutant', 'الملوث', [('SO2', 'SO₂', 'SO₂', true), ('NO2', 'NO₂', 'NO₂'), ('PM10', 'PM₁₀', 'PM₁₀'), ('H2S', 'H₂S', 'H₂S')]) }}
+          {{ m.fld('pQ', 'Emission rate Q', 'معدل الانبعاث Q', 'number', '50', 'g/s', '', '', '', '1') }}
+          {{ m.fld('pH', 'Effective height H', 'الارتفاع الفعال H', 'number', '40', 'm', 'Stack height plus plume rise.', 'ارتفاع المدخنة مضافاً إليه ارتفاع العمود.', '', '1') }}
+        </div>
+      </div>
+    {{ m.panel_close() }}
+
+    {{ m.panel_open(3, 'Water sample (optional)', 'عينة مياه (اختياري)') }}
+      <div class="row3">
+        {{ m.fld('wPH', 'pH', 'pH', 'number', '', '', '', '', '7.6', '0.1') }}
+        {{ m.fld('wTDS', 'TDS', 'TDS', 'number', '', 'mg/L', '', '', '850', '1') }}
+        {{ m.fld('wDO', 'DO', 'DO', 'number', '', 'mg/L', '', '', '6.5', '0.1') }}
+      </div>
+      <div class="row3">
+        {{ m.fld('wTur', 'Turbidity', 'العكارة', 'number', '', 'NTU', '', '', '4', '0.1') }}
+        {{ m.fld('wNO3', 'NO₃⁻'|safe, 'NO₃⁻'|safe, 'number', '', 'mg/L', '', '', '12', '0.1') }}
+        {{ m.fld('wCl', 'Cl⁻'|safe, 'Cl⁻'|safe, 'number', '', 'mg/L', '', '', '180', '1') }}
+      </div>
+      <div class="row3">
+        {{ m.fld('wSO4', 'SO₄²⁻'|safe, 'SO₄²⁻'|safe, 'number', '', 'mg/L', '', '', '320', '1') }}
+        {{ m.fld('wTH', 'Total hardness', 'العسرة الكلية', 'number', '', 'mg/L', '', '', '420', '1') }}
+        {{ m.fld('wCa', 'Ca²⁺'|safe, 'Ca²⁺'|safe, 'number', '', 'mg/L', '', '', '95', '1') }}
+      </div>
+    {{ m.panel_close() }}
+
+    {{ m.panel_open(4, 'Desertification sensitivity (MEDALUS)', 'حساسية التصحر (MEDALUS)') }}
+      {{ m.sel('dSQI', 'Soil quality', 'جودة التربة', [('1.13', 'Good · deep, well-drained, stable', 'جيدة · عميقة جيدة التصريف مستقرة'), ('1.45', 'Moderate · thin or crusted', 'متوسطة · رقيقة أو متقشرة', true), ('1.7', 'Poor · loose, saline or stony', 'رديئة · مفككة أو مالحة أو حصوية')]) }}
+      {{ m.sel('dVQI', 'Vegetation', 'الغطاء النباتي', [('1.13', 'Dense and perennial (> 40 %)', 'كثيف ومعمر (> 40 %)'), ('1.38', 'Open rangeland (10–40 %)', 'مراعٍ مفتوحة (10–40 %)', true), ('1.7', 'Degraded or bare (< 10 %)', 'متدهور أو جرداء (< 10 %)')]) }}
+      {{ m.sel('dMQI', 'Land management', 'إدارة الأرض', [('1.0', 'Protected, policies enforced', 'محمية، السياسات مطبقة'), ('1.5', 'Regular farming', 'زراعة منتظمة', true), ('2.0', 'Overgrazing, clearing, quarrying', 'رعي جائر، تجريف، مقالع')]) }}
+    {{ m.panel_close() }}
+    <button class="btn btn-gold btn-block" id="eRun" type="button">{{ icon('satellite', 'ico ico-sm') }}{{ m.L('Run monitoring and modelling', 'شغّل الرصد والنمذجة') }}</button>
+    <button class="btn btn-line btn-xs" id="eDemo" type="button">{{ m.L('Example: Rumaila oil field, Basra', 'مثال: حقل الرميلة، البصرة') }}</button>
+  </aside>
+
+  <div class="ws-main">
+    {{ m.fig_open('fe0', '', 'Site, wind and plume', 'الموقع والرياح وعمود التلوث') }}
+      <div class="fig-b pad0" style="position:relative"><div class="map" id="eMap"></div><div class="map-hint" id="eHint" hidden>{{ m.L('Click the emission source', 'انقر مصدر الانبعاث') }}</div></div>
+    {{ m.fig_close() }}
+    <div id="eEmpty" class="pn">{{ m.empty('thermometer-sun', 'Field conditions before you set out', 'ظروف الحقل قبل أن تنطلق', 'Live weather, heat stress, air quality and a dispersion model for the site, turned into geotechnical, safety and instrument guidance.', 'طقس لحظي وإجهاد حراري وجودة هواء ونموذج تشتت للموقع، تتحول إلى إرشادات جيوتقنية ووقائية وللأجهزة.') }}</div>
+    <div id="eOut" hidden style="display:grid;gap:18px">
+      <div class="kpis" id="eKpis" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr))"></div>
+      <div class="grid3" id="eExpert" style="display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(240px,1fr))"></div>
+      {{ m.fig_open('fe1', '1', 'Past 7 days and next 7 days', 'الأيام السبعة الماضية والقادمة', '<div class="seg" id="eTab" style="padding:2px"><button data-v="t" aria-pressed="true">' + ('Temperature' if lang == 'en' else 'الحرارة') + '</button><button data-v="w" aria-pressed="false">' + ('Wind' if lang == 'en' else 'الرياح') + '</button><button data-v="r" aria-pressed="false">' + ('Rain & humidity' if lang == 'en' else 'المطر والرطوبة') + '</button></div>') }}
+        <div class="fig-b"><div class="plot" id="eChart" style="height:320px"></div></div>
+      {{ m.fig_close() }}
+      <section class="pn" id="plPn" hidden><div class="pn-h">{{ icon('wind') }}<h2>{{ m.L('Gaussian plume result', 'نتيجة النموذج الغاوسي') }}</h2></div><div class="pn-b flush"><table class="kv" id="plTbl"></table></div></section>
+      <div class="grid2" id="labRow" hidden>
+        <section class="pn"><div class="pn-h">{{ icon('droplet') }}<h2>{{ m.L('Water quality index', 'مؤشر جودة المياه') }}</h2></div><div class="pn-b flush tbl-wrap"><table class="tbl" id="wTbl"></table></div><div class="pn-b" id="wTxt" style="font-size:.88rem;line-height:1.75"></div></section>
+        <section class="pn"><div class="pn-h">{{ icon('sprout') }}<h2>{{ m.L('Environmental sensitivity to desertification', 'الحساسية البيئية للتصحر') }}</h2></div><div class="pn-b flush"><table class="kv" id="dTbl"></table></div><div class="pn-b" id="dTxt" style="font-size:.88rem;line-height:1.75"></div></section>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+{% endblock %}
