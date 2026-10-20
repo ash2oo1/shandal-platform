@@ -313,7 +313,7 @@ TOOLS = [
  'related': ['contour-lab', 'magnetic-lab', 'geomorphology-contour'],
 },
 {
- 'slug': 'magnetic-lab', 'cat': 'terrain', 'libs': ['map', 'plot'], 'live': True, 'icon': 'magnet', 'illus': 'magnetic',
+ 'slug': 'magnetic-lab', 'cat': 'terrain', 'libs': ['map', 'dem', 'igrf'], 'live': True, 'icon': 'magnet', 'illus': 'magnetic',
  'name': L('Regional Magnetic Lab', 'المختبر المغناطيسي الإقليمي'),
  'tagline': L('Reference geomagnetic field grids for exploration.', 'شبكات المجال المغناطيسي المرجعي للاستكشاف.'),
  'summary': L('Retrieves the International Geomagnetic Reference Field over a survey area and exports the grid for reducing magnetic survey data and planning exploration.',

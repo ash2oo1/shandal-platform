@@ -1,0 +1,80 @@
+{% extends "app_base.html" %}
+{% import "apps/_m.html" as m with context %}
+{% block ws %}
+<div class="ws-wrap">
+<div class="ws wide-side">
+  <aside class="ws-side">
+    <div class="seg" id="mMode"><button type="button" data-v="grid" aria-pressed="true">{{ m.L('Reference field', 'المجال المرجعي') }}</button><button type="button" data-v="survey" aria-pressed="false">{{ m.L('Survey reduction', 'تصحيح المسح') }}</button></div>
+
+    {{ m.panel_open(1, 'Epoch and height', 'الزمن والارتفاع') }}
+      <div class="row2">
+        {{ m.fld('mDate', 'Survey date', 'تاريخ المسح', 'date') }}
+        {{ m.fld('mAlt', 'Height above ellipsoid', 'الارتفاع فوق الإهليلج', 'number', '0', 'km', 'Ground surveys: site elevation in km. Airborne: flight height.', 'المسوحات الأرضية: ارتفاع الموقع بالكيلومتر. الجوية: ارتفاع الطيران.', '', '0.01') }}
+      </div>
+      <p class="pn-note">{{ m.L('IGRF-14 is definitive to 2020 and predictive from 2025 to 2030. It is computed in your browser.', 'نموذج IGRF-14 نهائي حتى 2020 وتنبؤي من 2025 إلى 2030. يُحسب في متصفحك.') }}</p>
+    {{ m.panel_close() }}
+
+    <div id="mGridSide">
+    {{ m.panel_open(2, 'Survey area and grid', 'منطقة المسح والشبكة') }}
+      <div class="row2">
+        <button class="btn btn-ink btn-sm" id="mDraw" type="button">{{ icon('square-dashed', 'ico ico-sm') }}{{ m.L('Draw on map', 'ارسم على الخريطة') }}</button>
+        <button class="btn btn-line btn-sm" id="mView" type="button">{{ icon('scan', 'ico ico-sm') }}{{ m.L('Use map view', 'استخدم عرض الخريطة') }}</button>
+      </div>
+      <div class="row2">
+        {{ m.fld('mN', 'North', 'الشمال', 'number', '', '°', '', '', '', '0.001') }}
+        {{ m.fld('mS', 'South', 'الجنوب', 'number', '', '°', '', '', '', '0.001') }}
+      </div>
+      <div class="row2">
+        {{ m.fld('mW', 'West', 'الغرب', 'number', '', '°', '', '', '', '0.001') }}
+        {{ m.fld('mE', 'East', 'الشرق', 'number', '', '°', '', '', '', '0.001') }}
+      </div>
+      <div class="row2">
+        {{ m.fld('mStep', 'Grid step', 'خطوة الشبكة', 'number', '0.05', '°', '', '', '', '0.005', 'min="0.005"') }}
+        {{ m.sel('mComp', 'Map component', 'المكوّن المعروض', [('F', 'Total intensity F', 'الشدة الكلية F', true), ('D', 'Declination D', 'الانحراف D'), ('I', 'Inclination I', 'الميل I'), ('H', 'Horizontal H', 'الأفقية H'), ('Z', 'Vertical Z', 'الرأسية Z'), ('svF', 'Secular variation of F', 'التغير القرني لـ F')]) }}
+      </div>
+      <p class="pn-note" id="mEst">—</p>
+    {{ m.panel_close() }}
+    <button class="btn btn-gold btn-block" id="mRun" type="button">{{ icon('magnet', 'ico ico-sm') }}{{ m.L('Compute reference grid', 'احسب الشبكة المرجعية') }}</button>
+    <button class="btn btn-line btn-xs" id="mDemo" type="button">{{ m.L('Example: Iraq and surroundings', 'مثال: العراق وما حوله') }}</button>
+    </div>
+
+    <div id="mSurvSide" hidden>
+    {{ m.panel_open(2, 'Magnetometer readings', 'قراءات المغناطيسية') }}
+      <p class="pn-note">{{ m.L('Columns: latitude, longitude, total field in nT, and optional time (HH:MM). Paste or load a CSV.', 'الأعمدة: دائرة العرض، خط الطول، الشدة الكلية بالنانوتسلا، والوقت اختيارياً (HH:MM). الصق أو حمّل ملف CSV.') }}</p>
+      <textarea id="sData" rows="7" class="ltr" style="font-family:ui-monospace,monospace;font-size:.78rem;width:100%" placeholder="lat,lon,F_nT,time&#10;33.3001,44.4012,46990.4,09:12"></textarea>
+      <label class="btn btn-line btn-sm" style="cursor:pointer">{{ icon('upload', 'ico ico-sm') }}{{ m.L('Load CSV', 'تحميل CSV') }}<input type="file" id="sFile" accept=".csv,.txt" hidden></label>
+    {{ m.panel_close() }}
+    {{ m.panel_open(3, 'Diurnal correction (optional)', 'تصحيح التغير اليومي (اختياري)') }}
+      <p class="pn-note">{{ m.L('Base-station readings, one per line: HH:MM, F nT. Drift is interpolated linearly in time and removed.', 'قراءات المحطة الأساسية، قراءة في كل سطر: HH:MM، F نانوتسلا. يُستوفى الانجراف خطياً مع الزمن ويُطرح.') }}</p>
+      <textarea id="sBase" rows="4" class="ltr" style="font-family:ui-monospace,monospace;font-size:.78rem;width:100%" placeholder="09:00, 46985.2&#10;12:30, 46991.0"></textarea>
+    {{ m.panel_close() }}
+    <button class="btn btn-gold btn-block" id="sRun" type="button">{{ icon('activity', 'ico ico-sm') }}{{ m.L('Reduce and map the anomaly', 'صحّح وارسم الشذوذ') }}</button>
+    <button class="btn btn-line btn-xs" id="sDemo" type="button">{{ m.L('Load example ground survey', 'تحميل مسح أرضي مثال') }}</button>
+    </div>
+
+    {{ m.panel_open('', 'Point calculator', 'حاسبة النقطة', 'compass') }}
+      <div class="row2">
+        {{ m.fld('pLat', 'Latitude', 'دائرة العرض', 'number', '33.3152', '°', '', '', '', '0.0001') }}
+        {{ m.fld('pLon', 'Longitude', 'خط الطول', 'number', '44.3661', '°', '', '', '', '0.0001') }}
+      </div>
+      <div id="pOut" class="xsmall" style="line-height:1.8"></div>
+    {{ m.panel_close() }}
+  </aside>
+
+  <div class="ws-main">
+    {{ m.fig_open('fm0', '', 'Map', 'الخريطة') }}
+      <div class="fig-b pad0" style="position:relative"><div class="map" id="mMap"></div><div class="map-hint" id="mHint" hidden>{{ m.L('Drag a rectangle, or tap two corners', 'اسحب مستطيلاً أو انقر ركنين') }}</div></div>
+    {{ m.fig_close() }}
+    <div id="mEmpty" class="pn">{{ m.empty('magnet', 'Reference field and anomaly maps', 'خرائط المجال المرجعي والشذوذ', 'Compute the IGRF-14 main field over any area and epoch, or reduce your magnetometer readings to a residual anomaly and contour it.', 'احسب المجال الرئيسي IGRF-14 لأي منطقة وزمن، أو صحّح قراءات جهاز المغناطيسية إلى شذوذ متبقٍ وارسم خطوطه الكنتورية.') }}</div>
+    <div id="mOut" hidden style="display:grid;gap:18px">
+      <div class="kpis" id="mKpis"></div>
+      {{ m.fig_open('fm1', '1', 'Contour map', 'الخريطة الكنتورية', '<button class="btn btn-line btn-xs" id="mPng">PNG</button><button class="btn btn-line btn-xs" id="mGrd">Surfer GRD</button><button class="btn btn-line btn-xs" id="mCsv">CSV</button>') }}
+        <div class="fig-b" style="overflow:auto"><svg class="chart" id="mSvg" viewBox="0 0 1000 760" role="img" aria-label="Magnetic map" style="min-width:680px;background:#fff"></svg></div>
+        <div class="fig-cap" id="mCap"></div>
+      {{ m.fig_close() }}
+      <section class="pn" id="mTblPn" hidden><div class="pn-h">{{ icon('table') }}<h2>{{ m.L('Reduced readings', 'القراءات المصححة') }}</h2></div><div class="pn-b flush tbl-wrap" style="max-height:420px;overflow:auto"><table class="tbl" id="mTbl"></table></div></section>
+    </div>
+  </div>
+</div>
+</div>
+{% endblock %}

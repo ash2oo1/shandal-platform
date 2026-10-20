@@ -39,6 +39,7 @@
 {% block scripts %}
 {% if 'map' in tool.libs %}<script src="{{ u('assets/vendor/leaflet/leaflet.js') }}"></script>{% endif %}
 {% if 'plot3d' in tool.libs %}<script src="{{ u('assets/vendor/plotly/plotly-gl3d.min.js') }}"></script>{% elif 'plot' in tool.libs %}<script src="{{ u('assets/vendor/plotly/plotly-cartesian.min.js') }}"></script>{% endif %}
+{% if 'igrf' in tool.libs %}<script src="{{ u('assets/js/igrf.js') }}?v={{ version }}" defer></script>{% endif %}
 {% if 'dem' in tool.libs %}<script src="{{ u('assets/js/dem.js') }}?v={{ version }}" defer></script>{% endif %}
 <script src="{{ u('assets/vendor/qrcode/qrcode.min.js') }}" defer></script>
 <script src="{{ u('assets/js/ws.js') }}?v={{ version }}"></script>

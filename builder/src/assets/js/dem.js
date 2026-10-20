@@ -163,6 +163,8 @@
     hypso: [[0, [46, 110, 74]], [0.18, [104, 160, 92]], [0.38, [205, 196, 128]], [0.58, [196, 150, 92]], [0.78, [150, 104, 78]], [1, [245, 242, 236]]],
     terrain: [[0, [30, 92, 150]], [0.25, [70, 160, 120]], [0.5, [230, 220, 140]], [0.75, [170, 120, 80]], [1, [255, 255, 255]]],
     gray: [[0, [30, 30, 30]], [1, [240, 240, 240]]],
+    diverge: [[0, [33, 102, 172]], [0.25, [146, 197, 222]], [0.5, [247, 247, 247]], [0.75, [244, 165, 130]], [1, [178, 24, 43]]],
+    spectral: [[0, [50, 136, 189]], [0.25, [153, 213, 148]], [0.5, [255, 255, 191]], [0.75, [252, 141, 89]], [1, [213, 62, 79]]],
     viridis: [[0, [68, 1, 84]], [0.25, [59, 82, 139]], [0.5, [33, 145, 140]], [0.75, [94, 201, 98]], [1, [253, 231, 37]]]
   };
   D.ramps = RAMPS;
@@ -175,7 +177,7 @@
     var cx = cv.getContext('2d'), im = cx.createImageData(nx, ny), az = SH.rad(opts.azimuth == null ? 315 : opts.azimuth), alt = SH.rad(opts.altitude == null ? 45 : opts.altitude), rg = (G.max - G.min) || 1, tint = opts.tint !== false;
     for (var k = 0; k < nx * ny; k++) {
       var s = SH.rad(G.slope[k]), a = SH.rad(G.aspect[k]), hs = Math.max(0, Math.cos(alt) * Math.cos(s) + Math.sin(alt) * Math.sin(s) * Math.cos(az - a));
-      var c = tint ? D.color((G.z[k] - G.min) / rg, opts.ramp) : [255, 255, 255], m = 0.35 + 0.65 * hs;
+      var c = tint ? D.color((G.z[k] - G.min) / rg, opts.ramp) : [255, 255, 255], m = opts.shade === false ? 1 : 0.35 + 0.65 * hs;
       im.data[k * 4] = c[0] * m; im.data[k * 4 + 1] = c[1] * m; im.data[k * 4 + 2] = c[2] * m; im.data[k * 4 + 3] = isNaN(G.z[k]) ? 0 : 255;
     }
     cx.putImageData(im, 0, 0); return cv.toDataURL('image/png');
@@ -240,7 +242,7 @@
     var defs = S.add('defs', {}), cp = S.add('clipPath', { id: 'mclip' }, null, defs); S.add('rect', { x: ox, y: oy, width: W, height: H }, null, cp);
     var body = S.g({ 'clip-path': 'url(#mclip)' }), fillHost = body;
     if (opts.clipPoly) { var cp2 = S.add('clipPath', { id: 'hclip' }, null, defs); S.poly(opts.clipPoly.map(function (q) { return [X(q[0]), Y(q[1])]; }), {}, cp2); fillHost = S.g({ 'clip-path': 'url(#hclip)' }, body); }
-    if (opts.fill !== false) { var RG = opts.renderGrid || G; if (opts.renderGrid) { RG.min = G.min; RG.max = G.max; } S.add('image', { href: D.render(RG, { ramp: opts.ramp, tint: true }), x: ox, y: oy, width: W, height: H, preserveAspectRatio: 'none', opacity: opts.fillOpacity || 0.9 }, null, fillHost); }
+    if (opts.fill !== false) { var RG = opts.renderGrid || G; if (opts.renderGrid) { RG.min = G.min; RG.max = G.max; } S.add('image', { href: D.render(RG, { ramp: opts.ramp, tint: true, shade: opts.shade }), x: ox, y: oy, width: W, height: H, preserveAspectRatio: 'none', opacity: opts.fillOpacity || 0.9 }, null, fillHost); }
     var idx = opts.index || 5, step = opts.interval, base = opts.base || 0, labels = [];
     cs.forEach(function (c) { var isIdx = Math.round((c.level - base) / step) % idx === 0;
       c.lines.forEach(function (ln) { if (opts.smooth) ln = D.smooth(ln, 2); var pp = ln.map(function (p) { return [X(p[1]), Y(p[0])]; }); S.path(S.pl(pp), { fill: 'none', stroke: isIdx ? '#5B3A1E' : '#8A5A35', 'stroke-width': isIdx ? 1.6 : 0.7, 'stroke-linejoin': 'round', opacity: .95 }, body);
