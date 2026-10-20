@@ -367,6 +367,7 @@
 
   d.addEventListener('DOMContentLoaded', function () {
     SH.gate();
+    var sl = d.body.getAttribute('data-slug'); if (sl) { var rec = SH.store.get('shandal_recent', []).filter(function (r) { return r.s !== sl; }); rec.unshift({ s: sl, n: d.body.getAttribute('data-tname'), t: Date.now(), l: lang }); SH.store.set('shandal_recent', rec.slice(0, 12)); }
     $$('.range input[type=range]').forEach(function (r) { if (r.nextElementSibling && r.nextElementSibling.tagName === 'OUTPUT') r.nextElementSibling.textContent = r.value; });
     var rb = d.getElementById('reportBtn'); if (rb) rb.addEventListener('click', function () { if (d.dispatchEvent(new CustomEvent('sh:beforereport', { cancelable: true }))) SH.report(rb.getAttribute('data-title')); });
   });

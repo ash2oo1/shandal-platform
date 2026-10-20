@@ -76,7 +76,7 @@
         <h2 class="h2">{{ tr(X.why_h) }}</h2>
         <p class="lead" style="margin-top:16px">{{ tr(X.why_p) }}</p>
         <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:26px">
-          <a class="btn btn-gold" href="{{ P.FIELD_SYSTEM }}geopark.html" target="_blank" rel="noopener">{{ tr(X.open_atlas) }} {{ icon('arrow-up-right', 'ico ico-sm flip') }}</a>
+          <a class="btn btn-gold" href="{{ u('tools/geoheritage/app/') }}">{{ tr(X.open_atlas) }} {{ icon('arrow-right', 'ico ico-sm flip') }}</a>
           <a class="btn btn-line" href="{{ u('tools/geoheritage/') }}">{{ t('learn_more') }}</a>
         </div>
       </div>
@@ -294,6 +294,43 @@
     </div>
   </div>
 </section>
+
+{# ================================================================ ACCOUNT #}
+{% elif page == 'account' %}
+<section class="section">
+  <div class="wrap">
+    <div class="card" id="accNone" hidden style="padding:30px;max-width:620px">
+      <h2 class="h3">{{ tr(X.none_h) }}</h2><p class="muted" style="margin-top:8px">{{ tr(X.none_p) }}</p>
+      <a class="btn btn-gold" style="margin-top:18px" href="{{ u('login/') }}?next=account/">{{ t('nav_signin') }}</a>
+    </div>
+    <div id="accIn" hidden style="display:grid;gap:24px;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));align-items:start">
+      <div class="card" style="padding:26px">
+        <h2 class="h3">{{ tr(X.session) }}</h2>
+        <dl style="display:grid;grid-template-columns:auto 1fr;gap:10px 18px;margin:16px 0 0" class="acc-dl"><div><dt>{{ tr(X.name) }}</dt><dd data-a="name"></dd></div><div><dt>{{ tr(X.since) }}</dt><dd data-a="since"></dd></div><div><dt>{{ tr(X.exp) }}</dt><dd data-a="exp"></dd></div><div><dt>{{ tr(X.device) }}</dt><dd data-a="dev" dir="ltr"></dd></div></dl>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:18px"><button class="btn btn-line" type="button" data-logout>{{ t('sign_out') }}</button><a class="btn btn-gold" href="https://wa.me/{{ P.WA }}" target="_blank" rel="noopener">{{ tr(X.renew) }}</a></div>
+      </div>
+      <div class="card" style="padding:26px">
+        <h2 class="h3">{{ tr(X.recent) }}</h2>
+        <div id="accRecent" style="display:grid;gap:8px;margin-top:14px"><p class="muted small">{{ tr(X.recent_none) }}</p></div>
+      </div>
+      <div class="card" style="padding:26px">
+        <h2 class="h3">{{ tr(X.data_h) }}</h2><p class="muted small" style="margin-top:8px">{{ tr(X.data_p) }}</p>
+        <button class="btn btn-line" style="margin-top:16px" type="button" id="accClear">{{ tr(X.clear_btn) }}</button>
+      </div>
+    </div>
+  </div>
+</section>
+<script>
+(function () {
+  function get(k, d) { try { var v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch (e) { return d; } }
+  var s = get('shandal_session', null), ok = s && s.exp > Date.now(), loc = document.documentElement.lang === 'ar' ? 'ar-IQ' : 'en-GB', root = {{ u('assets/')[:-7]|tojson }} + (document.documentElement.lang === 'ar' ? 'ar/' : '');
+  document.getElementById(ok ? 'accIn' : 'accNone').hidden = false; if (!ok) return;
+  var q = function (k) { return document.querySelector('[data-a="' + k + '"]'); };
+  q('name').textContent = s.name; q('since').textContent = new Date(s.since).toLocaleString(loc); q('exp').textContent = new Date(s.exp).toLocaleString(loc); var dv = '—'; try { dv = localStorage.getItem('shandal_device_token') || '—'; } catch (e) {} q('dev').textContent = dv.slice(0, 14);
+  var r = get('shandal_recent', []); if (r.length) document.getElementById('accRecent').innerHTML = r.map(function (x) { return '<a class="btn btn-line btn-sm" style="justify-content:space-between" href="' + root + 'tools/' + x.s + '/app/index.html"><span>' + String(x.n).replace(/[<>&]/g, '') + '</span><span class="xsmall muted">' + new Date(x.t).toLocaleDateString(loc) + '</span></a>'; }).join('');
+  document.getElementById('accClear').addEventListener('click', function () { try { Object.keys(localStorage).forEach(function (k) { if (/^shandal_(tool_|quarry_|geomorph|atterberg|grain|spectral|env_|hazmon|recent)/.test(k)) localStorage.removeItem(k); }); } catch (e) {} this.textContent = {{ tr(X.cleared)|tojson }}; this.disabled = true; });
+})();
+</script>
 
 {# ================================================================ LEGAL #}
 {% elif page == 'legal' %}

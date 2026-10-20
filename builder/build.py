@@ -62,7 +62,7 @@ def pages():
         if os.path.exists(os.path.join(ROOT, 'templates', 'apps', t['slug'] + '.html')):
             P.append(dict(path=f'tools/{t["slug"]}/app/', tpl='apps/' + t['slug'] + '.html', key='app', tool=t))
     for key, path in [('data', 'data/'), ('earth', 'earth-now/'), ('heritage', 'geoheritage/'), ('academy', 'academy/'), ('library', 'library/'),
-                      ('about', 'about/'), ('pricing', 'pricing/'), ('contact', 'contact/'), ('verify', 'verify/')]:
+                      ('about', 'about/'), ('pricing', 'pricing/'), ('contact', 'contact/'), ('verify', 'verify/'), ('account', 'account/')]:
         P.append(dict(path=path, tpl='pages.html', key=key))
     P.append(dict(path='login/', tpl='login.html', key='login'))
     for key, path in [('privacy', 'legal/privacy/'), ('terms', 'legal/terms/'), ('disclaimer', 'legal/disclaimer/')]:
@@ -71,7 +71,7 @@ def pages():
 
 PAGE_DATA = {
  'data': CX.DATA, 'earth': CX.EARTH, 'heritage': CX.HERITAGE, 'academy': CX.ACADEMY, 'library': CX.LIBRARY,
- 'pricing': CX.PRICING, 'contact': CX.CONTACT, 'verify': CX.VERIFY,
+ 'pricing': CX.PRICING, 'contact': CX.CONTACT, 'verify': CX.VERIFY, 'account': CX.ACCOUNT,
 }
 
 def build():

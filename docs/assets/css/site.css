@@ -726,3 +726,17 @@ html,body{overflow-x:clip}
 .il-strata{fill:none;stroke:var(--il-line);stroke-width:1;opacity:.35}
 .il-magma{fill:#D9583B;opacity:.85}
 .il-ash{fill:var(--il-muted);opacity:.35}
+.form-msg.ok{background:color-mix(in srgb,var(--ok) 14%,transparent);color:var(--ok)}.form-msg.bad{background:color-mix(in srgb,var(--danger) 12%,transparent);color:var(--danger)}
+
+/* signed-in user chip (all pages) */
+.user-chip{display:inline-flex;align-items:center;gap:8px;height:40px;padding:0 6px 0 6px;border-radius:999px;border:1px solid color-mix(in srgb,currentColor 28%,transparent);background:transparent;color:inherit;font:inherit;font-size:.86rem;font-weight:700;cursor:pointer;position:relative}
+.user-chip .av{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(180deg,var(--gold-400),var(--gold-500));color:#141C24;font-size:.78rem;font-weight:800}
+.user-chip .nm{max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding-inline-end:6px}
+.user-menu{position:absolute;top:calc(100% + 8px);inset-inline-end:0;min-width:220px;background:var(--surface);color:var(--text);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow-2);padding:8px;display:grid;z-index:130}
+.user-menu[hidden]{display:none}
+.user-menu a,.user-menu button{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:9px;text-decoration:none;font:inherit;font-size:.86rem;font-weight:600;background:none;border:0;color:inherit;cursor:pointer;text-align:start}
+.user-menu a:hover,.user-menu button:hover{background:var(--surface-2)}
+.user-menu .who{padding:8px 10px 10px;border-bottom:1px solid var(--line);margin-bottom:6px;font-size:.8rem;color:var(--text-2)}
+.user-menu .who b{display:block;color:var(--text);font-size:.9rem}
+@media (max-width:560px){ .user-chip .nm{display:none} }
+.acc-dl div{display:contents}.acc-dl dt{color:var(--text-3);font-size:.86rem}.acc-dl dd{margin:0;font-weight:700;font-size:.92rem}

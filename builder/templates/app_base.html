@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block bodyattr %} class="ws-page" data-tool="{{ tool.name.en }}"{% endblock %}
+{% block bodyattr %} class="ws-page" data-tool="{{ tool.name.en }}" data-slug="{{ tool.slug }}" data-tname="{{ tr(tool.name) }}"{% endblock %}
 {% block head %}
 <link rel="stylesheet" href="{{ u('assets/css/ws.css') }}?v={{ version }}">
 {% if 'map' in tool.libs %}<link rel="stylesheet" href="{{ u('assets/vendor/leaflet/leaflet.css') }}">{% endif %}

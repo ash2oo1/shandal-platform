@@ -189,3 +189,5 @@
   /* year */
   $$('[data-year]').forEach(function (n) { n.textContent = new Date().getFullYear(); });
 })();
+/* sign-out buttons outside the header menu */
+document.addEventListener('click', function (e) { var b = e.target.closest && e.target.closest('[data-logout]'); if (!b || b.closest('.user-menu')) return; try { localStorage.removeItem('shandal_session'); } catch (x) {} location.reload(); });

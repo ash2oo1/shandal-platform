@@ -12,17 +12,33 @@
   <div class="auth-form">
     <h2 class="h2">{{ t('nav_signin') }}</h2>
     <p class="muted" style="margin-top:8px">{{ tr(X.sub) }}</p>
-    <form class="form" data-notice="loginNote" style="margin-top:28px">
+    <div class="form-msg" id="loginIn" hidden style="margin-top:20px">{{ tr(X.signed) }} <b data-who></b>. <a href="{{ u('platform/') }}" style="color:var(--accent);font-weight:700">{{ tr(X.to_tools) }}</a> · <button type="button" class="linklike" data-logout style="background:none;border:0;color:var(--accent);font:inherit;font-weight:700;cursor:pointer;padding:0">{{ t('sign_out') }}</button></div>
+    <form class="form" id="loginForm" style="margin-top:28px" novalidate>
       <div class="field"><label for="lName">{{ tr(X.user) }}</label><input id="lName" name="user" required autocomplete="username"></div>
       <div class="field"><label for="lPass">{{ tr(X.pass) }}</label><input id="lPass" name="password" type="password" required autocomplete="current-password"></div>
       <button class="btn btn-gold btn-lg" type="submit">{{ t('nav_signin') }}</button>
-      <div class="form-msg" id="loginNote" hidden tabindex="-1">{{ tr(X.notice) }} <a href="{{ P.FIELD_SYSTEM }}" target="_blank" rel="noopener">{{ tr(X.open_field) }}</a></div>
+      <div class="form-msg" id="loginMsg" hidden tabindex="-1" role="status"></div>
+      <p class="xsmall muted" style="margin:0">{{ tr(X.device) }}</p>
     </form>
     <div style="margin-top:28px;padding-top:24px;border-top:1px solid var(--line);display:grid;gap:12px">
-      <a class="btn btn-line" href="{{ P.FIELD_SYSTEM }}" target="_blank" rel="noopener">{{ tr(X.open_field) }} {{ icon('arrow-up-right', 'ico ico-sm flip') }}</a>
       <p class="small muted">{{ tr(X.no_acc) }} <a href="{{ u('pricing/') }}" style="color:var(--accent);font-weight:700">{{ t('nav_access') }}</a> · <a href="https://wa.me/{{ P.WA }}?text={{ tr(X.status_msg)|urlencode }}" target="_blank" rel="noopener" style="color:var(--accent);font-weight:700">{{ tr(X.status) }}</a></p>
     </div>
   </div>
 </div>
 {% endblock %}
-{% block scripts %}<script src="{{ u('assets/js/globe.js') }}?v={{ version }}" defer></script>{% endblock %}
+{% block scripts %}<script src="{{ u('assets/js/globe.js') }}?v={{ version }}" defer></script><script src="{{ u('assets/js/ws.js') }}?v={{ version }}"></script>
+<script>
+(function () {
+  var f = document.getElementById('loginForm'), msg = document.getElementById('loginMsg'), inn = document.getElementById('loginIn');
+  var T = { busy: {{ tr(X.busy)|tojson }}, ok: {{ tr(X.ok)|tojson }} };
+  var next = new URLSearchParams(location.search).get('next');
+  var go = function () { location.href = SH.base + (SH.lang === 'ar' ? 'ar/' : '') + (next && /^[a-z0-9\-\/]+$/i.test(next) ? next.replace(/\/?$/, '/') + 'index.html' : 'platform/index.html'); };
+  var s = SH.session(); if (s) { inn.hidden = false; inn.querySelector('[data-who]').textContent = s.name; }
+  f.addEventListener('submit', function (e) {
+    e.preventDefault(); var n = f.user.value.trim(), c = f.password.value.trim(); if (!n || !c) { f.reportValidity(); return; }
+    var b = f.querySelector('button[type=submit]'); b.disabled = true; msg.hidden = false; msg.className = 'form-msg'; msg.textContent = T.busy;
+    SH.login(n, c).then(function () { msg.className = 'form-msg ok'; msg.textContent = T.ok; setTimeout(go, 600); })
+      .catch(function (er) { msg.className = 'form-msg bad'; msg.textContent = er.message; b.disabled = false; msg.focus(); });
+  });
+})();
+</script>{% endblock %}

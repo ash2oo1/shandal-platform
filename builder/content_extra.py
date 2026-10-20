@@ -134,11 +134,25 @@ LOGIN = {
  'art_p': L('Your surveys, reports and tools, on any device.', 'مسوحاتك وتقاريرك وأدواتك، على أي جهاز.'),
  'sub': L('Use the account details we sent when your subscription was activated.', 'استخدم بيانات الحساب التي أرسلناها عند تفعيل اشتراكك.'),
  'user': L('Full name or username', 'الاسم الثلاثي أو اسم المستخدم'), 'pass': L('Access code', 'رمز الدخول'),
- 'notice': L('Accounts are moving to the new platform. For now, sign in through the field system:', 'تنتقل الحسابات إلى المنصة الجديدة. حالياً، سجّل الدخول عبر النظام الميداني:'),
- 'open_field': L('Open the field system', 'افتح النظام الميداني'),
+ 'busy': L('Checking your subscription…', 'جارٍ التحقق من اشتراكك…'),
+ 'ok': L('Signed in. Opening your workspace…', 'تم تسجيل الدخول. جارٍ فتح مساحة العمل…'),
+ 'device': L('Your session is tied to this device for security and lasts 24 hours.', 'ترتبط جلستك بهذا الجهاز للأمان وتستمر 24 ساعة.'),
+ 'signed': L('You are signed in as', 'أنت مسجل الدخول باسم'),
+ 'to_tools': L('Go to the tools', 'اذهب إلى الأدوات'),
  'no_acc': L('No account yet?', 'ليس لديك حساب؟'),
  'status': L('Check my subscription', 'تحقق من اشتراكي'),
  'status_msg': L('Hello, I would like to check the status of my Shandal System subscription. My name is: ', 'مرحباً، أرغب بالتحقق من حالة اشتراكي في نظام شندل. اسمي: '),
+}
+
+ACCOUNT = {
+ 'title': L('My account — Shandal System', 'حسابي — نظام شندل'),
+ 'h': L('My account', 'حسابي'), 'p': L('Your session, recent work and subscription.', 'جلستك وأعمالك الأخيرة واشتراكك.'),
+ 'none_h': L('You are not signed in', 'لم تسجّل الدخول'), 'none_p': L('Sign in with the name and access code we sent when your subscription was activated.', 'سجّل الدخول بالاسم ورمز الدخول اللذين أرسلناهما عند تفعيل اشتراكك.'),
+ 'session': L('Session', 'الجلسة'), 'name': L('Name', 'الاسم'), 'since': L('Signed in', 'تاريخ الدخول'), 'exp': L('Session ends', 'تنتهي الجلسة'), 'device': L('Device ID', 'معرّف الجهاز'),
+ 'recent': L('Recently opened workspaces', 'مساحات العمل المفتوحة مؤخراً'), 'recent_none': L('Workspaces you open will appear here.', 'ستظهر هنا مساحات العمل التي تفتحها.'),
+ 'data_h': L('Data stored in this browser', 'البيانات المخزنة في هذا المتصفح'), 'data_p': L('Inputs you type in the tools are kept only in this browser so you can continue later. Clearing them does not affect your subscription.', 'تُحفظ مدخلاتك في الأدوات في هذا المتصفح فقط لتكمل لاحقاً. مسحها لا يؤثر على اشتراكك.'),
+ 'clear_btn': L('Clear saved tool inputs', 'امسح مدخلات الأدوات المحفوظة'), 'cleared': L('Saved inputs cleared.', 'مُسحت المدخلات المحفوظة.'),
+ 'renew': L('Renew or upgrade by WhatsApp', 'جدّد أو رقِّ الاشتراك عبر واتساب'),
 }
 
 LEGAL_COMMON = {'updated': L('Last updated: October 2026', 'آخر تحديث: تشرين الأول 2026')}
