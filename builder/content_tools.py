@@ -289,7 +289,7 @@ TOOLS = [
  'related': ['seismic-evaluation', 'geomorphology-contour', 'env-monitoring'],
 },
 {
- 'slug': 'dem-hub', 'cat': 'terrain', 'libs': ['map'], 'live': True, 'icon': 'database', 'illus': 'mesh',
+ 'slug': 'dem-hub', 'cat': 'terrain', 'libs': ['map', 'plot3d', 'dem'], 'live': True, 'icon': 'database', 'illus': 'mesh',
  'name': L('DEM Data Hub', 'مركز بيانات نموذج الارتفاع الرقمي'),
  'tagline': L('Elevation grids for any area on Earth.', 'شبكات ارتفاع لأي منطقة على الأرض.'),
  'summary': L('Draw a rectangle on the map, choose a grid resolution, and download X, Y, Z elevation points as CSV ready for Surfer, ArcGIS or QGIS.',
