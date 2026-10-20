@@ -53,7 +53,10 @@
       kpi('', t('Relief', 'التضرس'), SH.fmt(G.max - G.min, 1) + '<small> m</small>', t('mean ', 'المتوسط ') + SH.fmt(G.mean, 1) + ' m') +
       kpi(G.stat.meanSlope > 20 ? 'warn' : '', t('Mean slope', 'متوسط الميل'), SH.fmt(G.stat.meanSlope, 1) + '<small>°</small>', 'HI = ' + SH.fmt(HI, 3));
     $('#dMeta').innerHTML = (G.crs === 'utm' ? 'WGS 84 / UTM ' + G.zone + (G.south ? 'S' : 'N') + ' (EPSG:' + (G.south ? 327 : 326) + String(G.zone).padStart(2, '0') + ')' : 'WGS 84 (EPSG:4326)') + ' · ' + t('Source: ', 'المصدر: ') + D.sources[G.source].attr + (G.zoom ? ' · z' + G.zoom + ' ≈ ' + SH.fmt(G.pixel, 1) + ' m/px' : '') + (G.stat.nodata ? ' · ' + G.stat.nodata + t(' empty nodes', ' عقدة فارغة') : '');
-    if (map) { if (overlay) map.removeLayer(overlay); overlay = L.imageOverlay(D.render(G, { ramp: 'hypso' }), [[G.geo.s, G.geo.w], [G.geo.n, G.geo.e]], { opacity: .85 }).addTo(map); map.fitBounds(overlay.getBounds(), { padding: [20, 20] }); }
+    if (map) { if (overlay) map.removeLayer(overlay); overlay = L.layerGroup().addTo(map); L.imageOverlay(D.render(G, { ramp: 'hypso' }), [[G.geo.s, G.geo.w], [G.geo.n, G.geo.e]], { opacity: .8 }).addTo(overlay);
+      var cs0 = contoursFor(), rnd = L.canvas({ padding: .3 }); cs0.cs.forEach(function (c) { var isI = Math.round(c.level / cs0.step) % 5 === 0; c.lines.forEach(function (ln) { if (ln.length < 2) return; L.polyline(D.smooth(ln, 2).map(function (q) { return toLL(q[0], q[1]); }), { renderer: rnd, color: isI ? '#4A2E17' : '#7E5636', weight: isI ? 1.8 : .8, opacity: .95 }).bindTooltip(SH.fmt(c.level, cs0.step < 1 ? 1 : 0) + ' m', { sticky: true }).addTo(overlay); }); });
+      map.fitBounds([[G.geo.s, G.geo.w], [G.geo.n, G.geo.e]], { padding: [20, 20] }); }
+    sheet();
     draw3d();
     // hypsometric curve (Strahler 1952): relative area above each relative height
     var hx = [], hy = []; for (var q = 0; q <= 50; q++) { var a = q / 50, idx = Math.floor((1 - a) * (sorted.length - 1)); hx.push(a); hy.push((sorted[idx] - G.min) / ((G.max - G.min) || 1)); }
@@ -65,6 +68,27 @@
     var rows = []; for (k = 0; k < Math.min(8, n); k++) { var j = Math.floor(k / G.nx), i = k % G.nx; rows.push('<tr><td class="num">' + (k + 1) + '</td><td class="num">' + xy(i, j)[0] + '</td><td class="num">' + xy(i, j)[1] + '</td><td class="num">' + (isNaN(G.z[k]) ? '—' : G.z[k].toFixed(2)) + '</td></tr>'); }
     $('#dTbl').innerHTML = '<thead><tr><th class="num">#</th><th class="num">' + (G.crs === 'utm' ? 'X (Easting)' : 'X (Lon)') + '</th><th class="num">' + (G.crs === 'utm' ? 'Y (Northing)' : 'Y (Lat)') + '</th><th class="num">Z (m)</th></tr></thead><tbody>' + rows.join('') + '</tbody>';
   }
+
+  /* ---------- contours and printable map */
+  var toLL = function (y, x) { if (G.crs === 'utm') { var q = SH.fromUTM(x, y, G.zone, G.south); return [q.lat, q.lon]; } return [y, x]; };
+  function contoursFor() { var iv = SH.num('dmInt'), step = iv > 0 ? iv : D.niceInterval(G.max - G.min, 12); return { step: step, cs: D.contours(G, D.levels(G, step)) }; }
+  function sheet() {
+    if (!G) return; var st = SH.val('dmStyle') || 'relief', C = contoursFor(), withC = /relief$|contours|spotscont/.test(st) && st !== 'spotsrelief', withS = /^spots/.test(st), fill = /relief/.test(st);
+    var spots = [];
+    if (withS) { var sp = SH.num('dmSp'), wM = (G.nx - 1) * G.dx, kk = Math.max(1, Math.round((sp > 0 ? sp : wM / 14) / G.dx)), off = Math.floor(kk / 2);
+      for (var j = off; j < G.ny; j += kk) for (var i = off; i < G.nx; i += kk) { var z = G.z[j * G.nx + i]; if (!isNaN(z)) spots.push({ x: G.lons[i], y: G.lats[j], v: z }); }
+      // always include highest and lowest points
+      var hi = 0, lo = 0; for (var k = 1; k < G.z.length; k++) { if (G.z[k] > G.z[hi]) hi = k; if (G.z[k] < G.z[lo]) lo = k; }
+      [hi, lo].forEach(function (q) { var sx = G.lons[q % G.nx], sy = G.lats[Math.floor(q / G.nx)], r = kk * Math.abs(G.lons[1] - G.lons[0]) * .6; spots = spots.filter(function (p) { return Math.hypot(p.x - sx, p.y - sy) > r; }); spots.push({ x: sx, y: sy, v: G.z[q], key: true }); }); }
+    var dp = +SH.val('dmDp') || 0;
+    D.svgMap($('#dSheet'), G, withC ? C.cs : [], { crs: G.crs === 'utm' ? 'proj' : 'geo', interval: C.step, index: 5, ramp: 'hypso', fill: fill, labels: true, smooth: true, grid: true, noContours: !withC, spots: spots, spotDp: dp, spotSize: spots.length > 250 ? 7.5 : 8.5,
+      title: SH.val('dmTitle') || (withS && !withC ? t('Spot-height map', 'خريطة نقاط الارتفاع') : t('Topographic map', 'خريطة طبوغرافية')), subtitle: (G.crs === 'utm' ? 'WGS 84 / UTM ' + G.zone + (G.south ? 'S' : 'N') : 'WGS 84') + (withC ? ' · ' + t('contour interval ', 'الفاصل الكنتوري ') + C.step + ' m' : '') + (withS ? ' · ' + spots.length + t(' spot heights', ' نقطة ارتفاع') : ''),
+      legendTitle: t('Elevation (m)', 'الارتفاع (م)'), axisNames: G.crs === 'utm' ? ['Easting (m)', 'Northing (m)'] : null, source: G.source === 'cop' ? 'DEM: Copernicus GLO-90 (ESA)' : 'DEM: Terrain Tiles on AWS (SRTM and others)' });
+    $('#dSheetCap').innerHTML = withS && !withC ? t('Exercise sheet: only spot heights are printed, so students can interpolate and draw the contour lines by hand. The highest and lowest points of the area are always included.', 'ورقة تمرين: تُطبع نقاط الارتفاع فقط ليستكمل الطلبة الاستيفاء ويرسموا خطوط الكنتور يدوياً. تُضمّن دائماً أعلى وأدنى نقطتين في المنطقة.') : t('Contours by marching squares on the fetched grid, smoothed for display; index contours every fifth line are labelled.', 'خطوط الكنتور بخوارزمية المربعات المتحركة على الشبكة المجلوبة، ممهّدة للعرض؛ يُرقَّم كل خط رئيسي خامس.');
+  }
+  ['dmStyle', 'dmInt', 'dmSp', 'dmDp', 'dmTitle'].forEach(function (id) { $('#' + id).addEventListener('change', function () { if (G) { if (id === 'dmInt') render(); else sheet(); } }); });
+  $('#dMapPng').addEventListener('click', function () { if (G) SH.svgPng($('#dSheet'), 'shandal-map-' + (SH.val('dmStyle') || 'relief') + '.png', 3); });
+  $('#dMapSvg').addEventListener('click', function () { if (G) SH.download('shandal-map-' + (SH.val('dmStyle') || 'relief') + '.svg', new XMLSerializer().serializeToString($('#dSheet')), 'image/svg+xml'); });
   function xy(i, j) { return G.crs === 'utm' ? [G.lons[i].toFixed(2), G.lats[j].toFixed(2)] : [G.lons[i].toFixed(7), G.lats[j].toFixed(7)]; }
   function kpi(cls, k, v, s) { return '<div class="kpi ' + cls + '"><span class="k">' + k + '</span><span class="v">' + v + '</span><span class="s">' + s + '</span></div>'; }
 

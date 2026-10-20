@@ -60,6 +60,19 @@
     return next();
   };
   /* Regular grid over bounds {n,s,e,w}; rows run north to south */
+  /* Copernicus GLO-90 is a 3″ (~90 m) grid of whole metres. Sample it on its native lattice, smooth the 1 m
+     quantisation with a 3 × 3 binomial filter, and return a bilinear sampler for any finer target grid. */
+  D.copNative = function (b, onProgress) {
+    var d = 1 / 1200, pad = 2 * d, s0 = Math.floor((b.s - pad) / d) * d, w0 = Math.floor((b.w - pad) / d) * d, ny = Math.ceil((b.n + pad - s0) / d) + 1, nx = Math.ceil((b.e + pad - w0) / d) + 1, pts = [], i, j;
+    for (j = 0; j < ny; j++) for (i = 0; i < nx; i++) pts.push([s0 + j * d, w0 + i * d]);
+    return D.copernicus(pts, onProgress).then(function (z) {
+      var A = new Float32Array(nx * ny), S = new Float32Array(nx * ny); for (var k = 0; k < z.length; k++) A[k] = z[k] == null ? NaN : z[k];
+      var W = [1, 2, 1];
+      for (j = 0; j < ny; j++) for (i = 0; i < nx; i++) { var sum = 0, wt = 0; for (var dj = -1; dj <= 1; dj++) for (var di = -1; di <= 1; di++) { var ii = i + di, jj = j + dj; if (ii < 0 || jj < 0 || ii >= nx || jj >= ny) continue; var v = A[jj * nx + ii]; if (isNaN(v)) continue; var ww = W[di + 1] * W[dj + 1]; sum += v * ww; wt += ww; } S[j * nx + i] = wt ? sum / wt : NaN; }
+      return function (lat, lon) { var fx = (lon - w0) / d, fy = (lat - s0) / d, x0 = Math.max(0, Math.min(nx - 2, Math.floor(fx))), y0 = Math.max(0, Math.min(ny - 2, Math.floor(fy))), tx = fx - x0, ty = fy - y0;
+        var a = S[y0 * nx + x0], b2 = S[y0 * nx + x0 + 1], c = S[(y0 + 1) * nx + x0], e = S[(y0 + 1) * nx + x0 + 1]; return a * (1 - tx) * (1 - ty) + b2 * tx * (1 - ty) + c * (1 - tx) * ty + e * tx * ty; };
+    });
+  };
   D.grid = function (b, nx, ny, opts) {
     opts = opts || {}; var src = opts.source || 'aws', lats = [], lons = [], i, j;
     for (j = 0; j < ny; j++) lats.push(b.n - (b.n - b.s) * j / (ny - 1));
@@ -91,7 +104,7 @@
     G.geo = { n: -90, s: 90, e: -180, w: 180 }; ll.forEach(function (p) { if (p[0] > G.geo.n) G.geo.n = p[0]; if (p[0] < G.geo.s) G.geo.s = p[0]; if (p[1] > G.geo.e) G.geo.e = p[1]; if (p[1] < G.geo.w) G.geo.w = p[1]; });
     G.ll = ll;
     var fill = function (z) { for (var k = 0; k < z.length; k++) G.z[k] = z[k] == null || isNaN(z[k]) ? NaN : z[k]; return D.stats(G); };
-    if (source === 'cop') return D.copernicus(ll, onProgress).then(fill);
+    if (source === 'cop') return D.copNative(G.geo, onProgress).then(function (f) { G.resampled = true; return fill(ll.map(function (p) { return f(p[0], p[1]); })); });
     var pad = 0.001, gb = { n: G.geo.n + pad, s: G.geo.s - pad, e: G.geo.e + pad, w: G.geo.w - pad };
     return D.terrarium(gb, step, onProgress).then(function (f) { G.zoom = f.zoom; G.pixel = f.pixel; return fill(ll.map(function (p) { return f(p[0], p[1]); })); });
   };
@@ -180,7 +193,9 @@
       var c = tint ? D.color((G.z[k] - G.min) / rg, opts.ramp) : [255, 255, 255], m = opts.shade === false ? 1 : 0.35 + 0.65 * hs;
       im.data[k * 4] = c[0] * m; im.data[k * 4 + 1] = c[1] * m; im.data[k * 4 + 2] = c[2] * m; im.data[k * 4 + 3] = isNaN(G.z[k]) ? 0 : 255;
     }
-    cx.putImageData(im, 0, 0); return cv.toDataURL('image/png');
+    cx.putImageData(im, 0, 0);
+    var k2 = Math.max(1, Math.min(8, Math.ceil(900 / Math.max(nx, ny)))); if (k2 > 1 && opts.upsample !== false) { var big = document.createElement('canvas'); big.width = nx * k2; big.height = ny * k2; var bx = big.getContext('2d'); bx.imageSmoothingEnabled = true; bx.imageSmoothingQuality = 'high'; bx.drawImage(cv, 0, 0, big.width, big.height); return big.toDataURL('image/png'); }
+    return cv.toDataURL('image/png');
   };
   /* Profile along a polyline of [lat,lon]; returns {d:[m], z:[m], pts:[[lat,lon]]} */
   D.densify = function (line, n) {
@@ -271,6 +286,9 @@
         var a = pp[Math.max(0, k - 2)], b = pp[Math.min(pp.length - 1, k + 2)], ang = SH.deg(Math.atan2(b[1] - a[1], b[0] - a[0])); if (ang > 90) ang -= 180; if (ang < -90) ang += 180;
         S.text(q[0], q[1] + 3.5, SH.fmt(l.v, dpL), { 'font-size': 10, 'font-weight': 700, fill: '#4A2E17', 'text-anchor': 'middle', direction: 'ltr', stroke: '#fff', 'stroke-width': 3, 'paint-order': 'stroke', transform: 'rotate(' + ang.toFixed(1) + ' ' + q[0].toFixed(1) + ' ' + q[1].toFixed(1) + ')' }, body); } });
     (opts.lines || []).forEach(function (L) { var pp = L.pts.map(function (p) { return [X(p[1]), Y(p[0])]; }); S.path(S.pl(pp), { fill: 'none', stroke: L.color || '#1F6FB2', 'stroke-width': L.width || 2.5, 'stroke-linecap': 'round', 'stroke-dasharray': L.dash || null }, body); if (L.arrow && pp.length > 1) { var q = pp[pp.length - 1], r = pp[pp.length - 2], an = Math.atan2(q[1] - r[1], q[0] - r[0]); S.poly([q, [q[0] - 11 * Math.cos(an - .4), q[1] - 11 * Math.sin(an - .4)], [q[0] - 11 * Math.cos(an + .4), q[1] - 11 * Math.sin(an + .4)]], { fill: L.color || '#1F6FB2' }, body); } });
+    (opts.spots || []).forEach(function (p) { var px = X(p.x), py = Y(p.y); if (px < ox + 4 || px > ox + W - 30 || py < oy + 12 || py > oy + H - 4) return;
+      S.path('M' + (px - 3.5) + ' ' + py + 'H' + (px + 3.5) + 'M' + px + ' ' + (py - 3.5) + 'V' + (py + 3.5), { stroke: opts.spotColor || '#1B232B', 'stroke-width': 1.2 }, body);
+      S.text(px + 4, py - 3, SH.fmt(p.v, opts.spotDp == null ? 0 : opts.spotDp, { nogroup: true }), { 'font-weight': p.key ? 800 : 400, 'font-size': opts.spotSize || 8.5, fill: opts.spotColor || '#1B232B', direction: 'ltr', stroke: '#fff', 'stroke-width': 2.2, 'paint-order': 'stroke' }, body); });
     (opts.points || []).forEach(function (p) { S.circle(X(p.x), Y(p.y), 3.2, { fill: p.color || '#111', stroke: '#fff', 'stroke-width': 1.2 }, body); if (p.label) S.text(X(p.x) + 6, Y(p.y) - 5, p.label, { 'font-size': 9.5, fill: ink, direction: 'ltr', stroke: '#fff', 'stroke-width': 2.5, 'paint-order': 'stroke' }, body); });
     /* graticule and graduated border */
     var tx = geo ? angStep(G.b.e - G.b.w) : nice(G.b.e - G.b.w, 5), ty = geo ? angStep(G.b.n - G.b.s) : nice(G.b.n - G.b.s, 5), v, k2, bd = 6;
@@ -308,6 +326,7 @@
       [0, .5, 1].forEach(function (f) { var vv = opts.gradient.min + f * (opts.gradient.max - opts.gradient.min), xx2 = L0 + 6 + f * bw2; S.line(xx2, y + 12, xx2, y + 16, { stroke: ink }); S.text(xx2, y + 27, SH.fmt(vv, Math.abs(opts.gradient.max - opts.gradient.min) < 5 ? 2 : 0), { 'font-size': 9.5, fill: mut, 'text-anchor': 'middle', direction: 'ltr' }); });
       y += 44; }
     else y += 8;
+    if ((opts.spots || []).length) row(function (x, yy) { S.path('M' + (x + 11) + ' ' + yy + 'H' + (x + 19) + 'M' + (x + 15) + ' ' + (yy - 4) + 'V' + (yy + 4), { stroke: ink, 'stroke-width': 1.2 }); S.text(x + 21, yy - 2, '123', { 'font-size': 8, fill: ink, direction: 'ltr' }); }, SH.t('Spot height (m above sea level)', 'نقطة ارتفاع (م فوق سطح البحر)'));
     (opts.swatches || []).forEach(function (sw) { row(function (x, yy) { S.add('rect', { x: x + 2, y: yy - 7, width: 26, height: 14, fill: sw.color, stroke: ink, 'stroke-width': .6 }); }, sw.name); });
     if (!opts.noContours) {
     row(function (x, yy) { S.line(x, yy, x + 30, yy, { stroke: '#4A2E17', 'stroke-width': 1.5 }); }, SH.t('Index contour (labelled)', 'خط كنتور رئيسي (مرقّم)'));

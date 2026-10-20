@@ -21,7 +21,7 @@
     {{ m.panel_close() }}
 
     {{ m.panel_open(2, 'Grid', 'الشبكة') }}
-      {{ m.sel('dSrc', 'Elevation source', 'مصدر الارتفاعات', [('aws', 'AWS Terrain Tiles · ~30 m (fast)', 'بلاطات AWS للتضاريس · ~30 م (سريع)', true), ('cop', 'Copernicus GLO-90 · 90 m (point service)', 'Copernicus GLO-90 · 90 م (خدمة نقاط)')]) }}
+      {{ m.sel('dSrc', 'Elevation source', 'مصدر الارتفاعات', [('aws', 'AWS Terrain Tiles · ~30 m (fast)', 'بلاطات AWS للتضاريس · ~30 م (سريع)', true), ('cop', 'Copernicus GLO-90 · 90 m, bilinear resampling', 'Copernicus GLO-90 · 90 م، إعادة اعتيان ثنائية الخطية')]) }}
       <div class="row2">
         {{ m.sel('dCrs', 'Coordinate system', 'نظام الإحداثيات', [('utm', 'UTM (metres, auto zone)', 'UTM (أمتار، منطقة تلقائية)', true), ('geo', 'Geographic WGS 84 (degrees)', 'جغرافي WGS 84 (درجات)')]) }}
         {{ m.fld('dStep', 'Grid spacing', 'تباعد الشبكة', 'number', '30', 'm', 'Distance between grid nodes. For the geographic system it is converted to an equal step in degrees.', 'المسافة بين عقد الشبكة. في النظام الجغرافي تُحوّل إلى خطوة متساوية بالدرجات.', '', '1', 'min="5"') }}
@@ -39,6 +39,19 @@
     <div id="dEmpty" class="pn">{{ m.empty('database', 'Elevation for any area on Earth', 'ارتفاعات لأي منطقة على الأرض', 'Mark the area, choose spacing and coordinate system, then fetch. The grid is ready for Surfer, QGIS, ArcGIS or AutoCAD Civil 3D.', 'حدد المنطقة واختر التباعد ونظام الإحداثيات ثم اجلب البيانات. الشبكة جاهزة لبرامج Surfer وQGIS وArcGIS وAutoCAD Civil 3D.') }}</div>
     <div id="dOut" hidden style="display:grid;gap:18px">
       <div class="kpis" id="dKpis"></div>
+      {{ m.fig_open('fdM', '', 'Printable map — choose the style, preview, then download', 'الخريطة المُخرجة — اختر النمط وعاين ثم نزّل', '<button class="btn btn-gold btn-xs" id="dMapPng" type="button">PNG</button><button class="btn btn-line btn-xs" id="dMapSvg" type="button">SVG</button>') }}
+        <div class="fig-b" style="display:grid;gap:12px">
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px">
+            {{ m.sel('dmStyle', 'Map style', 'نمط الخريطة', [('relief', 'Colour relief + contours', 'تلوين تضاريسي + خطوط كنتور', True), ('contours', 'Contour lines only', 'خطوط كنتور فقط'), ('spots', 'Spot heights only (exercise)', 'نقاط ارتفاع فقط (تمرين)'), ('spotscont', 'Spot heights + contours', 'نقاط ارتفاع + خطوط كنتور'), ('spotsrelief', 'Spot heights on colour relief', 'نقاط ارتفاع على تلوين تضاريسي')]) }}
+            {{ m.fld('dmInt', 'Contour interval', 'الفاصل الكنتوري', 'number', '', 'm', 'Leave empty for an automatic interval of about 12 levels.', 'اتركه فارغاً لفاصل تلقائي بنحو 12 مستوى.', 'auto') }}
+            {{ m.fld('dmSp', 'Spot spacing', 'تباعد النقاط', 'number', '', 'm', 'Distance between spot heights. Empty = about 14 points per side.', 'المسافة بين نقاط الارتفاع. فارغ = نحو 14 نقطة لكل ضلع.', 'auto') }}
+            {{ m.sel('dmDp', 'Spot value decimals', 'منازل قيم النقاط', [('0', '0 (e.g. 412)', '0 (مثل 412)', True), ('1', '1 (e.g. 412.6)', '1 (مثل 412.6)')]) }}
+            {{ m.fld('dmTitle', 'Map title', 'عنوان الخريطة', 'text', '', '', '', '', 'Topographic map') }}
+          </div>
+          <svg class="chart" id="dSheet" viewBox="0 0 1120 800" role="img" aria-label="Printable map"></svg>
+          <p class="xsmall muted" style="margin:0" id="dSheetCap"></p>
+        </div>
+      {{ m.fig_close() }}
       <section class="pn"><div class="pn-h">{{ icon('download') }}<h2>{{ m.L('Downloads', 'التنزيلات') }}</h2></div>
         <div class="pn-b" style="display:flex;flex-wrap:wrap;gap:8px">
           <button class="btn btn-gold btn-sm" data-dl="csv">{{ icon('file-spreadsheet', 'ico ico-sm') }}CSV · X, Y, Z</button>
