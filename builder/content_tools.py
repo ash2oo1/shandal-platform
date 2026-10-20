@@ -104,7 +104,7 @@ TOOLS = [
  'related': ['seismic-evaluation', 'quarry-survey', 'hydro-alert'],
 },
 {
- 'slug': 'geomorphology-contour', 'cat': 'geology', 'libs': ['map'], 'icon': 'mountain-snow', 'illus': 'contours',
+ 'slug': 'geomorphology-contour', 'cat': 'geology', 'libs': ['map', 'plot', 'dem'], 'icon': 'mountain-snow', 'illus': 'contours',
  'name': L('Geomorphological & Contour Survey', 'المسح الجيومورفولوجي والكنتوري'),
  'tagline': L('Walk the ground, get the contour map.', 'امشِ على الأرض، واحصل على الخريطة الكنتورية.'),
  'summary': L('Builds a contour map from GPS points taken on the ground or along a valley, and pairs it with a field assessment of terrain, drainage pattern, valley profile, weathering and flood risk.',

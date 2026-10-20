@@ -1,0 +1,78 @@
+{% extends "app_base.html" %}
+{% import "apps/_m.html" as m with context %}
+{% block ws %}
+<div class="ws-wrap">
+<div class="ws wide-side">
+  <aside class="ws-side">
+    {{ m.panel_open(1, 'Site', 'الموقع') }}
+      <div class="row2">
+        {{ m.fld('geoName', 'Supervising geologist', 'الجيولوجي المشرف', 'text') }}
+        {{ m.fld('gProj', 'Project or area', 'المشروع أو المنطقة', 'text', '', '', '', '', m.L('e.g. Wadi Horan, western desert', 'مثال: وادي حوران، الصحراء الغربية')) }}
+      </div>
+      {{ m.sel('gEnv', 'Terrain setting', 'البيئة الطبوغرافية', [('mtn', 'Complex mountainous terrain', 'تضاريس جبلية معقدة'), ('hill', 'Plateaus and hills', 'هضاب وتلال', true), ('plain', 'Flat plain', 'سهل منبسط'), ('wadi', 'Arid wadi system', 'منظومة وديان جافة')]) }}
+    {{ m.panel_close() }}
+
+    {{ m.panel_open(2, 'Field geomorphology', 'الجيومورفولوجيا الحقلية') }}
+      {{ m.sel('gDrain', 'Drainage pattern', 'نمط التصريف', [('dend', 'Dendritic · homogeneous rocks', 'شجري · صخور متجانسة', true), ('trel', 'Trellis · folds and faults', 'تعريشي · طيات وفوالق'), ('rad', 'Radial · central high', 'شعاعي · مرتفع مركزي'), ('rect', 'Rectangular · orthogonal joints', 'مستطيلي · فواصل متعامدة'), ('par', 'Parallel · uniform regional slope', 'متوازي · انحدار إقليمي منتظم')]) }}
+      {{ m.sel('gValley', 'Dominant valley form', 'شكل الوادي السائد', [('v', 'V-shaped · active down-cutting', 'على شكل V · نحت رأسي نشط', true), ('u', 'Flat-floored or U-shaped · lateral erosion and fill', 'قاع مسطح أو شكل U · نحت جانبي وترسيب'), ('g', 'Gullies and rills', 'أخاديد ومسيلات')]) }}
+      <div class="fg"><span class="lb">{{ m.L('Active processes', 'العمليات النشطة') }}</span>
+        <div class="chks" id="gProc" style="grid-template-columns:repeat(2,minmax(0,1fr))">
+          <label class="chk"><input type="checkbox" value="flash" checked> {{ m.L('Fluvial, flash floods', 'جرياني، سيول') }}</label>
+          <label class="chk"><input type="checkbox" value="wind"> {{ m.L('Aeolian deflation', 'تذرية ريحية') }}</label>
+          <label class="chk"><input type="checkbox" value="mech"> {{ m.L('Thermal and salt weathering', 'تجوية حرارية وملحية') }}</label>
+          <label class="chk"><input type="checkbox" value="chem"> {{ m.L('Solution of carbonates and gypsum', 'إذابة الكربونات والجبس') }}</label>
+          <label class="chk"><input type="checkbox" value="mass"> {{ m.L('Rockfall and mass wasting', 'سقوط صخري وحركات كتلية') }}</label>
+          <label class="chk"><input type="checkbox" value="human"> {{ m.L('Quarrying and earthworks', 'مقالع وأعمال ترابية') }}</label>
+        </div></div>
+      {{ m.sel('gFlood', 'Flood exposure', 'التعرض للسيول', [('high', 'High · outlet or convergence zone', 'عالٍ · مصب أو منطقة التقاء', true), ('mid', 'Moderate · transfer reach', 'متوسط · مقطع ناقل'), ('low', 'Low · divide or summit', 'منخفض · خط تقسيم أو قمة')]) }}
+    {{ m.panel_close() }}
+
+    {{ m.panel_open(3, 'Topographic points', 'النقاط الطبوغرافية') }}
+      <p class="pn-note">{{ m.L('Capture points across the area by GPS or type them. Phone GPS height is poor; fill Z from the DEM or enter levelled heights.', 'التقط نقاطاً عبر المنطقة بالـ GPS أو اكتبها. ارتفاع GPS الهاتف ضعيف الدقة؛ املأ Z من نموذج الارتفاع أو أدخل ارتفاعات مسوّاة.') }}</p>
+      <div id="gTopo" style="display:grid;gap:8px"></div>
+      <div class="row2"><button class="btn btn-ink btn-sm" data-gps="topo" type="button">{{ icon('crosshair', 'ico ico-sm') }}{{ m.L('GPS point', 'نقطة GPS') }}</button><button class="btn btn-line btn-sm" data-add="topo" type="button">{{ icon('plus', 'ico ico-sm') }}{{ m.L('Add row', 'أضف صفاً') }}</button></div>
+    {{ m.panel_close() }}
+
+    {{ m.panel_open(4, 'Stream or wadi course', 'مسار المجرى أو الوادي') }}
+      <p class="pn-note">{{ m.L('Walk the channel from upstream to downstream and capture its course.', 'امشِ في المجرى من المنبع إلى المصب والتقط مساره.') }}</p>
+      <div id="gRiv" style="display:grid;gap:8px"></div>
+      <div class="row2"><button class="btn btn-ink btn-sm" data-gps="riv" type="button">{{ icon('crosshair', 'ico ico-sm') }}{{ m.L('GPS point', 'نقطة GPS') }}</button><button class="btn btn-line btn-sm" data-add="riv" type="button">{{ icon('plus', 'ico ico-sm') }}{{ m.L('Add row', 'أضف صفاً') }}</button></div>
+    {{ m.panel_close() }}
+
+    {{ m.panel_open(5, 'Map', 'الخريطة') }}
+      <div class="row2">
+        {{ m.fld('gInt', 'Contour interval', 'الفاصل الكنتوري', 'number', '', 'm', '', '', m.L('auto', 'تلقائي'), '0.5', 'min="0.1"') }}
+        {{ m.sel('gRamp', 'Colours', 'الألوان', [('hypso', 'Hypsometric', 'هبسومتري', true), ('terrain', 'Terrain', 'تضاريس'), ('gray', 'Grey', 'رمادي')]) }}
+      </div>
+      <button class="btn btn-line btn-sm" id="gDem" type="button">{{ icon('mountain', 'ico ico-sm') }}{{ m.L('Fill empty Z from the DEM', 'املأ Z الفارغة من نموذج الارتفاع') }}</button>
+    {{ m.panel_close() }}
+    <button class="btn btn-gold btn-block" id="gRun" type="button">{{ icon('activity', 'ico ico-sm') }}{{ m.L('Process and generate report', 'عالج البيانات وأنشئ التقرير') }}</button>
+    <button class="btn btn-line btn-xs" id="gDemo" type="button">{{ m.L('Load example survey', 'تحميل مسح مثال') }}</button>
+  </aside>
+
+  <div class="ws-main">
+    <div id="gEmpty" class="pn">{{ m.empty('mountain-snow', 'Walk the ground, get the contour map', 'امشِ على الأرض، واحصل على الخريطة الكنتورية', 'Record at least five topographic points and, if there is a channel, its course. The survey is kriged into a contour map and read together with your field geomorphology.', 'سجّل خمس نقاط طبوغرافية على الأقل، ومسار المجرى إن وُجد. يُحوّل المسح بالكريجنغ إلى خريطة كنتورية ويُقرأ مع ملاحظاتك الجيومورفولوجية الحقلية.') }}</div>
+    <div id="gOut" hidden style="display:grid;gap:18px">
+      <div class="kpis" id="gKpis"></div>
+      {{ m.fig_open('fg1', '1', 'Contour map of the survey', 'الخريطة الكنتورية للمسح', '<button class="btn btn-line btn-xs" id="gPng">PNG</button><button class="btn btn-line btn-xs" id="gSvgB">SVG</button>') }}
+        <div class="fig-b" style="overflow:auto"><svg class="chart" id="gSvg" viewBox="0 0 1000 760" role="img" aria-label="Contour map" style="min-width:680px;background:#fff"></svg></div>
+      {{ m.fig_close() }}
+      <div class="grid2">
+        {{ m.fig_open('fg2', '2', 'Satellite view', 'الصورة الفضائية') }}
+          <div class="fig-b pad0"><div class="map" id="gMap" style="height:380px"></div></div>
+        {{ m.fig_close() }}
+        {{ m.fig_open('fg3', '3', 'Longitudinal profile of the channel', 'المقطع الطولي للمجرى') }}
+          <div class="fig-b"><div class="plot" id="gLong" style="height:340px"></div></div>
+          <div class="fig-cap" id="gLongCap"></div>
+        {{ m.fig_close() }}
+      </div>
+      <section class="pn"><div class="pn-h">{{ icon('file-text') }}<h2>{{ m.L('Geomorphological interpretation', 'التفسير الجيومورفولوجي') }}</h2></div><div class="pn-b" id="gNarr" style="font-size:.92rem;line-height:1.85"></div></section>
+      <div class="grid2">
+        <section class="pn"><div class="pn-h">{{ icon('map-pin') }}<h2>{{ m.L('Topographic points (UTM)', 'النقاط الطبوغرافية (UTM)') }}</h2></div><div class="pn-b flush tbl-wrap"><table class="tbl" id="gT1"></table></div></section>
+        <section class="pn"><div class="pn-h">{{ icon('waves-horizontal') }}<h2>{{ m.L('Channel course (UTM)', 'مسار المجرى (UTM)') }}</h2></div><div class="pn-b flush tbl-wrap"><table class="tbl" id="gT2"></table></div></section>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+{% endblock %}
