@@ -1,0 +1,26 @@
+{% extends "app_base.html" %}
+{% import "apps/_m.html" as m with context %}
+{% block ws %}
+<div class="wsm">
+  <aside class="wsm-side">
+    <div class="sec">
+      <div class="fg"><label for="hQ">{{ m.L('Search sites', 'ابحث في المواقع') }}</label><input id="hQ" type="search" placeholder="{{ m.L('Name, province or rock', 'الاسم أو المحافظة أو الصخر') }}"></div>
+      <div class="seg" id="hType" style="flex-wrap:wrap"><button type="button" data-v="all" aria-pressed="true">{{ m.L('All', 'الكل') }}</button><button type="button" data-v="cave" aria-pressed="false">{{ m.L('Caves', 'كهوف') }}</button><button type="button" data-v="mountain" aria-pressed="false">{{ m.L('Landforms', 'أشكال أرضية') }}</button><button type="button" data-v="river" aria-pressed="false">{{ m.L('Rivers', 'أنهار') }}</button><button type="button" data-v="heritage" aria-pressed="false">{{ m.L('Heritage', 'تراث') }}</button></div>
+      <div class="seg" id="hEra" style="flex-wrap:wrap"><button type="button" data-v="all" aria-pressed="true">{{ m.L('All eras', 'كل الحقب') }}</button><button type="button" data-v="Precambrian" aria-pressed="false">{{ m.L('Precambrian', 'ما قبل الكامبري') }}</button><button type="button" data-v="Mesozoic" aria-pressed="false">{{ m.L('Mesozoic', 'الميزوزوي') }}</button><button type="button" data-v="Cenozoic" aria-pressed="false">{{ m.L('Cenozoic', 'السينوزوي') }}</button></div>
+      <button class="btn btn-ink btn-sm" id="hMe" type="button">{{ icon('crosshair', 'ico ico-sm') }}{{ m.L('Sort by distance from me', 'رتّب حسب البعد عني') }}</button>
+    </div>
+    <div class="sec" style="padding:0;gap:0" id="hList"></div>
+  </aside>
+  <div class="wsm-map">
+    <div class="map" id="hMap"></div>
+    <div id="hCard" hidden style="position:absolute;top:16px;inset-inline-end:16px;width:min(440px,calc(100% - 32px));max-height:calc(100% - 32px);overflow:auto;z-index:600;background:var(--surface);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow-3,0 20px 50px rgba(0,0,0,.25))"></div>
+  </div>
+</div>
+<div id="hLight" hidden style="position:fixed;inset:0;z-index:2000;background:rgba(5,10,16,.92);display:grid;place-items:center">
+  <button type="button" data-lb="x" aria-label="{{ m.L('Close', 'إغلاق') }}" style="position:absolute;top:16px;inset-inline-end:16px;width:44px;height:44px;border-radius:50%;border:0;background:rgba(255,255,255,.12);color:#fff;font-size:22px;cursor:pointer">✕</button>
+  <button type="button" data-lb="p" aria-label="{{ m.L('Previous', 'السابق') }}" style="position:absolute;inset-inline-start:16px;top:50%;width:48px;height:48px;border-radius:50%;border:0;background:rgba(255,255,255,.12);color:#fff;font-size:24px;cursor:pointer">‹</button>
+  <img id="hImg" alt="" style="max-width:92vw;max-height:84vh;border-radius:10px;box-shadow:0 20px 60px rgba(0,0,0,.5)">
+  <button type="button" data-lb="n" aria-label="{{ m.L('Next', 'التالي') }}" style="position:absolute;inset-inline-end:16px;top:50%;width:48px;height:48px;border-radius:50%;border:0;background:rgba(255,255,255,.12);color:#fff;font-size:24px;cursor:pointer">›</button>
+  <div id="hCap" style="position:absolute;bottom:18px;color:#fff;font-size:.9rem;opacity:.85"></div>
+</div>
+{% endblock %}
