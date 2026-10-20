@@ -1,0 +1,88 @@
+{% extends "app_base.html" %}
+{% import "apps/_m.html" as m with context %}
+{% block ws %}
+<div class="ws-wrap">
+<div class="ws wide-side">
+  <aside class="ws-side">
+    {{ m.panel_open(1, 'Project and site', 'المشروع والموقع') }}
+      <div class="row2">
+        {{ m.fld('geoName', 'Engineer or geologist', 'المهندس أو الجيولوجي', 'text') }}
+        {{ m.fld('sProj', 'Project', 'المشروع', 'text', '', '', '', '', m.L('e.g. Al-Andalus housing complex', 'مثال: مجمع الأندلس السكني')) }}
+      </div>
+      <div class="row2">
+        {{ m.fld('sLat', 'Latitude', 'دائرة العرض', 'number', '', '°', '', '', '33.3152', '0.00001') }}
+        {{ m.fld('sLon', 'Longitude', 'خط الطول', 'number', '', '°', '', '', '44.3661', '0.00001') }}
+      </div>
+      <div class="row2">
+        <button class="btn btn-ink btn-sm" id="sGps" type="button">{{ icon('crosshair', 'ico ico-sm') }}{{ m.L('Use my GPS', 'استخدم GPS') }}</button>
+        <span class="xsmall muted" style="align-self:center">{{ m.L('or click the map', 'أو انقر على الخريطة') }}</span>
+      </div>
+    {{ m.panel_close() }}
+
+    {{ m.panel_open(2, 'Mapped ground motion', 'الحركة الأرضية المرجعية') }}
+      <div class="seg" id="sSrc"><button type="button" data-v="code" aria-pressed="true">{{ m.L('From the code map', 'من خريطة الكود') }}</button><button type="button" data-v="scen" aria-pressed="false">{{ m.L('Fault scenario', 'سيناريو الصدع') }}</button></div>
+      <div class="row2">
+        {{ m.fld('sSs', 'S<sub>S</sub> (0.2 s)'|safe, 'S<sub>S</sub> (0.2 ث)'|safe, 'number', '0.60', 'g', 'Risk-targeted MCE spectral acceleration at 0.2 s on site class B, read from your national seismic code map or the USGS/ASCE hazard tool.', 'التسارع الطيفي للزلزال الأقصى المعتبر عند 0.2 ثانية على صنف الموقع B، يُقرأ من خريطة الكود الزلزالي الوطني أو أداة USGS/ASCE.', '', '0.01') }}
+        {{ m.fld('sS1', 'S<sub>1</sub> (1.0 s)'|safe, 'S<sub>1</sub> (1.0 ث)'|safe, 'number', '0.24', 'g', 'MCE spectral acceleration at 1.0 s on site class B.', 'التسارع الطيفي للزلزال الأقصى المعتبر عند 1.0 ثانية على صنف الموقع B.', '', '0.01') }}
+      </div>
+      <p class="pn-note" id="sSrcNote">{{ m.L('Enter the mapped values from the governing code. The fault scenario fills them with a screening estimate from the nearest active faults.', 'أدخل القيم المرجعية من الكود الحاكم. يملؤها سيناريو الصدع بتقدير أولي من أقرب الصدوع النشطة.') }}</p>
+      {{ m.fld('sTL', 'Long-period transition T<sub>L</sub>'|safe, 'زمن الانتقال الطويل T<sub>L</sub>'|safe, 'number', '8', 's', 'From the code’s long-period map. 8 s is common for moderate regions.', 'من خريطة الزمن الطويل في الكود. القيمة 8 ثوانٍ شائعة للمناطق المتوسطة.', '', '0.5') }}
+    {{ m.panel_close() }}
+
+    {{ m.panel_open(3, 'Site and structure', 'الموقع والمنشأة') }}
+      {{ m.sel('sClass', 'Site class', 'صنف الموقع', [('A', 'A · hard rock (Vs30 > 1500 m/s)', 'A · صخر صلب جداً (Vs30 > 1500 م/ث)'), ('B', 'B · rock (760–1500)', 'B · صخر (760–1500)'), ('C', 'C · very dense soil, soft rock (360–760)', 'C · تربة كثيفة جداً أو صخر لين (360–760)'), ('D', 'D · stiff soil (180–360)', 'D · تربة متماسكة (180–360)', true), ('E', 'E · soft clay (< 180)', 'E · طين لين (< 180)'), ('F', 'F · liquefiable, sensitive or organic', 'F · قابلة للتميع أو حساسة أو عضوية')], 'From Vs30, SPT N or undrained strength in the upper 30 m (ASCE 7 Chapter 20).', 'من Vs30 أو قيمة SPT أو مقاومة القص غير المصرفة في أعلى 30 م (ASCE 7 الفصل 20).') }}
+      {{ m.sel('sRisk', 'Risk category', 'فئة الخطورة', [('I', 'I · low hazard to life (storage, fences)', 'I · خطر منخفض على الأرواح (مخازن، أسوار)'), ('II', 'II · ordinary buildings, housing, malls', 'II · مبانٍ اعتيادية، سكن، مولات', true), ('III', 'III · schools, large assembly, utilities', 'III · مدارس، تجمعات كبيرة، مرافق'), ('IV', 'IV · hospitals, police, emergency centres', 'IV · مستشفيات، شرطة، مراكز طوارئ')]) }}
+      {{ m.sel('sSys', 'Lateral-force system', 'نظام مقاومة القوى الجانبية', [('8|0.0466|0.9', 'Special RC moment frame (R = 8)', 'إطار خرساني خاص مقاوم للعزوم (R = 8)'), ('5|0.0466|0.9', 'Intermediate RC moment frame (R = 5)', 'إطار خرساني متوسط (R = 5)', true), ('3|0.0466|0.9', 'Ordinary RC moment frame (R = 3)', 'إطار خرساني اعتيادي (R = 3)'), ('6|0.0488|0.75', 'Special RC shear walls, building frame (R = 6)', 'جدران قص خرسانية خاصة (R = 6)'), ('8|0.0724|0.8', 'Special steel moment frame (R = 8)', 'إطار فولاذي خاص (R = 8)'), ('8|0.0731|0.75', 'Steel eccentrically braced frame (R = 8)', 'إطار فولاذي بتكتيف لامركزي (R = 8)'), ('2|0.0488|0.75', 'Ordinary reinforced masonry walls (R = 2)', 'جدران طابوق مسلح اعتيادية (R = 2)'), ('1.5|0.0488|0.75', 'Unreinforced masonry (R = 1.5)', 'طابوق غير مسلح (R = 1.5)')]) }}
+      <div class="row2">
+        {{ m.fld('sH', 'Building height h<sub>n</sub>'|safe, 'ارتفاع المبنى h<sub>n</sub>'|safe, 'number', '15', 'm', '', '', '', '0.5') }}
+        {{ m.fld('sW', 'Seismic weight W', 'الوزن الزلزالي W', 'number', '20000', 'kN', 'Dead load plus applicable portions of other loads (ASCE 7 §12.7.2).', 'الحمل الميت مع الأجزاء المعتمدة من الأحمال الأخرى (ASCE 7 §12.7.2).', '', '100') }}
+      </div>
+    {{ m.panel_close() }}
+
+    {{ m.panel_open(4, 'Liquefaction check (optional)', 'فحص التميع (اختياري)') }}
+      <label class="chk"><input type="checkbox" id="lOn"> {{ m.L('Check a saturated sand layer', 'افحص طبقة رملية مشبعة') }}</label>
+      <div id="lBox" hidden style="display:grid;gap:12px">
+        <div class="row3">
+          {{ m.fld('lZ', 'Layer depth', 'عمق الطبقة', 'number', '6', 'm', '', '', '', '0.5') }}
+          {{ m.fld('lGw', 'Water table', 'منسوب المياه', 'number', '2', 'm', '', '', '', '0.1') }}
+          {{ m.fld('lG', 'Unit weight', 'وحدة الوزن', 'number', '19', 'kN/m³', '', '', '', '0.5') }}
+        </div>
+        <div class="row3">
+          {{ m.fld('lN', '(N<sub>1</sub>)<sub>60</sub>'|safe, '(N<sub>1</sub>)<sub>60</sub>'|safe, 'number', '12', '', 'SPT blow count corrected for overburden and 60 % hammer energy.', 'عدد ضربات SPT مصححاً للضغط الفوقي ولطاقة مطرقة 60 %.', '', '1') }}
+          {{ m.fld('lFC', 'Fines content', 'نسبة الناعم', 'number', '10', '%', '', '', '', '1') }}
+          {{ m.fld('lM', 'Magnitude M<sub>w</sub>'|safe, 'القدر M<sub>w</sub>'|safe, 'number', '6.5', '', '', '', '', '0.1') }}
+        </div>
+      </div>
+    {{ m.panel_close() }}
+    <button class="btn btn-gold btn-block" id="sRun" type="button">{{ icon('activity', 'ico ico-sm') }}{{ m.L('Evaluate the site', 'قيّم الموقع') }}</button>
+    <button class="btn btn-line btn-xs" id="sDemo" type="button">{{ m.L('Load example (Baghdad, stiff soil)', 'تحميل مثال (بغداد، تربة متماسكة)') }}</button>
+  </aside>
+
+  <div class="ws-main">
+    {{ m.fig_open('fs0', '1', 'Site and nearby active faults', 'الموقع والصدوع النشطة القريبة') }}
+      <div class="fig-b pad0" style="position:relative"><div class="map" id="sMap"></div></div>
+      <div class="fig-cap" id="sMapCap">{{ m.L('Active faults from the GEM Global Active Faults Database (CC BY-SA 4.0), coloured by slip type. Click the map to place the site.', 'الصدوع النشطة من قاعدة بيانات GEM العالمية للصدوع النشطة (CC BY-SA 4.0)، ملونة حسب نوع الانزلاق. انقر الخريطة لتحديد الموقع.') }}</div>
+    {{ m.fig_close() }}
+    <div id="sEmpty" class="pn">{{ m.empty('activity', 'Evaluate a site', 'قيّم موقعاً', 'Place the site, enter the mapped accelerations or use the fault scenario, choose the site class and structure, then evaluate.', 'حدد الموقع، وأدخل التسارعات المرجعية أو استخدم سيناريو الصدع، واختر صنف الموقع والمنشأة، ثم قيّم.') }}</div>
+    <div id="sOut" hidden style="display:grid;gap:18px">
+      <div class="kpis" id="sKpis"></div>
+      <div id="sVerd" style="display:grid;gap:10px"></div>
+      {{ m.fig_open('fs1', '2', 'Design response spectrum', 'طيف الاستجابة التصميمي') }}
+        <div class="fig-b"><div class="plot" id="sSpec" style="height:380px"></div></div>
+        <div class="fig-cap" id="sSpecCap"></div>
+      {{ m.fig_close() }}
+      <div class="grid2">
+        <section class="pn"><div class="pn-h">{{ icon('calculator') }}<h2>{{ m.L('Design parameters', 'معاملات التصميم') }}</h2></div><div class="pn-b flush"><table class="kv" id="sPar"></table></div></section>
+        <section class="pn"><div class="pn-h">{{ icon('building') }}<h2>{{ m.L('Equivalent lateral force', 'القوة الجانبية المكافئة') }}</h2></div><div class="pn-b flush"><table class="kv" id="sElf"></table></div></section>
+      </div>
+      <section class="pn"><div class="pn-h">{{ icon('git-commit-horizontal') }}<h2>{{ m.L('Nearest active faults and scenario ground motion', 'أقرب الصدوع النشطة والحركة الأرضية للسيناريو') }}</h2><div class="sp no-print"><button class="btn btn-line btn-xs" id="sFCsv">{{ icon('download', 'ico ico-sm') }}CSV</button></div></div>
+        <div class="pn-b flush tbl-wrap"><table class="tbl" id="sFaults"></table></div>
+        <div class="pn-b"><p class="xsmall muted" style="margin:0">{{ m.L('Scenario magnitude from rupture length (Wells & Coppersmith 1994); median PGA from Boore, Joyner & Fumal (1997) at the site Vs30. A deterministic screening check, not a probabilistic hazard value.', 'قدر السيناريو من طول التمزق (Wells & Coppersmith 1994)؛ وPGA الوسيطي من معادلة Boore وJoyner وFumal (1997) عند Vs30 للموقع. فحص حتمي أولي وليس قيمة خطر احتمالية.') }}</p></div>
+      </section>
+      <section class="pn" id="sLiqPn" hidden><div class="pn-h">{{ icon('waves-horizontal') }}<h2>{{ m.L('Liquefaction triggering (Youd et al. 2001)', 'قابلية التميع (Youd وآخرون 2001)') }}</h2></div><div class="pn-b flush"><table class="kv" id="sLiq"></table></div></section>
+      <section class="pn"><div class="pn-h">{{ icon('file-text') }}<h2>{{ m.L('Engineering interpretation', 'التفسير الهندسي') }}</h2></div><div class="pn-b" id="sNarr" style="font-size:.92rem;line-height:1.8"></div></section>
+    </div>
+  </div>
+</div>
+</div>
+{% endblock %}

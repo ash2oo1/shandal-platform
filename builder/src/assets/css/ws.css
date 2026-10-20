@@ -156,6 +156,7 @@ html[lang=ar] .leaflet-container{font-family:var(--font-ar)!important}
 .map-hint{position:absolute;bottom:26px;left:50%;transform:translateX(-50%);z-index:500;background:var(--text);color:var(--bg);font-size:.8rem;font-weight:600;padding:8px 14px;border-radius:999px;box-shadow:var(--shadow-2);white-space:nowrap;pointer-events:none}
 .map-hint[hidden]{display:none}
 .mk{width:14px;height:14px;border-radius:50%;background:var(--gold-500);border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.4)}
+.mk-site{width:18px;height:18px;border-radius:50%;background:#C0392B;border:3px solid #fff;box-shadow:0 0 0 3px rgba(192,57,43,.35),0 1px 6px rgba(0,0,0,.5)}
 .mk-num{width:24px;height:24px;border-radius:50%;background:var(--gold-500);color:#141C24;border:2px solid #fff;display:grid;place-items:center;font-size:11px;font-weight:800;box-shadow:0 1px 4px rgba(0,0,0,.4)}
 .mk-ring{border-radius:50%;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.35)}
 
