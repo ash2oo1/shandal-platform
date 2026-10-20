@@ -1,0 +1,26 @@
+{% extends "app_base.html" %}
+{% import "apps/_m.html" as m with context %}
+{% block ws %}
+<div class="wsm">
+  <aside class="wsm-side">
+    <div class="sec">
+      <h3>{{ icon('map-pin') }}{{ m.L('Point', 'النقطة') }}</h3>
+      <p class="xsmall muted" style="margin:0">{{ m.L('Click anywhere on the map, use your location or type coordinates.', 'انقر أي مكان على الخريطة، أو استخدم موقعك، أو اكتب الإحداثيات.') }}</p>
+      <div class="row2">
+        {{ m.fld('uLat', 'Latitude', 'دائرة العرض', 'number', '', '°', '', '', '36.2', '0.0001') }}
+        {{ m.fld('uLon', 'Longitude', 'خط الطول', 'number', '', '°', '', '', '44.0', '0.0001') }}
+      </div>
+      <div class="row2"><button class="btn btn-gold btn-sm" id="uGo" type="button">{{ m.L('Identify', 'تعرّف') }}</button><button class="btn btn-ink btn-sm" id="uMe" type="button">{{ icon('crosshair', 'ico ico-sm') }}{{ m.L('My location', 'موقعي') }}</button></div>
+      <label class="chk"><input type="checkbox" id="uOv" checked> {{ m.L('Show geological map overlay', 'أظهر طبقة الخريطة الجيولوجية') }}</label>
+      <p class="xsmall muted" id="uXY" style="margin:0"></p>
+    </div>
+    <div id="uRes" style="display:grid"></div>
+  </aside>
+  <div class="wsm-map"><div class="map" id="uMap"></div>
+    <div id="uScale" hidden style="position:absolute;top:16px;inset-inline-end:16px;z-index:600;width:min(300px,calc(100% - 32px));background:var(--surface);border:1px solid var(--line);border-radius:16px;box-shadow:0 12px 40px rgba(0,0,0,.2);padding:12px">
+      <b class="small">{{ m.L('Position on the geological time scale', 'الموقع على السلم الزمني الجيولوجي') }}</b>
+      <svg id="uSvg" viewBox="0 0 280 380" style="width:100%;margin-top:6px"></svg>
+    </div>
+  </div>
+</div>
+{% endblock %}

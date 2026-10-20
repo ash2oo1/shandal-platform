@@ -1,0 +1,26 @@
+{% extends "app_base.html" %}
+{% import "apps/_m.html" as m with context %}
+{% block ws %}
+<div class="wsm">
+  <aside class="wsm-side">
+    <div class="sec">
+      <h3>{{ icon('search') }}{{ m.L('Search the Paleobiology Database', 'ابحث في قاعدة البيانات الحيوية القديمة') }}</h3>
+      <div class="fg"><label for="fTax">{{ m.L('Taxon (optional)', 'المرتبة التصنيفية (اختياري)') }}</label><input id="fTax" list="fTaxL" placeholder="Ammonoidea, Foraminifera, Bivalvia…"><datalist id="fTaxL"><option>Ammonoidea</option><option>Foraminifera</option><option>Bivalvia</option><option>Gastropoda</option><option>Brachiopoda</option><option>Echinoidea</option><option>Anthozoa</option><option>Trilobita</option><option>Dinosauria</option><option>Mammalia</option><option>Plantae</option><option>Ostracoda</option><option>Rudista</option><option>Nummulitidae</option></datalist></div>
+      <div class="fg"><label for="fInt">{{ m.L('Geological interval (optional)', 'الفترة الجيولوجية (اختياري)') }}</label><input id="fInt" list="fIntL" placeholder="Cretaceous, Miocene, Jurassic…"><datalist id="fIntL"><option>Quaternary</option><option>Neogene</option><option>Miocene</option><option>Paleogene</option><option>Eocene</option><option>Cretaceous</option><option>Jurassic</option><option>Triassic</option><option>Permian</option><option>Carboniferous</option><option>Devonian</option><option>Silurian</option><option>Ordovician</option><option>Cambrian</option></datalist></div>
+      <div class="row2">
+        <button class="btn btn-gold btn-sm" id="fView" type="button">{{ icon('scan', 'ico ico-sm') }}{{ m.L('Search map view', 'ابحث في العرض') }}</button>
+        <button class="btn btn-ink btn-sm" id="fDraw" type="button">{{ icon('square-dashed', 'ico ico-sm') }}{{ m.L('Draw area', 'ارسم منطقة') }}</button>
+      </div>
+      <p class="xsmall muted" id="fInfo" style="margin:0">{{ m.L('Zoom to a region and search. Areas larger than 60° × 45° are refused to keep results useful.', 'كبّر إلى منطقة وابحث. تُرفض المساحات الأكبر من 60° × 45° لتبقى النتائج مفيدة.') }}</p>
+    </div>
+    <div class="sec" id="fStats" hidden>
+      <div class="kpis" id="fKpis" style="grid-template-columns:1fr 1fr"></div>
+      <div class="plot" id="fPer" style="height:230px"></div>
+      <div class="plot" id="fCls" style="height:230px"></div>
+      <div class="row2"><button class="btn btn-line btn-xs" id="fCsv" type="button">CSV</button><button class="btn btn-line btn-xs" id="fGeo" type="button">GeoJSON</button></div>
+    </div>
+    <div id="fList" style="display:grid"></div>
+  </aside>
+  <div class="wsm-map"><div class="map" id="fMap"></div><div class="map-hint" id="fHint" hidden>{{ m.L('Drag a rectangle, or tap two corners', 'اسحب مستطيلاً أو انقر ركنين') }}</div></div>
+</div>
+{% endblock %}

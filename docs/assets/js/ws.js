@@ -358,6 +358,10 @@
     $$('button', s.parentElement).forEach(function (b) { b.setAttribute('aria-pressed', b === s ? 'true' : 'false'); });
     s.parentElement.dispatchEvent(new CustomEvent('segchange', { detail: s.getAttribute('data-v'), bubbles: true }));
   });
+  /* ICS International Chronostratigraphic Chart (v2023/09): periods with base age (Ma) and official colours */
+  SH.ics = [['Quaternary', 'الرباعي', 0, 2.58, '#F9F97F'], ['Neogene', 'النيوجين', 2.58, 23.03, '#FFE619'], ['Paleogene', 'الباليوجين', 23.03, 66, '#FD9A52'], ['Cretaceous', 'الطباشيري', 66, 145, '#7FC64E'], ['Jurassic', 'الجوراسي', 145, 201.4, '#34B2C9'], ['Triassic', 'الترياسي', 201.4, 251.902, '#812B92'],
+    ['Permian', 'البرمي', 251.902, 298.9, '#F04028'], ['Carboniferous', 'الكربوني', 298.9, 358.9, '#67A599'], ['Devonian', 'الديفوني', 358.9, 419.2, '#CB8C37'], ['Silurian', 'السيلوري', 419.2, 443.8, '#B3E1B6'], ['Ordovician', 'الأوردوفيشي', 443.8, 485.4, '#009270'], ['Cambrian', 'الكامبري', 485.4, 538.8, '#7FA056'], ['Ediacaran', 'الإدياكاري', 538.8, 635, '#FED96A'], ['Cryogenian', 'الكرايوجيني', 635, 720, '#FECC5C'], ['Tonian', 'التوني', 720, 1000, '#FEBF4E'], ['Mesoproterozoic', 'البروتيروزوي الأوسط', 1000, 1600, '#FDB462'], ['Paleoproterozoic', 'البروتيروزوي القديم', 1600, 2500, '#F74370'], ['Archean', 'الأركي', 2500, 4031, '#F0047F'], ['Hadean', 'الهادي', 4031, 4567, '#AE027E']];
+  SH.icsAt = function (ma) { for (var i = 0; i < SH.ics.length; i++) if (ma >= SH.ics[i][2] && ma <= SH.ics[i][3]) return SH.ics[i]; return null; };
   SH.seg = function (id) { var b = d.querySelector('#' + id + ' button[aria-pressed=true]'); return b ? b.getAttribute('data-v') : null; };
   d.addEventListener('input', function (e) { var r = e.target; if (r.type === 'range' && r.nextElementSibling && r.nextElementSibling.tagName === 'OUTPUT') r.nextElementSibling.textContent = r.value; });
 
