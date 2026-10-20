@@ -8,7 +8,7 @@
   var PB = 'https://paleobiodb.org/data1.2/';
   var map = SH.map('fMap', { zoom: 6, base: 'topo', center: [33, 44], canvas: true });
   var G = null, lay = null, box = null, drawer = null, world = null, O = [], S = [], SITES = {}, cur = { site: null, from: 'search' };
-  var ARR = AR ? '→' : '←', EXT = '<span aria-hidden="true" style="opacity:.6">↗</span>';
+  var ARR = AR ? '→' : '←', FWD = AR ? '←' : '→', EXT = '<span aria-hidden="true" style="opacity:.6">↗</span>';
 
   /* ------------------------------------------------------------------ helpers */
   var clean = function (v) { return v && !/^NO_|^$/.test(v) ? v : ''; };
@@ -68,14 +68,14 @@
     $('#fGroup').innerHTML = g ? groupCard(g, true) : '';
   }
   function groupCard(g, more) {
-    var ra = g.r[0] > 0 ? ma(g.r[0]) + (g.r[1] > 0 ? '–' + ma(g.r[1]) : t(' Ma – today', ' م.س – اليوم')) + (g.r[1] > 0 ? t(' Ma', ' م.س') : '') : '';
+    var ra = '<span class="ltr">' + SH.fmt(g.r[0], 0) + ' – ' + SH.fmt(g.r[1], 0) + '</span> ' + t('million years ago', 'مليون سنة مضت') + (g.r[1] === 0 ? t(' (still living today)', ' (ما زالت حية اليوم)') : '');
     return '<div class="fx-card"><div style="display:flex;gap:8px;align-items:center"><i style="width:12px;height:12px;border-radius:50%;background:' + g.c + '"></i><h4>' + E(AR ? g.ar : g.en) + ' <span class="xsmall muted" style="font-weight:600">· <i>' + g.k + '</i></span></h4></div>' +
       '<p>' + E(AR ? g.d_ar : g.d_en) + '</p>' +
-      '<span class="lb">' + t('Time range', 'المدى الزمني') + '</span><p class="ltr" style="text-align:start">' + ra + '</p>' +
+      '<span class="lb">' + t('Time range', 'المدى الزمني') + '</span><p>' + ra + '</p>' +
       '<span class="lb">' + t('Where they lived', 'أين عاشت') + '</span><p>' + E(AR ? g.env_ar : g.env_en) + '</p>' +
       '<span class="lb">' + t('Why geologists use them', 'لماذا يستخدمها الجيولوجيون') + '</span><p>' + E(AR ? g.use_ar : g.use_en) + '</p>' +
       ((AR ? g.iq_ar : g.iq_en) ? '<span class="lb">' + t('In Iraq', 'في العراق') + '</span><p class="fx-iq">' + E(AR ? g.iq_ar : g.iq_en) + '</p>' : '') +
-      (more ? '<button type="button" class="btn btn-line btn-xs" data-tx="' + g.k + '">' + t('Images, references and worldwide record', 'الصور والمراجع والانتشار العالمي') + ' ' + ARR + '</button>' : '') + '</div>';
+      (more ? '<button type="button" class="btn btn-line btn-xs" data-tx="' + g.k + '">' + t('Images, references and worldwide record', 'الصور والمراجع والانتشار العالمي') + ' ' + FWD + '</button>' : '') + '</div>';
   }
 
   $('#fChips').addEventListener('click', function (e) {
@@ -174,7 +174,7 @@
       var txt = (AR ? 'يقع هذا الموقع' : 'This site lies') + (place ? (AR ? ' في ' : ' in ') + E(place) : '') + (c.geogcomments ? ' (' + E(c.geogcomments) + ')' : '') + '. ' +
         (li || fm ? (AR ? 'يكشف ' : 'It exposes ') + E(li || t('rocks', 'صخور')) + (fm ? (AR ? ' من ' : ' of ') + E(fm) : '') + '. ' : '') +
         (AR ? 'يعود عمره إلى ' : 'Its age is ') + E(c.early_interval + (c.late_interval && c.late_interval !== c.early_interval ? ' – ' + c.late_interval : '')) + ' (' + ma(c.max_ma) + '–' + ma(c.min_ma) + t(' million years ago, ', ' مليون سنة، عصر ') + pname(p) + '). ' +
-        (env ? (AR ? 'ترسبت صخوره في بيئة ' : 'Its sediments were laid down in a ') + '<b>' + E(tr(G.env, env)) + '</b>' + (AR ? '' : ' setting') + (ec && ec[0] !== 'none' ? ' — ' + E(AR ? ec[5] : ec[4].charAt(0).toLowerCase() + ec[4].slice(1)) : '. ') : t('The publication did not record the depositional environment. ', 'لم يسجّل المصدر البيئة الترسيبية. ')) +
+        (env ? (AR ? 'ترسبت صخوره في بيئة ' : 'Its sediments were laid down in a ') + '<b>' + E(tr(G.env, env)) + '</b>' + (AR ? '' : ' setting') + (ec && ec[0] !== 'none' ? ' — ' + E(AR ? ec[5] : ec[4].charAt(0).toLowerCase() + ec[4].slice(1)) + ' ' : '. ') : t('The publication did not record the depositional environment. ', 'لم يسجّل المصدر البيئة الترسيبية. ')) +
         (c.taxa.length ? (AR ? 'سُجلت هنا ' : 'Recorded here: ') + '<b>' + c.taxa.length + '</b>' + t(' fossils, mainly ', ' أحفورة، أغلبها من ') + gs.slice(0, 2).map(gname).map(E).join(AR ? ' و' : ' and ') + '. ' : '') +
         (c.paleolat != null && c.paleolat !== '' ? (AR ? 'عندما كانت هذه الكائنات حية، كان الموقع عند خط عرض ' : 'When these organisms were alive, the site lay at about ') + '<b class="ltr">' + Math.abs(+c.paleolat).toFixed(0) + '°' + (+c.paleolat >= 0 ? t('N', 'شمالاً') : t('S', 'جنوباً')) + '</b>' + (AR ? ' تقريباً، بينما يقع اليوم عند ' : ', compared with ') + '<span class="ltr">' + Math.abs(c.lat).toFixed(0) + '°' + (c.lat >= 0 ? t('N', 'شمالاً') : t('S', 'جنوباً')) + '</span>' + t(' today', '') + (Math.abs(+c.paleolat) < 30 && Math.abs(c.lat) >= 30 ? t(' — it was then in the tropics.', ' — أي كان آنذاك في المنطقة المدارية.') : '.') : '');
       var row = function (k, v) { return v ? '<tr><th style="width:36%">' + k + '</th><td>' + v + '</td></tr>' : ''; };
@@ -182,7 +182,7 @@
       var taxaH = gs.map(function (k) {
         var seen = {}, rows = bygrp[k].filter(function (o) { if (seen[o.name]) return false; seen[o.name] = 1; return true; });
         return '<div style="margin-top:8px"><div class="xsmall" style="font-weight:800;color:var(--accent);padding:0 10px">' + E(gname(k)) + ' · ' + rows.length + '</div>' + rows.map(function (o) {
-          return '<button type="button" class="fx-tx" data-tx="' + E(o.name) + '">' + (o.img ? '<img loading="lazy" alt="" src="' + thumb(o.img) + '">' : '<span class="ph"></span>') + '<span style="min-width:0"><i style="font-weight:700;font-size:.88rem">' + E(o.name) + '</i><span class="xsmall muted" style="display:block">' + E([tr(G.rank, o.rank), o.family, o.ident !== o.name ? t('identified as ', 'عُرّف كـ ') + o.ident : ''].filter(Boolean).join(' · ')) + '</span></span><span class="muted">' + ARR + '</span></button>';
+          return '<button type="button" class="fx-tx" data-tx="' + E(o.name) + '">' + (o.img ? '<img loading="lazy" alt="" src="' + thumb(o.img) + '">' : '<span class="ph"></span>') + '<span style="min-width:0"><i style="font-weight:700;font-size:.88rem">' + E(o.name) + '</i><span class="xsmall muted" style="display:block">' + E([tr(G.rank, o.rank), o.family, o.ident && o.ident.indexOf(o.name) !== 0 ? t('published as ', 'نُشر باسم ') + o.ident : ''].filter(Boolean).join(' · ')) + '</span></span><span class="muted">' + FWD + '</span></button>';
         }).join('') + '</div>';
       }).join('');
       var gu = SH.base + (AR ? 'ar/' : '') + 'tools/geologic-unit/app/?lat=' + c.lat.toFixed(5) + '&lon=' + c.lng.toFixed(5);
@@ -198,7 +198,7 @@
         '<h3 class="fx-h" style="margin-top:16px">' + t('Fossils found here', 'الأحافير الموجودة هنا') + ' (' + c.taxa.length + ')</h3><p class="fx-cap" style="margin:4px 0 0">' + t('Tap a fossil for its description, images, age range and references. Silhouettes are from PhyloPic.', 'انقر أي أحفورة لترى وصفها وصورها ومداها الزمني ومراجعها. الصور الظلية من PhyloPic.') + '</p>' + (taxaH || '<p class="small muted">' + t('No individual fossils matched the current filters.', 'لا توجد أحافير مفردة تطابق الفلاتر الحالية.') + '</p>') +
         '<h3 class="fx-h" style="margin-top:16px">' + t('Learn more', 'للاستزادة') + '</h3><div class="fx-links" style="margin-top:8px">' +
         '<a target="_blank" rel="noopener" href="https://paleobiodb.org/classic/basicCollectionSearch?collection_no=' + c.collection_no + '">PBDB · ' + t('collection record', 'سجل المجموعة') + ' ' + EXT + '</a>' +
-        '<a href="' + gu + '">' + t('Geological map unit here', 'الوحدة الجيولوجية هنا') + ' ' + ARR + '</a>' +
+        '<a href="' + gu + '">' + t('Geological map unit here', 'الوحدة الجيولوجية هنا') + ' ' + FWD + '</a>' +
         (c.formation ? '<a target="_blank" rel="noopener" href="https://scholar.google.com/scholar?q=' + encodeURIComponent('"' + c.formation + '" formation fossils') + '">' + t('Research on the formation', 'أبحاث عن التكوين') + ' ' + EXT + '</a>' : '') +
         '<a target="_blank" rel="noopener" href="https://scholar.google.com/scholar?q=' + encodeURIComponent(c.primary_reference ? c.primary_reference.slice(0, 160) : c.collection_name) + '">' + t('Original publication', 'المنشور الأصلي') + ' ' + EXT + '</a></div>';
     }).join('');
@@ -243,7 +243,8 @@
     var bk = function () { $('#fBackT').addEventListener('click', function () { clearWorld(); if (from === 'site' && cur.site) show('site'); else show('search'); }); }; bk();
     Promise.all([
       SH.getJSON(PB + 'taxa/single.json?vocab=pbdb&show=attr,app,class,ecospace,taphonomy,img,common,parent,size&name=' + encodeURIComponent(name), { timeout: 30000 }).then(function (j) { return (j.records || [])[0] || null; }).catch(function () { return null; }),
-      wiki(name), commons(name)
+      wiki(name).then(function (w) { var gn = name.split(' ')[0]; if (w || gn === name) return w; return wiki(gn).then(function (w2) { if (w2) w2.genus = gn; return w2; }); }),
+      commons(name).then(function (a) { var gn = name.split(' ')[0]; return a.length || gn === name ? a : commons(gn); })
     ]).then(function (r) {
       var x = r[0] || { taxon_name: name }, w = r[1], imgs = r[2], g = G.groups.filter(function (q) { return q.k === name; })[0];
       var nm = x.accepted_name || x.taxon_name || name, first = +x.firstapp_max_ma, last = +x.lastapp_min_ma, ext = x.is_extant === 'extant';
