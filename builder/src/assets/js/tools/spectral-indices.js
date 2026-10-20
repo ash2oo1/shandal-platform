@@ -129,24 +129,33 @@
 
   /* ---------- statistics and interpretation */
   var feat = function () { return { type: 'Feature', properties: {}, geometry: { type: 'Polygon', coordinates: [[[aoi.w, aoi.s], [aoi.e, aoi.s], [aoi.e, aoi.n], [aoi.w, aoi.n], [aoi.w, aoi.s]]] } }; };
+  /* robust statistics from a fine histogram over the physical range: excludes ±inf from zero-reflectance pixels */
+  var RANGE = function (x) { return x.rel ? [0, 6] : /savi|evi/.test(x.k) ? [-1, 1.5] : [-1, 1]; };
+  function robust(h) {
+    var c = h[0], e = h[1], n = c.reduce(function (a, b) { return a + b; }, 0); if (!n) return { mean: NaN, std: NaN, median: NaN, percentile_2: NaN, percentile_98: NaN, min: NaN, max: NaN, count: 0 };
+    var mid = c.map(function (_, i) { return (e[i] + e[i + 1]) / 2; }), m = 0, v = 0, i; for (i = 0; i < c.length; i++) m += c[i] * mid[i]; m /= n; for (i = 0; i < c.length; i++) v += c[i] * (mid[i] - m) * (mid[i] - m);
+    var q = function (p) { var tgt = p * n, acc = 0; for (var k = 0; k < c.length; k++) { if (acc + c[k] >= tgt) return e[k] + (e[k + 1] - e[k]) * ((tgt - acc) / (c[k] || 1)); acc += c[k]; } return e[e.length - 1]; };
+    var first = c.findIndex(function (x) { return x > 0; }), last = c.length - 1 - c.slice().reverse().findIndex(function (x) { return x > 0; });
+    return { mean: m, std: Math.sqrt(v / n), median: q(.5), percentile_2: q(.02), percentile_98: q(.98), min: e[first], max: e[last + 1], count: n };
+  }
   function stats(it, x, edges) {
-    return fetch(PC + 'data/v1/item/statistics?' + params(it, x, true) + '&max_size=1024' + (edges ? '&histogram_bins=' + encodeURIComponent(edges.join(',')) : ''), { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(feat()) })
+    var rg = RANGE(x), hb = edges ? '&histogram_bins=' + encodeURIComponent(edges.join(',')) : '&histogram_bins=400&histogram_range=' + rg.join(',');
+    return fetch(PC + 'data/v1/item/statistics?' + params(it, x, true) + '&max_size=1024' + hb, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(feat()) })
       .then(function (r) { if (!r.ok) throw new Error(t('Statistics service: HTTP ', 'خدمة الإحصاءات: HTTP ') + r.status); return r.json(); })
-      .then(function (j) { var p = j.properties ? j.properties.statistics : j, k = Object.keys(p)[0]; return p[k]; });
+      .then(function (j) { var p = j.properties ? j.properties.statistics : j, k = Object.keys(p)[0], st = p[k]; if (!edges) { var R = robust(st.histogram); R.histogram = st.histogram; return R; } return st; });
   }
   function need() { var x = idx(); if (!aoi || !cur) { SH.toast(t('Draw the area and pick a scene first.', 'ارسم المنطقة واختر مشهداً أولاً.'), 'warn'); return null; } if (x.a || x.ex) { SH.toast(t('Statistics apply to indices and ratios, not colour composites.', 'الإحصاءات للمؤشرات والنسب وليس للتراكيب اللونية.'), 'info'); return null; } return x; }
   var row = function (k, v) { return '<tr><th>' + k + '</th><td class="num ltr">' + v + '</td></tr>'; };
   function analyse(thenLayer) {
     var x = need(); if (!x) return; var o = $('#xOut'), host = $('.wsm-map'); SH.busy(host, true, t('Computing statistics on the Planetary Computer…', 'جارٍ حساب الإحصاءات على Planetary Computer…'));
-    var p = x.rel ? stats(cur, x).then(function (s0) { lastStats = { k: x.k, id: cur.id, s: s0 }; var cl = classes(x), e = [s0.min - 1e-6].concat(cl.slice(0, -1).map(function (c) { return c[0]; })).concat([s0.max + 1e-6]); return stats(cur, x, e).then(function (s) { return { s: s, s0: s0, cl: cl }; }); })
-      : stats(cur, x, [-1e3].concat(x.cls.slice(0, -1).map(function (c) { return c[0]; })).concat([1e3])).then(function (s) { lastStats = { k: x.k, id: cur.id, s: s }; return { s: s, s0: s, cl: x.cls }; });
+    var p = stats(cur, x).then(function (s0) { lastStats = { k: x.k, id: cur.id, s: s0 }; var cl = classes(x), e = [-1e6].concat(cl.slice(0, -1).map(function (c) { return c[0]; })).concat([1e6]); return stats(cur, x, e).then(function (s) { return { s: s, s0: s0, cl: cl }; }); });
     p.then(function (R) {
       var s0 = R.s0, h = R.s.histogram, tot = h[0].reduce(function (a, b) { return a + b; }, 0) || 1, pct = h[0].map(function (v) { return 100 * v / tot; }), cl = R.cl, top = pct.indexOf(Math.max.apply(null, pct));
       var km2 = (function () { var kx = 111.32 * Math.cos(SH.rad((aoi.n + aoi.s) / 2)); return (aoi.e - aoi.w) * kx * (aoi.n - aoi.s) * 110.57; })();
       var txt = x.rel ? t('The ratio averages ', 'متوسط النسبة ') + '<b class="ltr">' + SH.fmt(s0.mean, 3) + ' ± ' + SH.fmt(s0.std, 3) + '</b>' + t(' over the area. Pixels above mean + 2σ cover ', ' في المنطقة. تغطي البكسلات التي تتجاوز المتوسط + 2σ ') + '<b class="ltr">' + SH.fmt(pct[3], 1) + ' %</b>' + t(' (about ', ' (نحو ') + '<span class="ltr">' + SH.fmt(km2 * pct[3] / 100, 2) + ' km²</span>)' + t(' and mark the strongest spectral anomalies. Anomalies are relative to this area: check that they are not caused by vegetation, shadows, water or man-made surfaces, then verify them in the field with samples or a portable spectrometer.', ' وتمثل أقوى الشذوذات الطيفية. الشذوذات نسبية لهذه المنطقة: تأكد أنها ليست ناتجة عن نبات أو ظلال أو ماء أو أسطح صناعية، ثم تحقق منها حقلياً بالعينات أو بمطياف محمول.')
         : t('The area mean is ', 'متوسط المنطقة ') + '<b class="ltr">' + SH.fmt(s0.mean, 3) + '</b>' + t(' (median ', ' (الوسيط ') + '<span class="ltr">' + SH.fmt(s0.median != null ? s0.median : s0.mean, 3) + '</span>). ' + t('The dominant class is ', 'الفئة الغالبة هي ') + '<b>' + SH.esc(AR ? cl[top][3] : cl[top][2]) + '</b>' + t(', covering ', ' وتغطي ') + '<b class="ltr">' + SH.fmt(pct[top], 1) + ' %</b>' + t(' of the area', ' من المنطقة') + (cl[top][4] ? ' — ' + SH.esc(AR ? cl[top][5] : cl[top][4]) : '') + '. ' + interpretExtra(x, pct, cl);
       o.innerHTML = '<div class="sx-card"><b class="h">' + t('Interpretation · ', 'التفسير · ') + SH.esc(x.n) + ' · <span class="ltr">' + cur.date + '</span></b><span>' + txt + '</span>' + clsHtml(x, cl, pct) + '<div class="plot" id="xHist" style="height:190px"></div>' +
-        '<table class="kv" style="font-size:.8rem">' + row(t('Mean ± SD', 'المتوسط ± الانحراف'), SH.fmt(s0.mean, 3) + ' ± ' + SH.fmt(s0.std, 3)) + row(t('Min · max', 'الأدنى · الأعلى'), SH.fmt(s0.min, 3) + ' · ' + SH.fmt(s0.max, 3)) + row('P2 · P98', SH.fmt(s0.percentile_2, 3) + ' · ' + SH.fmt(s0.percentile_98, 3)) + row(t('Pixels analysed', 'البكسلات المحللة'), SH.fmt(s0.valid_pixels || s0.count, 0)) + row(t('Area', 'المساحة'), SH.fmt(km2, 1) + ' km²') + '</table></div>';
+        '<table class="kv" style="font-size:.8rem">' + row(t('Mean ± SD', 'المتوسط ± الانحراف'), SH.fmt(s0.mean, 3) + ' ± ' + SH.fmt(s0.std, 3)) + row(t('Min · max', 'الأدنى · الأعلى'), SH.fmt(s0.min, 3) + ' · ' + SH.fmt(s0.max, 3)) + row('P2 · P98', SH.fmt(s0.percentile_2, 3) + ' · ' + SH.fmt(s0.percentile_98, 3)) + row(t('Pixels analysed', 'البكسلات المحللة'), SH.fmt(s0.count, 0)) + row(t('Area', 'المساحة'), SH.fmt(km2, 1) + ' km²') + '</table></div>';
       SH.plot('xHist', [{ type: 'bar', x: cl.map(function (c) { return AR ? c[3] : c[2]; }), y: pct, marker: { color: cl.map(function (c) { return c[1]; }), line: { color: '#333', width: .5 } }, text: pct.map(function (v) { return SH.fmt(v, 1) + '%'; }), textposition: 'outside', hovertemplate: '%{x}<br>%{y:.1f} %<extra></extra>' }],
         function () { return SH.plotLayout({ margin: { l: 36, r: 6, t: 14, b: 70 }, showlegend: false, yaxis: { title: { text: t('% of area', '% من المساحة') }, rangemode: 'tozero' }, xaxis: { tickfont: { size: 9 }, tickangle: -25 } }); });
       if (thenLayer || mode() === 'cls') layer(); else legend(x);
