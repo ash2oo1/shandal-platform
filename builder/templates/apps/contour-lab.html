@@ -1,0 +1,75 @@
+{% extends "app_base.html" %}
+{% import "apps/_m.html" as m with context %}
+{% block ws %}
+<div class="ws-wrap">
+<div class="ws wide-side">
+  <aside class="ws-side">
+    {{ m.panel_open(1, 'Point data', 'بيانات النقاط') }}
+      <label class="drop" id="lDrop" style="display:grid;place-items:center;gap:6px;border:1.5px dashed var(--line-2);border-radius:14px;padding:18px;text-align:center;cursor:pointer">
+        {{ icon('upload', 'ico ico-lg') }}<b class="small">{{ m.L('Drop a CSV, TXT or XYZ file', 'أسقط ملف CSV أو TXT أو XYZ') }}</b><span class="xsmall muted">{{ m.L('or click to choose · comma, semicolon, tab or space', 'أو انقر للاختيار · فاصلة أو فاصلة منقوطة أو مسافة') }}</span>
+        <input type="file" id="lFile" accept=".csv,.txt,.xyz,.dat,text/plain" hidden>
+      </label>
+      <div class="fg"><label for="lPaste">{{ m.L('Or paste X, Y, Z rows', 'أو الصق صفوف X وY وZ') }}</label><textarea id="lPaste" rows="4" class="ltr" style="font-family:ui-monospace,monospace;font-size:.8rem" placeholder="452310, 4061200, 812.4"></textarea></div>
+      <div class="row3">
+        <div class="fg"><label for="lCx">X</label><select id="lCx"></select></div>
+        <div class="fg"><label for="lCy">Y</label><select id="lCy"></select></div>
+        <div class="fg"><label for="lCz">Z</label><select id="lCz"></select></div>
+      </div>
+      {{ m.sel('lCrs', 'Coordinates are', 'الإحداثيات', [('proj', 'Projected metres (UTM, local)', 'أمتار مسقطة (UTM أو محلية)', true), ('geo', 'Geographic degrees (lon, lat)', 'درجات جغرافية (طول، عرض)')]) }}
+      <p class="pn-note" id="lInfo">{{ m.L('No data loaded.', 'لم تُحمّل بيانات.') }}</p>
+    {{ m.panel_close() }}
+
+    {{ m.panel_open(2, 'Interpolation', 'الاستيفاء') }}
+      <div class="seg" id="lMeth"><button type="button" data-v="kriging" aria-pressed="true">{{ m.L('Ordinary kriging', 'الكريجنغ الاعتيادي') }}</button><button type="button" data-v="idw" aria-pressed="false">{{ m.L('Inverse distance', 'مقلوب المسافة') }}</button></div>
+      <div class="row2">
+        {{ m.fld('lRes', 'Grid nodes (long side)', 'عقد الشبكة (الضلع الأطول)', 'number', '120', '', '', '', '', '10', 'min="30" max="300"') }}
+        {{ m.fld('lPow', 'IDW power', 'أس IDW', 'number', '2', '', '', '', '', '0.5', 'min="1" max="5"') }}
+      </div>
+      <label class="chk"><input type="checkbox" id="lHull" checked> {{ m.L('Clip to the data hull (no extrapolation)', 'القص على غلاف البيانات (دون استقراء)') }}</label>
+    {{ m.panel_close() }}
+
+    {{ m.panel_open(3, 'Map layout', 'إخراج الخريطة') }}
+      <div class="row3">
+        {{ m.fld('lInt', 'Interval', 'الفاصل', 'number', '', 'm', '', '', m.L('auto', 'تلقائي'), '0.1', 'min="0.01"') }}
+        {{ m.fld('lIdx', 'Index every', 'رئيسي كل', 'number', '5', '', '', '', '', '1', 'min="2" max="10"') }}
+        {{ m.sel('lRamp', 'Colours', 'الألوان', [('hypso', 'Hypsometric', 'هبسومتري', true), ('terrain', 'Terrain', 'تضاريس'), ('viridis', 'Viridis', 'Viridis'), ('gray', 'Grey', 'رمادي')]) }}
+      </div>
+      <div class="chks" style="grid-template-columns:repeat(2,minmax(0,1fr))">
+        <label class="chk"><input type="checkbox" id="lFill" checked> {{ m.L('Colour fill', 'تعبئة لونية') }}</label>
+        <label class="chk"><input type="checkbox" id="lLab" checked> {{ m.L('Contour labels', 'قيم الكنتور') }}</label>
+        <label class="chk"><input type="checkbox" id="lPts" checked> {{ m.L('Data points', 'نقاط البيانات') }}</label>
+        <label class="chk"><input type="checkbox" id="lPtL"> {{ m.L('Point values', 'قيم النقاط') }}</label>
+        <label class="chk"><input type="checkbox" id="lSm" checked> {{ m.L('Smooth lines', 'تنعيم الخطوط') }}</label>
+        <label class="chk"><input type="checkbox" id="lGrid" checked> {{ m.L('Coordinate grid', 'شبكة الإحداثيات') }}</label>
+      </div>
+      <div class="row2">
+        {{ m.fld('lTitle', 'Title', 'العنوان', 'text', '', '', '', '', m.L('Contour map', 'خريطة كنتورية')) }}
+        {{ m.fld('lUnit', 'Z quantity', 'الكمية Z', 'text', '', '', 'Leave as elevation or name another variable such as water table, thickness or magnetic field.', 'اتركها ارتفاعاً أو سمّ متغيراً آخر مثل منسوب المياه أو السمك أو المجال المغناطيسي.', m.L('Elevation (m)', 'الارتفاع (م)')) }}
+      </div>
+    {{ m.panel_close() }}
+    <button class="btn btn-gold btn-block" id="lRun" type="button">{{ icon('map', 'ico ico-sm') }}{{ m.L('Draw contour map', 'ارسم الخريطة الكنتورية') }}</button>
+    <button class="btn btn-line btn-xs" id="lDemo" type="button">{{ m.L('Load 60 example survey points', 'تحميل 60 نقطة مسح مثال') }}</button>
+  </aside>
+
+  <div class="ws-main">
+    <div id="lEmpty" class="pn">{{ m.empty('map', 'Contour your own survey data', 'ارسم كنتور بيانات مسحك', 'Load X, Y, Z points from a total station, GPS, boreholes or any spatial variable. Kriging builds the surface and the lab lays out a finished, print-ready map.', 'حمّل نقاط X وY وZ من جهاز المحطة الشاملة أو GPS أو الآبار أو أي متغير مكاني. يبني الكريجنغ السطح ويُخرج المختبر خريطة مكتملة جاهزة للطباعة.') }}</div>
+    <div id="lOut" hidden style="display:grid;gap:18px">
+      <div class="kpis" id="lKpis"></div>
+      {{ m.fig_open('fl1', '1', 'Contour map', 'الخريطة الكنتورية', '<button class="btn btn-line btn-xs" id="ySvg">SVG</button><button class="btn btn-line btn-xs" id="yPng">PNG</button><button class="btn btn-line btn-xs" id="yGeo">GeoJSON</button><button class="btn btn-line btn-xs" id="yDxf">DXF</button><button class="btn btn-line btn-xs" id="yCsv">' + ('Grid CSV' if lang == 'en' else 'شبكة CSV') + '</button>') }}
+        <div class="fig-b" style="overflow:auto"><svg class="chart" id="lSvg" viewBox="0 0 1000 760" role="img" aria-label="Contour map" style="min-width:680px;background:#fff"></svg></div>
+      {{ m.fig_close() }}
+      <div class="grid2">
+        {{ m.fig_open('fl2', '2', 'Experimental and fitted semivariogram', 'نصف التباين التجريبي والمطابق') }}
+          <div class="fig-b"><div class="plot" id="lVar" style="height:300px"></div></div>
+          <div class="fig-cap" id="lVarCap"></div>
+        {{ m.fig_close() }}
+        {{ m.fig_open('fl3', '3', 'Leave-one-out cross-validation', 'التحقق المتقاطع بترك نقطة') }}
+          <div class="fig-b"><div class="plot" id="lCv" style="height:300px"></div></div>
+          <div class="fig-cap" id="lCvCap"></div>
+        {{ m.fig_close() }}
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+{% endblock %}

@@ -146,7 +146,7 @@ TOOLS = [
  'related': ['contour-lab', 'dem-hub', 'hydro-alert'],
 },
 {
- 'slug': 'contour-lab', 'cat': 'terrain', 'libs': ['plot'], 'icon': 'map', 'illus': 'contourfill',
+ 'slug': 'contour-lab', 'cat': 'terrain', 'libs': ['plot', 'dem'], 'icon': 'map', 'illus': 'contourfill',
  'name': L('2D Contour Mapping Lab', 'مختبر الخرائط الكنتورية ثنائية الأبعاد'),
  'tagline': L('Publication-ready contour maps from your point data.', 'خرائط كنتورية جاهزة للنشر من بيانات نقاطك.'),
  'summary': L('A desk-side companion to the field module: load point data, set the contour interval and smoothing, and lay out a finished map with fill, labels, grid, scale and north arrow.',

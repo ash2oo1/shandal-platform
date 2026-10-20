@@ -238,8 +238,9 @@
     S.add('rect', { x: 0, y: 0, width: VW, height: VH, fill: '#FFFFFF' });
     if (opts.title) { S.text(ml, 30, opts.title, { 'font-size': 18, 'font-weight': 800, fill: ink }); if (opts.subtitle) S.text(ml, 50, opts.subtitle, { 'font-size': 12, fill: mut }); }
     var defs = S.add('defs', {}), cp = S.add('clipPath', { id: 'mclip' }, null, defs); S.add('rect', { x: ox, y: oy, width: W, height: H }, null, cp);
-    var body = S.g({ 'clip-path': 'url(#mclip)' });
-    if (opts.fill !== false) S.add('image', { href: D.render(G, { ramp: opts.ramp, tint: true }), x: ox, y: oy, width: W, height: H, preserveAspectRatio: 'none', opacity: opts.fillOpacity || 0.9 }, null, body);
+    var body = S.g({ 'clip-path': 'url(#mclip)' }), fillHost = body;
+    if (opts.clipPoly) { var cp2 = S.add('clipPath', { id: 'hclip' }, null, defs); S.poly(opts.clipPoly.map(function (q) { return [X(q[0]), Y(q[1])]; }), {}, cp2); fillHost = S.g({ 'clip-path': 'url(#hclip)' }, body); }
+    if (opts.fill !== false) { var RG = opts.renderGrid || G; if (opts.renderGrid) { RG.min = G.min; RG.max = G.max; } S.add('image', { href: D.render(RG, { ramp: opts.ramp, tint: true }), x: ox, y: oy, width: W, height: H, preserveAspectRatio: 'none', opacity: opts.fillOpacity || 0.9 }, null, fillHost); }
     var idx = opts.index || 5, step = opts.interval, base = opts.base || 0, labels = [];
     cs.forEach(function (c) { var isIdx = Math.round((c.level - base) / step) % idx === 0;
       c.lines.forEach(function (ln) { if (opts.smooth) ln = D.smooth(ln, 2); var pp = ln.map(function (p) { return [X(p[1]), Y(p[0])]; }); S.path(S.pl(pp), { fill: 'none', stroke: isIdx ? '#5B3A1E' : '#8A5A35', 'stroke-width': isIdx ? 1.6 : 0.7, 'stroke-linejoin': 'round', opacity: .95 }, body);
@@ -257,14 +258,14 @@
     if (!geo && opts.axisNames) { S.text(ox + W / 2, oy + H + 40, opts.axisNames[0], { 'font-size': 11, fill: mut, 'text-anchor': 'middle' }); S.text(ox - 70, oy + H / 2, opts.axisNames[1], { 'font-size': 11, fill: mut, 'text-anchor': 'middle', transform: 'rotate(-90 ' + (ox - 70) + ' ' + (oy + H / 2) + ')' }); }
     // legend
     var lx = ox + W + 30, ly = oy, lh = Math.min(240, H * 0.55);
-    S.text(lx, ly + 4, SH.t('Elevation (m)', 'الارتفاع (م)'), { 'font-size': 11, 'font-weight': 700, fill: ink });
+    S.text(lx, ly + 4, opts.legendTitle || SH.t('Elevation (m)', 'الارتفاع (م)'), { 'font-size': 11, 'font-weight': 700, fill: ink });
     var gid = 'lg' + Math.random().toString(36).slice(2, 7), lg = S.add('linearGradient', { id: gid, x1: 0, y1: 1, x2: 0, y2: 0 }, null, defs);
     D.ramps[opts.ramp || 'hypso'].forEach(function (s) { S.add('stop', { offset: s[0], 'stop-color': 'rgb(' + s[1].join(',') + ')' }, null, lg); });
     S.add('rect', { x: lx, y: ly + 14, width: 16, height: lh, fill: 'url(#' + gid + ')', stroke: ink, 'stroke-width': .6 });
     var lt = nice(G.max - G.min, 5); for (v = Math.ceil(G.min / lt) * lt; v <= G.max; v += lt) { var yy = ly + 14 + lh - (v - G.min) / ((G.max - G.min) || 1) * lh; S.line(lx + 16, yy, lx + 21, yy, { stroke: ink }); S.text(lx + 25, yy + 4, SH.fmt(v, lt < 1 ? 1 : 0), { 'font-size': 10, fill: mut }); }
     var ly2 = ly + lh + 40; S.line(lx, ly2, lx + 26, ly2, { stroke: '#5B3A1E', 'stroke-width': 1.6 }); S.text(lx + 32, ly2 + 4, SH.t('Index contour', 'كنتور رئيسي'), { 'font-size': 10, fill: ink });
     S.line(lx, ly2 + 18, lx + 26, ly2 + 18, { stroke: '#8A5A35', 'stroke-width': .7 }); S.text(lx + 32, ly2 + 22, SH.t('Intermediate', 'كنتور ثانوي'), { 'font-size': 10, fill: ink });
-    S.text(lx, ly2 + 44, SH.t('Interval ', 'الفاصل ') + SH.fmt(step, step < 1 ? 1 : 0) + ' m', { 'font-size': 10, fill: mut }); var extra = ly2 + 62;
+    S.text(lx, ly2 + 44, SH.t('Interval ', 'الفاصل ') + SH.fmt(step, step < 1 ? 2 : 0) + (opts.unit == null ? ' m' : opts.unit), { 'font-size': 10, fill: mut }); var extra = ly2 + 62;
     (opts.legend || []).forEach(function (e) { S.line(lx, extra, lx + 26, extra, { stroke: e.color, 'stroke-width': 2.5, 'stroke-dasharray': e.dash || null }); S.text(lx + 32, extra + 4, e.name, { 'font-size': 10, fill: ink }); extra += 18; });
     // north arrow & scale bar
     var nx0 = lx + 30, ny0 = oy + H - 110; S.path('M' + nx0 + ' ' + ny0 + 'l-10 30l10 -7l10 7z', { fill: ink }); S.text(nx0, ny0 - 6, 'N', { 'font-size': 14, 'font-weight': 800, fill: ink, 'text-anchor': 'middle' });
