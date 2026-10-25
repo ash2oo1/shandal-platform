@@ -1,4 +1,4 @@
-/* Hydrological early warning — hourly rainfall (Open-Meteo) tested against rainfall intensity–duration landslide thresholds,
+/* Hydrological early warning — hourly rainfall (ECMWF / ERA5) tested against rainfall intensity–duration landslide thresholds,
    with antecedent precipitation index and local slope from the Copernicus 90 m DEM. */
 (function () {
   'use strict';
@@ -17,7 +17,7 @@
   if (map) map.on('click', function (e) { place(e.latlng.lat, e.latlng.lng); });
   ['hLat', 'hLon'].forEach(function (id) { $('#' + id).addEventListener('change', function () { var a = SH.num('hLat'), b = SH.num('hLon'); if (!isNaN(a) && !isNaN(b)) place(a, b, true); }); });
   place(SH.num('hLat') || 36.6527, SH.num('hLon') || 44.5422, true);
-  document.addEventListener('click', function (e) { if (!e.target.closest('#hMode button')) return; setTimeout(function () { var arc = SH.seg('hMode') === 'arc'; $('#hDates').hidden = !arc; $('#hModeNote').textContent = arc ? t('Historical hourly rainfall from the ERA5-based Open-Meteo archive. Data are usually available up to five days before today.', 'أمطار ساعية تاريخية من أرشيف Open-Meteo المبني على ERA5. تتوفر البيانات عادة حتى خمسة أيام قبل اليوم.') : t('Forecast mode joins the last 14 days of observed hourly rain with the 7-day forecast, so antecedent wetness is counted.', 'وضع التنبؤ يدمج أمطار آخر 14 يوماً الساعية المرصودة مع تنبؤ 7 أيام، لتُحسب الرطوبة السابقة.'); }, 0); });
+  document.addEventListener('click', function (e) { if (!e.target.closest('#hMode button')) return; setTimeout(function () { var arc = SH.seg('hMode') === 'arc'; $('#hDates').hidden = !arc; $('#hModeNote').textContent = arc ? t('Historical hourly rainfall from the Copernicus ERA5 reanalysis (ECMWF). Data are usually available up to five days before today.', 'أمطار ساعية تاريخية من إعادة التحليل ERA5 لبرنامج كوبرنيكوس (ECMWF). تتوفر البيانات عادة حتى خمسة أيام قبل اليوم.') : t('Forecast mode joins the last 14 days of observed hourly rain with the 7-day forecast, so antecedent wetness is counted.', 'وضع التنبؤ يدمج أمطار آخر 14 يوماً الساعية المرصودة مع تنبؤ 7 أيام، لتُحسب الرطوبة السابقة.'); }, 0); });
   $('#hThr').addEventListener('change', function () { $('#hUser').hidden = this.value !== 'user'; }); $('#hUser').hidden = SH.val('hThr') !== 'user';
   function thr() { var k = SH.val('hThr'); return k === 'user' ? { a: SH.num('hA'), b: SH.num('hB'), n: t('Custom', 'مخصصة') } : THR[k]; }
 
@@ -120,7 +120,7 @@
     ], function () {
       var sh = [], an = [];
       if (nowD) { sh.push({ type: 'rect', xref: 'x', yref: 'paper', x0: r.time[r.nowI], x1: r.time[r.n - 1], y0: 0, y1: 1, fillcolor: SH.alpha(c.accent, .08), line: { width: 0 }, layer: 'below' }, { type: 'line', xref: 'x', yref: 'paper', x0: r.time[r.nowI], x1: r.time[r.nowI], y0: 0, y1: 1, line: { color: c.accent, width: 1.6, dash: 'dot' } });
-        an.push({ x: r.time[r.nowI], y: 1.0, yref: 'paper', text: t('Now', 'الآن'), showarrow: false, xanchor: 'center', yanchor: 'bottom', font: { size: 11, color: c.accent }, bgcolor: c.bg || '#fff' }, { x: r.time[Math.round((r.nowI + r.n - 1) / 2)], y: 1.0, yref: 'paper', text: '<b>' + t('Forecast (Open-Meteo)', 'التنبؤ (Open-Meteo)') + '</b>', showarrow: false, yanchor: 'bottom', font: { size: 11, color: c.accent } }); }
+        an.push({ x: r.time[r.nowI], y: 1.0, yref: 'paper', text: t('Now', 'الآن'), showarrow: false, xanchor: 'center', yanchor: 'bottom', font: { size: 11, color: c.accent }, bgcolor: c.bg || '#fff' }, { x: r.time[Math.round((r.nowI + r.n - 1) / 2)], y: 1.0, yref: 'paper', text: '<b>' + t('Forecast', 'التنبؤ') + '</b>', showarrow: false, yanchor: 'bottom', font: { size: 11, color: c.accent } }); }
       sh.push({ type: 'line', xref: 'paper', yref: 'y3', x0: 0, x1: 1, y0: 1, y1: 1, line: { color: dan, width: 1.4, dash: 'dash' } });
       [[0, 1.0, 'left', t('Rain mm/day', 'المطر مم/يوم')], [1, 1.0, 'right', 'API mm'], [0, .34, 'left', 'I / It']].forEach(function (q) { an.push({ xref: 'paper', yref: 'paper', x: q[0], y: q[1], xanchor: q[2], yanchor: 'bottom', xshift: 0, yshift: 4, text: '<b>' + q[3] + '</b>', showarrow: false, font: { size: 10.5, color: c.text2 } }); });
       an.push({ xref: 'paper', x: 0, y: 1, yref: 'y3', text: t('threshold', 'العتبة'), showarrow: false, xanchor: 'left', yanchor: 'bottom', font: { size: 10, color: dan } });

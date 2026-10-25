@@ -18,7 +18,8 @@ import time as _time
 VERSION = _time.strftime('%Y%m%d%H%M')
 
 CAT_ICONS = {'geology': 'pickaxe', 'terrain': 'mountain', 'engineering': 'hard-hat', 'environment': 'leaf', 'hazards': 'siren', 'labs': 'flask-conical'}
-FEATURED = ['terrain-contours', 'structural-geotechnical', 'seismic-hazard', 'spectral-indices', 'hazards-monitor', 'grain-size']
+REDIRECTS = {'dem-hub': 'dem-studio', 'terrain-contours': 'dem-studio'}
+FEATURED = ['dem-studio', 'structural-geotechnical', 'seismic-hazard', 'spectral-indices', 'hazards-monitor', 'grain-size']
 
 _icon_cache = {}
 def icon(name, cls='ico'):
@@ -141,6 +142,14 @@ def build():
             os.makedirs(os.path.dirname(dest), exist_ok=True)
             open(dest, 'w', encoding='utf-8').write(out_html)
             count += 1
+    # retired tool addresses forward to the merged tool (bookmarks and shared links keep working)
+    for old_slug, new_slug in REDIRECTS.items():
+        for lp in ('', 'ar/'):
+            for sub in ('', 'app/'):
+                dest = os.path.join(OUT, lp + 'tools/' + old_slug + '/' + sub, 'index.html')
+                rel = '../' * (2 if sub else 1) + new_slug + '/' + sub + 'index.html'
+                os.makedirs(os.path.dirname(dest), exist_ok=True)
+                open(dest, 'w', encoding='utf-8').write(f'<!doctype html><html><head><meta charset="utf-8"><meta name="robots" content="noindex"><link rel="canonical" href="{rel}"><meta http-equiv="refresh" content="0; url={rel}"><script>location.replace("{rel}"+location.search+location.hash)</script></head><body><a href="{rel}">{rel}</a></body></html>')
     # 404
     # sitemap / robots
     base = 'https://geologicalfieldsurvey.com/'

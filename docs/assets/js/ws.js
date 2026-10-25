@@ -164,7 +164,7 @@
     var p = SH.palette(), font = lang === 'ar' ? '"Plex Arabic", Tahoma, sans-serif' : 'Manrope, system-ui, sans-serif';
     var ax = { gridcolor: p.line, zerolinecolor: p.line2, linecolor: p.line2, tickcolor: p.line2, tickfont: { color: p.text2, size: 11 }, title: { font: { color: p.text2, size: 12 } }, automargin: true };
     var L = { paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)', font: { family: font, color: p.text, size: 12 }, margin: { l: 60, r: 20, t: 20, b: 50 },
-      colorway: p.series, hoverlabel: { font: { family: font } }, legend: { orientation: 'h', y: -0.18, font: { color: p.text2 } },
+      colorway: p.series, hoverlabel: { font: { family: font } }, modebar: { bgcolor: 'rgba(0,0,0,0)', color: p.text2, activecolor: p.accent, orientation: 'h' }, legend: { orientation: 'h', y: -0.18, font: { color: p.text2 } },
       xaxis: JSON.parse(JSON.stringify(ax)), yaxis: JSON.parse(JSON.stringify(ax)) };
     return deepMerge(L, extra || {});
   };

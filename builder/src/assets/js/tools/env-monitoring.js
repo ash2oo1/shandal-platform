@@ -1,4 +1,4 @@
-/* Environmental monitoring & modelling — live weather and air quality (Open-Meteo), WBGT and heat index, Pasquill–Gifford
+/* Environmental monitoring & modelling — live weather (national weather models) and air quality (CAMS), WBGT and heat index, Pasquill–Gifford
    Gaussian plume with Briggs rural dispersion, weighted-arithmetic water quality index, MEDALUS ESAI and an expert system. */
 (function () {
   'use strict';

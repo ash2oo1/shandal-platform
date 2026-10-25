@@ -19,7 +19,7 @@
 <section class="section">
   <div class="wrap">
     <div class="catalog-bar" role="search">
-      <label class="find-xl">{{ icon('search') }}<span class="sr-only">{{ t('nav_search') }}</span><input id="findTool" type="search" placeholder="{{ 'Search 27 tools by name, method or keyword…' if lang == 'en' else 'ابحث في الأدوات بالاسم أو الطريقة أو الكلمة المفتاحية…' }}" autocomplete="off"></label>
+      <label class="find-xl">{{ icon('search') }}<span class="sr-only">{{ t('nav_search') }}</span><input id="findTool" type="search" placeholder="{{ 'Search 26 tools by name, method or keyword…' if lang == 'en' else 'ابحث في الأدوات بالاسم أو الطريقة أو الكلمة المفتاحية…' }}" autocomplete="off"></label>
       <div class="filters" role="toolbar">
         <button class="chip" type="button" data-filter="all" aria-pressed="true">{{ t('all') }}<span class="cnt">{{ tools|length }}</span></button>
         {% for c in cats %}<button class="chip" type="button" data-filter="{{ c }}" aria-pressed="false">{{ icon(cat_icons[c]) }}{{ t('cat_' + c) }}<span class="cnt">{{ tools|selectattr('cat','equalto',c)|list|length }}</span></button>{% endfor %}

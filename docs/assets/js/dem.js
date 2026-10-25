@@ -1,12 +1,15 @@
-/* Shandal DEM engine — global elevation grids from AWS Terrain Tiles (Terrarium PNG, Tilezen) or Copernicus GLO-90 (Open-Meteo),
-   bilinear sampling, Horn derivatives, marching-squares contours, hillshade and hypsometric rendering. */
+/* Shandal DEM engine — global elevation grids from the SRTM composite terrain tiles (Terrarium PNG, ~30 m) or Copernicus GLO-90
+   (point service, resampled on its native 3″ grid), bilinear sampling, Horn derivatives, marching-squares contours, hillshade and
+   hypsometric rendering, printable map sheet. */
 (function (w) {
   'use strict';
   var SH = w.SH, t = SH.t, D = SH.dem = {};
   var TILE = 'https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png';
   D.sources = {
-    aws: { name: t('AWS Terrain Tiles (SRTM, 3DEP, ETOPO1 · ~30 m)', 'بلاطات AWS للتضاريس (SRTM و3DEP وETOPO1 · ~30 م)'), attr: 'Terrain Tiles: Tilezen/Mapzen on AWS Open Data — SRTM, USGS 3DEP, GMTED2010, ETOPO1, EU-DEM and others.' },
-    cop: { name: t('Copernicus GLO-90 via Open-Meteo (90 m)', 'Copernicus GLO-90 عبر Open-Meteo (90 م)'), attr: 'Copernicus DEM GLO-90 © DLR e.V. 2010–2014 and © Airbus Defence and Space GmbH 2014–2018, provided under COPERNICUS by the EU and ESA; served by Open-Meteo.' }
+    aws: { name: t('SRTM composite (~30 m)', 'نموذج SRTM المركّب (~30 م)'), short: 'DEM: SRTM composite (NASA · USGS)',
+           attr: t('SRTM 1″ (NASA/USGS) merged with USGS 3DEP, GMTED2010, ETOPO1 and EU-DEM (produced using Copernicus data).', 'بيانات SRTM بدقة 1″ (NASA/USGS) مدموجة مع USGS 3DEP وGMTED2010 وETOPO1 وEU-DEM (منتَج باستخدام بيانات كوبرنيكوس).') },
+    cop: { name: t('Copernicus GLO-90 (90 m)', 'Copernicus GLO-90 (90 م)'), short: 'DEM: Copernicus GLO-90 (ESA)',
+           attr: 'Copernicus DEM GLO-90 © DLR e.V. 2010–2014 and © Airbus Defence and Space GmbH 2014–2018, provided under COPERNICUS by the European Union and ESA.' }
   };
   var lon2x = function (lon, z) { return (lon + 180) / 360 * Math.pow(2, z); };
   var lat2y = function (lat, z) { var r = SH.rad(lat); return (1 - Math.log(Math.tan(r) + 1 / Math.cos(r)) / Math.PI) / 2 * Math.pow(2, z); };
@@ -41,7 +44,7 @@
       f.zoom = z; f.pixel = 156543.03 * Math.cos(SH.rad(lat)) / Math.pow(2, z); return f;
     });
   };
-  /* Copernicus GLO-90 point query through Open-Meteo, 100 points per request */
+  /* Copernicus GLO-90 point query (open elevation point service), 100 points per request */
   D.copernicus = function (pts, onProgress) {
     var out = new Array(pts.length), chunks = [];
     for (var i = 0; i < pts.length; i += 100) chunks.push(i);
@@ -53,7 +56,7 @@
       function go() {
         return fetch(url).then(function (r) { if (r.status === 429) throw { retry: true }; if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); }).then(function (j) {
           j.elevation.forEach(function (v, k) { out[s + k] = v; }); idx++; if (onProgress) onProgress(idx, chunks.length); return new Promise(function (r) { setTimeout(r, 250); }).then(next);
-        }).catch(function (e) { if (++tries <= 5) return new Promise(function (r) { setTimeout(r, (e && e.retry ? 4000 : 1500) * tries); }).then(go); throw new Error(t('The elevation service is busy. Try a coarser grid or the AWS source.', 'خدمة الارتفاعات مشغولة. جرّب شبكة أخشن أو مصدر AWS.')); });
+        }).catch(function (e) { if (++tries <= 5) return new Promise(function (r) { setTimeout(r, (e && e.retry ? 4000 : 1500) * tries); }).then(go); throw new Error(t('The elevation service is busy. Try a coarser grid or the SRTM composite.', 'خدمة الارتفاعات مشغولة. جرّب شبكة أخشن أو نموذج SRTM المركّب.')); });
       }
       return go();
     }
@@ -186,6 +189,11 @@
   /* Hillshade × hypsometric tint canvas; returns data URL */
   D.render = function (G, opts) {
     opts = opts || {}; if (!G.slope) D.derive(G);
+    var ck = [opts.ramp || 'hypso', opts.shade !== false, opts.tint !== false, opts.upsample !== false, opts.azimuth, opts.altitude, G.min, G.max].join('|');
+    if (G._rc && G._rc.k === ck && G._rc.z === G.z) return G._rc.v;
+    var v = render0(G, opts); G._rc = { k: ck, z: G.z, v: v }; return v;
+  };
+  function render0(G, opts) {
     var nx = G.nx, ny = G.ny, cv = document.createElement('canvas'); cv.width = nx; cv.height = ny;
     var cx = cv.getContext('2d'), im = cx.createImageData(nx, ny), az = SH.rad(opts.azimuth == null ? 315 : opts.azimuth), alt = SH.rad(opts.altitude == null ? 45 : opts.altitude), rg = (G.max - G.min) || 1, tint = opts.tint !== false;
     for (var k = 0; k < nx * ny; k++) {
@@ -196,7 +204,7 @@
     cx.putImageData(im, 0, 0);
     var k2 = Math.max(1, Math.min(8, Math.ceil(900 / Math.max(nx, ny)))); if (k2 > 1 && opts.upsample !== false) { var big = document.createElement('canvas'); big.width = nx * k2; big.height = ny * k2; var bx = big.getContext('2d'); bx.imageSmoothingEnabled = true; bx.imageSmoothingQuality = 'high'; bx.drawImage(cv, 0, 0, big.width, big.height); return big.toDataURL('image/png'); }
     return cv.toDataURL('image/png');
-  };
+  }
   /* Profile along a polyline of [lat,lon]; returns {d:[m], z:[m], pts:[[lat,lon]]} */
   D.densify = function (line, n) {
     var seg = [], tot = 0; for (var k = 1; k < line.length; k++) { var dd = SH.dist({ lat: line[k - 1][0], lon: line[k - 1][1] }, { lat: line[k][0], lon: line[k][1] }); seg.push(dd); tot += dd; }
@@ -258,10 +266,15 @@
     return d + '°' + (step < 1 ? String(m).padStart(2, '0') + '′' : '') + (step < 1 / 60 ? String(sc).padStart(2, '0') + '″' : '') + h; }
   function niceFloor(v) { var p = Math.pow(10, Math.floor(Math.log10(v))), m = v / p; return (m >= 5 ? 5 : m >= 2 ? 2 : 1) * p; }
   D.svgMap = function (svg, G, cs, opts) {
-    opts = opts || {}; var S = SH.svgB(svg), VW = 1120, VH = 800; svg.setAttribute('viewBox', '0 0 ' + VW + ' ' + VH); svg.setAttribute('direction', 'ltr'); svg.style.direction = 'ltr';
+    opts = opts || {}; var S = SH.svgB(svg), VW = 1120, VH = 800; svg.setAttribute('direction', 'ltr'); svg.style.direction = 'ltr';
     var ink = '#1B232B', mut = '#55616B', geo = opts.crs !== 'proj', latc = (G.b.n + G.b.s) / 2, kx = geo ? Math.cos(SH.rad(latc)) * 111320 : 1, ky = geo ? 110574 : 1;
     var PW = 246, ml = 96, mr = PW + 46, mt = opts.title ? 86 : 44, mb = opts.axisNames && !geo ? 76 : 58;
-    var wM = (G.b.e - G.b.w) * kx, hM = (G.b.n - G.b.s) * ky, bw = VW - ml - mr, bh = VH - mt - mb, sc = Math.min(bw / wM, bh / hM), W = wM * sc, H = hM * sc, ox = ml + (bw - W) / 2, oy = mt + (bh - H) / 2;
+    var wM = (G.b.e - G.b.w) * kx, hM = (G.b.n - G.b.s) * ky, bw = VW - ml - mr, bh = VH - mt - mb, sc = Math.min(bw / wM, bh / hM), W = wM * sc, H = hM * sc;
+    /* wide areas: shorten the sheet to the map instead of leaving empty bands, keeping room for the margin panel */
+    if (opts.fixedHeight !== true) { var rows = ((opts.spots || []).length ? 1 : 0) + (opts.swatches || []).length + (opts.legend || []).length + ((opts.points || []).length ? 1 : 0) + (opts.clipPoly ? 1 : 0), need = 600 + 18 * rows;
+      VH = Math.min(800, Math.max(need, Math.ceil(mt + H + mb + 8))); bh = VH - mt - mb; sc = Math.min(bw / wM, bh / hM); W = wM * sc; H = hM * sc; }
+    svg.setAttribute('viewBox', '0 0 ' + VW + ' ' + VH);
+    var ox = ml + (bw - W) / 2, oy = mt + (bh - H) / 2;
     var X = function (x) { return ox + (x - G.b.w) * kx * sc; }, Y = function (y) { return oy + (G.b.n - y) * ky * sc; };
     var iso = function (s) { return String(s).replace(/[A-Za-z0-9][A-Za-z0-9 .,:\/°′″±+\-×()]*[A-Za-z0-9°′″)]|[A-Za-z0-9]/g, function (m) { return '⁦' + m + '⁩'; }); };
     var txt = function (x, y, str, a, xr) { a = a || {}; if (isAr(str)) str = iso(str); if (isAr(str) && xr != null) { a.direction = 'rtl'; a['text-anchor'] = a['text-anchor'] === 'middle' ? 'middle' : 'start'; return S.text(a['text-anchor'] === 'middle' ? x : xr, y, str, a); } return S.text(x, y, str, a); };
@@ -314,7 +327,7 @@
     y += 66; S.text(cx0, y, geo ? SH.t('Grid north = true north', 'شمال الشبكة = الشمال الجغرافي') : SH.t('Grid north (UTM)', 'شمال الشبكة (UTM)'), { 'font-size': 9.5, fill: mut, 'text-anchor': 'middle' }); sep();
     // legend
     head('LEGEND', 'مفتاح الخريطة');
-    var lt = opts.legendTitle || SH.t('Elevation (m)', 'الارتفاع (م)'); txt(L0, y, lt, { 'font-size': 10.5, 'font-weight': 700, fill: ink }, R0); y += 10;
+    var lt = opts.legendTitle || SH.t('Elevation (m)', 'الارتفاع (م)'); if (opts.fill !== false || opts.gradient) { txt(L0, y, lt, { 'font-size': 10.5, 'font-weight': 700, fill: ink }, R0); y += 10; }
     if (opts.fill !== false) { var gid = cid + 'g', lg = S.add('linearGradient', { id: gid, x1: 0, y1: 0, x2: 1, y2: 0 }, null, defs), bwid = PW - 40;
       D.ramps[opts.ramp || 'hypso'].forEach(function (st) { S.add('stop', { offset: st[0], 'stop-color': 'rgb(' + st[1].join(',') + ')' }, null, lg); });
       S.add('rect', { x: L0 + 6, y: y, width: bwid, height: 12, fill: 'url(#' + gid + ')', stroke: ink, 'stroke-width': .6 });

@@ -1,4 +1,4 @@
-/* Air quality — CAMS through the Open-Meteo air-quality API: current US/EU AQI, pollutants, dust and AOD,
+/* Air quality — CAMS (Copernicus) air-quality point service: current US/EU AQI, pollutants, dust and AOD,
    5-day hourly forecast, WHO 2021 guideline comparison and a smooth regional map with category isolines. */
 (function () {
   'use strict';

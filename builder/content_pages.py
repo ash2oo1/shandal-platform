@@ -30,7 +30,7 @@ HOME = {
  'fc3t': L('Design spectrum', 'طيف التصميم'), 'fc3v': L('SDS 0.80 g', 'SDS = 0.80 g'), 'fc3s': L('Site class D · Risk II', 'صنف الموقع D · فئة II'),
  'trust1': L('Registered work no. 2841/ع', 'عمل مسجّل برقم 2841/ع'),
  'trust2': L('Partner: GeoNB geology app', 'شريك: تطبيق جيونبأ الجيولوجي'),
- 'trust3': L('Data: Copernicus · USGS · BGS · Open-Meteo', 'البيانات: Copernicus · USGS · BGS · Open-Meteo'),
+ 'trust3': L('Data: Copernicus · USGS · NASA · BGS', 'البيانات: Copernicus · USGS · NASA · BGS'),
  'trust4': L('Built in Baghdad, used worldwide', 'صُمم في بغداد، للعالم'),
  'disc_k': L('Four disciplines', 'أربعة اختصاصات'),
  'disc_h': L('One platform for the people who read the ground', 'منصة واحدة لمن يقرأ الأرض'),
@@ -74,20 +74,21 @@ HOME = {
  'quote_by': L('Ali Shandal Al-Janabi', 'علي شندل الجنابي'),
  'quote_role': L('Geologist, founder of the Shandal System', 'جيولوجي، مؤسس نظام شندل'),
  'cta_h': L('Take the whole field kit to your next site', 'خذ الحقيبة الميدانية كاملة إلى موقعك القادم'),
- 'cta_p': L('One subscription covers all 27 tools, report export and the AI assistant.', 'اشتراك واحد يشمل الأدوات السبع والعشرون وتصدير التقارير والمساعد الذكي.'),
+ 'cta_p': L('One subscription covers all 26 tools, report export and the AI assistant.', 'اشتراك واحد يشمل الأدوات الست والعشرون وتصدير التقارير والمساعد الذكي.'),
 }
 
 DATA_SOURCES = [
  # name, provider, use (en/ar), status, url
- ('Weather & air quality', 'الطقس وجودة الهواء', 'Open-Meteo', L('Forecasts, rainfall archive, AQI, UV — environmental and hydrological tools', 'التنبؤات وأرشيف الأمطار وجودة الهواء والأشعة — الأدوات البيئية والهيدرولوجية'), 'in_use', 'https://open-meteo.com/'),
- ('Elevation (DEM)', 'نماذج الارتفاع', 'Copernicus GLO-90 via Open-Meteo', L('Elevation grids and contour inputs — DEM hub', 'شبكات الارتفاع ومدخلات الكنتور — مركز DEM'), 'in_use', 'https://spacedata.copernicus.eu/collections/copernicus-digital-elevation-model'),
+ ('Elevation (DEM)', 'نماذج الارتفاع', 'NASA SRTM · Copernicus GLO-90 (ESA)', L('Elevation grids, contour maps, profiles and 3D terrain — DEM & contour studio', 'شبكات الارتفاع والخرائط الكنتورية والمقاطع والتضاريس ثلاثية الأبعاد — استوديو نموذج الارتفاع الرقمي'), 'in_use', 'https://spacedata.copernicus.eu/collections/copernicus-digital-elevation-model'),
+ ('Satellite imagery', 'الصور الفضائية', 'Copernicus Sentinel-2 (ESA)', L('Spectral indices, mineral and alteration mapping at 10–20 m', 'المؤشرات الطيفية وخرائط المعادن والتغاير بدقة 10–20 م'), 'in_use', 'https://dataspace.copernicus.eu/'),
+ ('Weather and rainfall', 'الطقس والأمطار', 'ECMWF · Copernicus ERA5', L('Forecasts, hourly rainfall archive, heat stress — environmental and hydrological tools', 'التنبؤات وأرشيف الأمطار الساعي والإجهاد الحراري — الأدوات البيئية والهيدرولوجية'), 'in_use', 'https://www.ecmwf.int/'),
+ ('Air quality', 'جودة الهواء', 'Copernicus CAMS', L('Particulates, dust, ozone and gases', 'الجسيمات والغبار والأوزون والغازات'), 'in_use', 'https://atmosphere.copernicus.eu/'),
  ('Geomagnetic field', 'المجال المغناطيسي', 'British Geological Survey (IGRF)', L('Reference field for magnetic surveys — magnetic lab', 'المجال المرجعي للمسوحات المغناطيسية — المختبر المغناطيسي'), 'in_use', 'https://geomag.bgs.ac.uk/'),
  ('Earthquakes', 'الزلازل', 'USGS Earthquake Hazards Program', L('Real-time events, magnitude and depth — Earth now', 'الأحداث اللحظية والقدر والعمق — الأرض الآن'), 'live', 'https://earthquake.usgs.gov/'),
  ('Natural events', 'الأحداث الطبيعية', 'NASA EONET', L('Wildfires, storms, volcanoes, floods — Earth now', 'الحرائق والعواصف والبراكين والفيضانات — الأرض الآن'), 'live', 'https://eonet.gsfc.nasa.gov/'),
- ('Base maps', 'الخرائط الأساسية', 'Natural Earth · OpenStreetMap', L('Coastlines, borders and street maps', 'السواحل والحدود وخرائط الشوارع'), 'in_use', 'https://www.naturalearthdata.com/'),
- ('Satellite imagery', 'الصور الفضائية', 'Copernicus Sentinel-2', L('NDVI, NDWI and alteration-mineral indices at 10–20 m', 'مؤشرات NDVI وNDWI ومعادن التغاير بدقة 10–20 م'), 'planned', 'https://dataspace.copernicus.eu/'),
- ('Geological maps', 'الخرائط الجيولوجية', 'Macrostrat · OneGeology', L('Rock unit, age and lithology at any point', 'الوحدة الصخرية والعمر والصخارية لأي نقطة'), 'planned', 'https://macrostrat.org/'),
- ('Soil properties', 'خصائص التربة', 'ISRIC SoilGrids', L('Clay, sand, organic carbon and bulk density', 'الطين والرمل والكربون العضوي والكثافة'), 'planned', 'https://soilgrids.org/'),
+ ('Volcanoes', 'البراكين', 'Smithsonian Institution · NOAA NCEI', L('Holocene volcanoes and eruption history', 'براكين الهولوسين وتاريخ ثورانها'), 'in_use', 'https://volcano.si.edu/'),
+ ('Soil properties', 'خصائص التربة', 'ISRIC — World Data Centre for Soils', L('Clay, sand, organic carbon, pH and bulk density at six depths', 'الطين والرمل والكربون العضوي والحموضة والكثافة على ستة أعماق'), 'in_use', 'https://soilgrids.org/'),
+ ('Geological maps', 'الخرائط الجيولوجية', 'National geological surveys · OneGeology', L('Rock unit, age and lithology at any point', 'الوحدة الصخرية والعمر والصخارية لأي نقطة'), 'in_use', 'https://www.onegeology.org/'),
 ]
 
 SITES = [
@@ -158,7 +159,7 @@ PLANS = [
  {'key': 'geonb', 'name': L('GeoNB members', 'مشتركو جيونبأ'), 'price': '56,250', 'per': L('IQD per month', 'دينار عراقي شهرياً'),
   'text': L('Monthly plan with the 25% partner discount for members of the GeoNB app.', 'الاشتراك الشهري بخصم الشريك 25% لمشتركي تطبيق جيونبأ.'), 'best': False},
 ]
-PLAN_FEATURES = [L('All 27 field, data and laboratory tools', 'الأدوات الحقلية والبيانية والمختبرية السبع والعشرون'), L('PDF reports with QR verification', 'تقارير PDF مع رمز تحقق QR'),
+PLAN_FEATURES = [L('All 26 field, data and laboratory tools', 'الأدوات الحقلية والبيانية والمختبرية الست والعشرون'), L('PDF reports with QR verification', 'تقارير PDF مع رمز تحقق QR'),
                  L('Shandal AI assistant', 'مساعد شندل الذكي'), L('Arabic and English interface', 'واجهة عربية وإنجليزية'), L('Phone, tablet and desktop', 'الهاتف والجهاز اللوحي والحاسوب')]
 FAQ = [
  (L('Do I need to install anything?', 'هل أحتاج إلى تثبيت أي برنامج؟'), L('No. The system runs in the browser on your phone, tablet or computer. Location and motion sensors are used only when a tool asks for them.', 'لا. يعمل النظام في متصفح الهاتف أو الجهاز اللوحي أو الحاسوب، وتُستخدم حساسات الموقع والحركة فقط عندما تطلبها الأداة.')),
@@ -189,7 +190,7 @@ ABOUT = {
    (L('5 April 2026', '5 نيسان 2026'), L('Official launch', 'الإطلاق الرسمي'), L('The system opens to subscribers with eleven survey modules.', 'افتتاح النظام للمشتركين بإحدى عشرة وحدة مسح.')),
    (L('13 April 2026', '13 نيسان 2026'), L('Copyright registration', 'تسجيل حق المؤلف'), L('Registered as a scientific work, no. 2841/ع, at the National Centre for Protection of Copyright and Related Rights.', 'تسجيله عملاً علمياً برقم 2841/ع لدى المركز الوطني لحماية حق المؤلف والحقوق المجاورة.')),
    (L('29 September 2026', '29 أيلول 2026'), L('Partnership with GeoNB', 'شراكة مع جيونبأ'), L('A memorandum of cooperation brings the system to members of the GeoNB geology app.', 'مذكرة تعاون توصل النظام إلى مشتركي تطبيق جيونبأ الجيولوجي.')),
-   (L('2026', '2026'), L('Global platform', 'المنصة العالمية'), L('New bilingual platform with 27 tools, live global data, academy and library.', 'منصة جديدة ثنائية اللغة بسبع وعشرين أداة وبيانات عالمية حية وأكاديمية ومكتبة.')),
+   (L('2026', '2026'), L('Global platform', 'المنصة العالمية'), L('New bilingual platform with 26 tools, live global data, academy and library.', 'منصة جديدة ثنائية اللغة بسبع وعشرين أداة وبيانات عالمية حية وأكاديمية ومكتبة.')),
  ],
  'team_h': L('Founder', 'المؤسس'),
  'founder_name': L('Ali Shandal Al-Janabi', 'علي شندل الجنابي'),

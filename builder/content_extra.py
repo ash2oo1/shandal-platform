@@ -16,7 +16,7 @@ AI = {
 }
 
 PLATFORM = {
- 'title': L('Platform — 27 tools for geology, engineering and the environment', 'المنصة — 27 أداة للجيولوجيا والهندسة والبيئة'),
+ 'title': L('Platform — 26 tools for geology, engineering and the environment', 'المنصة — 26 أداة للجيولوجيا والهندسة والبيئة'),
  'h': L('Twenty-seven tools, from the outcrop to the lab', 'سبع وعشرون أداة، من المكشف إلى المختبر'),
  'p': L('Each tool has its own page: what you enter, what you get, the equations behind it and the standards it follows.', 'لكل أداة صفحتها: ما تدخله، وما تحصل عليه، والمعادلات خلفها، والمعايير التي تتبعها.'),
 }
@@ -30,7 +30,7 @@ DATA = {
  'th1': L('Data', 'البيانات'), 'th2': L('Provider', 'المزوّد'), 'th3': L('Used for', 'الاستخدام'), 'th4': L('Status', 'الحالة'),
  'use_k': L('Put it to work', 'وظّفها'), 'use_h': L('What you can do with it', 'ماذا يمكنك أن تفعل بها'),
  'uses': [
-   ('database', L('Download elevation grids', 'نزّل شبكات الارتفاع'), L('Draw a rectangle anywhere and export X, Y, Z points.', 'ارسم مستطيلاً في أي مكان وصدّر نقاط X وY وZ.'), 'tools/dem-hub/'),
+   ('database', L('Download elevation grids', 'نزّل شبكات الارتفاع'), L('Draw a rectangle anywhere and export X, Y, Z points.', 'ارسم مستطيلاً في أي مكان وصدّر نقاط X وY وZ.'), 'tools/dem-studio/'),
    ('cloud-rain', L('Test landslide thresholds', 'اختبر عتبات الانزلاق'), L('Run rainfall history against the Caine curve for any coordinate.', 'قارن سجل الأمطار بمنحنى Caine لأي إحداثيات.'), 'tools/hydro-alert/'),
    ('magnet', L('Reduce magnetic data', 'صحّح البيانات المغناطيسية'), L('Fetch the IGRF reference field over your survey grid.', 'اجلب المجال المرجعي IGRF لشبكة مسحك.'), 'tools/magnetic-lab/'),
    ('thermometer-sun', L('Plan safe field days', 'خطط لأيام ميدانية آمنة'), L('Heat stress, air quality and UV before the team sets out.', 'الإجهاد الحراري وجودة الهواء والأشعة قبل خروج الفريق.'), 'tools/env-monitoring/'),
@@ -93,7 +93,7 @@ LIBRARY = {
 PRICING = {
  'title': L('Pricing — Shandal System subscriptions', 'الاشتراكات — نظام شندل'),
  'h': L('One subscription, every tool', 'اشتراك واحد، كل الأدوات'),
- 'p': L('All 27 tools, report export and the AI assistant on phone, tablet and desktop.', 'الأدوات السبع والعشرون وتصدير التقارير والمساعد الذكي على الهاتف والجهاز اللوحي والحاسوب.'),
+ 'p': L('All 26 tools, report export and the AI assistant on phone, tablet and desktop.', 'الأدوات الست والعشرون وتصدير التقارير والمساعد الذكي على الهاتف والجهاز اللوحي والحاسوب.'),
  'best': L('Best value', 'الأوفر'), 'subscribe': L('Subscribe', 'اشترك'),
  'wa_msg': L('Hello, I would like to subscribe to the Shandal System', 'مرحباً، أرغب بالاشتراك في نظام شندل'),
  'inst_h': L('Universities, companies and government teams', 'الجامعات والشركات والفرق الحكومية'),
@@ -166,7 +166,7 @@ PRIVACY = {
                                        L('Location: only when you use a tool that needs it, such as GPS capture or the seismic evaluation. We do not record your location when you sign in.', 'الموقع: فقط عند استخدامك أداة تحتاجه، مثل التقاط GPS أو التقييم الزلزالي. لا نسجّل موقعك عند تسجيل الدخول.'),
                                        L('Survey inputs: the values you enter are processed in your browser to produce results and reports.', 'مدخلات المسح: تُعالج القيم التي تدخلها في متصفحك لإنتاج النتائج والتقارير.'),
                                        L('Questions to the AI assistant are sent to our server and to the AI provider to generate an answer.', 'تُرسل أسئلتك للمساعد الذكي إلى خادمنا وإلى مزوّد الذكاء الاصطناعي لتوليد الإجابة.')]),
-  (L('Services we rely on', 'الخدمات التي نعتمد عليها'), [L('To deliver maps and data, your browser contacts third-party services directly: Open-Meteo, Esri and OpenStreetMap map tiles, the British Geological Survey, USGS, NASA EONET, Cloudflare and Google. Each processes your request under its own privacy policy.', 'لتقديم الخرائط والبيانات، يتصل متصفحك مباشرة بخدمات خارجية: Open-Meteo وخرائط Esri وOpenStreetMap وهيئة المسح الجيولوجي البريطانية وUSGS وNASA EONET وCloudflare وGoogle. تعالج كل خدمة طلبك وفق سياسة الخصوصية الخاصة بها.')]),
+  (L('Services we rely on', 'الخدمات التي نعتمد عليها'), [L('To deliver maps and data, your browser contacts third-party services directly: weather, air-quality and elevation data services, map-tile providers, the British Geological Survey, USGS, NASA EONET, Cloudflare and Google. Each processes your request under its own privacy policy.', 'لتقديم الخرائط والبيانات، يتصل متصفحك مباشرة بخدمات خارجية: خدمات بيانات الطقس وجودة الهواء والارتفاعات، ومزوّدو بلاطات الخرائط، وهيئة المسح الجيولوجي البريطانية وUSGS وNASA EONET وCloudflare وGoogle. تعالج كل خدمة طلبك وفق سياسة الخصوصية الخاصة بها.')]),
   (L('What we never do', 'ما لا نفعله أبداً'), [L('We do not sell personal data, and we do not use your survey data for advertising.', 'لا نبيع البيانات الشخصية، ولا نستخدم بيانات مسحك لأغراض إعلانية.')]),
   (L('How long we keep data', 'مدة الاحتفاظ بالبيانات'), [L('Account details are kept while your subscription is active and for up to twelve months after it ends, unless you ask us to delete them sooner.', 'نحتفظ ببيانات الحساب طوال مدة الاشتراك ولمدة أقصاها اثنا عشر شهراً بعد انتهائه، ما لم تطلب حذفها قبل ذلك.')]),
   (L('Your rights', 'حقوقك'), [L('You can ask to see, correct or delete your personal data at any time by writing to us. We reply within thirty days.', 'يمكنك طلب الاطلاع على بياناتك الشخصية أو تصحيحها أو حذفها في أي وقت بمراسلتنا، ونرد خلال ثلاثين يوماً.')]),

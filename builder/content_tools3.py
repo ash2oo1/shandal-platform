@@ -68,18 +68,6 @@ OVERRIDES = {
           'Styron, R. & Pagani, M. (2020). The GEM Global Active Faults Database. Earthquake Spectra, 36(1_suppl), 160–180.'],
  'exports': L('CSV of nearest faults, PNG spectrum, PDF report', 'ملف CSV لأقرب الصدوع، طيف PNG، تقرير PDF'),
 },
-'dem-hub': {
- 'summary': L('Mark any area on Earth and download a regular elevation grid in UTM or geographic coordinates from AWS Terrain Tiles (about 30 m) or Copernicus GLO-90, with a 3D preview, hypsometric curve and slope statistics.',
-              'حدد أي منطقة على الأرض ونزّل شبكة ارتفاعات منتظمة بإحداثيات UTM أو جغرافية من بلاطات AWS للتضاريس (نحو 30 م) أو Copernicus GLO-90، مع معاينة ثلاثية الأبعاد ومنحنى هبسومتري وإحصاءات الميل.'),
- 'overview': [L('Choose the grid spacing and the coordinate system. In UTM the nodes fall on round easting and northing values, ready for Surfer, Civil 3D or QGIS. AWS tiles are decoded in your browser, so even large grids arrive in seconds.',
-                'اختر تباعد الشبكة ونظام الإحداثيات. في UTM تقع العقد على قيم شرقية وشمالية مدورة، جاهزة لبرامج Surfer وCivil 3D وQGIS. تُفك بلاطات AWS في متصفحك، لذا تصل حتى الشبكات الكبيرة خلال ثوانٍ.')],
- 'inputs': [L('Rectangle drawn on the map or typed bounds', 'مستطيل مرسوم على الخريطة أو حدود مكتوبة'), L('Elevation source', 'مصدر الارتفاعات'), L('Grid spacing and coordinate system', 'تباعد الشبكة ونظام الإحداثيات')],
- 'outputs': [L('X, Y, Z grid', 'شبكة X وY وZ'), L('3D terrain, hypsometric curve and integral, slope histogram', 'تضاريس ثلاثية الأبعاد ومنحنى وتكامل هبسومتري ومدرج الميل'), L('Shaded-relief overlay', 'طبقة تظليل تضاريسي')],
- 'method': [{'h': L('Terrarium decoding', 'فك ترميز Terrarium'), 'p': L('Elevation is stored in the RGB channels of each PNG tile and sampled bilinearly.', 'يُخزَّن الارتفاع في قنوات RGB لكل بلاطة PNG ويُؤخذ بالاستيفاء الثنائي الخطي.'), 'eq': 'h = 256 R + G + B/256 − 32768'},
-            {'h': L('Hypsometric integral', 'التكامل الهبسومتري'), 'p': L('Strahler (1952) elevation–relief ratio approximation.', 'تقريب نسبة الارتفاع–التضرس لـ Strahler (1952).'), 'eq': 'HI = (h̄ − h<sub>min</sub>) / (h<sub>max</sub> − h<sub>min</sub>)'}],
- 'refs': ['Terrain Tiles on AWS Open Data (Tilezen / Mapzen), registry.opendata.aws/terrain-tiles.', 'European Space Agency (2021). Copernicus Global Digital Elevation Model (GLO-90).', 'Strahler, A.N. (1952). Hypsometric (area-altitude) analysis of erosional topography. GSA Bulletin, 63, 1117–1142.', 'Horn, B.K.P. (1981). Hill shading and the reflectance map. Proc. IEEE, 69(1), 14–47.'],
- 'exports': L('CSV, XYZ, ESRI ASCII grid with .prj, PNG relief', 'CSV وXYZ وشبكة ESRI ASCII مع ملف .prj وتظليل PNG'),
-},
 'contour-lab': {
  'summary': L('Load X, Y, Z points from a total station, GPS, boreholes or any spatial variable, interpolate them by ordinary kriging or inverse distance, and lay out a print-ready contour map with variogram and cross-validation.',
               'حمّل نقاط X وY وZ من المحطة الشاملة أو GPS أو الآبار أو أي متغير مكاني، واستوفها بالكريجنغ الاعتيادي أو مقلوب المسافة، وأخرج خريطة كنتورية جاهزة للطباعة مع نصف التباين والتحقق المتقاطع.'),

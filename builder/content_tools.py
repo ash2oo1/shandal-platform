@@ -143,7 +143,7 @@ TOOLS = [
               L('Set interval and display', 'اضبط الفاصل وخيارات العرض'),
               L('Generate the map and report', 'ولّد الخريطة والتقرير')],
  'exports': L('PDF report and map', 'تقرير PDF وخريطة'),
- 'related': ['contour-lab', 'dem-hub', 'hydro-alert'],
+ 'related': ['contour-lab', 'dem-studio', 'hydro-alert'],
 },
 {
  'slug': 'contour-lab', 'cat': 'terrain', 'libs': ['plot', 'dem'], 'icon': 'map', 'illus': 'contourfill',
@@ -173,7 +173,7 @@ TOOLS = [
            L('Teachers of map reading', 'مدرسو قراءة الخرائط')],
  'workflow': [L('Load or paste points', 'حمّل النقاط أو الصقها'), L('Choose interval and elements', 'اختر الفاصل والعناصر'), L('Export the map', 'صدّر الخريطة')],
  'exports': L('PDF map', 'خريطة PDF'),
- 'related': ['geomorphology-contour', 'dem-hub', 'magnetic-lab'],
+ 'related': ['geomorphology-contour', 'dem-studio', 'magnetic-lab'],
 },
 {
  'slug': 'strata', 'cat': 'geology', 'libs': [], 'icon': 'layers', 'illus': 'strata',
@@ -247,7 +247,7 @@ TOOLS = [
            L('Planners screening development sites', 'المخططون لفحص مواقع التطوير')],
  'workflow': [L('Capture the site location', 'التقط موقع المشروع'), L('Choose risk category and soil class', 'اختر فئة الخطورة وصنف التربة'), L('Review spectrum and export', 'راجع الطيف وصدّر التقرير')],
  'exports': L('PDF consulting report', 'تقرير استشاري PDF'),
- 'related': ['structural-geotechnical', 'hydro-alert', 'dem-hub'],
+ 'related': ['structural-geotechnical', 'hydro-alert', 'dem-studio'],
 },
 {
  'slug': 'hydro-alert', 'cat': 'hazards', 'libs': ['map', 'plot'], 'live': True, 'icon': 'cloud-rain', 'illus': 'rainfall',
@@ -280,37 +280,13 @@ TOOLS = [
           'Guzzetti, F. et al. (2008). The rainfall intensity–duration control of shallow landslides and debris flows: an update. Landslides, 5, 3–17.',
           'Kohler, M.A. & Linsley, R.K. (1951). Predicting the runoff from storm rainfall. U.S. Weather Bureau Research Paper 34.',
           'Horn, B.K.P. (1981). Hill shading and the reflectance map. Proceedings of the IEEE, 69(1), 14–47.',
-          'Open-Meteo Forecast, Historical Weather and Elevation APIs, open-meteo.com (CC BY 4.0).'],
+          'Hersbach, H. et al. (2020). The ERA5 global reanalysis. Quarterly Journal of the Royal Meteorological Society, 146, 1999–2049.', 'European Centre for Medium-Range Weather Forecasts (ECMWF). Integrated Forecasting System (IFS) documentation.'],
  'users': [L('Road and pipeline engineers', 'مهندسو الطرق وخطوط الأنابيب'),
            L('Civil-defence and municipal planners', 'الدفاع المدني والتخطيط البلدي'),
            L('Researchers in slope hydrology', 'الباحثون في هيدرولوجيا المنحدرات')],
  'workflow': [L('Pick the location', 'حدد الموقع'), L('Choose forecast or a historical period', 'اختر التنبؤ أو فترة تاريخية'), L('Read the warning and the critical durations', 'اقرأ الإنذار والمُدد الحرجة')],
  'exports': L('Hourly CSV, PNG charts, PDF report', 'ملف CSV ساعي ومخططات PNG وتقرير PDF'),
  'related': ['seismic-evaluation', 'geomorphology-contour', 'env-monitoring'],
-},
-{
- 'slug': 'dem-hub', 'cat': 'terrain', 'libs': ['map', 'plot3d', 'dem'], 'live': True, 'icon': 'database', 'illus': 'mesh',
- 'name': L('DEM Data Hub', 'مركز بيانات نموذج الارتفاع الرقمي'),
- 'tagline': L('Elevation grids for any area on Earth.', 'شبكات ارتفاع لأي منطقة على الأرض.'),
- 'summary': L('Draw a rectangle on the map, choose a grid resolution, and download X, Y, Z elevation points as CSV ready for Surfer, ArcGIS or QGIS.',
-              'ارسم مستطيلاً على الخريطة واختر دقة الشبكة، ثم نزّل نقاط الارتفاع X وY وZ بصيغة CSV جاهزة لبرامج Surfer وArcGIS وQGIS.'),
- 'overview': [
-   L('When you cannot walk the whole area, satellite elevation fills the gap. The hub queries a global digital elevation model at regular grid spacing inside your rectangle and returns a table you can contour, profile or model in 3D.',
-     'عندما لا تستطيع المشي في المنطقة كلها، تسد بيانات الارتفاع الفضائية الفراغ. يستعلم المركز نموذج ارتفاع رقمياً عالمياً بتباعد منتظم داخل المستطيل ويعيد جدولاً يمكنك رسم كنتوره أو مقاطعه أو نمذجته ثلاثياً.'),
- ],
- 'inputs': [L('Area rectangle on the map', 'مستطيل المنطقة على الخريطة'), L('Grid resolution', 'دقة الشبكة'), L('Data source', 'مصدر البيانات')],
- 'outputs': [L('X, Y, Z table', 'جدول X وY وZ'), L('CSV export for Surfer and GIS', 'تصدير CSV لبرامج Surfer ونظم المعلومات')],
- 'method': [
-   {'h': L('Elevation source', 'مصدر الارتفاعات'),
-    'p': L('Elevations come from the Open-Meteo elevation API, which serves the Copernicus GLO-90 digital elevation model at about 90 m resolution.',
-           'تأتي الارتفاعات من واجهة Open-Meteo للارتفاعات، المبنية على نموذج Copernicus GLO-90 بدقة تقارب 90 م.'), 'eq': ''},
- ],
- 'refs': ['European Space Agency (2021). Copernicus Global Digital Elevation Model (GLO-90).',
-          'Open-Meteo Elevation API, open-meteo.com.'],
- 'users': [L('GIS analysts and surveyors', 'محللو نظم المعلومات الجغرافية والمساحون'), L('Hydrologists delineating catchments', 'الهيدرولوجيون لتحديد الأحواض'), L('Researchers in remote sensing', 'الباحثون في التحسس النائي')],
- 'workflow': [L('Draw the rectangle', 'ارسم المستطيل'), L('Pick the resolution', 'اختر الدقة'), L('Fetch and export', 'اجلب البيانات وصدّرها')],
- 'exports': L('CSV (X, Y, Z)', 'ملف CSV (X, Y, Z)'),
- 'related': ['contour-lab', 'magnetic-lab', 'geomorphology-contour'],
 },
 {
  'slug': 'magnetic-lab', 'cat': 'terrain', 'libs': ['map', 'dem', 'igrf'], 'live': True, 'icon': 'magnet', 'illus': 'magnetic',
@@ -336,7 +312,7 @@ TOOLS = [
  'users': [L('Exploration geophysicists', 'الجيوفيزيائيون في الاستكشاف'), L('Mineral and petroleum explorers', 'مستكشفو المعادن والنفط'), L('Geophysics students', 'طلبة الجيوفيزياء')],
  'workflow': [L('Define the survey area', 'حدد منطقة المسح'), L('Fetch the reference grid', 'اجلب الشبكة المرجعية'), L('Export to Surfer', 'صدّر إلى Surfer')],
  'exports': L('Surfer grid', 'شبكة Surfer'),
- 'related': ['dem-hub', 'contour-lab', 'geothermal-lab'],
+ 'related': ['dem-studio', 'contour-lab', 'geothermal-lab'],
 },
 # ---------------------------------------------------------------- ENVIRONMENT & HERITAGE
 {
@@ -369,7 +345,7 @@ TOOLS = [
  'refs': ['ISO 7243:2017. Ergonomics of the thermal environment — Assessment of heat stress using the WBGT index.',
           'US EPA (2024). Technical Assistance Document for the Reporting of Daily Air Quality — the Air Quality Index (AQI).',
           'Turner, D.B. (1994). Workbook of Atmospheric Dispersion Estimates, 2nd ed. CRC Press.',
-          'Open-Meteo Forecast and Air Quality APIs, open-meteo.com.'],
+          'Inness, A. et al. (2019). The CAMS reanalysis of atmospheric composition. Atmos. Chem. Phys., 19, 3515–3556.', 'European Centre for Medium-Range Weather Forecasts (ECMWF). Integrated Forecasting System (IFS) documentation.'],
  'users': [L('Field-team leaders and HSE officers', 'قادة الفرق الميدانية ومسؤولو الصحة والسلامة'), L('Environmental consultants', 'الاستشاريون البيئيون'), L('Site engineers', 'مهندسو المواقع')],
  'workflow': [L('Enable location', 'فعّل الموقع'), L('Read the dashboard', 'اقرأ اللوحة'), L('Add lab data and export', 'أضف بيانات المختبر وصدّر التقرير')],
  'exports': L('PDF academic report', 'تقرير أكاديمي PDF'),
@@ -485,7 +461,7 @@ TOOLS = [
 from content_tools2 import NEW_TOOLS
 CATS = ['geology', 'terrain', 'engineering', 'environment', 'hazards', 'labs']
 ORDER = ['quarry-survey', 'structural-geotechnical', 'geomorphology-contour', 'strata', 'geologic-unit', 'fossils', 'geoheritage',
-         'terrain-contours', 'contour-lab', 'dem-hub', 'magnetic-lab',
+         'dem-studio', 'contour-lab', 'magnetic-lab',
          'seismic-evaluation', 'seismic-hazard', 'soil-properties', 'bearing-capacity', 'mohr-circle', 'atterberg-limits', 'grain-size',
          'env-monitoring', 'spectral-indices', 'air-quality',
          'hazards-monitor', 'hydro-alert', 'volcanoes',
