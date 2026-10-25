@@ -77,6 +77,7 @@ PAGE_DATA = {
 }
 
 def build():
+    cname = open(os.path.join(OUT, 'CNAME')).read() if os.path.exists(os.path.join(OUT, 'CNAME')) else None  # custom domain set on GitHub
     if os.path.exists(OUT):
         shutil.rmtree(OUT)
     shutil.copytree(os.path.join(ROOT, 'src'), OUT)
@@ -157,6 +158,7 @@ def build():
     open(os.path.join(OUT, 'sitemap.xml'), 'w').write('<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' + ''.join(f'<url><loc>{x}</loc></url>' for x in urls) + '</urlset>')
     open(os.path.join(OUT, 'robots.txt'), 'w').write(f'User-agent: *\nAllow: /\nSitemap: {base}sitemap.xml\n')
     open(os.path.join(OUT, '.nojekyll'), 'w').write('')
+    if cname: open(os.path.join(OUT, 'CNAME'), 'w').write(cname)
     print('pages:', count)
 
 if __name__ == '__main__':
