@@ -17,7 +17,7 @@ SIMPLE = os.path.join(ROOT, 'vendor', 'brand')
 import time as _time
 VERSION = _time.strftime('%Y%m%d%H%M')
 
-CAT_ICONS = {'geology': 'pickaxe', 'terrain': 'mountain', 'engineering': 'hard-hat', 'environment': 'leaf', 'hazards': 'siren', 'labs': 'flask-conical'}
+CAT_ICONS = {'geology': 'pickaxe', 'terrain': 'mountain', 'remote': 'satellite', 'geophysics': 'activity', 'engineering': 'hard-hat', 'water': 'droplets', 'atmosphere': 'wind', 'climate': 'thermometer-sun', 'hazards': 'siren', 'labs': 'flask-conical'}
 REDIRECTS = {'dem-hub': 'dem-studio', 'terrain-contours': 'dem-studio'}
 FEATURED = ['dem-studio', 'structural-geotechnical', 'seismic-hazard', 'spectral-indices', 'hazards-monitor', 'grain-size']
 

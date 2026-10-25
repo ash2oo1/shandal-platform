@@ -459,20 +459,28 @@ TOOLS = [
 ]
 
 from content_tools2 import NEW_TOOLS
-CATS = ['geology', 'terrain', 'engineering', 'environment', 'hazards', 'labs']
-ORDER = ['quarry-survey', 'structural-geotechnical', 'geomorphology-contour', 'strata', 'geologic-unit', 'fossils', 'geoheritage',
-         'dem-studio', 'contour-lab', 'magnetic-lab',
+CATS = ['geology', 'terrain', 'remote', 'geophysics', 'engineering', 'water', 'atmosphere', 'climate', 'hazards', 'labs']
+ORDER = ['quarry-survey', 'structural-geotechnical', 'strata', 'geologic-unit', 'fossils', 'geoheritage',
+         'dem-studio', 'contour-lab', 'geomorphology-contour',
+         'spectral-indices',
+         'magnetic-lab', 'geothermal-lab',
          'seismic-evaluation', 'seismic-hazard', 'soil-properties', 'bearing-capacity', 'mohr-circle', 'atterberg-limits', 'grain-size',
-         'env-monitoring', 'spectral-indices', 'air-quality',
-         'hazards-monitor', 'hydro-alert', 'volcanoes',
-         'kerogen-lab', 'palynofacies-lab', 'geothermal-lab']
+         'hydro-alert',
+         'air-quality',
+         'env-monitoring',
+         'hazards-monitor', 'volcanoes',
+         'kerogen-lab', 'palynofacies-lab']
 _all = {t['slug']: t for t in TOOLS + NEW_TOOLS}
 TOOLS = [_all[k] for k in ORDER]
 # access: 'sub' (subscribers only), 'free' (open to all), 'open' (the data view is free; Shandal analysis,
 # interpretation, maps, downloads and reports are for subscribers). 'open' is used where the upstream data
 # service permits only non-commercial use, so the paid part of the tool is the analysis, not the data.
 OPEN_DATA = {'air-quality', 'env-monitoring', 'hydro-alert'}
+# sections (2026-10): remote sensing, geophysics, water, atmosphere and climate are separate sections
+CAT_OF = {'geomorphology-contour': 'terrain', 'spectral-indices': 'remote', 'magnetic-lab': 'geophysics', 'geothermal-lab': 'geophysics',
+          'hydro-alert': 'water', 'air-quality': 'atmosphere', 'env-monitoring': 'climate'}
 for _t in TOOLS:
+    _t['cat'] = CAT_OF.get(_t['slug'], _t['cat'])
     _t.setdefault('libs', [])
     _t.setdefault('gate', True)
     if _t['slug'] in OPEN_DATA:
