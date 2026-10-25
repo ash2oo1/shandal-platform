@@ -30,7 +30,7 @@
     {{ m.panel_close() }}
 
     {{ m.panel_open(3, 'Contours and map style', 'الكنتور ونمط الخريطة') }}
-      {{ m.sel('dStyle', 'Map style', 'نمط الخريطة', [('relief', 'Colour relief + contours', 'تلوين تضاريسي + خطوط كنتور', True), ('contours', 'Contour lines only', 'خطوط كنتور فقط'), ('spots', 'Spot heights only (exercise)', 'نقاط ارتفاع فقط (تمرين)'), ('spotscont', 'Spot heights + contours', 'نقاط ارتفاع + خطوط كنتور'), ('spotsrelief', 'Spot heights on colour relief', 'نقاط ارتفاع على تلوين تضاريسي')]) }}
+      {{ m.sel('dStyle', 'Map style', 'نمط الخريطة', [('relief', 'Colour relief + contours', 'تلوين تضاريسي + خطوط كنتور', True), ('contours', 'Contour lines only', 'خطوط كنتور فقط'), ('spots', 'Spot heights only (exercise)', 'نقاط ارتفاع فقط (تمرين)'), ('spotscont', 'Spot heights + contours', 'نقاط ارتفاع + خطوط كنتور'), ('spotsrelief', 'Spot heights on colour relief', 'نقاط ارتفاع على تلوين تضاريسي'), ('shade', 'Hillshade + contours (grey relief)', 'تظليل رمادي + خطوط كنتور'), ('spotsshade', 'Spot heights on hillshade', 'نقاط ارتفاع على تظليل رمادي')]) }}
       <div class="row2">
         {{ m.fld('dInt', 'Contour interval', 'الفاصل الكنتوري', 'number', '', 'm', 'Leave empty for an automatic interval of about 15 levels.', 'اتركه فارغاً لفاصل تلقائي بنحو 15 مستوى.', m.L('auto', 'تلقائي'), '0.5', 'min="0.1"') }}
         {{ m.fld('dIdx', 'Index every', 'رئيسي كل', 'number', '5', '', 'Every Nth contour is drawn bold and labelled.', 'يُرسم كل خط رقم N بخط عريض مع قيمته.', '', '1', 'min="2" max="10"') }}
@@ -39,12 +39,17 @@
         {{ m.fld('dSp', 'Spot spacing', 'تباعد النقاط', 'number', '', 'm', 'Distance between printed spot heights. Empty = about 14 per side.', 'المسافة بين نقاط الارتفاع المطبوعة. فارغ = نحو 14 نقطة لكل ضلع.', m.L('auto', 'تلقائي')) }}
         {{ m.sel('dDp', 'Spot decimals', 'منازل قيم النقاط', [('0', '0 (e.g. 412)', '0 (مثل 412)', True), ('1', '1 (e.g. 412.6)', '1 (مثل 412.6)')]) }}
       </div>
-      {{ m.sel('dRamp', 'Colours', 'الألوان', [('hypso', 'Hypsometric', 'هبسومتري', true), ('terrain', 'Terrain', 'تضاريس'), ('viridis', 'Viridis', 'Viridis'), ('gray', 'Grey', 'رمادي')]) }}
+      <div class="row2">
+        {{ m.sel('dRamp', 'Colour ramp', 'التدرج اللوني', [('hypso', 'Hypsometric (standard)', 'هبسومتري (قياسي)', true), ('atlas', 'Classic atlas tints', 'ألوان الأطلس الكلاسيكية'), ('terrain', 'Terrain (lowland blue)', 'تضاريس (أزرق للمنخفضات)'), ('arid', 'Arid desert', 'صحراوي جاف'), ('alpine', 'Alpine', 'جبلي ألبي'), ('spectral', 'Spectral', 'طيفي'), ('turbo', 'Turbo (high contrast)', 'تباين عالٍ Turbo'), ('viridis', 'Viridis (colour-blind safe)', 'Viridis (آمن لعمى الألوان)'), ('cividis', 'Cividis (colour-blind safe)', 'Cividis (آمن لعمى الألوان)'), ('magma', 'Magma', 'Magma'), ('gray', 'Grey', 'رمادي')]) }}
+        {{ m.sel('dCcol', 'Contour colour', 'لون خطوط الكنتور', [('brown', 'Brown (topographic standard)', 'بني (المعيار الطبوغرافي)', true), ('black', 'Black', 'أسود'), ('blue', 'Dark blue', 'أزرق داكن'), ('red', 'Dark red', 'أحمر داكن'), ('green', 'Dark green', 'أخضر داكن')]) }}
+      </div>
+      {{ m.sel('dLw', 'Contour line weight', 'سُمك خطوط الكنتور', [('0.7', 'Fine', 'رفيع'), ('1', 'Standard', 'قياسي', true), ('1.5', 'Bold', 'عريض')]) }}
       <div class="chks" style="grid-template-columns:repeat(2,minmax(0,1fr))">
         <label class="chk"><input type="checkbox" id="dShade" checked> {{ m.L('Hillshading', 'تظليل تضاريسي') }}</label>
         <label class="chk"><input type="checkbox" id="dLab" checked> {{ m.L('Contour labels', 'قيم الكنتور') }}</label>
         <label class="chk"><input type="checkbox" id="dSm" checked> {{ m.L('Smooth lines', 'تنعيم الخطوط') }}</label>
         <label class="chk"><input type="checkbox" id="dGrid" checked> {{ m.L('Coordinate grid', 'شبكة الإحداثيات') }}</label>
+        <label class="chk"><input type="checkbox" id="dRev"> {{ m.L('Reverse colours', 'عكس التدرج اللوني') }}</label>
       </div>
       {{ m.fld('dTitle', 'Map title', 'عنوان الخريطة', 'text', '', '', '', '', m.L('Topographic contour map', 'خريطة كنتورية طبوغرافية')) }}
     {{ m.panel_close() }}

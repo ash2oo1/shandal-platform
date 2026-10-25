@@ -5,7 +5,7 @@
 (function () {
   'use strict';
   var t = SH.t, $ = SH.$, L = window.L, D = SH.dem;
-  var IDS = ['dN', 'dS', 'dW', 'dE', 'dSrc', 'dCrs', 'dStep', 'dStyle', 'dInt', 'dIdx', 'dSp', 'dDp', 'dRamp', 'dShade', 'dLab', 'dSm', 'dGrid', 'dTitle', 'pN'];
+  var IDS = ['dN', 'dS', 'dW', 'dE', 'dSrc', 'dCrs', 'dStep', 'dStyle', 'dInt', 'dIdx', 'dSp', 'dDp', 'dRamp', 'dRev', 'dCcol', 'dLw', 'dShade', 'dLab', 'dSm', 'dGrid', 'dTitle', 'pN'];
   var persist = SH.persist('demstudio', IDS);
   var map = SH.map('dMap', { zoom: 6, base: 'topo', canvas: true }), rect = null, overlay = null, drawer = null;
   var G = null, CS = null, step = 0, prof = null, pLine = null, pPts = [], tracing = false, pMk = [];
@@ -90,14 +90,17 @@
   }
   function crsText() { return G.crs === 'utm' ? 'WGS 84 / UTM ' + G.zone + (G.south ? 'S' : 'N') + ' (EPSG:' + (G.south ? 327 : 326) + String(G.zone).padStart(2, '0') + ')' : 'WGS 84 (EPSG:4326)'; }
   function meta() {
-    $('#dMeta').innerHTML = SH.ltr(crsText()) + ' · ' + t('Elevation model: ', 'نموذج الارتفاع: ') + D.sources[G.source].attr + (G.zoom ? ' · ' + SH.ltr(t('pixel ≈ ', 'pixel ≈ ') + SH.fmt(G.pixel, 1) + ' m') : '') + (G.stat.nodata ? ' · ' + G.stat.nodata + t(' empty nodes', ' عقدة فارغة') : '');
+    $('#dMeta').innerHTML = SH.ltr(crsText()) + ' · ' + t('Elevation model: ', 'نموذج الارتفاع: ') + D.sources[G.source].name + (G.zoom ? ' · ' + SH.ltr(t('pixel ≈ ', 'pixel ≈ ') + SH.fmt(G.pixel, 1) + ' m') : '') + (G.stat.nodata ? ' · ' + G.stat.nodata + t(' empty nodes', ' عقدة فارغة') : '');
   }
-  function styleOf() { var s = SH.val('dStyle') || 'relief'; return { s: s, fill: /relief$/.test(s), cont: s === 'relief' || s === 'contours' || s === 'spotscont', spots: /^spots/.test(s) }; }
+  function styleOf() { var s = SH.val('dStyle') || 'relief'; return { s: s, fill: /relief$|shade$/.test(s), tint: !/shade$/.test(s), cont: s === 'relief' || s === 'contours' || s === 'spotscont' || s === 'shade', spots: /^spots/.test(s) }; }
+  function ramp() { return (SH.val('dRamp') || 'hypso') + ($('#dRev').checked ? '_r' : ''); }
+  function ccol() { return D.contourColors[SH.val('dCcol')] || D.contourColors.brown; }
   function drawLeaflet() {
     if (!map || !G) return; if (overlay) map.removeLayer(overlay); overlay = L.layerGroup().addTo(map);
     var st = styleOf(), idx = SH.num('dIdx') || 5, rnd = L.canvas({ padding: 0.3 }), sm = $('#dSm').checked;
-    L.imageOverlay(D.render(G, { ramp: SH.val('dRamp'), shade: $('#dShade').checked }), [[G.geo.s, G.geo.w], [G.geo.n, G.geo.e]], { opacity: st.fill ? .78 : .45 }).addTo(overlay);
-    CS.forEach(function (c) { var isI = Math.round(c.level / step) % idx === 0; c.lines.forEach(function (ln) { if (ln.length < 2) return; L.polyline((sm ? D.smooth(ln, 2) : ln).map(function (q) { return toLL(q[0], q[1]); }), { renderer: rnd, color: isI ? '#4A2E17' : '#7E5636', weight: isI ? 1.8 : .8, opacity: .92, interactive: isI }).bindTooltip(SH.fmt(c.level, step < 1 ? 1 : 0) + ' m', { sticky: true }).addTo(overlay); }); });
+    L.imageOverlay(D.render(G, { ramp: ramp(), tint: st.tint, shade: st.tint ? $('#dShade').checked : true }), [[G.geo.s, G.geo.w], [G.geo.n, G.geo.e]], { opacity: st.fill ? .78 : .45 }).addTo(overlay);
+    var CC = ccol(), lw = +SH.val('dLw') || 1;
+    CS.forEach(function (c) { var isI = Math.round(c.level / step) % idx === 0; c.lines.forEach(function (ln) { if (ln.length < 2) return; L.polyline((sm ? D.smooth(ln, 2) : ln).map(function (q) { return toLL(q[0], q[1]); }), { renderer: rnd, color: isI ? CC[0] : CC[1], weight: (isI ? 1.8 : .8) * lw, opacity: .92, interactive: isI }).bindTooltip(SH.fmt(c.level, step < 1 ? 1 : 0) + ' m', { sticky: true }).addTo(overlay); }); });
   }
   function spotsFor() {
     var sp = SH.num('dSp'), kk = Math.max(1, Math.round((sp > 0 ? sp : (G.nx - 1) * G.dx / 14) / G.dx)), off = Math.floor(kk / 2), spots = [], i, j;
@@ -111,13 +114,13 @@
     if (prof) { lines.push({ pts: prof.line.map(function (p) { return toXY(p[0], p[1]); }), color: '#C0392B', width: 2.2, dash: '8 5' }); legend.push({ name: t('Profile A–B', 'المقطع A–B'), color: '#C0392B', dash: '8 5' }); }
     var title = SH.val('dTitle') || (st.spots && !st.cont ? t('Spot-height map', 'خريطة نقاط الارتفاع') : t('Topographic contour map', 'خريطة كنتورية طبوغرافية'));
     var sub = (G.crs === 'utm' ? 'WGS 84 / UTM ' + G.zone + (G.south ? 'S' : 'N') : 'WGS 84') + (st.cont ? ' · ' + t('contour interval ', 'الفاصل الكنتوري ') + SH.ltr(SH.fmt(step, step < 1 ? 1 : 0) + ' m') : '') + (st.spots ? ' · ' + spots.length + t(' spot heights', ' نقطة ارتفاع') : '');
-    var r = D.svgMap($('#dSheet'), G, st.cont ? CS : [], { crs: G.crs === 'utm' ? 'proj' : 'geo', interval: step, index: SH.num('dIdx') || 5, ramp: SH.val('dRamp'), fill: st.fill, shade: $('#dShade').checked, labels: $('#dLab').checked, smooth: $('#dSm').checked, grid: $('#dGrid').checked,
+    var r = D.svgMap($('#dSheet'), G, st.cont ? CS : [], { crs: G.crs === 'utm' ? 'proj' : 'geo', interval: step, index: SH.num('dIdx') || 5, ramp: ramp(), fill: st.fill, tint: st.tint, shade: st.tint ? $('#dShade').checked : true, contourColor: SH.val('dCcol'), lineScale: +SH.val('dLw') || 1, labels: $('#dLab').checked, smooth: $('#dSm').checked, grid: $('#dGrid').checked,
       noContours: !st.cont, spots: spots, spotDp: +SH.val('dDp') || 0, spotSize: spots.length > 250 ? 7.5 : 8.5, lines: lines, legend: legend, title: title, subtitle: sub, legendTitle: t('Elevation (m)', 'الارتفاع (م)'),
       axisNames: G.crs === 'utm' ? ['Easting (m)', 'Northing (m)'] : null, source: D.sources[G.source].short });
     if (prof && r) { var S = $('#dSheet'), NS = 'http://www.w3.org/2000/svg', a = toXY(prof.line[0][0], prof.line[0][1]), b = toXY(prof.line[prof.line.length - 1][0], prof.line[prof.line.length - 1][1]);
       [[a, 'A'], [b, 'B']].forEach(function (q) { var tx = document.createElementNS(NS, 'text'); tx.setAttribute('x', r.X(q[0][1]) + 6); tx.setAttribute('y', r.Y(q[0][0]) - 6); tx.setAttribute('font-size', 13); tx.setAttribute('font-weight', 800); tx.setAttribute('fill', '#C0392B'); tx.setAttribute('stroke', '#fff'); tx.setAttribute('stroke-width', 3); tx.setAttribute('paint-order', 'stroke'); tx.setAttribute('direction', 'ltr'); tx.textContent = q[1]; S.appendChild(tx); }); }
     $('#dCap').innerHTML = st.spots && !st.cont ? t('Exercise sheet: only spot heights are printed, so students can interpolate and draw the contour lines by hand. The highest and lowest points of the area are always included.', 'ورقة تمرين: تُطبع نقاط الارتفاع فقط ليستكمل الطلبة الاستيفاء ويرسموا خطوط الكنتور يدوياً. تُضمَّن دائماً أعلى نقطة وأدنى نقطة في المنطقة.')
-      : t('Contours traced by marching squares on a ', 'رُسمت خطوط الكنتور بخوارزمية المربعات المتحركة على شبكة ') + SH.ltr(G.nx + ' × ' + G.ny) + t(' grid and smoothed for display; every ', '، ومُهِّدت للعرض؛ ويُرسم كل خط رقم ') + (SH.num('dIdx') || 5) + t('th line is an index contour. Source: ', ' خطاً رئيسياً مرقَّماً. المصدر: ') + D.sources[G.source].attr;
+      : t('Contours traced by marching squares on a ', 'رُسمت خطوط الكنتور بخوارزمية المربعات المتحركة على شبكة ') + SH.ltr(G.nx + ' × ' + G.ny) + t(' grid and smoothed for display; every ', '، ومُهِّدت للعرض؛ ويُرسم كل خط رقم ') + (SH.num('dIdx') || 5) + t('th line is an index contour.', ' خطاً رئيسياً مرقَّماً.');
   }
   function hypso() {
     if (!G) return; var sorted = G.stat.sorted, sArr = G.stat.slopes, HI = G.stat.HI, p = SH.palette(), hx = [], hy = [];
@@ -135,12 +138,12 @@
     for (j = 0; j < G.ny; j += f) { Y.push(G.crs === 'utm' ? (G.lats[j] - G.b.s) : (G.lats[j] - G.b.s) * 110574); var r = []; for (i = 0; i < G.nx; i += f) { var v = G.z[j * G.nx + i]; r.push(isNaN(v) ? null : v); } Z.push(r); }
     var w = X[X.length - 1] || 1, h = Y[0] || 1, mx = Math.max(w, h), rz = (G.max - G.min) || 1, p = SH.palette(), unitK = mx > 5000, ax = function (n) { return { title: { text: n + (unitK ? ' (km)' : ' (m)') }, color: p.text2, gridcolor: p.line, tickvals: null }; };
     var sx = unitK ? X.map(function (q) { return q / 1000; }) : X, sy = unitK ? Y.map(function (q) { return q / 1000; }) : Y;
-    SH.plot('d3d', [{ type: 'surface', x: sx, y: sy, z: Z, colorscale: D.plotlyScale(SH.val('dRamp') === 'gray' ? 'gray' : SH.val('dRamp') || 'hypso'), showscale: false, contours: { z: { show: true, usecolormap: false, color: 'rgba(60,40,20,.35)', width: 1, start: G.min, end: G.max, size: step || D.niceInterval(rz, 15) } }, lighting: { ambient: .6, diffuse: .7, roughness: .9, specular: .1 }, hovertemplate: 'Z %{z:.1f} m<extra></extra>' }],
+    SH.plot('d3d', [{ type: 'surface', x: sx, y: sy, z: Z, colorscale: D.plotlyScale(ramp()), showscale: false, contours: { z: { show: true, usecolormap: false, color: 'rgba(60,40,20,.35)', width: 1, start: G.min, end: G.max, size: step || D.niceInterval(rz, 15) } }, lighting: { ambient: .6, diffuse: .7, roughness: .9, specular: .1 }, hovertemplate: 'Z %{z:.1f} m<extra></extra>' }],
       function () { return SH.plotLayout({ margin: { l: 0, r: 0, t: 0, b: 0 }, scene: { aspectmode: 'manual', aspectratio: { x: w / mx * 1.6, y: h / mx * 1.6, z: Math.max(0.08, rz * vex / mx * 1.6) }, xaxis: ax('E'), yaxis: ax('N'), zaxis: { title: { text: 'Z (m)' }, color: p.text2, gridcolor: p.line }, camera: { eye: { x: -1.35, y: -1.55, z: 1.05 } } } }); }, { filename: 'shandal-dem-3d', displayModeBar: 'hover' });
   }
   function table() {
     var rows = [], n = G.nx * G.ny; for (var k = 0; k < Math.min(8, n); k++) { var j = Math.floor(k / G.nx), i = k % G.nx; rows.push('<tr><td class="num">' + (k + 1) + '</td><td class="num">' + xy(i, j)[0] + '</td><td class="num">' + xy(i, j)[1] + '</td><td class="num">' + (isNaN(G.z[k]) ? '—' : G.z[k].toFixed(2)) + '</td></tr>'); }
-    $('#dTbl').innerHTML = '<thead><tr><th class="num">#</th><th class="num">' + (G.crs === 'utm' ? 'X (Easting)' : 'X (Lon)') + '</th><th class="num">' + (G.crs === 'utm' ? 'Y (Northing)' : 'Y (Lat)') + '</th><th class="num">Z (m)</th></tr></thead><tbody>' + rows.join('') + '</tbody>';
+    $('#dTbl').innerHTML = '<thead><tr><th class="num">No.</th><th class="num">' + (G.crs === 'utm' ? 'X (Easting)' : 'X (Lon)') + '</th><th class="num">' + (G.crs === 'utm' ? 'Y (Northing)' : 'Y (Lat)') + '</th><th class="num">Z (m)</th></tr></thead><tbody>' + rows.join('') + '</tbody>';
   }
   function xy(i, j) { return G.crs === 'utm' ? [G.lons[i].toFixed(2), G.lats[j].toFixed(2)] : [G.lons[i].toFixed(7), G.lats[j].toFixed(7)]; }
 
@@ -150,18 +153,20 @@
     if (p.contour) { contour(); kpis(); p.leaflet = p.sheet = p.d3 = 1; }
     if (p.leaflet) drawLeaflet(); if (p.sheet) drawSheet(); if (p.d3) draw3d(); }); }
   $('#dInt').addEventListener('change', function () { later('contour'); });
-  ['dIdx', 'dRamp', 'dShade', 'dSm', 'dStyle'].forEach(function (id) { $('#' + id).addEventListener('change', function () { later('leaflet'); later('sheet'); if (id === 'dRamp') later('d3'); }); });
+  ['dIdx', 'dRamp', 'dRev', 'dCcol', 'dLw', 'dShade', 'dSm', 'dStyle'].forEach(function (id) { $('#' + id).addEventListener('change', function () { later('leaflet'); later('sheet'); if (id === 'dRamp' || id === 'dRev') later('d3'); }); });
   ['dLab', 'dGrid', 'dSp', 'dDp', 'dTitle'].forEach(function (id) { $('#' + id).addEventListener('change', function () { later('sheet'); }); });
   $('#dVex').addEventListener('input', function () { $('#dVexO').textContent = $('#dVex').value; });
   $('#dVex').addEventListener('change', function () { later('d3'); });
 
   /* ---------- topographic profile */
-  function stopTrace() { if (!tracing) return; tracing = false; $('#pHint').hidden = true; $('#pDrawT').textContent = t('Trace section', 'ارسم المقطع'); map.getContainer().style.cursor = ''; map.off('click', addV); }
-  function addV(e) { if (pPts.length >= 20) return; pPts.push([e.latlng.lat, e.latlng.lng]); if (pLine) pLine.setLatLngs(pPts); else pLine = L.polyline(pPts, { color: '#C0392B', weight: 3, dashArray: '8 5' }).addTo(map); pMk.push(L.marker(e.latlng, { icon: SH.pin(pPts.length === 1 ? 'A' : '', 'mk-num', [22, 22]) }).addTo(map)); }
+  var rubber = null;
+  function moveV(e) { if (!pPts.length) return; var ll = [pPts[pPts.length - 1], [e.latlng.lat, e.latlng.lng]]; if (rubber) rubber.setLatLngs(ll); else rubber = L.polyline(ll, { color: '#C0392B', weight: 2, dashArray: '3 6', opacity: .8, interactive: false }).addTo(map); }
+  function stopTrace() { if (!tracing) return; tracing = false; $('#pHint').hidden = true; $('#pDrawT').textContent = t('Trace section', 'ارسم المقطع'); var c = map.getContainer(); c.style.cursor = ''; c.classList.remove('sh-tracing'); map.doubleClickZoom.enable(); map.off('click', addV); map.off('mousemove', moveV); if (rubber) { map.removeLayer(rubber); rubber = null; } }
+  function addV(e) { if (pPts.length >= 20) return; pPts.push([e.latlng.lat, e.latlng.lng]); if (pLine) pLine.setLatLngs(pPts); else pLine = L.polyline(pPts, { color: '#C0392B', weight: 3, dashArray: '8 5' }).addTo(map); pMk.push(L.marker(e.latlng, { icon: pPts.length === 1 ? SH.pin('A', 'mk-num', [22, 22]) : SH.pin('', 'mk-vx', [18, 18]), interactive: false }).addTo(map)); }
   $('#pDraw').addEventListener('click', function () {
     if (!map) return; if (drawer) drawer.cancel();
     if (tracing) { stopTrace(); if (pPts.length >= 2) { pMk[pMk.length - 1].setIcon(SH.pin('B', 'mk-num', [22, 22])); profile(pPts.slice()); } else SH.toast(t('Add at least two points.', 'أضف نقطتين على الأقل.'), 'warn'); return; }
-    clearProf(); tracing = true; $('#pHint').hidden = false; $('#pDrawT').textContent = t('Finish', 'إنهاء'); map.getContainer().style.cursor = 'crosshair'; map.on('click', addV);
+    clearProf(); tracing = true; $('#pHint').hidden = false; $('#pDrawT').textContent = t('Finish', 'إنهاء'); var c = map.getContainer(); c.style.cursor = 'crosshair'; c.classList.add('sh-tracing'); map.doubleClickZoom.disable(); map.on('click', addV); map.on('mousemove', moveV); c.scrollIntoView({ behavior: 'smooth', block: 'center' });
   });
   function clearProf() { pPts = []; if (pLine) { map.removeLayer(pLine); pLine = null; } pMk.forEach(function (m) { map.removeLayer(m); }); pMk = []; }
   $('#pClear').addEventListener('click', function () { stopTrace(); clearProf(); prof = null; $('#pPlot').hidden = true; $('#pKpis').hidden = true; $('#pEmpty').hidden = false; if (G) drawSheet(); });
@@ -202,7 +207,7 @@
       var prj = G.crs === 'utm' ? 'PROJCS["WGS_1984_UTM_Zone_' + G.zone + (G.south ? 'S' : 'N') + '",GEOGCS["GCS_WGS_1984",DATUM["D_WGS_1984",SPHEROID["WGS_1984",6378137.0,298.257223563]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]],PROJECTION["Transverse_Mercator"],PARAMETER["False_Easting",500000.0],PARAMETER["False_Northing",' + (G.south ? '10000000.0' : '0.0') + '],PARAMETER["Central_Meridian",' + ((G.zone - 1) * 6 - 177) + '.0],PARAMETER["Scale_Factor",0.9996],PARAMETER["Latitude_Of_Origin",0.0],UNIT["Meter",1.0]]' : 'GEOGCS["GCS_WGS_1984",DATUM["D_WGS_1984",SPHEROID["WGS_1984",6378137.0,298.257223563]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]]';
       setTimeout(function () { SH.download(nm + '.prj', prj, 'text/plain'); }, 500);
     } else if (kind === 'png') {
-      var a = document.createElement('a'); a.href = D.render(G, { ramp: SH.val('dRamp'), shade: $('#dShade').checked }); a.download = nm + '-relief.png'; a.click();
+      var a = document.createElement('a'); a.href = D.render(G, { ramp: ramp(), shade: $('#dShade').checked }); a.download = nm + '-relief.png'; a.click();
     } else if (kind === 'geojson') {
       var cs2 = CS.map(function (c) { return { level: c.level, lines: c.lines.map(function (l) { return smoothed(l).map(function (p) { return toLL(p[0], p[1]); }); }) }; });
       SH.json(nm + '-contours.geojson', D.toGeoJSON(cs2, { interval_m: step, source: D.sources[G.source].short }));

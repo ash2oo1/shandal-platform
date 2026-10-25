@@ -181,11 +181,20 @@
     gray: [[0, [30, 30, 30]], [1, [240, 240, 240]]],
     diverge: [[0, [33, 102, 172]], [0.25, [146, 197, 222]], [0.5, [247, 247, 247]], [0.75, [244, 165, 130]], [1, [178, 24, 43]]],
     spectral: [[0, [50, 136, 189]], [0.25, [153, 213, 148]], [0.5, [255, 255, 191]], [0.75, [252, 141, 89]], [1, [213, 62, 79]]],
-    viridis: [[0, [68, 1, 84]], [0.25, [59, 82, 139]], [0.5, [33, 145, 140]], [0.75, [94, 201, 98]], [1, [253, 231, 37]]]
+    viridis: [[0, [68, 1, 84]], [0.25, [59, 82, 139]], [0.5, [33, 145, 140]], [0.75, [94, 201, 98]], [1, [253, 231, 37]]],
+    atlas: [[0, [94, 140, 73]], [0.15, [151, 183, 101]], [0.3, [216, 214, 141]], [0.45, [235, 206, 140]], [0.6, [214, 164, 104]], [0.75, [178, 120, 80]], [0.9, [150, 110, 100]], [1, [255, 255, 255]]],
+    arid: [[0, [237, 224, 190]], [0.35, [214, 184, 130]], [0.65, [176, 128, 82]], [0.85, [125, 86, 60]], [1, [80, 60, 50]]],
+    alpine: [[0, [70, 120, 80]], [0.3, [150, 170, 110]], [0.55, [190, 180, 160]], [0.8, [150, 150, 150]], [1, [255, 255, 255]]],
+    cividis: [[0, [0, 32, 77]], [0.25, [65, 77, 107]], [0.5, [124, 123, 120]], [0.75, [188, 175, 111]], [1, [255, 233, 69]]],
+    magma: [[0, [0, 0, 4]], [0.25, [81, 18, 124]], [0.5, [183, 55, 121]], [0.75, [252, 137, 97]], [1, [252, 253, 191]]],
+    turbo: [[0, [48, 18, 59]], [0.2, [70, 134, 251]], [0.4, [26, 228, 182]], [0.6, [164, 252, 60]], [0.8, [251, 128, 34]], [1, [122, 4, 3]]]
   };
+  /* a ramp name ending in '_r' is the same ramp reversed */
+  D.rampStops = function (name) { name = name || 'hypso'; var rev = /_r$/.test(name), r = RAMPS[name.replace(/_r$/, '')] || RAMPS.hypso; return rev ? r.map(function (s) { return [1 - s[0], s[1]]; }).reverse() : r; };
+  D.contourColors = { brown: ['#4A2E17', '#7E5636'], black: ['#111111', '#555555'], blue: ['#1F3F73', '#4D6FA3'], red: ['#7A1F12', '#B2533F'], green: ['#1E4D2B', '#4E7F5A'] };
   D.ramps = RAMPS;
-  D.color = function (v, ramp) { var r = RAMPS[ramp || 'hypso']; v = Math.max(0, Math.min(1, v)); for (var k = 1; k < r.length; k++) if (v <= r[k][0]) { var a = r[k - 1], b = r[k], f = (v - a[0]) / (b[0] - a[0]); return [0, 1, 2].map(function (c) { return Math.round(a[1][c] + (b[1][c] - a[1][c]) * f); }); } return r[r.length - 1][1]; };
-  D.plotlyScale = function (ramp) { return RAMPS[ramp || 'hypso'].map(function (s) { return [s[0], 'rgb(' + s[1].join(',') + ')']; }); };
+  D.color = function (v, ramp) { var r = D.rampStops(ramp); v = Math.max(0, Math.min(1, v)); for (var k = 1; k < r.length; k++) if (v <= r[k][0]) { var a = r[k - 1], b = r[k], f = (v - a[0]) / (b[0] - a[0]); return [0, 1, 2].map(function (c) { return Math.round(a[1][c] + (b[1][c] - a[1][c]) * f); }); } return r[r.length - 1][1]; };
+  D.plotlyScale = function (ramp) { return D.rampStops(ramp).map(function (s) { return [s[0], 'rgb(' + s[1].join(',') + ')']; }); };
   /* Hillshade × hypsometric tint canvas; returns data URL */
   D.render = function (G, opts) {
     opts = opts || {}; if (!G.slope) D.derive(G);
@@ -271,7 +280,7 @@
     var PW = 246, ml = 96, mr = PW + 46, mt = opts.title ? 86 : 44, mb = opts.axisNames && !geo ? 76 : 58;
     var wM = (G.b.e - G.b.w) * kx, hM = (G.b.n - G.b.s) * ky, bw = VW - ml - mr, bh = VH - mt - mb, sc = Math.min(bw / wM, bh / hM), W = wM * sc, H = hM * sc;
     /* wide areas: shorten the sheet to the map instead of leaving empty bands, keeping room for the margin panel */
-    if (opts.fixedHeight !== true) { var rows = ((opts.spots || []).length ? 1 : 0) + (opts.swatches || []).length + (opts.legend || []).length + ((opts.points || []).length ? 1 : 0) + (opts.clipPoly ? 1 : 0), need = 600 + 18 * rows;
+    if (opts.fixedHeight !== true) { var rows = ((opts.spots || []).length ? 1 : 0) + (opts.swatches || []).length + (opts.legend || []).length + ((opts.points || []).length ? 1 : 0) + (opts.clipPoly ? 1 : 0), need = 620 + 18 * rows;
       VH = Math.min(800, Math.max(need, Math.ceil(mt + H + mb + 8))); bh = VH - mt - mb; sc = Math.min(bw / wM, bh / hM); W = wM * sc; H = hM * sc; }
     svg.setAttribute('viewBox', '0 0 ' + VW + ' ' + VH);
     var ox = ml + (bw - W) / 2, oy = mt + (bh - H) / 2;
@@ -285,19 +294,20 @@
     var defs = S.add('defs', {}), cid = 'mc' + Math.random().toString(36).slice(2, 7), cp = S.add('clipPath', { id: cid }, null, defs); S.add('rect', { x: ox, y: oy, width: W, height: H }, null, cp);
     var body = S.g({ 'clip-path': 'url(#' + cid + ')' }), fillHost = body;
     if (opts.clipPoly) { var hid = cid + 'h', cp2 = S.add('clipPath', { id: hid }, null, defs); S.poly(opts.clipPoly.map(function (q) { return [X(q[0]), Y(q[1])]; }), {}, cp2); fillHost = S.g({ 'clip-path': 'url(#' + hid + ')' }, body); }
-    if (opts.fill !== false) { var RG = opts.renderGrid || G; if (opts.renderGrid) { RG.min = G.min; RG.max = G.max; } S.add('image', { href: D.render(RG, { ramp: opts.ramp, tint: true, shade: opts.shade }), x: ox, y: oy, width: W, height: H, preserveAspectRatio: 'none', opacity: opts.fillOpacity || 0.9 }, null, fillHost); }
+    if (opts.fill !== false) { var RG = opts.renderGrid || G; if (opts.renderGrid) { RG.min = G.min; RG.max = G.max; } S.add('image', { href: D.render(RG, { ramp: opts.ramp, tint: opts.tint !== false, shade: opts.shade }), x: ox, y: oy, width: W, height: H, preserveAspectRatio: 'none', opacity: opts.fillOpacity || 0.9 }, null, fillHost); }
     if (opts.image) S.add('image', { href: opts.image, x: ox, y: oy, width: W, height: H, preserveAspectRatio: 'none' }, null, fillHost);
+    var CC = D.contourColors[opts.contourColor] || D.contourColors.brown, LW = opts.lineScale || 1;
     /* contours: index spacing adapts so at least three index lines are labelled */
     var step = opts.interval, base = opts.base || 0, idx = opts.index || 5; if (cs.length / idx < 3) idx = cs.length <= 9 ? 1 : 2;
     var labels = [], dpL = step < 1 ? (step < 0.1 ? 2 : 1) : 0;
     cs.forEach(function (c) { var isIdx = Math.round((c.level - base) / step) % idx === 0;
-      c.lines.forEach(function (ln) { if (opts.smooth) ln = D.smooth(ln, 2); var pp = ln.map(function (p) { return [X(p[1]), Y(p[0])]; }); S.path(S.pl(pp), { fill: 'none', stroke: isIdx ? '#4A2E17' : '#7E5636', 'stroke-width': isIdx ? 1.5 : 0.6, 'stroke-linejoin': 'round', opacity: isIdx ? .95 : .8 }, body);
+      c.lines.forEach(function (ln) { if (opts.smooth) ln = D.smooth(ln, 2); var pp = ln.map(function (p) { return [X(p[1]), Y(p[0])]; }); S.path(S.pl(pp), { fill: 'none', stroke: isIdx ? CC[0] : CC[1], 'stroke-width': (isIdx ? 1.5 : 0.6) * LW, 'stroke-linejoin': 'round', opacity: isIdx ? .95 : .8 }, body);
         if (opts.labels !== false && isIdx && pp.length > 8) labels.push({ pp: pp, v: c.level }); }); });
     labels.forEach(function (l) { var pp = l.pp, acc = 0, next = 90, gap = 260;
       for (var k = 1; k < pp.length - 2; k++) { acc += Math.hypot(pp[k][0] - pp[k - 1][0], pp[k][1] - pp[k - 1][1]); if (acc < next) continue; next = acc + gap;
         var q = pp[k]; if (q[0] < ox + 18 || q[0] > ox + W - 18 || q[1] < oy + 12 || q[1] > oy + H - 12) continue;
         var a = pp[Math.max(0, k - 2)], b = pp[Math.min(pp.length - 1, k + 2)], ang = SH.deg(Math.atan2(b[1] - a[1], b[0] - a[0])); if (ang > 90) ang -= 180; if (ang < -90) ang += 180;
-        S.text(q[0], q[1] + 3.5, SH.fmt(l.v, dpL), { 'font-size': 10, 'font-weight': 700, fill: '#4A2E17', 'text-anchor': 'middle', direction: 'ltr', stroke: '#fff', 'stroke-width': 3, 'paint-order': 'stroke', transform: 'rotate(' + ang.toFixed(1) + ' ' + q[0].toFixed(1) + ' ' + q[1].toFixed(1) + ')' }, body); } });
+        S.text(q[0], q[1] + 3.5, SH.fmt(l.v, dpL), { 'font-size': 10, 'font-weight': 700, fill: CC[0], 'text-anchor': 'middle', direction: 'ltr', stroke: '#fff', 'stroke-width': 3, 'paint-order': 'stroke', transform: 'rotate(' + ang.toFixed(1) + ' ' + q[0].toFixed(1) + ' ' + q[1].toFixed(1) + ')' }, body); } });
     (opts.lines || []).forEach(function (L) { var pp = L.pts.map(function (p) { return [X(p[1]), Y(p[0])]; }); S.path(S.pl(pp), { fill: 'none', stroke: L.color || '#1F6FB2', 'stroke-width': L.width || 2.5, 'stroke-linecap': 'round', 'stroke-dasharray': L.dash || null }, body); if (L.arrow && pp.length > 1) { var q = pp[pp.length - 1], r = pp[pp.length - 2], an = Math.atan2(q[1] - r[1], q[0] - r[0]); S.poly([q, [q[0] - 11 * Math.cos(an - .4), q[1] - 11 * Math.sin(an - .4)], [q[0] - 11 * Math.cos(an + .4), q[1] - 11 * Math.sin(an + .4)]], { fill: L.color || '#1F6FB2' }, body); } });
     (opts.spots || []).forEach(function (p) { var px = X(p.x), py = Y(p.y); if (px < ox + 4 || px > ox + W - 30 || py < oy + 12 || py > oy + H - 4) return;
       S.path('M' + (px - 3.5) + ' ' + py + 'H' + (px + 3.5) + 'M' + px + ' ' + (py - 3.5) + 'V' + (py + 3.5), { stroke: opts.spotColor || '#1B232B', 'stroke-width': 1.2 }, body);
@@ -322,14 +332,14 @@
     var head = function (en, arT) { S.text(L0, y, en, { 'font-size': 11.5, 'font-weight': 800, fill: ink, 'letter-spacing': 1.6 }); if (SH.lang === 'ar' && arT) S.text(R0, y, arT, { 'font-size': 11.5, 'font-weight': 700, fill: mut, direction: 'rtl', 'text-anchor': 'start' }); y += 18; };
     var row = function (sym, label) { sym(L0, y); txt(L0 + 40, y + 4, label, { 'font-size': 10.5, fill: ink }, R0); y += 18; };
     // north arrow
-    var cx0 = PX + PW / 2; S.text(cx0, y + 2, 'N', { 'font-size': 16, 'font-weight': 800, fill: ink, 'text-anchor': 'middle' });
+    y += 14; var cx0 = PX + PW / 2; S.text(cx0, y + 2, 'N', { 'font-size': 16, 'font-weight': 800, fill: ink, 'text-anchor': 'middle' });
     S.path('M' + cx0 + ' ' + (y + 8) + 'L' + (cx0 - 13) + ' ' + (y + 58) + 'L' + cx0 + ' ' + (y + 48) + 'z', { fill: ink, stroke: ink, 'stroke-width': 1 }); S.path('M' + cx0 + ' ' + (y + 8) + 'L' + (cx0 + 13) + ' ' + (y + 58) + 'L' + cx0 + ' ' + (y + 48) + 'z', { fill: '#fff', stroke: ink, 'stroke-width': 1 });
-    y += 66; S.text(cx0, y, geo ? SH.t('Grid north = true north', 'شمال الشبكة = الشمال الجغرافي') : SH.t('Grid north (UTM)', 'شمال الشبكة (UTM)'), { 'font-size': 9.5, fill: mut, 'text-anchor': 'middle' }); sep();
+    y += 68; S.text(cx0, y, geo ? SH.t('Grid north = true north', 'شمال الشبكة = الشمال الجغرافي') : SH.t('Grid north (UTM)', 'شمال الشبكة (UTM)'), { 'font-size': 9.5, fill: mut, 'text-anchor': 'middle' }); sep();
     // legend
     head('LEGEND', 'مفتاح الخريطة');
-    var lt = opts.legendTitle || SH.t('Elevation (m)', 'الارتفاع (م)'); if (opts.fill !== false || opts.gradient) { txt(L0, y, lt, { 'font-size': 10.5, 'font-weight': 700, fill: ink }, R0); y += 10; }
-    if (opts.fill !== false) { var gid = cid + 'g', lg = S.add('linearGradient', { id: gid, x1: 0, y1: 0, x2: 1, y2: 0 }, null, defs), bwid = PW - 40;
-      D.ramps[opts.ramp || 'hypso'].forEach(function (st) { S.add('stop', { offset: st[0], 'stop-color': 'rgb(' + st[1].join(',') + ')' }, null, lg); });
+    var lt = opts.legendTitle || SH.t('Elevation (m)', 'الارتفاع (م)'); if ((opts.fill !== false && opts.tint !== false) || opts.gradient) { txt(L0, y, lt, { 'font-size': 10.5, 'font-weight': 700, fill: ink }, R0); y += 10; }
+    if (opts.fill !== false && opts.tint !== false) { var gid = cid + 'g', lg = S.add('linearGradient', { id: gid, x1: 0, y1: 0, x2: 1, y2: 0 }, null, defs), bwid = PW - 40;
+      D.rampStops(opts.ramp).forEach(function (st) { S.add('stop', { offset: st[0], 'stop-color': 'rgb(' + st[1].join(',') + ')' }, null, lg); });
       S.add('rect', { x: L0 + 6, y: y, width: bwid, height: 12, fill: 'url(#' + gid + ')', stroke: ink, 'stroke-width': .6 });
       var ltk = nice(G.max - G.min, 4), dpk = ltk < 1 ? (ltk < 0.1 ? 2 : 1) : 0; for (v = Math.ceil(G.min / ltk) * ltk; v <= G.max + 1e-9; v += ltk) { var xx = L0 + 6 + (v - G.min) / ((G.max - G.min) || 1) * bwid; S.line(xx, y + 12, xx, y + 16, { stroke: ink }); S.text(xx, y + 27, SH.fmt(v, dpk), { 'font-size': 9.5, fill: mut, 'text-anchor': 'middle', direction: 'ltr' }); }
       y += 44; }
@@ -342,8 +352,8 @@
     if ((opts.spots || []).length) row(function (x, yy) { S.path('M' + (x + 11) + ' ' + yy + 'H' + (x + 19) + 'M' + (x + 15) + ' ' + (yy - 4) + 'V' + (yy + 4), { stroke: ink, 'stroke-width': 1.2 }); S.text(x + 21, yy - 2, '123', { 'font-size': 8, fill: ink, direction: 'ltr' }); }, SH.t('Spot height (m above sea level)', 'نقطة ارتفاع (م فوق سطح البحر)'));
     (opts.swatches || []).forEach(function (sw) { row(function (x, yy) { S.add('rect', { x: x + 2, y: yy - 7, width: 26, height: 14, fill: sw.color, stroke: ink, 'stroke-width': .6 }); }, sw.name); });
     if (!opts.noContours) {
-    row(function (x, yy) { S.line(x, yy, x + 30, yy, { stroke: '#4A2E17', 'stroke-width': 1.5 }); }, SH.t('Index contour (labelled)', 'خط كنتور رئيسي (مرقّم)'));
-    if (idx > 1) row(function (x, yy) { S.line(x, yy, x + 30, yy, { stroke: '#7E5636', 'stroke-width': .6 }); }, SH.t('Intermediate contour', 'خط كنتور ثانوي'));
+    row(function (x, yy) { S.line(x, yy, x + 30, yy, { stroke: CC[0], 'stroke-width': 1.5 * LW }); }, SH.t('Index contour (labelled)', 'خط كنتور رئيسي (مرقّم)'));
+    if (idx > 1) row(function (x, yy) { S.line(x, yy, x + 30, yy, { stroke: CC[1], 'stroke-width': .6 * LW }); }, SH.t('Intermediate contour', 'خط كنتور ثانوي'));
     (opts.legend || []).forEach(function (e) { row(function (x, yy) { S.line(x, yy, x + 30, yy, { stroke: e.color, 'stroke-width': 2.5, 'stroke-dasharray': e.dash || null }); }, e.name); });
     if ((opts.points || []).length) row(function (x, yy) { S.circle(x + 15, yy, 3.2, { fill: '#111', stroke: '#fff', 'stroke-width': 1.2 }); }, opts.pointsName || SH.t('Measured point', 'نقطة مقاسة'));
     if (opts.clipPoly) row(function (x, yy) { S.add('rect', { x: x + 4, y: yy - 6, width: 22, height: 12, fill: 'none', stroke: ink, 'stroke-dasharray': '3 2' }); }, SH.t('Interpolated only inside the data hull', 'الاستيفاء داخل غلاف البيانات فقط'));

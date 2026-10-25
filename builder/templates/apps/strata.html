@@ -63,7 +63,7 @@
     {{ m.fig_close() }}
     <section class="pn">
       <div class="pn-h">{{ icon('layers') }}<h2>{{ m.L('Beds', 'الطبقات') }}</h2><div class="sp no-print"><button class="btn btn-line btn-xs" id="bCsv">{{ icon('download', 'ico ico-sm') }}CSV</button><button class="btn btn-danger btn-xs" id="bClear">{{ m.L('Clear all', 'مسح الكل') }}</button></div></div>
-      <div class="pn-b flush tbl-wrap"><table class="tbl" id="bTable"><thead><tr><th>#</th><th>{{ m.L('Unit', 'الوحدة') }}</th><th>{{ m.L('Age', 'العمر') }}</th><th>{{ m.L('Lithology', 'الصخارية') }}</th><th class="num">{{ m.L('Thickness m', 'السمك م') }}</th><th class="num">{{ m.L('Top m', 'القمة م') }}</th><th class="num">{{ m.L('Base m', 'القاعدة م') }}</th><th>{{ m.L('Lower contact', 'الحد السفلي') }}</th><th data-noexport></th></tr></thead><tbody id="bBody"></tbody></table>
+      <div class="pn-b flush tbl-wrap"><table class="tbl" id="bTable"><thead><tr><th>No.</th><th>{{ m.L('Unit', 'الوحدة') }}</th><th>{{ m.L('Age', 'العمر') }}</th><th>{{ m.L('Lithology', 'الصخارية') }}</th><th class="num">{{ m.L('Thickness m', 'السمك م') }}</th><th class="num">{{ m.L('Top m', 'القمة م') }}</th><th class="num">{{ m.L('Base m', 'القاعدة م') }}</th><th>{{ m.L('Lower contact', 'الحد السفلي') }}</th><th data-noexport></th></tr></thead><tbody id="bBody"></tbody></table>
       <div id="bEmpty">{{ m.empty('layers', 'No beds yet', 'لا توجد طبقات بعد', 'Add beds from the top of the section downward. The column redraws after every change.', 'أضف الطبقات من قمة المقطع نحو الأسفل. يُعاد رسم العمود بعد كل تغيير.') }}</div></div>
     </section>
   </div>

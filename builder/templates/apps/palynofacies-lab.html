@@ -32,7 +32,7 @@
       <div class="pn-h">{{ icon('table') }}<h2>{{ m.L('Palaeoenvironment record', 'سجل البيئات القديمة') }}</h2>
         <div class="sp no-print"><button class="btn btn-line btn-xs" id="pCsv" type="button">{{ icon('download', 'ico ico-sm') }}CSV</button><button class="btn btn-danger btn-xs" id="pClear" type="button">{{ m.L('Clear all', 'مسح الكل') }}</button></div></div>
       <div class="pn-b flush tbl-wrap">
-        <table class="tbl" id="pTable"><thead><tr><th>#</th><th>{{ m.L('Sample', 'العينة') }}</th><th class="num">AOM %</th><th class="num">{{ m.L('Phyto %', 'فايتو %') }}</th><th class="num">{{ m.L('Paly %', 'بالينو %') }}</th><th>{{ m.L('Field', 'الحقل') }}</th><th>{{ m.L('Environment', 'البيئة الترسيبية') }}</th><th>{{ m.L('Kerogen', 'الكيروجين') }}</th><th>{{ m.L('Potential', 'الجهد') }}</th><th data-noexport></th></tr></thead><tbody id="pBody"></tbody></table>
+        <table class="tbl" id="pTable"><thead><tr><th>No.</th><th>{{ m.L('Sample', 'العينة') }}</th><th class="num">AOM %</th><th class="num">{{ m.L('Phyto %', 'فايتو %') }}</th><th class="num">{{ m.L('Paly %', 'بالينو %') }}</th><th>{{ m.L('Field', 'الحقل') }}</th><th>{{ m.L('Environment', 'البيئة الترسيبية') }}</th><th>{{ m.L('Kerogen', 'الكيروجين') }}</th><th>{{ m.L('Potential', 'الجهد') }}</th><th data-noexport></th></tr></thead><tbody id="pBody"></tbody></table>
         <div id="pEmpty">{{ m.empty('microscope', 'No samples yet', 'لا توجد عينات بعد', 'Enter the three counts from your palynofacies slide and press Plot sample.', 'أدخل الأعداد الثلاثة من شريحة السحنات واضغط أسقط العينة.') }}</div>
       </div>
     </section>

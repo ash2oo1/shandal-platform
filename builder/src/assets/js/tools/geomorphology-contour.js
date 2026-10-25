@@ -98,7 +98,7 @@
     $('#gNarr').innerHTML = h;
   }
   function tables() {
-    var r = last, row = function (id, p) { return '<tr><td><b>' + id + '</b></td><td class="num">' + p.x.toFixed(1) + '</td><td class="num">' + p.y.toFixed(1) + '</td><td class="num">' + SH.fmt(p.z, 1) + (p.dem ? '<sup title="DEM">*</sup>' : '') + '</td></tr>'; }, hd = '<thead><tr><th>#</th><th class="num">E</th><th class="num">N</th><th class="num">Z m</th></tr></thead><tbody>';
+    var r = last, row = function (id, p) { return '<tr><td><b>' + id + '</b></td><td class="num">' + p.x.toFixed(1) + '</td><td class="num">' + p.y.toFixed(1) + '</td><td class="num">' + SH.fmt(p.z, 1) + (p.dem ? '<sup title="DEM">*</sup>' : '') + '</td></tr>'; }, hd = '<thead><tr><th>No.</th><th class="num">E</th><th class="num">N</th><th class="num">Z m</th></tr></thead><tbody>';
     $('#gT1').innerHTML = hd + (r.T.map(function (p, i) { return row('P' + (i + 1), p); }).join('') || '<tr><td colspan="4" class="muted">—</td></tr>') + '</tbody>';
     $('#gT2').innerHTML = hd + (r.R.map(function (p, i) { return row('S' + (i + 1), p); }).join('') || '<tr><td colspan="4" class="muted">—</td></tr>') + '</tbody>';
   }
