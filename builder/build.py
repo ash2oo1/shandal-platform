@@ -76,7 +76,23 @@ PAGE_DATA = {
  'pricing': CX.PRICING, 'contact': CX.CONTACT, 'verify': CX.VERIFY, 'account': CX.ACCOUNT,
 }
 
+def _count(o, n):
+    """replace {N} with the live number of tools in every content string"""
+    if isinstance(o, str): return o.replace('{N}', str(n))
+    if isinstance(o, dict):
+        for k in o: o[k] = _count(o[k], n)
+        return o
+    if isinstance(o, list):
+        for i in range(len(o)): o[i] = _count(o[i], n)
+        return o
+    if isinstance(o, tuple): return tuple(_count(x, n) for x in o)
+    return o
+
 def build():
+    for mod in (CP, CX):
+        for k, v in list(vars(mod).items()):
+            if k.isupper(): setattr(mod, k, _count(v, len(TOOLS)))
+    _count(UI, len(TOOLS))
     cname = open(os.path.join(OUT, 'CNAME')).read() if os.path.exists(os.path.join(OUT, 'CNAME')) else None  # custom domain set on GitHub
     if os.path.exists(OUT):
         shutil.rmtree(OUT)

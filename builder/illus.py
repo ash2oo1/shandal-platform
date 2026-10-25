@@ -789,3 +789,42 @@ def volcano(uid, label):
 
 REG.update({'geomap': geomap, 'ammonite': ammonite, 'grlaw': grlaw, 'soiltri': soiltri, 'footing': footing, 'mohr': mohr,
             'plasticity': plasticity, 'psd': psd, 'aqi': aqi, 'quakes': quakes, 'volcano': volcano})
+
+# ---------------------------------------------------------------- piper (hydrochemistry)
+def piper(uid, label):
+    s, g, y0 = 150, 22, 300
+    h = s * math.sqrt(3) / 2
+    ox2 = s + g
+    cx = s + g / 2
+    def tri(ox, a, b, c):  # a: left %, b: top %, c: right %
+        t = a + b + c; a, b, c = a / t, b / t, c / t
+        return (ox + a * 0 + b * s / 2 + c * s, y0 - b * h)
+    def dia(p, q):  # p: Na+K fraction, q: Cl+SO4 fraction
+        B = (cx + 79, y0 - g * math.sqrt(3) / 2)
+        L = (B[0] - s / 2, B[1] - h); T = (B[0], B[1] - 2 * h); 
+        return (L[0] + p * (B[0] - L[0]) + q * (T[0] - L[0]), L[1] + p * (B[1] - L[1]) + q * (T[1] - L[1]))
+    o = []
+    for ox in (79, ox2 + 79):
+        o.append(f'<polygon class="il-surface il-tri" points="{f(ox)},{y0} {f(ox + s)},{y0} {f(ox + s / 2)},{f(y0 - h)}"/>')
+        for k in range(1, 5):
+            t = k / 5 * 100
+            for p, q in [((t, 100 - t, 0), (t, 0, 100 - t)), ((0, t, 100 - t), (100 - t, t, 0)), ((100 - t, 0, t), (0, 100 - t, t))]:
+                a, b = tri(ox, *p), tri(ox, *q)
+                o.append(f'<line class="il-grid" x1="{f(a[0])}" y1="{f(a[1])}" x2="{f(b[0])}" y2="{f(b[1])}"/>')
+    D = [dia(0, 0), dia(1, 0), dia(1, 1), dia(0, 1)]
+    o.append('<polygon class="il-surface il-tri" points="' + ' '.join(f'{f(x)},{f(y)}' for x, y in [D[0], D[1], D[2], D[3]]) + '"/>')
+    for k in range(1, 5):
+        t = k / 5
+        a, b = dia(t, 0), dia(t, 1); o.append(f'<line class="il-grid" x1="{f(a[0])}" y1="{f(a[1])}" x2="{f(b[0])}" y2="{f(b[1])}"/>')
+        a, b = dia(0, t), dia(1, t); o.append(f'<line class="il-grid" x1="{f(a[0])}" y1="{f(a[1])}" x2="{f(b[0])}" y2="{f(b[1])}"/>')
+    samples = [((55, 25, 20), (40, 25, 35)), ((30, 25, 45), (12, 45, 43)), ((20, 20, 60), (14, 56, 30)), ((60, 18, 22), (65, 12, 23))]
+    for cat, an in samples:
+        x, y = tri(79, *cat); o.append(f'<circle class="il-sample" cx="{f(x)}" cy="{f(y)}" r="4.5"/>')
+        x, y = tri(ox2 + 79, *an); o.append(f'<circle class="il-sample" cx="{f(x)}" cy="{f(y)}" r="4.5"/>')
+        p = cat[2] / 100; q = (an[1] + an[2]) / 100
+        x, y = dia(p, q); o.append(f'<circle class="il-sample" cx="{f(x)}" cy="{f(y)}" r="4.5"/>')
+    o.append(f'<text class="il-label" x="{f(79 + s / 2)}" y="{y0 + 16}" text-anchor="middle">Cations</text>')
+    o.append(f'<text class="il-label" x="{f(ox2 + 79 + s / 2)}" y="{y0 + 16}" text-anchor="middle">Anions</text>')
+    return svg(''.join(o), uid, label)
+
+REG.update({'piper': piper})

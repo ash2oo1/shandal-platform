@@ -16,7 +16,7 @@ AI = {
 }
 
 PLATFORM = {
- 'title': L('Platform — 26 tools for geology, engineering and the environment', 'المنصة — 26 أداة للجيولوجيا والهندسة والبيئة'),
+ 'title': L('Platform — {N} tools for geology, engineering and the environment', 'المنصة — {N} أداة للجيولوجيا والهندسة والبيئة'),
  'h': L('Twenty-seven tools, from the outcrop to the lab', 'سبع وعشرون أداة، من المكشف إلى المختبر'),
  'p': L('Each tool has its own page: what you enter, what you get, the equations behind it and the standards it follows.', 'لكل أداة صفحتها: ما تدخله، وما تحصل عليه، والمعادلات خلفها، والمعايير التي تتبعها.'),
 }
@@ -93,7 +93,7 @@ LIBRARY = {
 PRICING = {
  'title': L('Pricing — Shandal System subscriptions', 'الاشتراكات — نظام شندل'),
  'h': L('One subscription, every tool', 'اشتراك واحد، كل الأدوات'),
- 'p': L('All 26 tools, report export and the AI assistant on phone, tablet and desktop.', 'الأدوات الست والعشرون وتصدير التقارير والمساعد الذكي على الهاتف والجهاز اللوحي والحاسوب.'),
+ 'p': L('All {N} tools, report export and the AI assistant on phone, tablet and desktop.', 'جميع الأدوات ({N} أداة) وتصدير التقارير والمساعد الذكي على الهاتف والجهاز اللوحي والحاسوب.'),
  'best': L('Best value', 'الأوفر'), 'subscribe': L('Subscribe', 'اشترك'),
  'wa_msg': L('Hello, I would like to subscribe to the Shandal System', 'مرحباً، أرغب بالاشتراك في نظام شندل'),
  'inst_h': L('Universities, companies and government teams', 'الجامعات والشركات والفرق الحكومية'),

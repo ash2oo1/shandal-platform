@@ -74,7 +74,7 @@ HOME = {
  'quote_by': L('Ali Shandal Al-Janabi', 'علي شندل الجنابي'),
  'quote_role': L('Geologist, founder of the Shandal System', 'جيولوجي، مؤسس نظام شندل'),
  'cta_h': L('Take the whole field kit to your next site', 'خذ الحقيبة الميدانية كاملة إلى موقعك القادم'),
- 'cta_p': L('One subscription covers all 26 tools, report export and the AI assistant.', 'اشتراك واحد يشمل الأدوات الست والعشرون وتصدير التقارير والمساعد الذكي.'),
+ 'cta_p': L('One subscription covers all {N} tools, report export and the AI assistant.', 'اشتراك واحد يشمل جميع الأدوات ({N} أداة) وتصدير التقارير والمساعد الذكي.'),
 }
 
 DATA_SOURCES = [
@@ -159,7 +159,7 @@ PLANS = [
  {'key': 'geonb', 'name': L('GeoNB members', 'مشتركو جيونبأ'), 'price': '56,250', 'per': L('IQD per month', 'دينار عراقي شهرياً'),
   'text': L('Monthly plan with the 25% partner discount for members of the GeoNB app.', 'الاشتراك الشهري بخصم الشريك 25% لمشتركي تطبيق جيونبأ.'), 'best': False},
 ]
-PLAN_FEATURES = [L('All 26 field, data and laboratory tools', 'الأدوات الحقلية والبيانية والمختبرية الست والعشرون'), L('PDF reports with QR verification', 'تقارير PDF مع رمز تحقق QR'),
+PLAN_FEATURES = [L('All {N} field, data and laboratory tools', 'جميع الأدوات الحقلية والبيانية والمختبرية ({N} أداة)'), L('PDF reports with QR verification', 'تقارير PDF مع رمز تحقق QR'),
                  L('Shandal AI assistant', 'مساعد شندل الذكي'), L('Arabic and English interface', 'واجهة عربية وإنجليزية'), L('Phone, tablet and desktop', 'الهاتف والجهاز اللوحي والحاسوب')]
 FAQ = [
  (L('Do I need to install anything?', 'هل أحتاج إلى تثبيت أي برنامج؟'), L('No. The system runs in the browser on your phone, tablet or computer. Location and motion sensors are used only when a tool asks for them.', 'لا. يعمل النظام في متصفح الهاتف أو الجهاز اللوحي أو الحاسوب، وتُستخدم حساسات الموقع والحركة فقط عندما تطلبها الأداة.')),
@@ -190,7 +190,7 @@ ABOUT = {
    (L('5 April 2026', '5 نيسان 2026'), L('Official launch', 'الإطلاق الرسمي'), L('The system opens to subscribers with eleven survey modules.', 'افتتاح النظام للمشتركين بإحدى عشرة وحدة مسح.')),
    (L('13 April 2026', '13 نيسان 2026'), L('Copyright registration', 'تسجيل حق المؤلف'), L('Registered as a scientific work, no. 2841/ع, at the National Centre for Protection of Copyright and Related Rights.', 'تسجيله عملاً علمياً برقم 2841/ع لدى المركز الوطني لحماية حق المؤلف والحقوق المجاورة.')),
    (L('29 September 2026', '29 أيلول 2026'), L('Partnership with GeoNB', 'شراكة مع جيونبأ'), L('A memorandum of cooperation brings the system to members of the GeoNB geology app.', 'مذكرة تعاون توصل النظام إلى مشتركي تطبيق جيونبأ الجيولوجي.')),
-   (L('2026', '2026'), L('Global platform', 'المنصة العالمية'), L('New bilingual platform with 26 tools, live global data, academy and library.', 'منصة جديدة ثنائية اللغة بسبع وعشرين أداة وبيانات عالمية حية وأكاديمية ومكتبة.')),
+   (L('2026', '2026'), L('Global platform', 'المنصة العالمية'), L('New bilingual platform with {N} tools, live global data, academy and library.', 'منصة جديدة ثنائية اللغة بسبع وعشرين أداة وبيانات عالمية حية وأكاديمية ومكتبة.')),
  ],
  'team_h': L('Founder', 'المؤسس'),
  'founder_name': L('Ali Shandal Al-Janabi', 'علي شندل الجنابي'),

@@ -1,0 +1,82 @@
+{% extends "app_base.html" %}
+{% import "apps/_m.html" as m with context %}
+{% block ws %}
+<div class="ws-wrap">
+<div class="ws wide-side">
+  <aside class="ws-side">
+    {{ m.panel_open(1, 'Standards and purpose', 'المعايير والغرض') }}
+      {{ m.sel('wStd', 'Drinking-water standard', 'معيار مياه الشرب', [('iqs', 'Iraqi Standard IQS 417 (2nd update, 2009)', 'المواصفة العراقية IQS 417 (التحديث الثاني 2009)', true), ('who', 'WHO Guidelines (2022)', 'أدلة منظمة الصحة العالمية (2022)')]) }}
+      {{ m.sel('wUse', 'Main purpose', 'الغرض الرئيسي', [('all', 'Drinking and irrigation', 'الشرب والري', true), ('drink', 'Drinking', 'الشرب'), ('irr', 'Irrigation', 'الري')]) }}
+      <p class="pn-note">{{ m.L('Concentrations in mg/L, EC in µS/cm at 25 °C, turbidity in NTU. Empty cells are allowed: every index uses only the ions it needs.', 'التراكيز بالملغم/لتر، والتوصيلية الكهربائية بالمايكروسيمنز/سم عند 25 °م، والعكارة بوحدة NTU. يمكن ترك الخلايا فارغة: كل مؤشر يستخدم الأيونات التي يحتاجها فقط.') }}</p>
+    {{ m.panel_close() }}
+    {{ m.panel_open(2, 'Load samples', 'تحميل العينات') }}
+      <div class="row2">
+        <button class="btn btn-ink btn-sm" id="wAdd" type="button">{{ icon('plus', 'ico ico-sm') }}{{ m.L('Add sample', 'أضف عينة') }}</button>
+        <button class="btn btn-line btn-sm" id="wFileBtn" type="button">{{ icon('upload', 'ico ico-sm') }}{{ m.L('Import CSV', 'استورد CSV') }}</button>
+      </div>
+      <input type="file" id="wFile" accept=".csv,.txt,text/plain" hidden>
+      <div class="fg"><label for="wPaste">{{ m.L('Or paste rows from Excel', 'أو الصق صفوفاً من Excel') }}</label><textarea id="wPaste" rows="3" class="ltr" style="font-family:ui-monospace,monospace;font-size:.78rem" placeholder="ID, Lat, Lon, pH, EC, TDS, Ca, Mg, Na, K, HCO3, CO3, Cl, SO4, NO3, F, Turb"></textarea></div>
+      <div class="row2">
+        <button class="btn btn-line btn-sm" id="wPasteGo" type="button">{{ m.L('Read pasted rows', 'اقرأ الصفوف الملصوقة') }}</button>
+        <button class="btn btn-line btn-sm" id="wTpl" type="button">{{ icon('download', 'ico ico-sm') }}{{ m.L('CSV template', 'قالب CSV') }}</button>
+      </div>
+    {{ m.panel_close() }}
+    <button class="btn btn-gold btn-block" id="wRun" type="button">{{ icon('flask-conical', 'ico ico-sm') }}{{ m.L('Analyse the samples', 'حلّل العينات') }}</button>
+    <button class="btn btn-line btn-xs" id="wDemo" type="button">{{ m.L('Illustrative example: six Iraqi water types', 'مثال توضيحي: ستة أنواع من المياه العراقية') }}</button>
+  </aside>
+
+  <div class="ws-main">
+    <section class="pn"><div class="pn-h">{{ icon('table') }}<h2>{{ m.L('Laboratory results', 'نتائج المختبر') }}</h2><div class="sp no-print"><button class="btn btn-line btn-xs" id="wClear" type="button">{{ m.L('Clear all', 'مسح الكل') }}</button></div></div>
+      <div class="pn-b flush tbl-wrap"><table class="tbl" id="wIn" style="min-width:1500px"></table></div>
+    </section>
+    <div id="wEmpty" class="pn">{{ m.empty('droplets', 'Hydrochemistry of surface and groundwater', 'هيدروكيمياء المياه السطحية والجوفية', 'Enter the major-ion analysis of one or many samples. The lab checks the ionic balance, classifies the water on the Piper, Gibbs, Schoeller, Stiff and USSL diagrams, and evaluates it for drinking against the Iraqi standard or WHO, and for irrigation against FAO and USDA criteria.', 'أدخل تحليل الأيونات الرئيسية لعينة أو عدة عينات. يتحقق المختبر من التوازن الأيوني، ويصنّف المياه على مخططات Piper وGibbs وSchoeller وStiff وUSSL، ويقيّمها للشرب وفق المواصفة العراقية أو منظمة الصحة العالمية، وللري وفق معايير FAO ووزارة الزراعة الأمريكية.') }}</div>
+    <div id="wOut" hidden style="display:grid;gap:18px">
+      <div class="kpis" id="wKpis"></div>
+      <section class="pn"><div class="pn-h">{{ icon('shield-check') }}<h2>{{ m.L('Quality control: ionic balance', 'ضبط الجودة: التوازن الأيوني') }}</h2></div><div class="pn-b flush tbl-wrap"><table class="tbl" id="wQc"></table></div><div class="pn-b" style="padding-top:0"><p class="xsmall muted" style="margin:0" id="wQcNote"></p></div></section>
+      <div class="grid2">
+        {{ m.fig_open('fw1', '1', 'Piper diagram', 'مخطط Piper', '<button class="btn btn-line btn-xs" data-svg="wPiper" type="button">PNG</button>') }}
+          <div class="fig-b"><svg class="chart" id="wPiper" viewBox="0 0 640 600" role="img" aria-label="Piper diagram" style="background:#fff"></svg></div>
+          <div class="fig-cap" id="wPiperCap"></div>
+        {{ m.fig_close() }}
+        {{ m.fig_open('fw2', '2', 'Gibbs diagrams: what controls the chemistry', 'مخططا Gibbs: ما الذي يتحكم بالكيمياء') }}
+          <div class="fig-b"><div class="plot" id="wGibbs" style="height:420px"></div></div>
+          <div class="fig-cap" id="wGibbsCap"></div>
+        {{ m.fig_close() }}
+      </div>
+      <div class="grid2">
+        {{ m.fig_open('fw3', '3', 'Schoeller diagram', 'مخطط Schoeller') }}
+          <div class="fig-b"><div class="plot" id="wSch" style="height:380px"></div></div>
+          <div class="fig-cap">{{ m.L('Concentrations in meq/L on a logarithmic axis (Schoeller 1962). Parallel lines indicate waters of the same origin; crossing lines indicate mixing or different sources.', 'التراكيز بالملي مكافئ/لتر على محور لوغاريتمي (Schoeller 1962). الخطوط المتوازية تدل على مياه من الأصل نفسه، والمتقاطعة على خلط أو مصادر مختلفة.') }}</div>
+        {{ m.fig_close() }}
+        {{ m.fig_open('fw4', '4', 'Stiff diagrams', 'مخططات Stiff', '<button class="btn btn-line btn-xs" data-svg="wStiff" type="button">PNG</button>') }}
+          <div class="fig-b"><svg class="chart" id="wStiff" viewBox="0 0 640 380" role="img" aria-label="Stiff diagrams" style="background:#fff"></svg></div>
+          <div class="fig-cap">{{ m.L('Each polygon is one sample: cations to the left, anions to the right, in meq/L on a common scale (Stiff 1951). The shape identifies the water type at a glance.', 'كل مضلع عينة واحدة: الكاتيونات يساراً والأنيونات يميناً بالملي مكافئ/لتر على مقياس واحد (Stiff 1951). يدل الشكل على نوع المياه بنظرة واحدة.') }}</div>
+        {{ m.fig_close() }}
+      </div>
+      <section class="pn"><div class="pn-h">{{ icon('glass-water') }}<h2>{{ m.L('Drinking water', 'مياه الشرب') }}</h2><div class="sp no-print"><span class="xsmall muted" id="wStdName"></span></div></div>
+        <div class="pn-b flush tbl-wrap"><table class="tbl" id="wDrink"></table></div>
+        <div class="pn-b" style="padding-top:0"><p class="xsmall muted" style="margin:0" id="wDrinkNote"></p></div>
+      </section>
+      <div class="grid2">
+        {{ m.fig_open('fw5', '5', 'USSL diagram: salinity and sodium hazard for irrigation', 'مخطط USSL: خطر الملوحة والصوديوم في الري') }}
+          <div class="fig-b"><div class="plot" id="wUssl" style="height:420px"></div></div>
+          <div class="fig-cap">{{ m.L('Richards (1954). Salinity classes C1–C4 from EC; sodium classes S1–S4 from SAR, with boundaries that fall as salinity rises.', 'Richards (1954). فئات الملوحة C1–C4 من التوصيلية، وفئات الصوديوم S1–S4 من SAR، وحدودها تنخفض كلما زادت الملوحة.') }}</div>
+        {{ m.fig_close() }}
+        <section class="pn"><div class="pn-h">{{ icon('sprout') }}<h2>{{ m.L('Irrigation indices', 'مؤشرات صلاحية الري') }}</h2></div><div class="pn-b flush tbl-wrap"><table class="tbl" id="wIrr"></table></div></section>
+      </div>
+      <section class="pn"><div class="pn-h">{{ icon('file-text') }}<h2>{{ m.L('Hydrochemical interpretation', 'التفسير الهيدروكيميائي') }}</h2></div><div class="pn-b" id="wNarr" style="font-size:.92rem;line-height:1.85"></div></section>
+      {{ m.fig_open('fw6', '6', 'Sample locations', 'مواقع العينات') }}
+        <div class="fig-b pad0"><div class="map" id="wMap" style="height:380px"></div></div>
+        <div class="fig-cap">{{ m.L('Markers coloured by the water-quality class. Export the results and open them in the Contour Lab to map any parameter.', 'العلامات ملونة بحسب فئة جودة المياه. صدّر النتائج وافتحها في مختبر الخرائط الكنتورية لرسم خريطة أي معامل.') }}</div>
+      {{ m.fig_close() }}
+      <section class="pn"><div class="pn-h">{{ icon('download') }}<h2>{{ m.L('Downloads', 'التنزيلات') }}</h2></div>
+        <div class="pn-b" style="display:flex;flex-wrap:wrap;gap:8px">
+          <button class="btn btn-gold btn-sm" id="wCsv" type="button">{{ icon('file-spreadsheet', 'ico ico-sm') }}{{ m.L('Results table (CSV)', 'جدول النتائج (CSV)') }}</button>
+          <button class="btn btn-line btn-sm" id="wCsvIn" type="button">{{ icon('file-text', 'ico ico-sm') }}{{ m.L('Input data (CSV)', 'البيانات المدخلة (CSV)') }}</button>
+        </div>
+      </section>
+    </div>
+  </div>
+</div>
+</div>
+{% endblock %}
