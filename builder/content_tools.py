@@ -265,7 +265,7 @@ TOOLS = [
  'outputs': [L('Daily rain, antecedent index and hourly exceedance ratio', 'المطر اليومي ومؤشر الرطوبة السابقة ونسبة التجاوز الساعية'),
              L('Log–log intensity–duration plot against thresholds', 'مخطط الشدة–المدة اللوغاريتمي مقابل العتبات'),
              L('Critical durations table and threshold-crossing episodes', 'جدول المُدد الحرجة وأحداث تجاوز العتبة'),
-             L('Local slope, aspect and relief from the 90 m DEM', 'الميل والاتجاه والتضاريس المحلية من نموذج 90 م'),
+             L('Local slope, aspect and relief from the 30 m Copernicus DEM', 'الميل والاتجاه والتضاريس المحلية من نموذج كوبرنيكوس 30 م'),
              L('Warning level and geological interpretation', 'مستوى الإنذار والتفسير الجيولوجي')],
  'method': [
    {'h': L('Intensity–duration thresholds', 'عتبات الشدة–المدة'),
@@ -274,7 +274,7 @@ TOOLS = [
     'eq': 'Caine: I = 14.82 D<sup>−0.39</sup> &nbsp;·&nbsp; Guzzetti: I = 2.20 D<sup>−0.44</sup>'},
    {'h': L('Exceedance ratio', 'نسبة التجاوز'), 'p': L('Evaluated every hour over eleven durations from 1 to 240 h.', 'تُحسب كل ساعة عبر إحدى عشرة مدة من 1 إلى 240 ساعة.'), 'eq': 'R(t) = max<sub>D</sub> [ I(t, D) / I<sub>t</sub>(D) ]'},
    {'h': L('Antecedent precipitation index', 'مؤشر الأمطار السابقة'), 'p': L('Daily running index of soil wetness with decay constant k.', 'مؤشر يومي متراكم لرطوبة التربة بثابت تضاؤل k.'), 'eq': 'API<sub>t</sub> = k · API<sub>t−1</sub> + P<sub>t</sub>'},
-   {'h': L('Slope from the DEM', 'الميل من نموذج الارتفاع'), 'p': L('Horn (1981) gradient on a 3 × 3 window of Copernicus GLO-90 elevations around the site.', 'تدرج Horn (1981) على نافذة 3 × 3 من ارتفاعات Copernicus GLO-90 حول الموقع.'), 'eq': 'tan β = √[(∂z/∂x)² + (∂z/∂y)²]'},
+   {'h': L('Slope from the DEM', 'الميل من نموذج الارتفاع'), 'p': L('Horn (1981) gradient on a 3 × 3 window of Copernicus GLO-30 elevations (30 m) around the site.', 'تدرج Horn (1981) على نافذة 3 × 3 من ارتفاعات Copernicus GLO-30 (30 م) حول الموقع.'), 'eq': 'tan β = √[(∂z/∂x)² + (∂z/∂y)²]'},
  ],
  'refs': ['Caine, N. (1980). The rainfall intensity–duration control of shallow landslides and debris flows. Geografiska Annaler A, 62(1–2), 23–27.',
           'Guzzetti, F. et al. (2008). The rainfall intensity–duration control of shallow landslides and debris flows: an update. Landslides, 5, 3–17.',
@@ -468,9 +468,17 @@ ORDER = ['quarry-survey', 'structural-geotechnical', 'geomorphology-contour', 's
          'kerogen-lab', 'palynofacies-lab', 'geothermal-lab']
 _all = {t['slug']: t for t in TOOLS + NEW_TOOLS}
 TOOLS = [_all[k] for k in ORDER]
+# access: 'sub' (subscribers only), 'free' (open to all), 'open' (the data view is free; Shandal analysis,
+# interpretation, maps, downloads and reports are for subscribers). 'open' is used where the upstream data
+# service permits only non-commercial use, so the paid part of the tool is the analysis, not the data.
+OPEN_DATA = {'air-quality', 'env-monitoring', 'hydro-alert'}
 for _t in TOOLS:
     _t.setdefault('libs', [])
     _t.setdefault('gate', True)
+    if _t['slug'] in OPEN_DATA:
+        _t['access'] = 'open'; _t['gate'] = False
+    else:
+        _t.setdefault('access', 'sub' if _t['gate'] is not False else 'free')
 
 from content_tools3 import OVERRIDES as _OV
 for _t in TOOLS:

@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block bodyattr %} class="ws-page" data-tool="{{ tool.name.en }}" data-slug="{{ tool.slug }}" data-tname="{{ tr(tool.name) }}"{% endblock %}
+{% block bodyattr %} class="ws-page" data-tool="{{ tool.name.en }}" data-slug="{{ tool.slug }}" data-tname="{{ tr(tool.name) }}" data-access="{{ tool.access }}" data-pricing="{{ u('pricing/') }}?tool={{ tool.slug }}" data-login="{{ u('login/') }}?next={{ ('tools/' + tool.slug + '/app/')|urlencode }}"{% endblock %}
 {% block head %}
 <link rel="stylesheet" href="{{ u('assets/css/ws.css') }}?v={{ version }}">
 {% if 'map' in tool.libs %}<link rel="stylesheet" href="{{ u('assets/vendor/leaflet/leaflet.css') }}">{% endif %}
@@ -21,6 +21,8 @@
 <div id="ws-root">
 <script type="application/json" id="toolMeta">{{ tool_meta }}</script>
 <div class="rep-head" id="repHead"><img src="{{ u('assets/img/emblem-192.png') }}" alt=""><div><h1 data-r="title"></h1><p>{{ t('brand_full') }} · geologicalfieldsurvey.com</p><p data-r="meta"></p></div><div><div class="qr"></div><div class="code" data-r="code"></div></div></div>
+{% if tool.access == 'open' %}<div class="wrap open-note no-print" id="openNote" hidden><span class="ib">{{ icon('lock-open', 'ico ico-sm') }}</span><span>{{ t('open_data_note') }}</span><a class="btn btn-gold btn-xs" href="{{ u('pricing/') }}?tool={{ tool.slug }}">{{ t('see_plans') }}</a><a class="btn btn-line btn-xs" href="{{ u('login/') }}?next={{ ('tools/' + tool.slug + '/app/')|urlencode }}">{{ t('nav_signin') }}</a></div>
+<template id="proLockTpl"><div class="pro-lock"><span class="pl-i">{{ icon('lock', 'ico') }}</span><b>{{ t('pro_h') }}</b><p>{{ t('pro_p') }}</p><div class="btns"><a class="btn btn-gold btn-xs" href="{{ u('pricing/') }}?tool={{ tool.slug }}">{{ t('see_plans') }}</a><a class="btn btn-line btn-xs" href="{{ u('login/') }}?next={{ ('tools/' + tool.slug + '/app/')|urlencode }}">{{ t('nav_signin') }}</a></div></div></template>{% endif %}
 {% block ws %}{% endblock %}
 </div>
 {% if tool.gate is not sameas false %}

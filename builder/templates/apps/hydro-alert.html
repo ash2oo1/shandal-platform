@@ -40,20 +40,20 @@
     <div id="hEmpty" class="pn">{{ m.empty('cloud-rain', 'Test rainfall against landslide thresholds', 'اختبر الأمطار مقابل عتبات الانزلاق', 'Pick the site and the period, then fetch hourly rainfall. Every storm is tested at durations from 1 hour to 10 days against the selected intensity–duration threshold.', 'اختر الموقع والفترة ثم اجلب الأمطار الساعية. تُختبر كل عاصفة عند مُدد من ساعة واحدة إلى 10 أيام مقابل عتبة الشدة–المدة المختارة.') }}</div>
     <div id="hOut" hidden style="display:grid;gap:18px">
       <div class="kpis" id="hKpis"></div>
-      <div id="hVerd" style="display:grid;gap:10px"></div>
+      <div data-pro><div id="hVerd" style="display:grid;gap:10px"></div></div>
       {{ m.fig_open('fh1', '1', 'Rainfall, accumulation and threshold exceedance', 'الأمطار والتراكم وتجاوز العتبة') }}
         <div class="fig-b"><div class="plot" id="hTs" style="height:500px"></div></div>
         <div class="fig-cap">{{ m.L('Bars: daily rain. Line: antecedent precipitation index. Lower panel: exceedance ratio, the largest I / I(threshold) over all durations ending at each hour. Values above 1 cross the threshold.', 'الأعمدة: المطر اليومي. الخط: مؤشر الأمطار السابقة. اللوحة السفلى: نسبة التجاوز، أكبر قيمة لـ I / I(العتبة) عبر كل المُدد المنتهية عند كل ساعة. القيم فوق 1 تتجاوز العتبة.') }}</div>
       {{ m.fig_close() }}
-      <div class="grid2">
+      <div class="grid2" data-pro>
         {{ m.fig_open('fh2', '2', 'Intensity–duration plot', 'مخطط الشدة–المدة') }}
           <div class="fig-b"><div class="plot" id="hID" style="height:360px"></div></div>
           <div class="fig-cap">{{ m.L('Maximum mean intensity reached at each duration during the period, against the published thresholds (log–log).', 'أقصى شدة متوسطة بلغتها الأمطار عند كل مدة خلال الفترة، مقابل العتبات المنشورة (لوغاريتمي).') }}</div>
         {{ m.fig_close() }}
-        <section class="pn"><div class="pn-h">{{ icon('table') }}<h2>{{ m.L('Critical durations', 'المُدد الحرجة') }}</h2><div class="sp no-print"><button class="btn btn-line btn-xs" id="hCsv">{{ icon('download', 'ico ico-sm') }}CSV</button></div></div>
+        <section class="pn"><div class="pn-h">{{ icon('table') }}<h2>{{ m.L('Critical durations', 'المُدد الحرجة') }}</h2><div class="sp no-print"><button class="btn btn-line btn-xs" id="hCsv" data-pro-action>{{ icon('download', 'ico ico-sm') }}CSV</button></div></div>
           <div class="pn-b flush tbl-wrap"><table class="tbl" id="hTbl"></table></div></section>
       </div>
-      <section class="pn"><div class="pn-h">{{ icon('file-text') }}<h2>{{ m.L('Geological interpretation', 'التفسير الجيولوجي') }}</h2></div><div class="pn-b" id="hNarr" style="font-size:.92rem;line-height:1.8"></div></section>
+      <section class="pn" data-pro><div class="pn-h">{{ icon('file-text') }}<h2>{{ m.L('Geological interpretation', 'التفسير الجيولوجي') }}</h2></div><div class="pn-b" id="hNarr" style="font-size:.92rem;line-height:1.8"></div></section>
     </div>
   </div>
 </div>

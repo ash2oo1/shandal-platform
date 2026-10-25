@@ -1,5 +1,5 @@
-/* Shandal DEM engine — global elevation grids from the SRTM composite terrain tiles (Terrarium PNG, ~30 m) or Copernicus GLO-90
-   (point service, resampled on its native 3″ grid), bilinear sampling, Horn derivatives, marching-squares contours, hillshade and
+/* Shandal DEM engine — global elevation grids from the SRTM composite terrain tiles (Terrarium PNG, ~30 m) or Copernicus GLO-30 / GLO-90
+   (float32 tiles read from the Planetary Computer), bilinear sampling, Horn derivatives, marching-squares contours, hillshade and
    hypsometric rendering, printable map sheet. */
 (function (w) {
   'use strict';
@@ -8,7 +8,9 @@
   D.sources = {
     aws: { name: t('SRTM composite (~30 m)', 'نموذج SRTM المركّب (~30 م)'), short: 'DEM: SRTM composite (NASA · USGS)',
            attr: t('SRTM 1″ (NASA/USGS) merged with USGS 3DEP, GMTED2010, ETOPO1 and EU-DEM (produced using Copernicus data).', 'بيانات SRTM بدقة 1″ (NASA/USGS) مدموجة مع USGS 3DEP وGMTED2010 وETOPO1 وEU-DEM (منتَج باستخدام بيانات كوبرنيكوس).') },
-    cop: { name: t('Copernicus GLO-90 (90 m)', 'Copernicus GLO-90 (90 م)'), short: 'DEM: Copernicus GLO-90 (ESA)',
+    cop30: { name: t('Copernicus GLO-30 (30 m)', 'Copernicus GLO-30 (30 م)'), short: 'DEM: Copernicus GLO-30 (ESA)', coll: 'cop-dem-glo-30',
+           attr: 'Copernicus DEM GLO-30 © DLR e.V. 2010–2014 and © Airbus Defence and Space GmbH 2014–2018, provided under COPERNICUS by the European Union and ESA.' },
+    cop: { name: t('Copernicus GLO-90 (90 m)', 'Copernicus GLO-90 (90 م)'), short: 'DEM: Copernicus GLO-90 (ESA)', coll: 'cop-dem-glo-90',
            attr: 'Copernicus DEM GLO-90 © DLR e.V. 2010–2014 and © Airbus Defence and Space GmbH 2014–2018, provided under COPERNICUS by the European Union and ESA.' }
   };
   var lon2x = function (lon, z) { return (lon + 180) / 360 * Math.pow(2, z); };
@@ -44,48 +46,16 @@
       f.zoom = z; f.pixel = 156543.03 * Math.cos(SH.rad(lat)) / Math.pow(2, z); return f;
     });
   };
-  /* Copernicus GLO-90 point query (open elevation point service), 100 points per request */
-  D.copernicus = function (pts, onProgress) {
-    var out = new Array(pts.length), chunks = [];
-    for (var i = 0; i < pts.length; i += 100) chunks.push(i);
-    var idx = 0;
-    function next() {
-      if (idx >= chunks.length) return Promise.resolve(out);
-      var s = chunks[idx], part = pts.slice(s, s + 100), tries = 0;
-      var url = 'https://api.open-meteo.com/v1/elevation?latitude=' + part.map(function (p) { return p[0].toFixed(5); }).join(',') + '&longitude=' + part.map(function (p) { return p[1].toFixed(5); }).join(',');
-      function go() {
-        return fetch(url).then(function (r) { if (r.status === 429) throw { retry: true }; if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); }).then(function (j) {
-          j.elevation.forEach(function (v, k) { out[s + k] = v; }); idx++; if (onProgress) onProgress(idx, chunks.length); return new Promise(function (r) { setTimeout(r, 250); }).then(next);
-        }).catch(function (e) { if (++tries <= 5) return new Promise(function (r) { setTimeout(r, (e && e.retry ? 4000 : 1500) * tries); }).then(go); throw new Error(t('The elevation service is busy. Try a coarser grid or the SRTM composite.', 'خدمة الارتفاعات مشغولة. جرّب شبكة أخشن أو نموذج SRTM المركّب.')); });
-      }
-      return go();
-    }
-    return next();
-  };
-  /* Regular grid over bounds {n,s,e,w}; rows run north to south */
-  /* Copernicus GLO-90 is a 3″ (~90 m) grid of whole metres. Sample it on its native lattice, smooth the 1 m
-     quantisation with a 3 × 3 binomial filter, and return a bilinear sampler for any finer target grid. */
-  D.copNative = function (b, onProgress) {
-    var d = 1 / 1200, pad = 2 * d, s0 = Math.floor((b.s - pad) / d) * d, w0 = Math.floor((b.w - pad) / d) * d, ny = Math.ceil((b.n + pad - s0) / d) + 1, nx = Math.ceil((b.e + pad - w0) / d) + 1, pts = [], i, j;
-    for (j = 0; j < ny; j++) for (i = 0; i < nx; i++) pts.push([s0 + j * d, w0 + i * d]);
-    return D.copernicus(pts, onProgress).then(function (z) {
-      var A = new Float32Array(nx * ny), S = new Float32Array(nx * ny); for (var k = 0; k < z.length; k++) A[k] = z[k] == null ? NaN : z[k];
-      var W = [1, 2, 1];
-      for (j = 0; j < ny; j++) for (i = 0; i < nx; i++) { var sum = 0, wt = 0; for (var dj = -1; dj <= 1; dj++) for (var di = -1; di <= 1; di++) { var ii = i + di, jj = j + dj; if (ii < 0 || jj < 0 || ii >= nx || jj >= ny) continue; var v = A[jj * nx + ii]; if (isNaN(v)) continue; var ww = W[di + 1] * W[dj + 1]; sum += v * ww; wt += ww; } S[j * nx + i] = wt ? sum / wt : NaN; }
-      return function (lat, lon) { var fx = (lon - w0) / d, fy = (lat - s0) / d, x0 = Math.max(0, Math.min(nx - 2, Math.floor(fx))), y0 = Math.max(0, Math.min(ny - 2, Math.floor(fy))), tx = fx - x0, ty = fy - y0;
-        var a = S[y0 * nx + x0], b2 = S[y0 * nx + x0 + 1], c = S[(y0 + 1) * nx + x0], e = S[(y0 + 1) * nx + x0 + 1]; return a * (1 - tx) * (1 - ty) + b2 * tx * (1 - ty) + c * (1 - tx) * ty + e * tx * ty; };
-    });
-  };
+  /* Copernicus DEM (GLO-30 or GLO-90) as a bilinear sampler over bounds, read through SH.pc */
+  D.isCop = function (src) { return src === 'cop' || src === 'cop30'; };
+  D.copSampler = function (b, src, onProgress) { var pad = 0.002; return SH.pc.dem({ n: b.n + pad, s: b.s - pad, e: b.e + pad, w: b.w - pad }, D.sources[src].coll, onProgress); };
   D.grid = function (b, nx, ny, opts) {
     opts = opts || {}; var src = opts.source || 'aws', lats = [], lons = [], i, j;
     for (j = 0; j < ny; j++) lats.push(b.n - (b.n - b.s) * j / (ny - 1));
     for (i = 0; i < nx; i++) lons.push(b.w + (b.e - b.w) * i / (nx - 1));
     var m = D.metersPerDeg((b.n + b.s) / 2), dx = (b.e - b.w) / (nx - 1) * m.x, dy = (b.n - b.s) / (ny - 1) * m.y;
     var G = { nx: nx, ny: ny, lats: lats, lons: lons, b: b, dx: dx, dy: dy, source: src, z: new Float32Array(nx * ny) };
-    if (src === 'cop') {
-      var pts = []; for (j = 0; j < ny; j++) for (i = 0; i < nx; i++) pts.push([lats[j], lons[i]]);
-      return D.copernicus(pts, opts.onProgress).then(function (z) { for (var k = 0; k < z.length; k++) G.z[k] = z[k] == null ? NaN : z[k]; return D.stats(G); });
-    }
+    if (D.isCop(src)) return D.copSampler(b, src, opts.onProgress).then(function (f) { for (j = 0; j < ny; j++) for (i = 0; i < nx; i++) G.z[j * nx + i] = f(lats[j], lons[i]); return D.stats(G); });
     return D.terrarium(b, Math.min(dx, dy), opts.onProgress).then(function (f) { G.zoom = f.zoom; G.pixel = f.pixel; for (j = 0; j < ny; j++) for (i = 0; i < nx; i++) G.z[j * nx + i] = f(lats[j], lons[i]); return D.stats(G); });
   };
 
@@ -107,13 +77,14 @@
     G.geo = { n: -90, s: 90, e: -180, w: 180 }; ll.forEach(function (p) { if (p[0] > G.geo.n) G.geo.n = p[0]; if (p[0] < G.geo.s) G.geo.s = p[0]; if (p[1] > G.geo.e) G.geo.e = p[1]; if (p[1] < G.geo.w) G.geo.w = p[1]; });
     G.ll = ll;
     var fill = function (z) { for (var k = 0; k < z.length; k++) G.z[k] = z[k] == null || isNaN(z[k]) ? NaN : z[k]; return D.stats(G); };
-    if (source === 'cop') return D.copNative(G.geo, onProgress).then(function (f) { G.resampled = true; return fill(ll.map(function (p) { return f(p[0], p[1]); })); });
+    if (D.isCop(source)) return D.copSampler(G.geo, source, onProgress).then(function (f) { G.resampled = true; return fill(ll.map(function (p) { return f(p[0], p[1]); })); });
     var pad = 0.001, gb = { n: G.geo.n + pad, s: G.geo.s - pad, e: G.geo.e + pad, w: G.geo.w - pad };
     return D.terrarium(gb, step, onProgress).then(function (f) { G.zoom = f.zoom; G.pixel = f.pixel; return fill(ll.map(function (p) { return f(p[0], p[1]); })); });
   };
   D.points = function (pts, opts) {
     opts = opts || {};
-    if ((opts.source || 'aws') === 'cop') return D.copernicus(pts, opts.onProgress);
+    if (D.isCop(opts.source)) { var bb = { n: -90, s: 90, e: -180, w: 180 }; pts.forEach(function (p) { bb.n = Math.max(bb.n, p[0]); bb.s = Math.min(bb.s, p[0]); bb.e = Math.max(bb.e, p[1]); bb.w = Math.min(bb.w, p[1]); });
+      return D.copSampler(bb, opts.source, opts.onProgress).then(function (f) { return pts.map(function (p) { return f(p[0], p[1]); }); }); }
     var b = { n: -90, s: 90, e: -180, w: 180 }; pts.forEach(function (p) { b.n = Math.max(b.n, p[0]); b.s = Math.min(b.s, p[0]); b.e = Math.max(b.e, p[1]); b.w = Math.min(b.w, p[1]); });
     var pad = 0.002; b.n += pad; b.s -= pad; b.e += pad; b.w -= pad;
     var span = Math.max((b.n - b.s) * 110574, (b.e - b.w) * D.metersPerDeg((b.n + b.s) / 2).x);

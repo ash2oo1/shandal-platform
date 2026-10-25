@@ -16,7 +16,7 @@
   function run() {
     var lat = SH.num('qLat'), lon = SH.num('qLon'); if (isNaN(lat) || isNaN(lon)) return; persist.save(); $('#qRun').disabled = true;
     SH.getJSON('https://air-quality-api.open-meteo.com/v1/air-quality?latitude=' + lat.toFixed(4) + '&longitude=' + lon.toFixed(4) + '&current=' + VARS + '&hourly=' + VARS + '&timezone=auto&past_days=1&forecast_days=5')
-      .then(function (j) { last = { j: j, lat: lat, lon: lon }; render(); grid(lat, lon); }).catch(function (e) { SH.toast(e.message, 'bad'); }).then(function () { $('#qRun').disabled = false; });
+      .then(function (j) { last = { j: j, lat: lat, lon: lon }; render(); if (SH.pro()) grid(lat, lon); else lockedMap(); }).catch(function (e) { SH.toast(e.message, 'bad'); }).then(function () { $('#qRun').disabled = false; });
   }
   function kpi(cls, k, v, s) { return '<div class="kpi ' + cls + '"><span class="k">' + k + '</span><span class="v">' + v + '</span><span class="s">' + s + '</span></div>'; }
   function render() {
@@ -99,7 +99,8 @@
       $('#qMapCap').innerHTML = t('Current ', 'القيم الحالية لـ ') + '<b>' + SH.esc(SH.selText('qIdx')) + '</b>' + t(' from the CAMS global atmospheric composition forecast (native resolution about 0.4°, ≈ 45 km). The model was sampled on an 11 × 11 grid at its native spacing and interpolated bicubically for display; black isolines mark the official category limits (', ' من تنبؤ تركيب الغلاف الجوي العالمي CAMS (الدقة الأصلية نحو 0.4°، أي ≈ 45 كم). أُخذت قيم النموذج على شبكة 11 × 11 بتباعده الأصلي واستُكملت بالاستيفاء ثلاثي الدرجة للعرض؛ وتحدد الخطوط السوداء حدود الفئات الرسمية (') + SH.esc(S.src) + t('). Values between nodes are interpolated, so local sources such as a factory or a road are smoothed out.', '). القيم بين العقد مستوفاة، لذلك تُنعَّم المصادر المحلية كالمصانع والطرق.');
     }).catch(function (e) { SH.toast(e.message, 'bad'); }).then(function () { SH.busy($('#qMap').parentElement, false); });
   }
-  $('#qIdx').addEventListener('change', function () { persist.save(); if (last) grid(last.lat, last.lon); });
+  function lockedMap() { $('#qMapCap').innerHTML = SH.icon('info') + ' ' + t('The regional pollution map, with isolines at the official category limits, is a Shandal analysis for subscribers.', 'خريطة التلوث الإقليمية مع خطوط الحدود الرسمية للفئات من تحليل نظام شندل، وهي للمشتركين.'); }
+  $('#qIdx').addEventListener('change', function () { persist.save(); if (last && SH.pro()) grid(last.lat, last.lon); });
   $('#qRun').addEventListener('click', run);
   document.addEventListener('sh:beforereport', function (e) { if (!last) { e.preventDefault(); SH.toast(t('Read the air quality first.', 'اقرأ جودة الهواء أولاً.'), 'warn'); } });
   document.addEventListener('sh:redraw', function () { if (last) plot(SH.seg('qTab') || 'pm'); });

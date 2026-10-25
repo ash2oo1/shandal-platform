@@ -227,6 +227,13 @@
 {% elif page == 'pricing' %}
 <section class="section">
   <div class="wrap">
+    <div class="sub-ask" id="subAsk" hidden>
+      <span class="ib">{{ icon('lock') }}</span>
+      <div><h3 class="h3">{{ t('sub_for_tool') }}: <span id="subTool"></span></h3><p class="muted" style="margin-top:6px">{{ t('sub_for_tool_p') }}</p></div>
+      <a class="btn btn-line" id="subLogin" href="{{ u('login/') }}">{{ t('have_sub') }}</a>
+    </div>
+    <script>(function(){var m=/[?&]tool=([a-z0-9-]+)/.exec(location.search);if(!m)return;var slug=m[1];
+      document.addEventListener('DOMContentLoaded',function(){var ix=(window.SHANDAL_INDEX||[]).filter(function(x){return x.u.indexOf('tools/'+slug+'/')>=0})[0];if(!ix)return;var b=document.getElementById('subAsk');document.getElementById('subTool').textContent=ix.n;var l=document.getElementById('subLogin');l.href=l.href+'?next='+encodeURIComponent('tools/'+slug+'/app/');b.hidden=false;});})();</script>
     <div class="plans">
       {% for p in plans %}
       <div class="plan {{ 'best' if p.best }}">

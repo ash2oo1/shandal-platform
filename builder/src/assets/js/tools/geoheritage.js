@@ -45,8 +45,12 @@
       '<div id="hNow" class="xsmall muted" style="padding:10px 18px">' + t('Reading current conditions…', 'جارٍ قراءة الظروف الحالية…') + '</div>' +
       '<div style="display:flex;flex-wrap:wrap;gap:8px;padding:4px 18px 18px"><a class="btn btn-gold btn-sm" target="_blank" rel="noopener" href="https://www.google.com/maps/dir/?api=1&destination=' + s.lat + ',' + s.lon + '">' + t('Directions', 'الاتجاهات') + '</a><a class="btn btn-line btn-sm" target="_blank" rel="noopener" href="https://www.openstreetmap.org/?mlat=' + s.lat + '&mlon=' + s.lon + '#map=15/' + s.lat + '/' + s.lon + '">OpenStreetMap</a><button type="button" class="btn btn-line btn-sm" data-copy>' + t('Copy link', 'نسخ الرابط') + '</button></div>';
     $('#hCard').hidden = false; $('#hCard').scrollTop = 0; gal = Array.from({ length: s.img }, function (_, i) { return img(s, i + 1); }); list();
-    SH.getJSON('https://api.open-meteo.com/v1/forecast?latitude=' + s.lat + '&longitude=' + s.lon + '&current=temperature_2m,relative_humidity_2m,wind_speed_10m,weather_code&daily=sunrise,sunset&timezone=auto&forecast_days=1', { timeout: 12000 }).then(function (w) { if (cur !== id) return; var c2 = w.current;
-      $('#hNow').innerHTML = '<b>' + t('Now at the site', 'الآن في الموقع') + ':</b> ' + SH.fmt(c2.temperature_2m, 0) + '°C · ' + t('humidity ', 'الرطوبة ') + c2.relative_humidity_2m + '% · ' + t('wind ', 'الرياح ') + SH.fmt(c2.wind_speed_10m, 0) + ' km/h · ☀ ' + w.daily.sunrise[0].slice(11) + '–' + w.daily.sunset[0].slice(11); }).catch(function () { $('#hNow').textContent = ''; });
+    /* current conditions: MET Norway Locationforecast (CC BY 4.0) and its sunrise service */
+    var hm = function (iso) { var m = /T(\d\d:\d\d)/.exec(iso || ''); return m ? m[1] : ''; };
+    Promise.all([SH.getJSON('https://api.met.no/weatherapi/locationforecast/2.0/compact?lat=' + (+s.lat).toFixed(4) + '&lon=' + (+s.lon).toFixed(4), { timeout: 12000 }),
+      SH.getJSON('https://api.met.no/weatherapi/sunrise/3.0/sun?lat=' + (+s.lat).toFixed(4) + '&lon=' + (+s.lon).toFixed(4) + '&offset=%2B03:00', { timeout: 12000 }).catch(function () { return null; })]).then(function (r) { if (cur !== id) return;
+      var c2 = r[0].properties.timeseries[0].data.instant.details, sun = r[1] && r[1].properties;
+      $('#hNow').innerHTML = '<b>' + t('Now at the site', 'الآن في الموقع') + ':</b> ' + SH.fmt(c2.air_temperature, 0) + '°C · ' + t('humidity ', 'الرطوبة ') + SH.fmt(c2.relative_humidity, 0) + '% · ' + t('wind ', 'الرياح ') + SH.fmt(c2.wind_speed * 3.6, 0) + ' km/h' + (sun && sun.sunrise ? ' · ☀ ' + hm(sun.sunrise.time) + '–' + hm(sun.sunset.time) : ''); }).catch(function () { $('#hNow').textContent = ''; });
   }
   $('#hCard').addEventListener('click', function (e) {
     if (e.target.closest('[data-close]')) { $('#hCard').hidden = true; cur = null; history.replaceState(null, '', location.pathname); list(); return; }

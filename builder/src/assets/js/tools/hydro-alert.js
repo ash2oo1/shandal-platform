@@ -1,5 +1,5 @@
 /* Hydrological early warning — hourly rainfall (ECMWF / ERA5) tested against rainfall intensity–duration landslide thresholds,
-   with antecedent precipitation index and local slope from the Copernicus 90 m DEM. */
+   with antecedent precipitation index and local slope from the Copernicus 30 m DEM. */
 (function () {
   'use strict';
   var t = SH.t, $ = SH.$, L = window.L;
@@ -31,12 +31,13 @@
     }
     return SH.getJSON('https://api.open-meteo.com/v1/forecast?' + q + '&past_days=14&forecast_days=7');
   }
+  /* local slope from Copernicus GLO-30 (Horn 1981 on a 3 × 3 window at 30 m) */
   function fetchSlope(lat, lon) {
-    var dlat = 90 / 111195, dlon = 90 / (111195 * Math.cos(SH.rad(lat))), la = [], lo = [];
-    for (var i = 1; i >= -1; i--) for (var j = -1; j <= 1; j++) { la.push((lat + i * dlat).toFixed(6)); lo.push((lon + j * dlon).toFixed(6)); }
-    return SH.getJSON('https://api.open-meteo.com/v1/elevation?latitude=' + la.join(',') + '&longitude=' + lo.join(',')).then(function (j) {
-      var z = j.elevation; if (!z || z.length < 9) return null;
-      var dzdx = ((z[2] + 2 * z[5] + z[8]) - (z[0] + 2 * z[3] + z[6])) / (8 * 90), dzdy = ((z[0] + 2 * z[1] + z[2]) - (z[6] + 2 * z[7] + z[8])) / (8 * 90);
+    var d = 30, dlat = d / 111195, dlon = d / (111195 * Math.cos(SH.rad(lat)));
+    return SH.pc.dem({ n: lat + 4 * dlat, s: lat - 4 * dlat, e: lon + 4 * dlon, w: lon - 4 * dlon }, 'cop-dem-glo-30').then(function (f) {
+      var z = []; for (var i = 1; i >= -1; i--) for (var j = -1; j <= 1; j++) z.push(f(lat + i * dlat, lon + j * dlon));
+      if (z.some(isNaN)) return null;
+      var dzdx = ((z[2] + 2 * z[5] + z[8]) - (z[0] + 2 * z[3] + z[6])) / (8 * d), dzdy = ((z[0] + 2 * z[1] + z[2]) - (z[6] + 2 * z[7] + z[8])) / (8 * d);
       var asp = (SH.deg(Math.atan2(dzdx, dzdy)) + 180) % 360;
       return { z: z[4], slope: SH.deg(Math.atan(Math.sqrt(dzdx * dzdx + dzdy * dzdy))), aspect: asp, relief: Math.max.apply(null, z) - Math.min.apply(null, z) };
     }).catch(function () { return null; });
@@ -86,7 +87,9 @@
     $('#hEmpty').hidden = true; $('#hOut').hidden = false;
     var lv = level(r), s = r.slope, steep = s && s.slope >= 25, mod = s && s.slope >= 15, apiNow = r.api[r.fc && r.nowI >= 0 ? r.days.indexOf(r.time[r.nowI].slice(0, 10)) : r.api.length - 1] || 0;
     var maxApi = Math.max.apply(null, r.api);
-    $('#hKpis').innerHTML = kpi('info', t('Total rainfall', 'مجموع الأمطار'), SH.fmt(r.total, 1) + '<small> mm</small>', r.days.length + t(' days · ', ' يوماً · ') + r.n + t(' hours', ' ساعة')) +
+    var kRain = kpi('info', t('Total rainfall', 'مجموع الأمطار'), SH.fmt(r.total, 1) + '<small> mm</small>', r.days.length + t(' days · ', ' يوماً · ') + r.n + t(' hours', ' ساعة')), kMax = kpi('', t('Wettest day', 'أكثر الأيام مطراً'), SH.fmt(Math.max.apply(null, r.dP.concat([0])), 1) + '<small> mm</small>', r.days[r.dP.indexOf(Math.max.apply(null, r.dP.concat([0])))] || '—');
+    if (!SH.pro()) { $('#hKpis').innerHTML = kRain + kMax; plots(r); return; }
+    $('#hKpis').innerHTML = kRain +
       kpi(r.peak >= 1 ? 'bad' : r.peak >= 0.7 ? 'warn' : 'ok', t('Peak exceedance ratio', 'أقصى نسبة تجاوز'), SH.fmt(r.peak, 2), r.peak > 0 ? t('at D = ', 'عند D = ') + r.rDur[r.peakI] + ' h · ' + fmtT(r.time[r.peakI]) : t('no rain', 'لا أمطار')) +
       kpi(r.breachH ? 'bad' : 'ok', t('Hours above threshold', 'ساعات فوق العتبة'), r.breachH, r.eps.length + t(' episode(s)', ' حدث')) +
       kpi(apiNow > 50 ? 'warn' : '', t('Antecedent index', 'مؤشر الرطوبة السابقة'), SH.fmt(r.fc ? apiNow : maxApi, 1) + '<small> mm</small>', r.fc ? t('today', 'اليوم') : t('maximum in period', 'الأقصى في الفترة')) +
@@ -111,6 +114,13 @@
     var dX = r.days.map(function (d) { return d + 'T12:00'; }), nowD = r.fc && r.nowI >= 0 ? String(r.time[r.nowI]).slice(0, 10) : null;
     var obs = r.dP.map(function (v, i) { return !nowD || r.days[i] < nowD ? v : null; }), fcs = r.dP.map(function (v, i) { return nowD && r.days[i] >= nowD ? v : null; });
     var above = r.ratio.map(function (v) { return v >= 1 ? v : null; });
+    if (!SH.pro()) { /* free view: the source rainfall only */
+      SH.plot('hTs', [
+        { type: 'bar', x: dX, y: obs, name: t('Observed daily rain', 'المطر اليومي المرصود'), marker: { color: SH.alpha(rain, .85), line: { color: rain, width: 1 } }, hovertemplate: '%{y:.1f} mm<extra></extra>' },
+        { type: 'bar', x: dX, y: fcs, name: t('Forecast daily rain', 'المطر اليومي المتوقع'), marker: { color: SH.alpha(rain, .35), line: { color: rain, width: 1 } }, hovertemplate: '%{y:.1f} mm<extra></extra>' }
+      ], function () { return SH.plotLayout({ bargap: .25, barmode: 'overlay', margin: { l: 56, r: 20, t: 40, b: 46 }, legend: { orientation: 'h', x: .5, xanchor: 'center', y: 1.12 }, xaxis: { type: 'date', tickformat: '%d %b' }, yaxis: { rangemode: 'tozero', title: { text: t('Rain mm/day', 'المطر مم/يوم') } } }); }, { filename: 'shandal-rainfall' });
+      return;
+    }
     SH.plot('hTs', [
       { type: 'bar', x: dX, y: obs, name: t('Observed daily rain', 'المطر اليومي المرصود'), marker: { color: SH.alpha(rain, .85), line: { color: rain, width: 1 } }, hovertemplate: '%{y:.1f} mm<extra>' + t('Observed', 'مرصود') + '</extra>' },
       { type: 'bar', x: dX, y: fcs, name: t('Forecast daily rain', 'المطر اليومي المتوقع'), marker: { color: SH.alpha(rain, .35), line: { color: rain, width: 1 }, pattern: { shape: '/', fgcolor: rain, size: 6, solidity: .25 } }, hovertemplate: '%{y:.1f} mm<extra>' + t('Forecast', 'متوقع') + '</extra>' },
@@ -154,7 +164,7 @@
     var s = r.slope, h = '<p>' + t('Hourly rainfall at ', 'حُللت الأمطار الساعية عند ') + '<span class="ltr">' + SH.fmtLatLon(r.lat, r.lon, 4) + '</span>' + t(' was analysed from ', ' من ') + fmtT(r.time[0]).slice(0, 10) + t(' to ', ' إلى ') + fmtT(r.time[r.n - 1]).slice(0, 10) + ' (' + SH.esc(r.tz) + '). ' +
       t('The period delivered ', 'بلغ مجموع الأمطار ') + SH.fmt(r.total, 1) + ' mm' + t('. Every window from 1 to 240 hours was compared with the ', '. قورنت كل نافذة زمنية من 1 إلى 240 ساعة بعتبة ') + r.T.n + t(' threshold, I = ', '، I = ') + SH.fmt(r.T.a, 2) + ' D<sup>−' + SH.fmt(r.T.b, 2) + '</sup>.</p>';
     h += '<p>' + LITH[r.lith] + '</p>';
-    if (s) h += '<p>' + t('The 90 m DEM gives a local slope of ', 'يعطي نموذج الارتفاع 90 م ميلاً محلياً قدره ') + SH.fmt(s.slope, 1) + '° ' + t('facing ', 'باتجاه ') + SH.fmt(s.aspect, 0) + '°' + t(' and a relief of ', ' وتضاريس نسبية ') + SH.fmt(s.relief, 0) + t(' m within 90 m of the site. ', ' م ضمن 90 م من الموقع. ') +
+    if (s) h += '<p>' + t('The 30 m Copernicus DEM gives a local slope of ', 'يعطي نموذج كوبرنيكوس 30 م ميلاً محلياً قدره ') + SH.fmt(s.slope, 1) + '° ' + t('facing ', 'باتجاه ') + SH.fmt(s.aspect, 0) + '°' + t(' and a relief of ', ' وتضاريس نسبية ') + SH.fmt(s.relief, 0) + t(' m within 90 m of the site. ', ' م ضمن 90 م من الموقع. ') +
       (s.slope >= 25 ? t('Slopes this steep are prone to shallow failure once the threshold is crossed.', 'المنحدرات بهذا الانحدار معرضة للانهيار الضحل عند تجاوز العتبة.') : s.slope >= 15 ? t('Moderate slopes fail where soils are thick, cut or saturated.', 'المنحدرات المتوسطة تنهار حيث تكون التربة سميكة أو مقطوعة أو مشبعة.') : t('Note that a 90 m DEM smooths road cuts and gullies; check steeper local faces in the field.', 'لاحظ أن نموذج 90 م ينعّم قطوع الطرق والأخاديد؛ افحص الواجهات المحلية الأشد انحداراً ميدانياً.')) + '</p>';
     h += '<p class="xsmall muted">' + t('Thresholds are empirical lower envelopes from global inventories. They flag conditions in which landslides have occurred, not certainty of failure. Calibrate with local landslide records where they exist.', 'العتبات أغلفة دنيا تجريبية من قوائم عالمية. تشير إلى ظروف حدثت فيها انزلاقات، لا إلى حتمية الانهيار. عايرها بسجلات الانزلاقات المحلية حيث توجد.') + '</p>';
     $('#hNarr').innerHTML = h;

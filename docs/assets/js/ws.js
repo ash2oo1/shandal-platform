@@ -332,6 +332,51 @@
       .catch(function (e) { clearTimeout(t); throw new Error(e.name === 'AbortError' ? SH.t('The data service took too long to answer. Try again.', 'استغرقت خدمة البيانات وقتاً طويلاً. حاول مجدداً.') : (/HTTP/.test(e.message) ? SH.t('The data service returned an error (', 'أعادت خدمة البيانات خطأ (') + e.message + ').' : SH.t('Could not reach the data service. Check your internet connection.', 'تعذر الوصول إلى خدمة البيانات. تحقق من اتصالك بالإنترنت.'))); });
   };
 
+  /* ---------------------------------------------------------------- Copernicus DEM from the Planetary Computer
+     Copernicus GLO-30 / GLO-90 (ESA, licence allows any use with attribution) read as float32 NumPy arrays from the
+     Planetary Computer data API: STAC search for the 1° tiles, one bbox request per tile, bilinear sampler over the mosaic. */
+  var PC = 'https://planetarycomputer.microsoft.com/api/';
+  SH.pc = {
+    search: function (coll, b, limit) {
+      return fetch(PC + 'stac/v1/search?collections=' + coll + '&bbox=' + [b.w, b.s, b.e, b.n].map(function (v) { return v.toFixed(6); }).join(',') + '&limit=' + (limit || 20))
+        .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); }).then(function (j) { return j.features || []; });
+    },
+    npy: function (url) {
+      return fetch(url).then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.arrayBuffer(); }).then(function (buf) {
+        var u8 = new Uint8Array(buf), major = u8[6], hl = major >= 2 ? (u8[8] | (u8[9] << 8) | (u8[10] << 16) | (u8[11] << 24)) : (u8[8] | (u8[9] << 8)), off = (major >= 2 ? 12 : 10) + hl;
+        var hdr = new TextDecoder().decode(u8.slice(major >= 2 ? 12 : 10, off)), shp = /shape': \(([^)]*)\)/.exec(hdr)[1].split(',').filter(function (x) { return x.trim(); }).map(Number);
+        return { shape: shp, data: new Float32Array(buf.slice(off)) };
+      });
+    },
+    /* sampler over bounds b {n,s,e,w}; coll 'cop-dem-glo-30' | 'cop-dem-glo-90'; maxPx caps each tile request side */
+    dem: function (b, coll, onProgress, maxPx) {
+      var res = coll === 'cop-dem-glo-30' ? 1 / 3600 : 1 / 1200, cap = maxPx || 2400;
+      return SH.pc.search(coll, b).then(function (items) {
+        if (!items.length) throw new Error(SH.t('No Copernicus DEM tile covers this area (open sea).', 'لا تغطي بلاطات نموذج كوبرنيكوس هذه المنطقة (بحر مفتوح).'));
+        if (items.length > 9) throw new Error(SH.t('The area spans too many 1° DEM tiles. Shrink it or use the SRTM composite.', 'المنطقة تمتد على بلاطات كثيرة. صغّرها أو استخدم نموذج SRTM المركّب.'));
+        var done = 0, pieces = [];
+        return Promise.all(items.map(function (it) {
+          var ib = { w: Math.max(b.w, it.bbox[0]), s: Math.max(b.s, it.bbox[1]), e: Math.min(b.e, it.bbox[2]), n: Math.min(b.n, it.bbox[3]) };
+          if (ib.e <= ib.w || ib.n <= ib.s) return null;
+          var W = Math.max(2, Math.ceil((ib.e - ib.w) / res)), H = Math.max(2, Math.ceil((ib.n - ib.s) / res)), k = Math.max(W, H) > cap ? cap / Math.max(W, H) : 1;
+          W = Math.max(2, Math.round(W * k)); H = Math.max(2, Math.round(H * k));
+          var url = PC + 'data/v1/item/bbox/' + [ib.w, ib.s, ib.e, ib.n].map(function (v) { return v.toFixed(7); }).join(',') + '/' + W + 'x' + H + '.npy?collection=' + coll + '&item=' + encodeURIComponent(it.id) + '&assets=data&resampling=bilinear';
+          return SH.pc.npy(url).then(function (a) { var h = a.shape[1], w2 = a.shape[2]; pieces.push({ b: ib, W: w2, H: h, z: a.data.subarray(0, w2 * h), m: a.shape[0] > 1 ? a.data.subarray(w2 * h, 2 * w2 * h) : null }); if (onProgress) onProgress(++done, items.length); });
+        })).then(function () {
+          var f = function (lat, lon) {
+            for (var q = 0; q < pieces.length; q++) { var P = pieces[q]; if (lat < P.b.s || lat > P.b.n || lon < P.b.w || lon > P.b.e) continue;
+              var gx = (lon - P.b.w) / (P.b.e - P.b.w) * P.W - 0.5, gy = (P.b.n - lat) / (P.b.n - P.b.s) * P.H - 0.5, ix = Math.max(0, Math.min(P.W - 2, Math.floor(gx))), iy = Math.max(0, Math.min(P.H - 2, Math.floor(gy))), fx = Math.max(0, Math.min(1, gx - ix)), fy = Math.max(0, Math.min(1, gy - iy)), o = iy * P.W + ix;
+              var idx = [o, o + 1, o + P.W, o + P.W + 1], wt = [(1 - fx) * (1 - fy), fx * (1 - fy), (1 - fx) * fy, fx * fy], sum = 0, ws = 0;
+              for (var c = 0; c < 4; c++) { if (P.m && P.m[idx[c]] === 0) continue; sum += P.z[idx[c]] * wt[c]; ws += wt[c]; }
+              if (ws > 0.05) return sum / ws; }
+            return NaN;
+          };
+          f.pixel = res * 111320; return f;
+        });
+      });
+    }
+  };
+
   /* ---------------------------------------------------------------- session & gate */
   SH.session = function () { var s = SH.store.get('shandal_session', null); if (!s || !s.name || !s.exp || s.exp < Date.now()) return null; return s; };
   SH.deviceToken = function () {
@@ -348,7 +393,26 @@
       }, function () { throw new Error(SH.t('Could not reach the subscriber service. Check your connection and try again.', 'تعذر الوصول إلى خدمة المشتركين. تحقق من الاتصال وحاول مجدداً.')); });
   };
   SH.logout = function () { SH.store.del('shandal_session'); };
+  /* access levels (body data-access): 'sub' subscribers only · 'open' free data view, Shandal analysis for subscribers · 'free' */
+  SH.access = function () { return (d.body && d.body.getAttribute('data-access')) || 'sub'; };
+  SH.pro = function () { return !SH.cfg.gate || !!SH.session(); };
+  SH.needPro = function () {
+    if (SH.pro()) return true;
+    var tpl = d.getElementById('proLockTpl');
+    if (tpl && SH.modal) SH.modal(SH.t('Subscribers only', 'للمشتركين فقط'), tpl.innerHTML.replace('class="pro-lock"', 'class="pro-lock in-modal"')); else location.href = d.body.getAttribute('data-pricing');
+    return false;
+  };
+  function lockPro() {
+    if (SH.access() !== 'open' || SH.pro()) return;
+    d.body.classList.add('pro-locked'); var n = d.getElementById('openNote'); if (n) n.hidden = false;
+    var tpl = d.getElementById('proLockTpl'); if (!tpl) return;
+    $$('[data-pro]').forEach(function (el) { if (!el.querySelector(':scope > .pro-lock')) el.appendChild(tpl.content.firstElementChild.cloneNode(true)); });
+    /* downloads and other Shandal outputs inside open tools ask for a subscription */
+    d.addEventListener('click', function (e) { var b = e.target.closest('[data-pro-action],#reportBtn'); if (!b || SH.pro()) return; e.preventDefault(); e.stopImmediatePropagation(); SH.needPro(); }, true);
+  }
   SH.gate = function () {
+    if (SH.access() === 'sub' && SH.cfg.gate && !SH.session() && d.body.getAttribute('data-pricing')) { location.replace(d.body.getAttribute('data-pricing')); }
+    lockPro();
     var g = d.getElementById('gate'); if (!g) return true;
     var ok = !SH.cfg.gate || !!SH.session(); g.hidden = ok;
     var ws = d.getElementById('ws-root'); if (ws) { ws.inert = !ok; ws.setAttribute('aria-hidden', ok ? 'false' : 'true'); }

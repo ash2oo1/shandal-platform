@@ -63,14 +63,14 @@
     <div id="eEmpty" class="pn">{{ m.empty('thermometer-sun', 'Field conditions before you set out', 'ظروف الحقل قبل أن تنطلق', 'Live weather, heat stress, air quality and a dispersion model for the site, turned into geotechnical, safety and instrument guidance.', 'طقس لحظي وإجهاد حراري وجودة هواء ونموذج تشتت للموقع، تتحول إلى إرشادات جيوتقنية ووقائية وللأجهزة.') }}</div>
     <div id="eOut" hidden style="display:grid;gap:18px">
       <div class="kpis" id="eKpis" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr))"></div>
-      <div class="grid3" id="eExpert" style="display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(240px,1fr))"></div>
+      <div data-pro><div class="grid3" id="eExpert" style="display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(240px,1fr))"></div></div>
       {{ m.fig_open('fe1', '1', 'Past 7 days and next 7 days', 'الأيام السبعة الماضية والقادمة', '<div class="seg" id="eTab" style="padding:2px"><button data-v="t" aria-pressed="true">' + ('Temperature' if lang == 'en' else 'الحرارة') + '</button><button data-v="w" aria-pressed="false">' + ('Wind' if lang == 'en' else 'الرياح') + '</button><button data-v="r" aria-pressed="false">' + ('Rain & humidity' if lang == 'en' else 'المطر والرطوبة') + '</button></div>') }}
         <div class="fig-b"><div class="plot" id="eChart" style="height:320px"></div></div>
       {{ m.fig_close() }}
-      <section class="pn" id="plPn" hidden><div class="pn-h">{{ icon('wind') }}<h2>{{ m.L('Gaussian plume result', 'نتيجة النموذج الغاوسي') }}</h2></div><div class="pn-b flush"><table class="kv" id="plTbl"></table></div></section>
+      <section class="pn" id="plPn" hidden data-pro><div class="pn-h">{{ icon('wind') }}<h2>{{ m.L('Gaussian plume result', 'نتيجة النموذج الغاوسي') }}</h2></div><div class="pn-b flush"><table class="kv" id="plTbl"></table></div></section>
       <div class="grid2" id="labRow" hidden>
-        <section class="pn"><div class="pn-h">{{ icon('droplet') }}<h2>{{ m.L('Water quality index', 'مؤشر جودة المياه') }}</h2></div><div class="pn-b flush tbl-wrap"><table class="tbl" id="wTbl"></table></div><div class="pn-b" id="wTxt" style="font-size:.88rem;line-height:1.75"></div></section>
-        <section class="pn"><div class="pn-h">{{ icon('sprout') }}<h2>{{ m.L('Environmental sensitivity to desertification', 'الحساسية البيئية للتصحر') }}</h2></div><div class="pn-b flush"><table class="kv" id="dTbl"></table></div><div class="pn-b" id="dTxt" style="font-size:.88rem;line-height:1.75"></div></section>
+        <section class="pn" data-pro><div class="pn-h">{{ icon('droplet') }}<h2>{{ m.L('Water quality index', 'مؤشر جودة المياه') }}</h2></div><div class="pn-b flush tbl-wrap"><table class="tbl" id="wTbl"></table></div><div class="pn-b" id="wTxt" style="font-size:.88rem;line-height:1.75"></div></section>
+        <section class="pn" data-pro><div class="pn-h">{{ icon('sprout') }}<h2>{{ m.L('Environmental sensitivity to desertification', 'الحساسية البيئية للتصحر') }}</h2></div><div class="pn-b flush"><table class="kv" id="dTbl"></table></div><div class="pn-b" id="dTxt" style="font-size:.88rem;line-height:1.75"></div></section>
       </div>
     </div>
   </div>

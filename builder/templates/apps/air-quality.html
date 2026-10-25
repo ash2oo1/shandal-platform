@@ -21,12 +21,12 @@
     {{ m.fig_close() }}
     <div id="qEmpty" class="pn">{{ m.empty('wind', 'What are you breathing?', 'ماذا تتنفس؟', 'Current and forecast air quality from the Copernicus Atmosphere Monitoring Service, compared with the WHO 2021 guidelines.', 'جودة الهواء الحالية والمتوقعة من خدمة كوبرنيكوس لرصد الغلاف الجوي، مقارنة بأدلة منظمة الصحة العالمية 2021.') }}</div>
     <div id="qOut" hidden style="display:grid;gap:18px">
-      <div id="qHero"></div>
+      <div data-pro><div id="qHero"></div></div>
       <div class="kpis" id="qKpis" style="grid-template-columns:repeat(auto-fit,minmax(140px,1fr))"></div>
       {{ m.fig_open('fq1', '1', 'Hourly forecast', 'التنبؤ الساعي', '<div class="seg" id="qTab" style="padding:2px"><button data-v="pm" aria-pressed="true">PM</button><button data-v="gas" aria-pressed="false">' + ('Gases' if lang == 'en' else 'الغازات') + '</button><button data-v="aqi" aria-pressed="false">AQI</button></div>') }}
         <div class="fig-b"><div class="plot" id="qPlot" style="height:340px"></div></div>
       {{ m.fig_close() }}
-      <section class="pn"><div class="pn-h">{{ icon('shield-check') }}<h2>{{ m.L('Against the WHO 2021 air-quality guidelines (24-hour means, today)', 'مقارنة بأدلة منظمة الصحة العالمية 2021 (متوسطات 24 ساعة، اليوم)') }}</h2></div><div class="pn-b flush tbl-wrap"><table class="tbl" id="qWho"></table></div></section>
+      <section class="pn" data-pro><div class="pn-h">{{ icon('shield-check') }}<h2>{{ m.L('Against the WHO 2021 air-quality guidelines (24-hour means, today)', 'مقارنة بأدلة منظمة الصحة العالمية 2021 (متوسطات 24 ساعة، اليوم)') }}</h2></div><div class="pn-b flush tbl-wrap"><table class="tbl" id="qWho"></table></div></section>
     </div>
   </div>
 </div>

@@ -295,3 +295,18 @@ bdi.u{unicode-bidi:isolate}
 .rp-disc{margin:8px 0 0;font-size:10.5px;color:#68737e;border-top:1px dashed #dcd8cf;padding-top:8px}
 .rp-res .tbl-wrap{overflow:visible!important}.rp-res table{width:100%!important;table-layout:auto}.rp-res td,.rp-res th{white-space:normal!important;padding:5px 6px!important;font-size:10.5px}
 .plot,.js-plotly-plot{direction:ltr}
+
+/* open-data tools: Shandal analysis locked for visitors */
+.open-note{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-top:14px;padding:12px 16px;border:1px solid color-mix(in srgb,var(--accent) 35%,var(--line));background:color-mix(in srgb,var(--accent) 8%,var(--surface));border-radius:14px;font-size:.86rem;color:var(--text-2)}
+.open-note[hidden]{display:none}
+.open-note>span:nth-child(2){flex:1 1 280px}
+.open-note .ib{display:grid;place-items:center;width:28px;height:28px;border-radius:9px;background:var(--accent);color:#141C24}
+.pro-locked [data-pro]{position:relative;min-height:190px}
+.pro-locked [data-pro]>:not(.pro-lock){visibility:hidden}
+.pro-lock{display:none}
+.pro-locked [data-pro]>.pro-lock{display:grid;position:absolute;inset:0;place-content:center;justify-items:center;gap:8px;padding:20px;text-align:center;border:1px dashed color-mix(in srgb,var(--accent) 55%,var(--line));border-radius:16px;background:repeating-linear-gradient(135deg,color-mix(in srgb,var(--accent) 5%,var(--surface)) 0 12px,var(--surface) 12px 24px)}
+.pro-lock .pl-i{display:grid;place-items:center;width:44px;height:44px;border-radius:14px;background:var(--accent);color:#141C24}
+.pro-lock b{font-size:1rem;color:var(--text)}
+.pro-lock p{margin:0;max-width:440px;font-size:.84rem;color:var(--text-2);line-height:1.7}
+.pro-lock .btns{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:4px}
+.pro-lock.in-modal{display:grid;justify-items:center;text-align:center;gap:10px;padding:8px 4px}

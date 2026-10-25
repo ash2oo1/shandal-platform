@@ -9,7 +9,7 @@
   var persist = SH.persist('demstudio', IDS);
   var map = SH.map('dMap', { zoom: 6, base: 'topo', canvas: true }), rect = null, overlay = null, drawer = null;
   var G = null, CS = null, step = 0, prof = null, pLine = null, pPts = [], tracing = false, pMk = [];
-  var LIM = { aws: 360000, cop: 360000 }, COP_NATIVE = 4000;
+  var LIM = { aws: 360000, cop: 360000, cop30: 360000 }, COP_TILES = 9;
 
   /* ---------- area and grid plan */
   function bounds() { var b = { n: SH.num('dN'), s: SH.num('dS'), w: SH.num('dW'), e: SH.num('dE') }; return [b.n, b.s, b.w, b.e].some(isNaN) || b.n <= b.s || b.e <= b.w ? null : b; }
@@ -20,7 +20,7 @@
     return Math.max(s, SH.val('dSrc') === 'cop' ? 30 : 10);
   }
   function stepOf(b) { return SH.num('dStep') > 0 ? SH.num('dStep') : autoStep(b); }
-  function copNative(b) { return Math.ceil((b.n - b.s) * 1200 + 6) * Math.ceil((b.e - b.w) * 1200 + 6); }
+  function copTiles(b) { return (Math.floor(b.n) - Math.floor(b.s) + 1) * (Math.floor(b.e) - Math.floor(b.w) + 1); }
   function show(fit) {
     var b = bounds(); if (!b) { estimate(); return; }
     if (map) { if (rect) rect.setBounds([[b.s, b.w], [b.n, b.e]]); else rect = L.rectangle([[b.s, b.w], [b.n, b.e]], { color: SH.css('--accent'), weight: 2, fill: false, dashArray: '6 4', interactive: false }).addTo(map); if (fit) map.fitBounds(rect.getBounds(), { padding: [30, 30] }); }
@@ -30,10 +30,10 @@
     var b = bounds(); if (!b) { $('#dEst').textContent = '—'; $('#dArea').textContent = t('Draw a rectangle or type the bounds.', 'ارسم مستطيلاً أو اكتب الحدود.'); return null; }
     var src = SH.val('dSrc'), st = stepOf(b), P = D.plan(b, SH.val('dCrs'), st), n = P.nx * P.ny, m = D.metersPerDeg((b.n + b.s) / 2), w = (b.e - b.w) * m.x / 1000, h = (b.n - b.s) * m.y / 1000;
     $('#dArea').innerHTML = SH.ltr(SH.fmt(w, 2) + ' × ' + SH.fmt(h, 2) + ' km') + ' · ' + SH.ltr(SH.fmt(w * h, 2) + ' km²') + (P.crs === 'utm' ? ' · ' + SH.ltr('UTM ' + P.zone + (P.south ? 'S' : 'N')) : '');
-    var ok = n <= LIM[src], cn = src === 'cop' ? copNative(b) : 0, okc = !cn || cn <= COP_NATIVE;
+    var ok = n <= LIM[src], cn = D.isCop(src) ? copTiles(b) : 0, okc = !cn || cn <= COP_TILES;
     $('#dEst').innerHTML = '<b>' + SH.ltr(SH.fmt(P.nx, 0) + ' × ' + SH.fmt(P.ny, 0) + ' = ' + SH.fmt(n, 0)) + '</b> ' + t('nodes', 'عقدة') + ' · ' + SH.ltr(SH.fmt(st, 0) + ' m') + (SH.num('dStep') > 0 ? '' : ' (' + t('auto', 'تلقائي') + ')') +
       (ok ? '' : '<br><span style="color:var(--danger)">' + t('Too many nodes for one request; increase the spacing (limit ', 'عدد العقد كبير؛ زد التباعد (الحد ') + SH.fmt(LIM[src], 0) + ')</span>') +
-      (okc ? '' : '<br><span style="color:var(--danger)">' + t('The area is too large for Copernicus GLO-90 (', 'المنطقة كبيرة على Copernicus GLO-90 (') + SH.fmt(cn, 0) + t(' native cells, limit ', ' خلية أصلية، الحد ') + SH.fmt(COP_NATIVE, 0) + t('). Shrink the area or use the SRTM composite.', '). صغّر المنطقة أو استخدم نموذج SRTM المركّب.') + '</span>') +
+      (okc ? '' : '<br><span style="color:var(--danger)">' + t('The area spans ', 'المنطقة تمتد على ') + cn + t(' Copernicus 1° tiles (limit ', ' بلاطة كوبرنيكوس بدرجة واحدة (الحد ') + COP_TILES + t('). Shrink the area or use the SRTM composite.', '). صغّر المنطقة أو استخدم نموذج SRTM المركّب.') + '</span>') +
       (src === 'cop' && st < 90 ? '<br>' + t('Copernicus is 90 m data: spacing below 90 m interpolates between native cells.', 'بيانات Copernicus بدقة 90 م: التباعد الأقل من 90 م استيفاء بين الخلايا الأصلية.') : '');
     return ok && okc ? P : null;
   }
@@ -171,7 +171,7 @@
   function clearProf() { pPts = []; if (pLine) { map.removeLayer(pLine); pLine = null; } pMk.forEach(function (m) { map.removeLayer(m); }); pMk = []; }
   $('#pClear').addEventListener('click', function () { stopTrace(); clearProf(); prof = null; $('#pPlot').hidden = true; $('#pKpis').hidden = true; $('#pEmpty').hidden = false; if (G) drawSheet(); });
   function profile(line) {
-    var src = G ? G.source : SH.val('dSrc'), n = Math.max(50, Math.min(src === 'cop' ? 500 : 2000, SH.num('pN') || 400)), dn = D.densify(line, n), host = $('#pPlot').parentElement;
+    var src = G ? G.source : SH.val('dSrc'), n = Math.max(50, Math.min(2000, SH.num('pN') || 400)), dn = D.densify(line, n), host = $('#pPlot').parentElement;
     $('#dOut').hidden = false; $('#dEmpty').hidden = true; host.scrollIntoView({ behavior: 'smooth', block: 'center' }); SH.busy(host, true, t('Sampling the profile…', 'جارٍ أخذ عينات المقطع…'));
     D.points(dn.pts, { source: src, res: Math.max(5, dn.length / n) }).then(function (z) {
       var gain = 0, loss = 0, maxS = 0, sumS = 0; for (var k = 1; k < z.length; k++) { var dz = z[k] - z[k - 1], dd = dn.d[k] - dn.d[k - 1]; if (dz > 0) gain += dz; else loss -= dz; var s = SH.deg(Math.atan(Math.abs(dz) / (dd || 1))); if (s > maxS) maxS = s; sumS += s; }

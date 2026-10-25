@@ -6,13 +6,21 @@
     <nav class="crumbs" aria-label="Breadcrumb"><a href="{{ u('') }}">{{ t('home') }}</a>{{ icon('chevron-right', 'ico flip') }}<a href="{{ u('platform/') }}">{{ t('tools') }}</a>{{ icon('chevron-right', 'ico flip') }}<span>{{ tr(tool.name) }}</span></nav>
     <div class="tool-hero">
       <div>
-        <span class="cat"><span class="ib">{{ icon(tool.icon) }}</span>{{ t('cat_' + tool.cat) }}{% if tool.live %}<span class="pill live" style="margin-inline-start:8px">{{ t('live_data') }}</span>{% endif %}{% if tool.gate is sameas false %}<span class="pill gold" style="margin-inline-start:6px">{{ t('free_tool') }}</span>{% endif %}</span>
+        <span class="cat"><span class="ib">{{ icon(tool.icon) }}</span>{{ t('cat_' + tool.cat) }}{% if tool.live %}<span class="pill live" style="margin-inline-start:8px">{{ t('live_data') }}</span>{% endif %}{% if tool.access == 'free' %}<span class="pill gold" style="margin-inline-start:6px">{{ t('free_tool') }}</span>{% elif tool.access == 'open' %}<span class="pill gold" style="margin-inline-start:6px">{{ t('open_data') }}</span>{% endif %}</span>
         <h1 class="h1">{{ tr(tool.name) }}</h1>
         <p class="tag">{{ tr(tool.tagline) }}</p>
         <p class="lead">{{ tr(tool.summary) }}</p>
         <div class="actions">
+          {% if tool.access == 'sub' %}
+          <a class="btn btn-gold btn-lg" id="useTool" href="{{ u('pricing/') }}?tool={{ tool.slug }}" data-app="{{ u('tools/' + tool.slug + '/app/') }}" data-sub="{{ t('sub_cta') }}" data-open="{{ t('open_workspace') }}"><span>{{ t('sub_cta') }}</span> {{ icon('arrow-right', 'ico ico-sm flip') }}</a>
+          <a class="btn btn-line btn-lg" id="useLogin" href="{{ u('login/') }}?next={{ ('tools/' + tool.slug + '/app/')|urlencode }}">{{ t('have_sub') }}</a>
+          <script>(function(){var s=null;try{s=JSON.parse(localStorage.getItem('shandal_session')||'null')}catch(e){}if(s&&s.exp&&s.exp>Date.now()){var a=document.getElementById('useTool');a.href=a.getAttribute('data-app');a.querySelector('span').textContent=a.getAttribute('data-open');var l=document.getElementById('useLogin');if(l)l.remove();}})();</script>
+          {% elif tool.access == 'open' %}
+          <a class="btn btn-gold btn-lg" href="{{ u('tools/' + tool.slug + '/app/') }}">{{ t('open_data_btn') }} {{ icon('arrow-right', 'ico ico-sm flip') }}</a>
+          <a class="btn btn-line btn-lg" href="{{ u('pricing/') }}?tool={{ tool.slug }}">{{ t('see_plans') }}</a>
+          {% else %}
           <a class="btn btn-gold btn-lg" href="{{ u('tools/' + tool.slug + '/app/') }}">{{ t('open_workspace') }} {{ icon('arrow-right', 'ico ico-sm flip') }}</a>
-          {% if tool.gate is not sameas false %}<a class="btn btn-line btn-lg" href="{{ u('pricing/') }}">{{ t('see_plans') }}</a>{% endif %}
+          {% endif %}
         </div>
       </div>
       <div class="art-frame">
@@ -77,7 +85,7 @@
           <div><dt>{{ t('spec_category') }}</dt><dd>{{ t('cat_' + tool.cat) }}</dd></div>
           <div><dt>{{ t('spec_platform') }}</dt><dd>{{ t('spec_platform_v') }}</dd></div>
           <div><dt>{{ t('spec_export') }}</dt><dd>{{ tr(tool.exports) }}</dd></div>
-          <div><dt>{{ t('spec_access') }}</dt><dd>{{ t('free_tool') if tool.gate is sameas false else t('spec_access_v') }}</dd></div>
+          <div><dt>{{ t('spec_access') }}</dt><dd>{{ t('free_tool') if tool.access == 'free' else (t('spec_access_open') if tool.access == 'open' else t('spec_access_v')) }}</dd></div>
         </dl>
       </div>
       <div class="card related">
