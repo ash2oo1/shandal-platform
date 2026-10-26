@@ -20,6 +20,9 @@
   var CPROPS = ['color', 'background-color', 'background-image', 'border-top-color', 'border-right-color', 'border-bottom-color', 'border-left-color', 'outline-color', 'box-shadow', 'text-decoration-color', 'fill', 'stroke', 'column-rule-color', 'caret-color'];
   function srgb(v) { return v.replace(/color\(srgb\s+([\d.e-]+)\s+([\d.e-]+)\s+([\d.e-]+)(?:\s*\/\s*([\d.e-]+%?))?\)/g, function (m, r, g, b, a) { var A = a == null ? 1 : /%$/.test(a) ? parseFloat(a) / 100 : +a; return 'rgba(' + Math.round(r * 255) + ',' + Math.round(g * 255) + ',' + Math.round(b * 255) + ',' + A + ')'; }).replace(/(oklch|oklab|lab|lch)\([^)]*\)/g, 'rgba(128,128,128,1)'); }
   function fixColors(root, win) { var all = [root].concat(Array.prototype.slice.call(root.querySelectorAll('*'))); all.forEach(function (e) { var cs = win.getComputedStyle(e); CPROPS.forEach(function (p) { var v = cs.getPropertyValue(p); if (v && /color\(|oklch|oklab|lab\(|lch\(/.test(v)) e.style.setProperty(p, srgb(v), 'important'); }); }); }
+  /* the site resets img to display:block, which breaks html2canvas's font-baseline probe (a tiny GIF set inline
+     next to a text span) and drops every line of text towards the bottom of its box: restore inline for that probe */
+  (function () { var st = d.createElement('style'); st.textContent = 'img[src^="data:image/gif"]{display:inline!important;vertical-align:baseline!important;max-width:none!important}'; d.head.appendChild(st); })();
   var ONCLONE = function (doc, el) { try { fixColors(el, doc.defaultView); } catch (e) {} };
 
   /* ---------------------------------------------------------------- figure rasterisation */
@@ -34,7 +37,38 @@
     return imgFromURL(url).then(function (im) { var cv = d.createElement('canvas'); cv.width = W * 2; cv.height = H * 2; var x = cv.getContext('2d'); x.fillStyle = '#fff'; x.fillRect(0, 0, cv.width, cv.height); x.drawImage(im, 0, 0, cv.width, cv.height); return { src: cv.toDataURL('image/png'), w: W, h: H }; });
   }
   function plotImg(gd) { var W = gd.offsetWidth || 700, H = gd.offsetHeight || 400; return w.Plotly.toImage(gd, { format: 'png', width: W, height: H, scale: 2 }).then(function (u) { return { src: u, w: W, h: H }; }); }
-  function mapImg(m) { var W = m.offsetWidth, H = m.offsetHeight; return w.html2canvas(m, { useCORS: true, scale: 2, imageTimeout: 8000, onclone: ONCLONE, backgroundColor: '#ffffff', logging: false, ignoreElements: function (e) { return e.classList && (e.classList.contains('leaflet-control-zoom') || e.classList.contains('leaflet-control-layers') || e.classList.contains('map-tools') || e.classList.contains('map-hint') || e.classList.contains('loading')); } }).then(function (cv) { return { src: cv.toDataURL('image/jpeg', .9), w: W, h: H }; }); }
+  /* Leaflet: draw the loaded tiles ourselves (html2canvas often leaves them blank), then the overlays and
+     markers on top, then a proper graphic scale and north arrow in place of the on-screen controls */
+  function tileImg(t) { return new Promise(function (res) { var i = new Image(); i.crossOrigin = 'anonymous'; i.onload = function () { res(i); }; i.onerror = function () { res(null); }; i.src = t.src; }); }
+  function mapImg(m) {
+    var W = m.offsetWidth, H = m.offsetHeight, R0 = m.getBoundingClientRect(), lm = m._shMap;
+    var tiles = Array.prototype.filter.call(m.querySelectorAll('.leaflet-tile-pane img.leaflet-tile'), function (t) { var r = t.getBoundingClientRect(); return t.classList.contains('leaflet-tile-loaded') && r.right > R0.left && r.left < R0.right && r.bottom > R0.top && r.top < R0.bottom && getComputedStyle(t.closest('.leaflet-layer') || t).opacity !== '0'; });
+    if (!tiles.length) return mapImg0(m);
+    var cv = d.createElement('canvas'), k = 2; cv.width = W * k; cv.height = H * k; var x = cv.getContext('2d'); x.fillStyle = '#e9e6df'; x.fillRect(0, 0, cv.width, cv.height);
+    return Promise.all(tiles.map(function (t) { return tileImg(t).then(function (im) { if (!im) return; var r = t.getBoundingClientRect(); x.drawImage(im, (r.left - R0.left) * k, (r.top - R0.top) * k, r.width * k, r.height * k); }); })).then(function () {
+      return w.html2canvas(m, { useCORS: true, scale: k, backgroundColor: null, onclone: function (doc, el) { ONCLONE(doc, el); el.style.setProperty('background', 'transparent', 'important'); }, logging: false, ignoreElements: function (e) { return e.classList && (e.classList.contains('leaflet-tile-pane') || e.classList.contains('leaflet-overlay-pane') || e.classList.contains('leaflet-control-container') || e.classList.contains('map-tools') || e.classList.contains('map-hint') || e.classList.contains('loading')); } }).catch(function () { return null; });
+    }).then(function (ov) {
+      return Promise.all(Array.prototype.map.call(m.querySelectorAll('.leaflet-overlay-pane svg'), function (sv) { var r = sv.getBoundingClientRect(), c = sv.cloneNode(true); c.setAttribute('width', r.width); c.setAttribute('height', r.height); c.setAttribute('xmlns', 'http://www.w3.org/2000/svg'); c.removeAttribute('style');
+        return imgFromURL('data:image/svg+xml;charset=utf-8,' + encodeURIComponent(new XMLSerializer().serializeToString(c))).then(function (im) { x.drawImage(im, (r.left - R0.left) * k, (r.top - R0.top) * k, r.width * k, r.height * k); }).catch(function () {}); })).then(function () { return ov; });
+    }).then(function (ov) {
+      if (ov) x.drawImage(ov, 0, 0, cv.width, cv.height);
+      if (lm && w.L) try { mapDeco(x, k, W, H, lm, m); } catch (e) {}
+      return { src: cv.toDataURL('image/jpeg', .92), w: W, h: H };
+    });
+  }
+  function mapDeco(x, k, W, H, lm, m) {
+    var y = H / 2, a = lm.containerPointToLatLng([0, y]), b = lm.containerPointToLatLng([100, y]), mpp = lm.distance(a, b) / 100, want = mpp * Math.min(160, W * 0.3), p = Math.pow(10, Math.floor(Math.log10(want))), n = want / p, len = (n >= 5 ? 5 : n >= 2 ? 2 : 1) * p, px = len / mpp;
+    var lab = len >= 1000 ? (len / 1000) + ' km' : len + ' m', x0 = 14, y0 = H - 22;
+    x.save(); x.scale(k, k); x.fillStyle = 'rgba(255,255,255,.88)'; x.fillRect(x0 - 8, y0 - 18, px + 64, 32);
+    for (var i = 0; i < 4; i++) { x.fillStyle = i % 2 ? '#fff' : '#1B232B'; x.fillRect(x0 + i * px / 4, y0, px / 4, 6); } x.strokeStyle = '#1B232B'; x.lineWidth = .8; x.strokeRect(x0, y0, px, 6);
+    x.fillStyle = '#1B232B'; x.font = '700 10px Manrope, Arial, sans-serif'; x.textAlign = 'center'; x.fillText('0', x0, y0 - 5); x.fillText(lab, x0 + px, y0 - 5); x.textAlign = 'left';
+    var cx = W - 30, cy = 18; x.fillStyle = 'rgba(255,255,255,.88)'; x.beginPath(); x.arc(cx, cy + 18, 20, 0, 2 * Math.PI); x.fill();
+    x.fillStyle = '#1B232B'; x.textAlign = 'center'; x.font = '800 11px Manrope, Arial, sans-serif'; x.fillText('N', cx, cy + 9); x.beginPath(); x.moveTo(cx, cy + 12); x.lineTo(cx - 7, cy + 34); x.lineTo(cx, cy + 29); x.closePath(); x.fill();
+    x.beginPath(); x.moveTo(cx, cy + 12); x.lineTo(cx + 7, cy + 34); x.lineTo(cx, cy + 29); x.closePath(); x.fillStyle = '#fff'; x.fill(); x.stroke();
+    var at = m.querySelector('.leaflet-control-attribution'), tx = at ? at.textContent.replace(/^.*?\|\s*/, '').replace(/\s+/g, ' ').trim() : ''; if (tx) { x.font = '8px Manrope, Arial, sans-serif'; var tw = x.measureText(tx).width; x.fillStyle = 'rgba(255,255,255,.8)'; x.fillRect(W - tw - 10, H - 13, tw + 10, 13); x.fillStyle = '#333'; x.textAlign = 'right'; x.fillText(tx, W - 5, H - 3.5); }
+    x.restore();
+  }
+  function mapImg0(m) { var W = m.offsetWidth, H = m.offsetHeight; return w.html2canvas(m, { useCORS: true, scale: 2, imageTimeout: 8000, onclone: ONCLONE, backgroundColor: '#ffffff', logging: false, ignoreElements: function (e) { return e.classList && (e.classList.contains('leaflet-control-zoom') || e.classList.contains('leaflet-control-layers') || e.classList.contains('map-tools') || e.classList.contains('map-hint') || e.classList.contains('loading')); } }).then(function (cv) { return { src: cv.toDataURL('image/jpeg', .9), w: W, h: H }; }); }
   function canvasImg(cv) { var r = cv.getBoundingClientRect(); return Promise.resolve({ src: cv.toDataURL('image/png'), w: r.width || cv.width, h: r.height || cv.height }); }
   function timeout(p, ms) { return Promise.race([p, new Promise(function (r) { setTimeout(function () { r(null); }, ms); })]); }
   function figOf(e) { return timeout(figOf0(e), 25000); }
@@ -52,7 +86,9 @@
     if (node.classList.contains('wsm-map')) return mapImg(node).then(function (im) { var f = el('figure', 'rp-fig'), g = d.createElement('img'); g.src = im.src; g.className = 'rp-img'; g.style.aspectRatio = im.w + ' / ' + im.h; f.appendChild(g); return f; });
     var c;
     src.forEach(function (e, i) { e.setAttribute('data-rp', i); });
-    c = node.cloneNode(true); src.forEach(function (e) { e.removeAttribute('data-rp'); });
+    var flds = node.querySelectorAll('td input:not([type=checkbox]):not([type=hidden]), td select'); flds.forEach(function (f) { f.setAttribute('data-rpv', f.tagName === 'SELECT' ? (f.selectedOptions[0] ? f.selectedOptions[0].textContent : '') : f.value); });
+    c = node.cloneNode(true); src.forEach(function (e) { e.removeAttribute('data-rp'); }); flds.forEach(function (f) { f.removeAttribute('data-rpv'); });
+    c.querySelectorAll('[data-rpv]').forEach(function (f) { var sp = d.createElement('span'); sp.textContent = f.getAttribute('data-rpv'); f.replaceWith(sp); });
     return Promise.all(src.map(function (e, i) { return figOf(e).catch(function () { return null; }).then(function (im) { var tgt = c.querySelector('[data-rp="' + i + '"]'); if (!tgt) return; if (!im) { tgt.remove(); return; } var g = d.createElement('img'); g.src = im.src; g.className = 'rp-img'; g.style.aspectRatio = im.w + ' / ' + im.h; tgt.replaceWith(g); }); })).then(function () {
       c.querySelectorAll('button, .btn, .no-print, .map-tools, .map-hint, .loading, [hidden], input, select, textarea, .tip, .leaflet-control-container').forEach(function (e) { if (e.closest('.fig-h') && e.tagName === 'BUTTON') { e.remove(); return; } e.remove(); });
       c.querySelectorAll('[data-rp]').forEach(function (e) { e.removeAttribute('data-rp'); });
@@ -66,12 +102,12 @@
     side.querySelectorAll('.pn, .sec').forEach(function (p) {
       if (!vis(p)) return; var h = p.querySelector('.pn-h h2, h3'), rows = [];
       p.querySelectorAll('.fg').forEach(function (f) {
-        if (!vis(f)) return; var lab = f.querySelector('label'), c = f.querySelector('input, select, textarea'); if (!c || !lab || c.type === 'file' || c.type === 'color' || c.type === 'hidden') return;
+        if (!vis(f)) return; var lab = f.querySelector('label'), c = f.querySelector('input, select, textarea'); if (!c || !lab || c.closest('.chks') || c.type === 'file' || c.type === 'color' || c.type === 'hidden') return;
         var v = c.tagName === 'SELECT' ? (c.selectedOptions[0] ? c.selectedOptions[0].textContent : '') : c.type === 'checkbox' ? (c.checked ? '✓' : '') : c.value;
         v = String(v || '').trim(); if (!v) return; var l = lab ? lab.cloneNode(true) : null; if (l) l.querySelectorAll('.tip').forEach(function (x) { x.remove(); });
         rows.push([l ? txt(l) : (c.getAttribute('aria-label') || c.id), v]);
       });
-      p.querySelectorAll('.chks label, label.chk').forEach(function (lb) { var c = lb.querySelector('input[type=checkbox]'); if (c && c.checked && vis(lb)) rows.push([t('Selected', 'محدد'), txt(lb)]); });
+      p.querySelectorAll('.chks').forEach(function (g) { if (!vis(g)) return; var on = Array.prototype.filter.call(g.querySelectorAll('label'), function (lb) { var c = lb.querySelector('input[type=checkbox]'); return c && c.checked; }).map(txt); if (!on.length) return; var f = g.closest('.fg'), lb = f && f.querySelector(':scope > .lb, :scope > label'); rows.push([lb ? txt(lb) : t('Selected', 'المحدد'), on.join(AR ? '، ' : ', ')]); });
       if (rows.length) groups.push({ h: h ? txt(h).replace(/^\d+\s*/, '') : '', rows: rows });
     });
     return groups;
@@ -105,7 +141,7 @@
   /* ---------------------------------------------------------------- page factory */
   function page(meta, n) {
     var p = el('div', 'rp-page'); p.setAttribute('dir', AR ? 'rtl' : 'ltr'); p.setAttribute('lang', SH.lang);
-    p.innerHTML = '<header class="rp-head"><img src="' + SH.base + 'assets/img/emblem-192.png" alt=""><div class="rp-brand"><b>' + t('Shandal System', 'نظام شندل') + '</b><span>' + t('Geological Field Survey', 'للمسح الميداني الجيولوجي') + '</span></div><div class="rp-ht"><b>' + SH.esc(meta.title) + '</b><span>' + SH.esc(meta.date) + '</span></div></header>' +
+    p.innerHTML = '<header class="rp-head"><div class="rp-logo"><img src="' + SH.base + 'assets/img/emblem-192.png" alt=""><div class="rp-brand"><b>' + t('Shandal System', 'نظام شندل') + '</b><span>' + t('Geological Field Survey', 'للمسح الميداني الجيولوجي') + '</span></div></div><div class="rp-ht"><b>' + SH.esc(meta.title) + '</b><span>' + SH.esc(meta.date) + '</span></div></header>' +
       '<main class="rp-body"></main><footer class="rp-foot"><span>geologicalfieldsurvey.com</span><span class="rp-code">' + meta.code + '</span><span class="rp-pn">' + t('Page ', 'الصفحة ') + '<b data-pn>' + n + '</b>' + t(' of ', ' من ') + '<b data-pt></b></span></footer>';
     return p;
   }
@@ -132,15 +168,22 @@
       if (w.QRCode) { try { new w.QRCode(qr, { text: location.origin + location.pathname.replace(/(ar\/)?tools\/.*$/, '') + 'verify/index.html?code=' + code, width: 96, height: 96, correctLevel: w.QRCode.CorrectLevel.M }); } catch (e) {} }
       var cover = el('section', 'rp-cover', '<div class="rp-kicker">' + SH.esc(meta0.cat || '') + ' · ' + t('Technical report', 'تقرير فني') + '</div><h1>' + SH.esc(meta.title) + '</h1>' +
         '<table class="rp-meta"><tr><th>' + t('Prepared by', 'إعداد') + '</th><td>' + SH.esc(geo) + '</td></tr><tr><th>' + t('Date of issue', 'تاريخ الإصدار') + '</th><td>' + SH.esc(dateStr) + '</td></tr><tr><th>' + t('Report code', 'رمز التقرير') + '</th><td class="ltr">' + code + '</td></tr><tr><th>' + t('Issued by', 'الجهة المُصدِرة') + '</th><td>' + t('Shandal Geological Field Survey System', 'نظام شندل للمسح الميداني الجيولوجي') + '</td></tr></table>');
-      cover.appendChild(qr); blocks.push(cover);
-      var sec = 0, H = function (en, ar) { sec++; return el('h2', 'rp-h2', '<span>' + sec + '</span>' + t(en, ar)); };
-      if (meta0.summary) { blocks.push(H('Purpose and scope', 'الغرض والنطاق')); blocks.push(el('p', 'rp-p', SH.esc(meta0.summary))); (meta0.overview || []).slice(0, 1).forEach(function (o) { blocks.push(el('p', 'rp-p', SH.esc(o))); }); }
+      var qcv = qr.querySelector('canvas'); if (qcv) { try { var qi = new Image(); qi.src = qcv.toDataURL('image/png'); qr.innerHTML = ''; qr.appendChild(qi); } catch (e) {} }
+      var qb = el('div', 'rp-qrbox'); qb.appendChild(qr); qb.appendChild(el('span', '', t('Verify', 'التحقق'))); cover.appendChild(qb); blocks.push(cover);
+      var sec = 0, H = function (en, ar) { sec++; return el('h2', 'rp-h2', '<svg class="rp-n" width="28" height="28" viewBox="0 0 28 28"><rect width="28" height="28" rx="7" fill="#121b24"/><text x="14" y="19" text-anchor="middle" font-size="13" font-weight="800" fill="#fff" font-family="Manrope,Arial,sans-serif">' + sec + '</text></svg><span class="rp-t">' + t(en, ar) + '</span>'); };
+      var paged = !!d.querySelector('.ws-main [data-rp-paged]');
+      if (meta0.summary) { blocks.push(H('Purpose and scope', 'الغرض والنطاق')); blocks.push(el('p', 'rp-p', SH.esc(meta0.summary))); }
       if (C.ins.length) {
-        blocks.push(H('Input data', 'البيانات المُدخلة'));
+        var hi = H('Input data', 'البيانات المُدخلة'); if (paged) hi.rpBreak = true; blocks.push(hi);
         C.ins.forEach(function (g) { blocks.push(el('div', 'rp-tbl', (g.h ? '<h3>' + SH.esc(g.h) + '</h3>' : '') + '<table>' + g.rows.map(function (r) { return '<tr><th>' + SH.esc(r[0]) + '</th><td>' + SH.esc(r[1]) + '</td></tr>'; }).join('') + '</table>')); });
       }
-      if (C.res.length) { blocks.push(H('Results and interpretation', 'النتائج والتفسير')); C.res.forEach(function (r) { flatten(r).forEach(function (a) { var b = el('div', 'rp-res'); b.appendChild(a); blocks.push(b); }); }); }
-      if ((meta0.method || []).length || (meta0.refs || []).length) {
+      if (C.res.length) {
+        var hr = H('Results and interpretation', 'النتائج والتفسير'); if (paged) hr.rpBreak = true; blocks.push(hr);
+        var lastPg = null, first = true;
+        C.res.forEach(function (r) { var atoms = flatten(r), flags = atoms.map(function (a) { var pg = a.closest ? a.closest('[data-rp-page]') : null, f = pg && pg !== lastPg; if (pg) lastPg = pg; return f; });
+          atoms.forEach(function (a, i) { var b = el('div', 'rp-res'); b.appendChild(a); if (flags[i] && !first) b.rpBreak = true; first = false; blocks.push(b); }); });
+      }
+      if (!paged && ((meta0.method || []).length || (meta0.refs || []).length)) {
         blocks.push(H('Method and references', 'المنهجية والمراجع'));
         (meta0.method || []).forEach(function (m) { blocks.push(el('div', 'rp-m', (m.h ? '<h3>' + SH.esc(m.h) + '</h3>' : '') + '<p class="rp-p">' + SH.esc(m.p) + '</p>' + (m.eq ? '<p class="rp-eq ltr">' + m.eq + '</p>' : ''))); });
         if ((meta0.refs || []).length) blocks.push(el('ol', 'rp-refs', meta0.refs.map(function (r) { return '<li dir="ltr">' + SH.esc(r) + '</li>'; }).join('')));
@@ -152,6 +195,7 @@
       var body = newPage();
       function fits() { return body.scrollHeight <= body.clientHeight + 1; }
       function place(b, depth) {
+        if (b.rpBreak && body.children.length) body = newPage();
         body.appendChild(b); if (fits()) return;
         b.remove();
         if (body.children.length) { body = newPage(); body.appendChild(b); if (fits()) return; b.remove(); }

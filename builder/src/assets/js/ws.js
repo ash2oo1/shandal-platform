@@ -280,7 +280,7 @@
     var bm = SH.basemaps(), layers = {}, def = opts.base || (SH.isDark() ? 'dark' : 'light');
     (opts.bases || ['light', 'dark', 'streets', 'topo', 'satellite']).forEach(function (k) { if (bm[k]) layers[bm[k].name] = bm[k].layer; });
     (bm[def] || bm.light).layer.addTo(m);
-    m._shBase = def;
+    m._shBase = def; el._shMap = m;
     m.attributionControl.setPrefix('<a href="https://leafletjs.com">Leaflet</a>');
     L.control.scale({ metric: true, imperial: false }).addTo(m);
     m._shLayers = L.control.layers(layers, opts.overlays || {}, { position: 'topleft', collapsed: true }).addTo(m);

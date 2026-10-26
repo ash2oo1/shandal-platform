@@ -8,12 +8,16 @@
   var corners = SH.store.get('shandal_quarry_corners', [null, null, null, null]);
   var beds = SH.store.get('shandal_quarry_beds', [{ rock: 'topsoil', th: 0.5 }, { rock: 'clay', th: 1 }, { rock: 'sand', th: 2, sec: 'gravel', mix: 'mixed' }]);
   beds.forEach(function (b) { if (!LITH[b.rock]) b.rock = 'limestone'; if (b.sec && !LITH[b.sec]) b.sec = ''; });
-  var persist = SH.persist('quarry', ['geoName', 'qSite', 'qCountry', 'qGov', 'qReg', 'qDunam', 'qArea', 'qVol', 'qMaxD', 'qL', 'qW', 'qD', 'qVarOther', 'qLab', 'qGw', 'qRehab', 'qColInv', 'qColRem', 'qFace', 'qWt']);
+  var CC = 'AF AX AL DZ AS AD AO AI AQ AG AR AM AW AU AT AZ BS BH BD BB BY BE BZ BJ BM BT BO BQ BA BW BR IO BN BG BF BI CV KH CM CA KY CF TD CL CN CX CC CO KM CG CD CK CR CI HR CU CW CY CZ DK DJ DM DO EC EG SV GQ ER EE SZ ET FK FO FJ FI FR GF PF GA GM GE DE GH GI GR GL GD GP GU GT GG GN GW GY HT VA HN HK HU IS IN ID IR IE IM IT JM JP JE JO KZ KE KI KP KR XK KW KG LA LV LB LS LR LY LI LT LU MO MG MW MY MV ML MT MH MQ MR MU YT MX FM MD MC MN ME MS MA MZ MM NA NR NP NL NC NZ NI NE NG NU NF MK MP NO OM PK PW PS PA PG PY PE PH PN PL PT PR QA RE RO RU RW BL SH KN LC MF PM VC WS SM ST SA SN RS SC SL SG SX SK SI SB SO ZA GS SS ES LK SD SR SJ SE CH SY TW TJ TZ TH TL TG TK TO TT TN TR TM TC TV UG UA AE GB US UM UY UZ VU VE VN VG VI WF EH YE ZM ZW'.split(' ');
+  (function () { var dn = null; try { dn = new Intl.DisplayNames([SH.lang], { type: 'region' }); } catch (e) {}
+    var list = CC.map(function (c) { return [c.toLowerCase(), dn ? dn.of(c) : c]; }).sort(function (a, b) { return a[1].localeCompare(b[1], SH.lang); });
+    $('#qCountry').insertAdjacentHTML('beforeend', list.map(function (c) { return '<option value="' + c[0] + '">' + SH.esc(c[1]) + '</option>'; }).join('')); })();
+  var persist = SH.persist('quarry', ['geoName', 'qName', 'qSite', 'qCountry', 'qGov', 'qReg', 'qDunam', 'qArea', 'qVol', 'qMaxD', 'qL', 'qW', 'qD', 'qVarOther', 'qLab', 'qGw', 'qRehab', 'qColInv', 'qColRem', 'qFace', 'qWt']);
   var map, mapLayer, last = null;
 
   $('#qGov').innerHTML = GOVS.map(function (g) { return '<option value="' + g[0] + '">' + g[SH.lang === 'ar' ? 1 : 0] + '</option>'; }).join('');
   var sv = SH.store.get('shandal_tool_quarry', {}); if (sv.qGov) $('#qGov').value = sv.qGov;
-  function country() { var iq = SH.val('qCountry') === 'iq'; $('#qGovWrap').hidden = !iq; $('#qRegWrap').hidden = iq; }
+  function country() { if (!$('#qCountry').value) $('#qCountry').value = 'iq'; var iq = SH.val('qCountry') === 'iq'; $('#qGovWrap').hidden = !iq; $('#qRegWrap').hidden = iq; }
   $('#qCountry').addEventListener('change', country); country();
   $('#qDunam').addEventListener('input', function () { var v = SH.num('qDunam'); $('#qArea').value = v > 0 ? v * 2500 : ''; });
   $('#qArea').addEventListener('input', function () { var v = SH.num('qArea'); $('#qDunam').value = v > 0 ? +(v / 2500).toFixed(3) : ''; });
@@ -101,11 +105,11 @@
   function render(r) {
     $('#qEmpty').hidden = true; $('#qOut').hidden = false;
     var overV = r.remV < 0, overA = r.remA < 0, overD = r.maxD > 0 && r.Dm > r.maxD;
-    $('#qKpis').innerHTML = kpi(overV ? 'bad' : 'info', t('Extracted volume', 'الكمية المستخرجة'), SH.fmt(r.extV, 0) + '<small> m³</small>', isNaN(r.pctV) ? '' : SH.fmt(r.pctV, 1) + t(' % of contract', ' % من العقد')) +
+    $('#qKpis').innerHTML = kpi(overV ? 'bad' : 'info', t('Extracted volume', 'الكمية المستخرجة'), SH.fmt(r.extV, 0) + '<small> m³</small>', isNaN(r.pctV) ? '' : '<bdi>' + SH.fmt(r.pctV, 1) + ' %</bdi>' + t(' of contract', ' من العقد')) +
       kpi(overV ? 'bad' : 'ok', t('Remaining volume', 'الكمية المتبقية'), SH.fmt(r.remV, 0) + '<small> m³</small>', overV ? t('Contract exceeded', 'تجاوز العقد') : t('Still available', 'متاحة')) +
-      kpi(overA ? 'bad' : '', t('Worked area', 'المساحة المستثمرة'), SH.fmt(r.invA, 0) + '<small> m²</small>', SH.fmt(r.invA / 2500, 2) + t(' dunam', ' دونم') + (r.gpsA ? ' · GPS ' + SH.fmt(r.gpsA, 0) + ' m²' : '')) +
-      kpi(overA ? 'bad' : 'ok', t('Remaining area', 'المساحة المتبقية'), SH.fmt(r.remA, 0) + '<small> m²</small>', isNaN(r.pctA) ? '' : SH.fmt(100 - r.pctA, 1) + t(' % of contract', ' % من العقد')) +
-      kpi(overD ? 'bad' : 'ok', t('Worked depth', 'العمق المستثمر'), SH.fmt(r.Dm, 1) + '<small> m</small>', r.maxD > 0 ? t('Permitted ', 'المسموح ') + SH.fmt(r.maxD, 1) + ' m' : t('No limit entered', 'لم يُدخل حد'));
+      kpi(overA ? 'bad' : '', t('Worked area', 'المساحة المستثمرة'), SH.fmt(r.invA, 0) + '<small> m²</small>', SH.fmt(r.invA / 2500, 2) + t(' dunam', ' دونم') + (r.gpsA ? ' · <bdi>GPS ' + SH.fmt(r.gpsA, 0) + ' m²</bdi>' : '')) +
+      kpi(overA ? 'bad' : 'ok', t('Remaining area', 'المساحة المتبقية'), SH.fmt(r.remA, 0) + '<small> m²</small>', isNaN(r.pctA) ? '' : '<bdi>' + SH.fmt(100 - r.pctA, 1) + ' %</bdi>' + t(' of contract', ' من العقد')) +
+      kpi(overD ? 'bad' : 'ok', t('Worked depth', 'العمق المستثمر'), SH.fmt(r.Dm, 1) + '<small> m</small>', r.maxD > 0 ? t('Permitted ', 'المسموح ') + SH.fmt(r.maxD, 1) + t(' m', ' م') : t('No limit entered', 'لم يُدخل حد'));
     var v = [];
     if (overV || overA) v.push(verdict('bad', t('Contract exceeded', 'تجاوز حدود العقد'), t('The worked volume or area is larger than the contracted amount. Notify the licensing authority.', 'الكمية أو المساحة المستثمرة أكبر من المتعاقد عليه. يجب إبلاغ جهة الترخيص.')));
     if (overD) v.push(verdict('bad', t('Permitted depth exceeded', 'تجاوز العمق المسموح'), t('Excavation is ', 'الحفر أعمق بـ ') + SH.fmt(r.Dm - r.maxD, 1) + t(' m deeper than the licence allows.', ' م من المسموح في الترخيص.')));
@@ -119,148 +123,120 @@
   }
 
   /* ---------- shared sheet helpers: neat line, north arrow, legend box, graphic scale */
-  var INK = '#1B232B', MUT = '#55616B';
-  var iso = function (s) { return String(s).replace(/[A-Za-z0-9][A-Za-z0-9 .,:\/°′″±+\-×()]*[A-Za-z0-9°′″)]|[A-Za-z0-9]/g, function (m) { return '⁦' + m + '⁩'; }); };
-  function sheetText(S, x, y, s, a, xr) { a = a || {}; if (/[؀-ۿ]/.test(String(s))) s = iso(s); if (/[؀-ۿ]/.test(String(s)) && xr != null) { a.direction = 'rtl'; a['text-anchor'] = 'start'; return S.text(xr, y, s, a); } return S.text(x, y, s, a); }
+  var INK = '#1B232B', MUT = '#55616B', AR = SH.lang === 'ar';
+  var iso = function (s) { return String(s).replace(/\(?[A-Za-z0-9][A-Za-z0-9 .,:\/°′″±+\-×()–=²³]*[A-Za-z0-9°′″)²³]|[A-Za-z0-9]/g, function (m) { return '⁦' + m + '⁩'; }); };
+  var hasAr = function (s) { return /[؀-ۿ]/.test(String(s)); };
+  function sheetText(S, x, y, s, a, xr) { a = a || {}; if (hasAr(s)) { s = iso(s); a.direction = 'rtl'; if (xr != null) { a['text-anchor'] = 'start'; return S.text(xr, y, s, a); } } return S.text(x, y, s, a); }
   function niceFloor(v) { var p = Math.pow(10, Math.floor(Math.log10(v))), m = v / p; return (m >= 5 ? 5 : m >= 2 ? 2 : 1) * p; }
-  function panel(S, PX, PY, PW, PH, sc, rot, items, extraRows) {
+  function niceCeil(v) { var p = Math.pow(10, Math.floor(Math.log10(v))), m = v / p; return (m <= 1 ? 1 : m <= 2 ? 2 : m <= 5 ? 5 : 10) * p; }
+  function panel(S, PX, PY, PW, PH, sc, items, extraRows) {
     S.add('rect', { x: PX, y: PY, width: PW, height: PH, fill: '#fff', stroke: INK, 'stroke-width': 1 }); var L0 = PX + 14, R0 = PX + PW - 14, y = PY + 22, cx = PX + PW / 2;
-    var g = S.g({ transform: 'rotate(' + (rot || 0) + ' ' + cx + ' ' + (y + 28) + ')' }); S.text(cx, y, 'N', { 'font-size': 15, 'font-weight': 800, fill: INK, 'text-anchor': 'middle' }, g);
-    S.path('M' + cx + ' ' + (y + 6) + 'L' + (cx - 12) + ' ' + (y + 54) + 'L' + cx + ' ' + (y + 44) + 'z', { fill: INK, stroke: INK }, g); S.path('M' + cx + ' ' + (y + 6) + 'L' + (cx + 12) + ' ' + (y + 54) + 'L' + cx + ' ' + (y + 44) + 'z', { fill: '#fff', stroke: INK }, g);
-    y += 74; S.line(PX, y, PX + PW, y, { stroke: INK, 'stroke-width': .7 }); y += 20;
-    S.text(L0, y, 'LEGEND', { 'font-size': 11.5, 'font-weight': 800, fill: INK, 'letter-spacing': 1.6 }); if (SH.lang === 'ar') S.text(R0, y, 'مفتاح المخطط', { 'font-size': 11, 'font-weight': 700, fill: MUT, direction: 'rtl', 'text-anchor': 'start' }); y += 20;
-    items.forEach(function (it) { it.sym(L0, y); sheetText(S, L0 + 40, y + 4, it.label, { 'font-size': 10.5, fill: INK }, R0); y += 22; });
-    (extraRows || []).forEach(function (rw) { sheetText(S, L0, y + 4, rw[0], { 'font-size': 10.5, fill: MUT }, R0); S.text(SH.lang === 'ar' ? L0 : R0, y + 4, rw[1], { 'font-size': 10.5, 'font-weight': 800, fill: INK, direction: 'ltr', 'text-anchor': SH.lang === 'ar' ? 'start' : 'end' }); y += 18; });
-    y += 6; S.line(PX, y, PX + PW, y, { stroke: INK, 'stroke-width': .7 }); y += 20;
-    S.text(L0, y, 'SCALE', { 'font-size': 11.5, 'font-weight': 800, fill: INK, 'letter-spacing': 1.6 }); if (SH.lang === 'ar') S.text(R0, y, 'مقياس الرسم', { 'font-size': 11, 'font-weight': 700, fill: MUT, direction: 'rtl', 'text-anchor': 'start' }); y += 16;
-    var sbm = niceFloor((PW - 60) / sc), sbw = sbm * sc; for (var q = 0; q < 4; q++) S.add('rect', { x: L0 + 6 + q * sbw / 4, y: y, width: sbw / 4, height: 7, fill: q % 2 ? '#fff' : INK, stroke: INK, 'stroke-width': .8 });
-    [0, 2, 4].forEach(function (q) { S.text(L0 + 6 + q * sbw / 4, y + 21, SH.fmt(sbm * q / 4, sbm < 4 ? 1 : 0), { 'font-size': 9.5, fill: MUT, 'text-anchor': 'middle', direction: 'ltr' }); }); S.text(L0 + 14 + sbw, y + 8, 'm', { 'font-size': 10, 'font-weight': 700, fill: INK });
-    y += 40; var rf = 1000 / (sc * 0.247), rfn = Math.pow(10, Math.floor(Math.log10(rf)) - 1); S.text(L0, y, '1 : ' + SH.fmt(Math.round(rf / rfn) * rfn, 0), { 'font-size': 11, 'font-weight': 800, fill: INK, direction: 'ltr' }); S.text(R0, y, t('on A4 landscape', 'على A4 أفقي'), { 'font-size': 9, fill: MUT, 'text-anchor': 'end' });
-    return y;
+    S.text(cx, y, 'N', { 'font-size': 15, 'font-weight': 800, fill: INK, 'text-anchor': 'middle' });
+    S.path('M' + cx + ' ' + (y + 6) + 'L' + (cx - 12) + ' ' + (y + 54) + 'L' + cx + ' ' + (y + 44) + 'z', { fill: INK, stroke: INK }); S.path('M' + cx + ' ' + (y + 6) + 'L' + (cx + 12) + ' ' + (y + 54) + 'L' + cx + ' ' + (y + 44) + 'z', { fill: '#fff', stroke: INK });
+    y += 74; S.line(PX, y, PX + PW, y, { stroke: INK, 'stroke-width': .7 }); y += 22;
+    var head = function (en, ar) { if (AR) S.text(R0, y, ar, { 'font-size': 12, 'font-weight': 800, fill: INK, direction: 'rtl', 'text-anchor': 'start' }); else S.text(L0, y, en, { 'font-size': 11.5, 'font-weight': 800, fill: INK, 'letter-spacing': 1.6 }); };
+    head('LEGEND', 'مفتاح المخطط'); y += 22;
+    items.forEach(function (it) { if (AR) { it.sym(R0 - 30, y); sheetText(S, 0, y + 4, it.label, { 'font-size': 10.5, fill: INK }, R0 - 40); } else { it.sym(L0, y); S.text(L0 + 40, y + 4, it.label, { 'font-size': 10.5, fill: INK }); } y += 23; });
+    if ((extraRows || []).length) { y += 2; S.line(L0, y - 8, R0, y - 8, { stroke: '#C9CED3', 'stroke-width': .6 }); y += 6; }
+    (extraRows || []).forEach(function (rw) { sheetText(S, L0, y + 4, rw[0], { 'font-size': 10.5, fill: MUT }, R0); S.text(AR ? L0 : R0, y + 4, rw[1], { 'font-size': 10.5, 'font-weight': 800, fill: INK, direction: 'ltr', 'text-anchor': AR ? 'start' : 'end' }); y += 19; });
+    y += 6; S.line(PX, y, PX + PW, y, { stroke: INK, 'stroke-width': .7 }); y += 22;
+    head('SCALE', 'مقياس الرسم'); y += 14;
+    var sbm = niceFloor((PW - 70) / sc), sbw = sbm * sc, sx = AR ? R0 - sbw - 8 : L0 + 6;
+    for (var q = 0; q < 4; q++) S.add('rect', { x: sx + q * sbw / 4, y: y, width: sbw / 4, height: 7, fill: q % 2 ? '#fff' : INK, stroke: INK, 'stroke-width': .8 });
+    [0, 2, 4].forEach(function (q) { S.text(sx + q * sbw / 4, y + 21, SH.fmt(sbm * q / 4, sbm < 4 ? 1 : 0), { 'font-size': 9.5, fill: MUT, 'text-anchor': 'middle', direction: 'ltr' }); });
+    S.text(AR ? sx - 8 : sx + sbw + 8, y + 8, t('m', 'م'), { 'font-size': 10, 'font-weight': 700, fill: INK, 'text-anchor': AR ? 'end' : 'start' });
+    return y + 30;
   }
+  /* equal tick interval on both axes, wide enough for the labels never to touch */
   function frameAxes(S, ox, oy, W, H, sc, xMax, yMax, xName, yName) {
-    var st = SH.dem && SH.dem.niceInterval ? SH.dem.niceInterval(Math.max(xMax, yMax), 6) : 10, v;
-    for (v = 0; v <= xMax + 1e-9; v += st) { var px = ox + v * sc; S.line(px, oy + H, px, oy + H + 6, { stroke: INK }); S.line(px, oy, px, oy + H, { stroke: INK, 'stroke-width': .4, opacity: .25, 'stroke-dasharray': '3 4' }); S.text(px, oy + H + 19, SH.fmt(v, 0), { 'font-size': 10, fill: MUT, 'text-anchor': 'middle', direction: 'ltr' }); }
-    for (v = 0; v <= yMax + 1e-9; v += st) { var py = oy + H - v * sc; S.line(ox - 6, py, ox, py, { stroke: INK }); S.line(ox, py, ox + W, py, { stroke: INK, 'stroke-width': .4, opacity: .25, 'stroke-dasharray': '3 4' }); S.text(ox - 9, py + 4, SH.fmt(v, 0), { 'font-size': 10, fill: MUT, 'text-anchor': 'end', direction: 'ltr' }); }
-    S.text(ox + W / 2, oy + H + 40, xName, { 'font-size': 11, fill: MUT, 'text-anchor': 'middle' }); S.text(ox - 46, oy + H / 2, yName, { 'font-size': 11, fill: MUT, 'text-anchor': 'middle', transform: 'rotate(-90 ' + (ox - 46) + ' ' + (oy + H / 2) + ')' });
+    var st = niceCeil(Math.max(64 / sc, 26 / sc)), v, dg = st < 1 ? 1 : 0;
+    for (v = 0; v <= xMax + 1e-9; v += st) { var px = ox + v * sc; S.line(px, oy + H, px, oy + H + 6, { stroke: INK }); S.line(px, oy, px, oy + H, { stroke: INK, 'stroke-width': .4, opacity: .25, 'stroke-dasharray': '3 4' }); S.text(px, oy + H + 19, SH.fmt(v, dg), { 'font-size': 10, fill: MUT, 'text-anchor': 'middle', direction: 'ltr' }); }
+    for (v = 0; v <= yMax + 1e-9; v += st) { var py = oy + H - v * sc; S.line(ox - 6, py, ox, py, { stroke: INK }); S.line(ox, py, ox + W, py, { stroke: INK, 'stroke-width': .4, opacity: .25, 'stroke-dasharray': '3 4' }); S.text(ox - 9, py + 4, SH.fmt(v, dg), { 'font-size': 10, fill: MUT, 'text-anchor': 'end', direction: 'ltr' }); }
+    sheetText(S, ox + W / 2, oy + H + 42, xName, { 'font-size': 11, fill: MUT, 'text-anchor': 'middle' });
+    var yx = ox - 52, yy = oy + H / 2; S.text(yx, yy, hasAr(yName) ? iso(yName) : yName, { 'font-size': 11, fill: MUT, 'text-anchor': 'middle', direction: hasAr(yName) ? 'rtl' : 'ltr', transform: 'rotate(-90 ' + yx + ' ' + yy + ')' });
   }
   function hatch(S, defs, id, col, ang, gap) { var P = S.add('pattern', { id: id, width: gap || 10, height: gap || 10, patternUnits: 'userSpaceOnUse', patternTransform: 'rotate(' + (ang || 45) + ')' }, null, defs); S.add('rect', { x: 0, y: 0, width: gap || 10, height: gap || 10, fill: SH.alpha(col, .28) }, null, P); S.add('line', { x1: 0, y1: 0, x2: 0, y2: gap || 10, stroke: col, 'stroke-width': 1.3 }, null, P); return 'url(#' + id + ')'; }
+  function footer(S, VH) { S.text(30, VH - 22, 'Shandal System · ' + new Date().toISOString().slice(0, 10), { 'font-size': 10, fill: MUT, direction: 'ltr' }); }
 
   /* ---------- 2D plan: contract rectangle, worked and remaining parts, dimensions and percentages */
   function planSheet(r) {
     var S = SH.svgB('qPlan'), defs = S.add('defs', {}), inv = SH.val('qColInv') || '#C0603A', rem = SH.val('qColRem') || '#5D9C6B', VW = 1000, VH = 620; S.el.setAttribute('viewBox', '0 0 ' + VW + ' ' + VH);
     S.add('rect', { x: 0, y: 0, width: VW, height: VH, fill: '#fff' }); S.add('rect', { x: 8, y: 8, width: VW - 16, height: VH - 16, fill: 'none', stroke: INK, 'stroke-width': 1.2 });
     var totW = r.Wm, totL = r.A > 0 ? r.A / r.Wm : r.Lm; if (!(totL > 0)) totL = r.Lm; var Lx = Math.max(totL, r.Lm);
-    sheetText(S, 30, 42, t('2D plan of worked and remaining areas', 'المرتسم الثنائي للمساحات المستثمرة والمتبقية'), { 'font-size': 19, 'font-weight': 800, fill: INK }, 700);
-    sheetText(S, 30, 63, (SH.val('qSite') || t('Quarry', 'المقلع')) + ' · ' + t('local grid in metres, origin at the worked corner', 'شبكة محلية بالأمتار، أصلها عند ركن الاستثمار'), { 'font-size': 12, fill: MUT }, 700);
-    var PW = 236, ml = 92, mt = 96, mb = 78, bw = VW - ml - PW - 60, bh = VH - mt - mb, sc = Math.min(bw / Lx, bh / totW), W = Lx * sc, H = totW * sc, ox = ml + (bw - W) / 2, oy = mt + (bh - H) / 2;
+    var PW = 236, PX = VW - PW - 24;
+    sheetText(S, 30, 46, t('2D plan of the worked and remaining area', 'المرتسم الثنائي للمساحة المستثمرة والمتبقية'), { 'font-size': 19, 'font-weight': 800, fill: INK }, PX - 24);
+    var ml = 96, mt = 112, mb = 74, bw = PX - ml - 50, bh = VH - mt - mb, sc = Math.min(bw / Lx, bh / totW), W = Lx * sc, H = totW * sc, ox = ml + (bw - W) / 2, oy = mt + (bh - H) / 2;
     frameAxes(S, ox, oy, W, H, sc, Lx, totW, t('Length along the contract (m)', 'الطول على امتداد العقد (م)'), t('Width (m)', 'العرض (م)'));
     if (totL > r.Lm) S.add('rect', { x: ox + r.Lm * sc, y: oy, width: (totL - r.Lm) * sc, height: H, fill: hatch(S, defs, 'hRem', rem, -45, 12), stroke: rem, 'stroke-width': 1.6 });
     S.add('rect', { x: ox, y: oy, width: Math.min(r.Lm, Lx) * sc, height: H, fill: hatch(S, defs, 'hInv', inv, 45, 9), stroke: inv, 'stroke-width': 2 });
     if (r.Lm > totL) S.add('rect', { x: ox + totL * sc, y: oy, width: (r.Lm - totL) * sc, height: H, fill: '#B23A2E', opacity: .22 });
     S.add('rect', { x: ox, y: oy, width: totL * sc, height: H, fill: 'none', stroke: INK, 'stroke-width': 2.2, 'stroke-dasharray': '10 5' });
-    var lab = function (x, y, a, b, c) { var g = S.g(); S.add('rect', { x: x - 78, y: y - 30, width: 156, height: 58, rx: 8, fill: '#fff', opacity: .92, stroke: INK, 'stroke-width': .6 }, null, g); S.text(x, y - 11, a, { 'font-size': 13, 'font-weight': 800, fill: INK, 'text-anchor': 'middle' }, g); S.text(x, y + 6, b, { 'font-size': 11.5, fill: INK, 'text-anchor': 'middle', direction: 'ltr' }, g); S.text(x, y + 21, c, { 'font-size': 12, 'font-weight': 800, fill: '#B4552D', 'text-anchor': 'middle', direction: 'ltr' }, g); };
+    var lab = function (x, y, a, b, c) { var g = S.g(); S.add('rect', { x: x - 70, y: y - 30, width: 140, height: 58, rx: 6, fill: '#fff', opacity: .94, stroke: INK, 'stroke-width': .6 }, null, g); sheetText(S, x, y - 11, a, { 'font-size': 13, 'font-weight': 800, fill: INK, 'text-anchor': 'middle' }); S.text(x, y + 6, b, { 'font-size': 11.5, fill: INK, 'text-anchor': 'middle', direction: 'ltr' }, g); S.text(x, y + 21, c, { 'font-size': 12, 'font-weight': 800, fill: '#B4552D', 'text-anchor': 'middle', direction: 'ltr' }, g); };
     var pI = isNaN(r.pctA) ? '' : SH.fmt(r.pctA, 1) + ' %', pR = isNaN(r.pctA) ? '' : SH.fmt(100 - r.pctA, 1) + ' %';
-    if (r.Lm * sc > 120) lab(ox + Math.min(r.Lm, Lx) * sc / 2, oy + H / 2, t('Worked', 'المستثمرة'), SH.fmt(r.invA, 0) + ' m²', pI);
-    if (totL > r.Lm && (totL - r.Lm) * sc > 120) lab(ox + r.Lm * sc + (totL - r.Lm) * sc / 2, oy + H / 2, t('Remaining', 'المتبقية'), SH.fmt(r.remA, 0) + ' m²', pR);
-    var dim = function (x1, y1, x2, y2, s, vert) { S.line(x1, y1, x2, y2, { stroke: INK, 'stroke-width': 1 }); [[x1, y1, x2, y2], [x2, y2, x1, y1]].forEach(function (q) { var an = Math.atan2(q[3] - q[1], q[2] - q[0]); S.poly([[q[0], q[1]], [q[0] + 8 * Math.cos(an - .35), q[1] + 8 * Math.sin(an - .35)], [q[0] + 8 * Math.cos(an + .35), q[1] + 8 * Math.sin(an + .35)]], { fill: INK }); });
-      var mx = (x1 + x2) / 2, my = (y1 + y2) / 2; S.add('rect', { x: mx - 44, y: my - 9, width: 88, height: 17, fill: '#fff' }); S.text(mx, my + 4, s, { 'font-size': 10.5, fill: INK, 'text-anchor': 'middle', direction: 'ltr', 'font-weight': 700 }); };
-    dim(ox, oy - 18, ox + r.Lm * sc, oy - 18, 'L = ' + SH.fmt(r.Lm, 1) + ' m'); if (Math.abs(totL - r.Lm) > .01) dim(ox, oy - 40, ox + totL * sc, oy - 40, t('Contract ', 'العقد ') + SH.fmt(totL, 1) + ' m');
-    dim(ox + W + 18, oy, ox + W + 18, oy + H, 'W = ' + SH.fmt(totW, 1) + ' m');
-    var PX = VW - PW - 24; panel(S, PX, mt - 30, PW, VH - mt - 10, sc, 0, [
+    if (r.Lm * sc > 120 && H > 70) lab(ox + Math.min(r.Lm, Lx) * sc / 2, oy + H / 2, t('Worked', 'المستثمرة'), SH.fmt(r.invA, 0) + ' m²', pI);
+    if (totL > r.Lm && (totL - r.Lm) * sc > 120 && H > 70) lab(ox + r.Lm * sc + (totL - r.Lm) * sc / 2, oy + H / 2, t('Remaining', 'المتبقية'), SH.fmt(r.remA, 0) + ' m²', pR);
+    var arrow = function (x1, y1, x2, y2) { S.line(x1, y1, x2, y2, { stroke: INK, 'stroke-width': 1 }); [[x1, y1, x2, y2], [x2, y2, x1, y1]].forEach(function (q) { var an = Math.atan2(q[3] - q[1], q[2] - q[0]); S.poly([[q[0], q[1]], [q[0] + 8 * Math.cos(an - .35), q[1] + 8 * Math.sin(an - .35)], [q[0] + 8 * Math.cos(an + .35), q[1] + 8 * Math.sin(an + .35)]], { fill: INK }); }); };
+    var dimH = function (x1, x2, y, s) { arrow(x1, y, x2, y); var mx = (x1 + x2) / 2, w = s.length * 6.2 + 16; S.add('rect', { x: mx - w / 2, y: y - 9, width: w, height: 17, fill: '#fff' }); sheetText(S, mx, y + 4, s, { 'font-size': 10.5, fill: INK, 'text-anchor': 'middle', 'font-weight': 700, direction: 'ltr' }); };
+    dimH(ox, ox + r.Lm * sc, oy - 18, t('L = ', 'الطول = ') + SH.fmt(r.Lm, 1) + t(' m', ' م'));
+    if (Math.abs(totL - r.Lm) > .01) dimH(ox, ox + totL * sc, oy - 44, t('Contract length = ', 'طول العقد = ') + SH.fmt(totL, 1) + t(' m', ' م'));
+    var dx = ox + W + 16, my = oy + H / 2, ws = t('W = ', 'العرض = ') + SH.fmt(totW, 1) + t(' m', ' م'); arrow(dx, oy, dx, oy + H);
+    var wl = ws.length * 5.6 + 12; if (wl < H - 20) S.add('rect', { x: dx - 7, y: my - wl / 2, width: 14, height: wl, fill: '#fff' });
+    S.text(dx + 3.5, my, hasAr(ws) ? iso(ws) : ws, { 'font-size': 9.5, 'font-weight': 700, fill: INK, 'text-anchor': 'middle', direction: hasAr(ws) ? 'rtl' : 'ltr', transform: 'rotate(-90 ' + (dx + 3.5) + ' ' + my + ')' });
+    panel(S, PX, 74, PW, VH - 74 - 40, sc, [
       { sym: function (x, y) { S.add('rect', { x: x, y: y - 8, width: 30, height: 16, fill: 'url(#hInv)', stroke: inv, 'stroke-width': 1.5 }); }, label: t('Worked (excavated) area', 'المساحة المستثمرة (المحفورة)') },
       { sym: function (x, y) { S.add('rect', { x: x, y: y - 8, width: 30, height: 16, fill: 'url(#hRem)', stroke: rem, 'stroke-width': 1.5 }); }, label: t('Remaining contract area', 'المساحة المتبقية من العقد') },
       { sym: function (x, y) { S.line(x, y, x + 30, y, { stroke: INK, 'stroke-width': 2.2, 'stroke-dasharray': '10 5' }); }, label: t('Contract boundary', 'حدود العقد') }].concat(r.Lm > totL ? [{ sym: function (x, y) { S.add('rect', { x: x, y: y - 8, width: 30, height: 16, fill: '#B23A2E', opacity: .3 }); }, label: t('Beyond the contract', 'خارج حدود العقد') }] : []),
       [[t('Contract area', 'مساحة العقد'), SH.fmt(r.A, 0) + ' m²'], [t('Worked depth', 'عمق الاستثمار'), SH.fmt(r.Dm, 1) + ' m'], [t('Extracted', 'المستخرج'), SH.fmt(r.extV, 0) + ' m³']]);
-    S.text(30, VH - 22, 'Shandal System · ' + new Date().toISOString().slice(0, 10), { 'font-size': 10, fill: MUT }); S.text(PX - 14, VH - 22, t('North arrow is schematic: the plan is drawn from tape lengths, not oriented coordinates.', 'سهم الشمال تخطيطي: المرتسم مبني على أطوال الشريط لا على إحداثيات موجهة.'), { 'font-size': 9.5, fill: MUT, 'text-anchor': 'end' });
-    $('#qPlanCap').innerHTML = t('Contract rectangle ', 'مستطيل العقد ') + '<span class="ltr">' + SH.fmt(totL, 1) + ' × ' + SH.fmt(totW, 1) + ' m</span>' + t(' built on the worked width. ', ' مبني على العرض المستثمر. ') + (isNaN(r.pctA) ? '' : t('Worked share ', 'نسبة الاستثمار ') + '<b class="ltr">' + SH.fmt(r.pctA, 1) + ' %</b>' + t(', remaining ', '، والمتبقي ') + '<b class="ltr">' + SH.fmt(100 - r.pctA, 1) + ' %</b>. ') + t('For the true shape and orientation see the GPS site plan.', 'للشكل والاتجاه الحقيقيين راجع مخطط الموقع من GPS.');
+    footer(S, VH);
   }
 
   /* ---------- site plan from GPS corners: true geometry in UTM with sides, bearings and area */
   function siteSheet(r) {
     var pts = corners.map(function (c, i) { return c ? { c: c, k: 'ABCD'[i] } : null; }).filter(Boolean); $('#qSiteWrap').hidden = pts.length < 3; if (pts.length < 3) return;
     var z = SH.toUTM(pts[0].c.lat, pts[0].c.lon).zone, P = pts.map(function (p) { var u = SH.toUTM(p.c.lat, p.c.lon, z); return { x: u.E, y: u.N, k: p.k, acc: p.c.acc }; });
-    var S = SH.svgB('qSitePlan'), defs = S.add('defs', {}), VW = 1000, VH = 620, inv = SH.val('qColInv') || '#C0603A'; S.add('rect', { x: 0, y: 0, width: VW, height: VH, fill: '#fff' }); S.add('rect', { x: 8, y: 8, width: VW - 16, height: VH - 16, fill: 'none', stroke: INK, 'stroke-width': 1.2 });
-    sheetText(S, 30, 42, t('Site plan from GPS corners', 'مخطط الموقع من أركان GPS'), { 'font-size': 19, 'font-weight': 800, fill: INK }, 700); S.text(30, 63, 'WGS 84 / UTM ' + z + (pts[0].c.lat < 0 ? 'S' : 'N') + ' · ' + (SH.val('qSite') || ''), { 'font-size': 12, fill: MUT, direction: 'ltr' });
-    var xs = P.map(function (p) { return p.x; }), ys = P.map(function (p) { return p.y; }), x0 = Math.min.apply(null, xs), x1 = Math.max.apply(null, xs), y0 = Math.min.apply(null, ys), y1 = Math.max.apply(null, ys), pad = Math.max(x1 - x0, y1 - y0) * 0.18 + 5;
-    x0 -= pad; x1 += pad; y0 -= pad; y1 += pad; var PW = 236, ml = 110, mt = 96, mb = 78, bw = VW - ml - PW - 60, bh = VH - mt - mb, sc = Math.min(bw / (x1 - x0), bh / (y1 - y0)), W = (x1 - x0) * sc, H = (y1 - y0) * sc, ox = ml + (bw - W) / 2, oy = mt + (bh - H) / 2;
+    var S = SH.svgB('qSitePlan'), defs = S.add('defs', {}), VW = 1000, VH = 620, inv = SH.val('qColInv') || '#C0603A', PW = 236, PX = VW - PW - 24; S.add('rect', { x: 0, y: 0, width: VW, height: VH, fill: '#fff' }); S.add('rect', { x: 8, y: 8, width: VW - 16, height: VH - 16, fill: 'none', stroke: INK, 'stroke-width': 1.2 });
+    sheetText(S, 30, 46, t('Site plan from the corner coordinates', 'مخطط الموقع من إحداثيات الأركان'), { 'font-size': 19, 'font-weight': 800, fill: INK }, PX - 24);
+    S.text(AR ? PX - 24 : 30, 68, 'WGS 84 / UTM ' + z + (pts[0].c.lat < 0 ? 'S' : 'N'), { 'font-size': 12, fill: MUT, direction: 'ltr', 'text-anchor': AR ? 'end' : 'start' });
+    var xs = P.map(function (p) { return p.x; }), ys = P.map(function (p) { return p.y; }), x0 = Math.min.apply(null, xs), x1 = Math.max.apply(null, xs), y0 = Math.min.apply(null, ys), y1 = Math.max.apply(null, ys), pad = Math.max(x1 - x0, y1 - y0, 4) * 0.2 + 3;
+    x0 -= pad; x1 += pad; y0 -= pad; y1 += pad; var ml = 116, mt = 100, mb = 74, bw = PX - ml - 40, bh = VH - mt - mb, sc = Math.min(bw / (x1 - x0), bh / (y1 - y0)), W = (x1 - x0) * sc, H = (y1 - y0) * sc, ox = ml + (bw - W) / 2, oy = mt + (bh - H) / 2;
     var X = function (x) { return ox + (x - x0) * sc; }, Y = function (y) { return oy + (y1 - y) * sc; };
-    var st = SH.dem && SH.dem.niceInterval ? SH.dem.niceInterval(Math.max(x1 - x0, y1 - y0), 5) : 20, v;
-    for (v = Math.ceil(x0 / st) * st; v <= x1; v += st) { S.line(X(v), oy, X(v), oy + H, { stroke: INK, 'stroke-width': .4, opacity: .3, 'stroke-dasharray': '3 4' }); S.line(X(v), oy + H, X(v), oy + H + 6, { stroke: INK }); S.text(X(v), oy + H + 19, SH.fmt(v, 0, { nogroup: true }), { 'font-size': 10, fill: MUT, 'text-anchor': 'middle', direction: 'ltr' }); }
-    for (v = Math.ceil(y0 / st) * st; v <= y1; v += st) { S.line(ox, Y(v), ox + W, Y(v), { stroke: INK, 'stroke-width': .4, opacity: .3, 'stroke-dasharray': '3 4' }); S.line(ox - 6, Y(v), ox, Y(v), { stroke: INK }); S.text(ox - 9, Y(v) + 4, SH.fmt(v, 0, { nogroup: true }), { 'font-size': 10, fill: MUT, 'text-anchor': 'end', direction: 'ltr' }); }
-    S.add('rect', { x: ox, y: oy, width: W, height: H, fill: 'none', stroke: INK, 'stroke-width': 1.3 }); S.text(ox + W / 2, oy + H + 40, 'Easting (m)', { 'font-size': 11, fill: MUT, 'text-anchor': 'middle' }); S.text(ox - 82, oy + H / 2, 'Northing (m)', { 'font-size': 11, fill: MUT, 'text-anchor': 'middle', transform: 'rotate(-90 ' + (ox - 82) + ' ' + (oy + H / 2) + ')' });
+    var st = niceCeil(84 / sc), v, dg = st < 1 ? 1 : 0;
+    for (v = Math.ceil(x0 / st) * st; v <= x1; v += st) { S.line(X(v), oy, X(v), oy + H, { stroke: INK, 'stroke-width': .4, opacity: .3, 'stroke-dasharray': '3 4' }); S.line(X(v), oy + H, X(v), oy + H + 6, { stroke: INK }); S.text(X(v), oy + H + 19, SH.fmt(v, dg, { nogroup: true }), { 'font-size': 10, fill: MUT, 'text-anchor': 'middle', direction: 'ltr' }); }
+    for (v = Math.ceil(y0 / st) * st; v <= y1; v += st) { S.line(ox, Y(v), ox + W, Y(v), { stroke: INK, 'stroke-width': .4, opacity: .3, 'stroke-dasharray': '3 4' }); S.line(ox - 6, Y(v), ox, Y(v), { stroke: INK }); S.text(ox - 9, Y(v) + 4, SH.fmt(v, dg, { nogroup: true }), { 'font-size': 10, fill: MUT, 'text-anchor': 'end', direction: 'ltr' }); }
+    S.add('rect', { x: ox, y: oy, width: W, height: H, fill: 'none', stroke: INK, 'stroke-width': 1.3 });
+    sheetText(S, ox + W / 2, oy + H + 42, t('Easting E (m)', 'الشرقيات E (م)'), { 'font-size': 11, fill: MUT, 'text-anchor': 'middle' });
+    var nn = t('Northing N (m)', 'الشماليات N (م)'), nx = ox - 88, ny = oy + H / 2; S.text(nx, ny, hasAr(nn) ? iso(nn) : nn, { 'font-size': 11, fill: MUT, 'text-anchor': 'middle', direction: hasAr(nn) ? 'rtl' : 'ltr', transform: 'rotate(-90 ' + nx + ' ' + ny + ')' });
+    var clip = S.add('clipPath', { id: 'qSiteClip' }, null, defs); S.add('rect', { x: ox, y: oy, width: W, height: H }, null, clip);
+    var gA = S.g({ 'clip-path': 'url(#qSiteClip)' });
+    P.forEach(function (p) { if (p.acc) S.circle(X(p.x), Y(p.y), Math.max(3, p.acc * sc), { fill: SH.alpha('#1F6FB2', .06), stroke: '#1F6FB2', 'stroke-width': .8, 'stroke-dasharray': '3 2' }, gA); });
     S.poly(P.map(function (p) { return [X(p.x), Y(p.y)]; }), { fill: hatch(S, defs, 'hSite', inv, 45, 9), stroke: inv, 'stroke-width': 2.2 });
-    var area = 0, per = 0, sides = [];
-    P.forEach(function (p, i) { var q = P[(i + 1) % P.length], dx = q.x - p.x, dy = q.y - p.y, d = Math.hypot(dx, dy), az = (SH.deg(Math.atan2(dx, dy)) + 360) % 360; area += p.x * q.y - q.x * p.y; per += d; sides.push([p.k + q.k, d, az]);
-      var mx = (X(p.x) + X(q.x)) / 2, my = (Y(p.y) + Y(q.y)) / 2, an = SH.deg(Math.atan2(Y(q.y) - Y(p.y), X(q.x) - X(p.x))); if (an > 90) an -= 180; if (an < -90) an += 180;
-      S.text(mx, my - 6, SH.fmt(d, 1) + ' m · ' + SH.fmt(az, 0) + '°', { 'font-size': 10.5, 'font-weight': 700, fill: INK, 'text-anchor': 'middle', direction: 'ltr', stroke: '#fff', 'stroke-width': 3, 'paint-order': 'stroke', transform: 'rotate(' + an.toFixed(1) + ' ' + mx.toFixed(1) + ' ' + my.toFixed(1) + ')' }); });
+    var area = 0, per = 0, gx = 0, gy = 0; P.forEach(function (p) { gx += X(p.x) / P.length; gy += Y(p.y) / P.length; });
+    P.forEach(function (p, i) { var q = P[(i + 1) % P.length], dx = q.x - p.x, dy = q.y - p.y, d = Math.hypot(dx, dy), az = (SH.deg(Math.atan2(dx, dy)) + 360) % 360; area += p.x * q.y - q.x * p.y; per += d;
+      var ax = X(p.x), ay = Y(p.y), bx = X(q.x), by = Y(q.y), mx = (ax + bx) / 2, my = (ay + by) / 2, len = Math.hypot(bx - ax, by - ay) || 1, nx2 = -(by - ay) / len, ny2 = (bx - ax) / len;
+      if ((mx - gx) * nx2 + (my - gy) * ny2 < 0) { nx2 = -nx2; ny2 = -ny2; }
+      var an = SH.deg(Math.atan2(by - ay, bx - ax)); if (an > 90) an -= 180; if (an < -90) an += 180; var lx = mx + nx2 * 14, ly = my + ny2 * 14 + 4;
+      S.text(lx, ly, SH.fmt(d, 1) + ' m · ' + SH.fmt(az, 0) + '°', { 'font-size': 10.5, 'font-weight': 700, fill: INK, 'text-anchor': 'middle', direction: 'ltr', stroke: '#fff', 'stroke-width': 3, 'paint-order': 'stroke', transform: 'rotate(' + an.toFixed(1) + ' ' + lx.toFixed(1) + ' ' + (ly - 4).toFixed(1) + ')' }); });
     area = Math.abs(area) / 2;
-    P.forEach(function (p) { if (p.acc) S.circle(X(p.x), Y(p.y), Math.max(3, p.acc * sc), { fill: SH.alpha('#1F6FB2', .12), stroke: '#1F6FB2', 'stroke-width': .8, 'stroke-dasharray': '3 2' }); S.circle(X(p.x), Y(p.y), 5, { fill: '#fff', stroke: INK, 'stroke-width': 2 }); S.text(X(p.x) + 9, Y(p.y) - 9, p.k, { 'font-size': 14, 'font-weight': 800, fill: INK, stroke: '#fff', 'stroke-width': 3, 'paint-order': 'stroke' }); });
-    var PX = VW - PW - 24, yy = panel(S, PX, mt - 30, PW, VH - mt - 10, sc, 0, [
-      { sym: function (x, y) { S.add('rect', { x: x, y: y - 8, width: 30, height: 16, fill: 'url(#hSite)', stroke: inv, 'stroke-width': 1.5 }); }, label: t('Surveyed outline', 'الحدود المرصودة') },
-      { sym: function (x, y) { S.circle(x + 15, y, 5, { fill: '#fff', stroke: INK, 'stroke-width': 2 }); }, label: t('GPS corner', 'ركن GPS') },
-      { sym: function (x, y) { S.circle(x + 15, y, 8, { fill: SH.alpha('#1F6FB2', .12), stroke: '#1F6FB2', 'stroke-dasharray': '3 2' }); }, label: t('Horizontal accuracy (±σ)', 'الدقة الأفقية (±σ)') }],
+    P.forEach(function (p) { var px = X(p.x), py = Y(p.y), ux = px - gx, uy = py - gy, ul = Math.hypot(ux, uy) || 1; S.circle(px, py, 5, { fill: '#fff', stroke: INK, 'stroke-width': 2 }); S.text(px + ux / ul * 16, py + uy / ul * 16 + 5, p.k, { 'font-size': 14, 'font-weight': 800, fill: INK, 'text-anchor': 'middle', stroke: '#fff', 'stroke-width': 3, 'paint-order': 'stroke' }); });
+    panel(S, PX, 74, PW, VH - 74 - 40, sc, [
+      { sym: function (x, y) { S.add('rect', { x: x, y: y - 8, width: 30, height: 16, fill: 'url(#hSite)', stroke: inv, 'stroke-width': 1.5 }); }, label: t('Surveyed boundary', 'الحدود المرصودة') },
+      { sym: function (x, y) { S.circle(x + 15, y, 5, { fill: '#fff', stroke: INK, 'stroke-width': 2 }); }, label: t('Corner (GPS)', 'ركن مرصود (GPS)') },
+      { sym: function (x, y) { S.circle(x + 15, y, 8, { fill: SH.alpha('#1F6FB2', .1), stroke: '#1F6FB2', 'stroke-dasharray': '3 2' }); }, label: t('Horizontal accuracy', 'الدقة الأفقية') }],
       [[t('Area', 'المساحة'), SH.fmt(area, 0) + ' m²'], [t('Perimeter', 'المحيط'), SH.fmt(per, 1) + ' m'], [t('Area (dunam)', 'المساحة (دونم)'), SH.fmt(area / 2500, 3)]]);
-    S.text(30, VH - 22, 'Shandal System · ' + new Date().toISOString().slice(0, 10), { 'font-size': 10, fill: MUT });
-    $('#qSiteCap').innerHTML = t('True outline from the corner coordinates in UTM. Each side is labelled with its length and grid bearing (clockwise from grid north). Shoelace area ', 'الحدود الحقيقية من إحداثيات الأركان بنظام UTM. كل ضلع موسوم بطوله واتجاهه الشبكي (باتجاه عقارب الساعة من شمال الشبكة). مساحة المضلع ') + '<b class="ltr">' + SH.fmt(area, 0) + ' m²</b>' + (r.invA ? t(' against ', ' مقابل ') + '<b class="ltr">' + SH.fmt(r.invA, 0) + ' m²</b>' + t(' from tape length × width (', ' من الطول × العرض بالشريط (') + '<span class="ltr">' + SH.fmt(100 * (area - r.invA) / r.invA, 1) + ' %</span>).' : '.');
+    footer(S, VH);
+    $('#qSiteCap').textContent = t('Surveyed boundary from the corner coordinates, with side lengths and grid bearings.', 'حدود الموقع المرصودة من إحداثيات الأركان، مع أطوال الأضلاع واتجاهاتها الشبكية.');
   }
 
   /* ---------- stratigraphic column and bed log */
+  var siteName = function () { return SH.val('qName') || SH.val('qSite') || ''; };
   function column(r) {
-    var place = SH.val('qCountry') === 'iq' ? t('Iraq, ', 'العراق، ') + SH.selText('qGov') : (SH.val('qReg') || ''), c0 = corners.filter(Boolean)[0], u = c0 ? SH.toUTM(c0.lat, c0.lon) : null;
-    ST.render($('#qCol'), r.beds, { title: t('Stratigraphic column of the pit face', 'العمود الطباقي لواجهة المقلع') + (SH.val('qSite') ? ' — ' + SH.val('qSite') : ''),
-      meta: [place + (u ? ' · UTM ' + u.zone + u.band + ' E ' + u.E.toFixed(0) + ' N ' + u.N.toFixed(0) : ''), t('Logged by ', 'سجّلها ') + (SH.val('geoName') || '—') + ' · ' + new Date().toISOString().slice(0, 10) + ' · ' + t('total thickness ', 'السمك الكلي ') + SH.fmt(r.bedsTotal, 2) + ' m'],
-      faceAz: SH.val('qFace') === '' ? null : SH.num('qFace'), pitFloor: r.Dm, water: SH.num('qWt'), credit: 'Shandal System', source: t('Field log', 'سجل حقلي') });
+    ST.render($('#qCol'), r.beds, { title: t('Geological stratigraphic column', 'العمود الطباقي الجيولوجي') + (siteName() ? ' — ' + siteName() : ''),
+      faceAz: SH.val('qFace') === '' ? null : SH.num('qFace'), pitFloor: r.Dm, water: SH.num('qWt'), credit: 'Shandal System' });
   }
   function logTable(r) {
     var top = 0;
-    $('#qLog').innerHTML = '<thead><tr><th>No.</th><th class="num">' + t('From–to (m)', 'من–إلى (م)') + '</th><th class="num">' + t('Thick. (m)', 'السمك (م)') + '</th><th>' + t('Lithology', 'الصخارية') + '</th><th>' + t('Texture', 'النسيج') + '</th><th>' + t('Base contact', 'التماس السفلي') + '</th><th>' + t('Structures and fossils', 'التراكيب والأحافير') + '</th><th>' + t('Likely environment', 'البيئة المرجحة') + '</th><th>' + t('Excavatability', 'قابلية الحفر') + '</th></tr></thead><tbody>' +
-      r.beds.map(function (b, i) { var dg = ST.dig(b), g = b.gs !== undefined && b.gs !== '' ? +b.gs : LITH[b.rock][4], row = '<tr><td><b>' + (i + 1) + '</b></td><td class="num">' + SH.fmt(top, 2) + '–' + SH.fmt(top + b.th, 2) + '</td><td class="num">' + SH.fmt(b.th, 2) + '</td><td><b>' + ln(b.rock) + '</b>' + (b.sec ? (b.mix === 'inter' ? t(' interbedded with ', ' متعاقب مع ') : t(' with ', ' مع ')) + ln(b.sec) : '') + (b.col ? '<div class="xsmall muted">' + SH.esc(b.col) + '</div>' : '') + (b.desc ? '<div class="xsmall">' + SH.esc(b.desc) + '</div>' : '') + '</td><td class="ltr">' + ST.GS[g] + '</td><td>' + ST.CONTACTS[b.base || 'sharp'][SH.lang === 'ar' ? 1 : 0] + '</td><td class="small">' + ((b.st || []).map(function (k) { return ST.STRUCT[k] ? ST.STRUCT[k][SH.lang === 'ar' ? 1 : 0] : ''; }).filter(Boolean).join('، ') || '—') + '</td><td class="small">' + ST.facies(b) + '</td><td><span class="badge ' + dg[1] + '">' + dg[0] + '</span></td></tr>'; top += b.th; return row; }).join('') + '</tbody>';
-  }
-
-  function drawPlan(r) {
-    var S = SH.svgB('qPlan'), p = SH.palette(), inv = SH.val('qColInv'), rem = SH.val('qColRem');
-    S.add('rect', { x: 0, y: 0, width: 560, height: 420, fill: SH.css('--il-bg') });
-    var totW = r.Wm, totL = r.A > 0 ? r.A / r.Wm : r.Lm; if (!(totL > 0)) totL = r.Lm;
-    var mx = 70, my = 50, dw = 420, dh = 300, sc = Math.min(dw / Math.max(totL, r.Lm), dh / totW), wL = Math.max(totL, r.Lm) * sc, wW = totW * sc, ox = mx + (dw - wL) / 2, oy = my + (dh - wW) / 2;
-    S.add('rect', { x: ox, y: oy, width: totL * sc, height: wW, fill: SH.alpha(rem, .35), stroke: rem, 'stroke-width': 2 });
-    S.add('rect', { x: ox, y: oy, width: r.Lm * sc, height: wW, fill: SH.alpha(inv, .55), stroke: inv, 'stroke-width': 2 });
-    S.text(ox + r.Lm * sc / 2, oy + wW / 2 - 4, t('Worked', 'مستثمر'), { 'font-size': 13, 'font-weight': 800, fill: p.text, 'text-anchor': 'middle' });
-    S.text(ox + r.Lm * sc / 2, oy + wW / 2 + 14, SH.fmt(r.invA, 0) + ' m²', { 'font-size': 12, fill: p.text, 'text-anchor': 'middle' });
-    if (totL > r.Lm) { S.text(ox + r.Lm * sc + (totL - r.Lm) * sc / 2, oy + wW / 2 - 4, t('Remaining', 'متبقٍ'), { 'font-size': 13, 'font-weight': 800, fill: p.text, 'text-anchor': 'middle' }); S.text(ox + r.Lm * sc + (totL - r.Lm) * sc / 2, oy + wW / 2 + 14, SH.fmt(r.remA, 0) + ' m²', { 'font-size': 12, fill: p.text, 'text-anchor': 'middle' }); }
-    S.arrow(ox + 1, oy + wW + 22, ox + r.Lm * sc - 1, oy + wW + 22, p.text2, 1.2); S.arrow(ox + r.Lm * sc - 1, oy + wW + 22, ox + 1, oy + wW + 22, p.text2, 1.2);
-    S.text(ox + r.Lm * sc / 2, oy + wW + 40, 'L = ' + SH.fmt(r.Lm, 1) + ' m', { 'font-size': 12, fill: p.text2, 'text-anchor': 'middle' });
-    S.arrow(ox - 22, oy + 1, ox - 22, oy + wW - 1, p.text2, 1.2); S.arrow(ox - 22, oy + wW - 1, ox - 22, oy + 1, p.text2, 1.2);
-    S.text(ox - 30, oy + wW / 2, 'W = ' + SH.fmt(r.Wm, 1) + ' m', { 'font-size': 12, fill: p.text2, 'text-anchor': 'middle', transform: 'rotate(-90 ' + (ox - 30) + ' ' + (oy + wW / 2) + ')' });
-    S.path('M520 40l7 18h-14z', { fill: p.accent }); S.text(520, 34, 'N', { 'font-size': 12, 'font-weight': 800, fill: p.text, 'text-anchor': 'middle' });
-    $('#qPlanCap').innerHTML = t('Contract area drawn as ', 'رُسمت مساحة العقد بطول ') + SH.fmt(totL, 1) + ' × ' + SH.fmt(totW, 1) + ' m ' + t('using the worked width. ', 'باستخدام العرض المستثمر. ') + (isNaN(r.pctA) ? '' : t('Worked share: ', 'نسبة الاستثمار: ') + '<b>' + SH.fmt(r.pctA, 1) + ' %</b>.');
-  }
-
-  function pattern(S, defs, id, kind, col) {
-    var P = S.add('pattern', { id: id, width: 20, height: 20, patternUnits: 'userSpaceOnUse' }, null, defs);
-    var l = function (dd, w, da) { S.add('path', { d: dd, stroke: col, 'stroke-width': w || 1, fill: 'none', 'stroke-dasharray': da || null }, null, P); }, dot = function (x, y, r) { S.add('circle', { cx: x, cy: y, r: r || 1, fill: col }, null, P); };
-    ({ soil: function () { l('M2 16q3 -6 6 0M12 8q3 -6 6 0', .9); }, clay: function () { l('M0 5H20M0 15H20', 1, '8 3'); }, silt: function () { l('M0 5H8M12 5H20', 1); dot(10, 15); }, dots: function () { dot(4, 4); dot(14, 8); dot(8, 15); dot(17, 17); },
-      cong: function () { S.add('circle', { cx: 6, cy: 6, r: 3.5, fill: 'none', stroke: col }, null, P); S.add('circle', { cx: 15, cy: 15, r: 2.5, fill: 'none', stroke: col }, null, P); }, brec: function () { l('M2 2L9 5L4 9ZM12 11L18 13L13 18Z'); },
-      shale: function () { l('M0 4H8M12 4H20M0 14H5M9 14H17'); }, lime: function () { l('M0 0H20M0 10H20M5 0V10M15 10V20'); }, dolo: function () { l('M0 0H20M0 10H20M5 0V10M15 10V20M8 10L12 0'); }, marl: function () { l('M0 0H20M0 10H20M5 0V10M15 10V20'); l('M2 5H8M12 15H18', 1, '2 2'); },
-      gyp: function () { l('M2 4L5 9L8 4M12 14L15 19L18 14'); }, halite: function () { l('M0 0H20V20H0ZM10 0V20M0 10H20', .7); }, volc: function () { l('M3 4L6 10L9 4M12 13L15 19L18 13'); }, plus: function () { l('M5 2V8M2 5H8M15 12V18M12 15H18', 1.2); } }[kind] || function () { dot(10, 10); })();
-  }
-  function drawCol(r) {
-    var S = SH.svgB('qCol'), p = SH.palette(), defs = S.add('defs', {}), ink = '#1B232B';
-    S.add('rect', { x: 0, y: 0, width: 560, height: 420, fill: '#FFFFFF' });
-    if (!r.beds.length) { S.text(280, 210, t('No beds entered', 'لم تُدخل طبقات'), { 'font-size': 14, fill: p.text3, 'text-anchor': 'middle' }); return; }
-    var top = 40, H = 340, px = H / r.bedsTotal, x0 = 120, wmax = 160, y = top;
-    S.text(x0, 26, t('Depth (m)', 'العمق (م)'), { 'font-size': 11, fill: '#5A6670' });
-    r.beds.forEach(function (b, i) {
-      var h = b.th * px, w = 70 + LITH[b.rock][4] * (wmax - 70) / 3; pattern(S, defs, 'qp' + i, LITH[b.rock][3], '#2B2B2B');
-      S.add('rect', { x: x0, y: y, width: w, height: h, fill: LITH[b.rock][2] }); S.add('rect', { x: x0, y: y, width: w, height: h, fill: 'url(#qp' + i + ')' });
-      if (b.sec && LITH[b.sec]) { pattern(S, defs, 'qs' + i, LITH[b.sec][3], '#2B2B2B'); if (b.mix === 'inter') { var bd = Math.max(5, h / 6); for (var k = bd; k < h; k += 2 * bd) { S.add('rect', { x: x0, y: y + k, width: w, height: Math.min(bd, h - k), fill: LITH[b.sec][2] }); S.add('rect', { x: x0, y: y + k, width: w, height: Math.min(bd, h - k), fill: 'url(#qs' + i + ')' }); } } else S.add('rect', { x: x0, y: y, width: w, height: h, fill: 'url(#qs' + i + ')', opacity: .7 }); }
-      S.add('rect', { x: x0, y: y, width: w, height: h, fill: 'none', stroke: ink, 'stroke-width': 1.2 });
-      S.line(x0 - 8, y, x0, y, { stroke: ink }); S.text(x0 - 12, y + 4, SH.fmt(y === top ? 0 : (y - top) / px, 1), { 'font-size': 10, fill: '#5A6670', 'text-anchor': 'end' });
-      if (h > 11) S.text(x0 + wmax + 20, y + h / 2 + 4, ln(b.rock) + (b.sec ? (b.mix === 'inter' ? t(' / ', ' / ') : ' + ') + ln(b.sec) : '') + ' · ' + SH.fmt(b.th, 1) + ' m', { 'font-size': 12, fill: ink });
-      y += h;
-    });
-    S.line(x0 - 8, y, x0, y, { stroke: ink }); S.text(x0 - 12, y + 4, SH.fmt(r.bedsTotal, 1), { 'font-size': 10, fill: '#5A6670', 'text-anchor': 'end' });
-    if (r.Dm > 0 && r.Dm <= r.bedsTotal) { var dy = top + r.Dm * px; S.line(x0 - 30, dy, x0 + wmax + 10, dy, { stroke: '#B4552D', 'stroke-width': 2, 'stroke-dasharray': '6 4' }); S.text(x0 - 34, dy - 4, t('pit floor', 'أرضية الحفر'), { 'font-size': 10, fill: '#B4552D', 'text-anchor': 'end' }); }
+    $('#qLog').innerHTML = '<thead><tr><th>No.</th><th class="num">' + t('From–to (m)', 'من–إلى (م)') + '</th><th class="num">' + t('Thick. (m)', 'السمك (م)') + '</th><th>' + t('Lithology', 'الصخارية') + '</th><th>' + t('Texture', 'النسيج') + '</th><th>' + t('Base contact', 'التماس السفلي') + '</th><th>' + t('Structures and fossils', 'التراكيب والأحافير') + '</th><th>' + t('Likely environment', 'البيئة الترسيبية المرجحة') + '</th></tr></thead><tbody>' +
+      r.beds.map(function (b, i) { var g = b.gs !== undefined && b.gs !== '' ? +b.gs : LITH[b.rock][4], row = '<tr><td><b>' + (i + 1) + '</b></td><td class="num">' + SH.fmt(top, 2) + '–' + SH.fmt(top + b.th, 2) + '</td><td class="num">' + SH.fmt(b.th, 2) + '</td><td><b>' + ln(b.rock) + '</b>' + (b.sec ? (b.mix === 'inter' ? t(' interbedded with ', ' متعاقب مع ') : t(' with ', ' مع ')) + ln(b.sec) : '') + (b.col ? '<div class="xsmall muted">' + SH.esc(b.col) + '</div>' : '') + (b.desc ? '<div class="xsmall">' + SH.esc(b.desc) + '</div>' : '') + '</td><td class="ltr">' + ST.GS[g] + '</td><td>' + ST.CONTACTS[b.base || 'sharp'][SH.lang === 'ar' ? 1 : 0] + '</td><td class="small">' + ((b.st || []).map(function (k) { return ST.STRUCT[k] ? ST.STRUCT[k][SH.lang === 'ar' ? 1 : 0] : ''; }).filter(Boolean).join('، ') || '—') + '</td><td class="small">' + ST.facies(b) + '</td></tr>'; top += b.th; return row; }).join('') + '</tbody>';
   }
 
   function drawMap() {
@@ -290,17 +266,17 @@
   }
   function summaries(r) {
     var row = function (k, v) { return '<tr><th>' + k + '</th><td>' + v + '</td></tr>'; };
-    var place = SH.val('qCountry') === 'iq' ? t('Iraq · ', 'العراق · ') + SH.selText('qGov') : SH.esc(SH.val('qReg') || '—');
-    $('#qSum1').innerHTML = row(t('Quarry / contract', 'المقلع / العقد'), SH.esc(SH.val('qSite') || '—')) + row(t('Location', 'الموقع'), place) + row(t('Contract area', 'المساحة المتعاقد عليها'), SH.fmt(r.A, 0) + ' m² (' + SH.fmt(r.A / 2500, 2) + t(' dunam)', ' دونم)')) +
-      row(t('Contracted volume', 'الكمية المتعاقد عليها'), SH.fmt(r.V, 0) + ' m³') + row(t('Worked L × W × D', 'الطول × العرض × العمق'), '<span class="ltr">' + SH.fmt(r.Lm, 1) + ' × ' + SH.fmt(r.Wm, 1) + ' × ' + SH.fmt(r.Dm, 1) + ' m</span>') + row(t('Extracted / remaining', 'المستخرج / المتبقي'), SH.fmt(r.extV, 0) + ' / ' + SH.fmt(r.remV, 0) + ' m³');
-    $('#qSum2').innerHTML = '<thead><tr><th>No.</th><th class="num">Lat</th><th class="num">Lon</th><th class="num">E</th><th class="num">N</th><th>Zone</th></tr></thead><tbody>' + corners.map(function (c, i) { if (!c) return '<tr><td>' + 'ABCD'[i] + '</td><td colspan="5" class="muted">' + t('not captured', 'لم يُلتقط') + '</td></tr>'; var u = SH.toUTM(c.lat, c.lon); return '<tr><td><b>' + 'ABCD'[i] + '</b></td><td class="num">' + c.lat.toFixed(6) + '</td><td class="num">' + c.lon.toFixed(6) + '</td><td class="num">' + u.E.toFixed(1) + '</td><td class="num">' + u.N.toFixed(1) + '</td><td>' + u.zone + u.band + '</td></tr>'; }).join('') + '</tbody>';
+    var place = SH.esc(SH.selText('qCountry')) + ' · ' + (SH.val('qCountry') === 'iq' ? SH.selText('qGov') : SH.esc(SH.val('qReg') || '—'));
+    $('#qSum1').innerHTML = row(t('Quarry or plant', 'المقلع أو المعمل'), SH.esc(SH.val('qName') || '—')) + row(t('Contract number', 'رقم العقد'), SH.esc(SH.val('qSite') || '—')) + row(t('Location', 'الموقع'), place) + row(t('Contract area', 'المساحة المتعاقد عليها'), '<bdi>' + SH.fmt(r.A, 0) + ' m²</bdi> (<bdi>' + SH.fmt(r.A / 2500, 2) + '</bdi>' + t(' dunam)', ' دونم)')) +
+      row(t('Contracted volume', 'الكمية المتعاقد عليها'), '<bdi>' + SH.fmt(r.V, 0) + ' m³</bdi>') + row(t('Worked L × W × D', 'الطول × العرض × العمق'), '<span class="ltr">' + SH.fmt(r.Lm, 1) + ' × ' + SH.fmt(r.Wm, 1) + ' × ' + SH.fmt(r.Dm, 1) + ' m</span>') + row(t('Extracted / remaining', 'المستخرج / المتبقي'), '<bdi>' + SH.fmt(r.extV, 0) + ' m³</bdi> / <bdi>' + SH.fmt(r.remV, 0) + ' m³</bdi>');
+    $('#qSum2').innerHTML = '<thead><tr><th>No.</th><th class="num">' + t('Latitude', 'دائرة العرض') + '</th><th class="num">' + t('Longitude', 'خط الطول') + '</th><th class="num">' + t('Easting E', 'الشرقيات E') + '</th><th class="num">' + t('Northing N', 'الشماليات N') + '</th><th>' + t('Zone', 'النطاق') + '</th></tr></thead><tbody>' + corners.map(function (c, i) { if (!c) return '<tr><td>' + 'ABCD'[i] + '</td><td colspan="5" class="muted">' + t('not captured', 'لم يُلتقط') + '</td></tr>'; var u = SH.toUTM(c.lat, c.lon); return '<tr><td><b>' + 'ABCD'[i] + '</b></td><td class="num">' + c.lat.toFixed(6) + '</td><td class="num">' + c.lon.toFixed(6) + '</td><td class="num">' + u.E.toFixed(1) + '</td><td class="num">' + u.N.toFixed(1) + '</td><td>' + u.zone + u.band + '</td></tr>'; }).join('') + '</tbody>';
     var pol = checked('qPol').map(function (v) { return label('qPol', v); }), ops = checked('qOps').map(function (v) { return label('qOps', v); }), mach = checked('qMach').map(function (v) { return label('qMach', v); });
     $('#qSum3').innerHTML = row(t('Laboratory compliance', 'المطابقة المختبرية'), SH.selText('qLab')) + row(t('Pollution', 'التلوث'), pol.length ? pol.join('، ') : t('None observed', 'لم يُرصد')) + row(t('Groundwater', 'المياه الجوفية'), SH.selText('qGw')) + row(t('Rehabilitation', 'إعادة التأهيل'), SH.selText('qRehab')) + row(t('Operations', 'العمليات'), ops.join('، ') || '—') + row(t('Machinery', 'الآليات'), mach.join('، ') || '—');
   }
 
   $('#qRun').addEventListener('click', run);
   $('#qDemo').addEventListener('click', function () {
-    var v = { qSite: t('Nahrawan quarry 12', 'مقلع النهروان 12'), qDunam: 20, qArea: 50000, qVol: 300000, qMaxD: 6, qL: 140, qW: 120, qD: 5.5 };
+    var v = { qName: t('Sand and gravel quarry', 'مقلع رمل وحصى'), qSite: '12/2026', qDunam: 20, qArea: 50000, qVol: 300000, qMaxD: 6, qL: 140, qW: 120, qD: 5.5 };
     for (var k in v) $('#' + k).value = v[k];
     var c = [33.3010, 44.7020]; corners = [{ lat: c[0], lon: c[1] }, { lat: c[0], lon: c[1] + 0.00151 }, { lat: c[0] - 0.00108, lon: c[1] + 0.00151 }, { lat: c[0] - 0.00108, lon: c[1] }];
     beds = [{ rock: 'topsoil', th: 0.5 }, { rock: 'clay', th: 1.5 }, { rock: 'sand', th: 2, sec: 'gravel', mix: 'mixed' }, { rock: 'gravel', th: 2.5 }];
@@ -308,7 +284,7 @@
     SH.store.set('shandal_quarry_corners', corners); SH.store.set('shandal_quarry_beds', beds); cornersUI(); bedsUI(); run();
   });
   document.addEventListener('sh:beforereport', function (e) { if (!last) { e.preventDefault(); SH.toast(t('Process the data first.', 'عالج البيانات أولاً.'), 'warn'); } });
-  document.addEventListener('sh:redraw', function () { if (last) { drawPlan(last); } });
+  document.addEventListener('sh:redraw', function () { if (last) { planSheet(last); siteSheet(last); column(last); } });
   SH.$$('[data-svg]').forEach(function (b) { b.addEventListener('click', function () { SH.svgPng($('#' + b.getAttribute('data-svg')), 'shandal-' + b.getAttribute('data-svg') + '.png', 2); }); });
   cornersUI(); bedsUI();
 })();

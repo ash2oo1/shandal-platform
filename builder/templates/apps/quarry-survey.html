@@ -7,9 +7,10 @@
     {{ m.panel_open(1, 'Supervisor and site', 'المشرف والموقع') }}
       {{ m.fld('geoName', 'Supervising geologist', 'الجيولوجي المشرف', 'text') }}
       <div class="row2">
-        {{ m.fld('qSite', 'Quarry or contract', 'المقلع أو رقم العقد', 'text', '', '', '', '', m.L('e.g. Nahrawan Q-12', 'مثال: مقلع النهروان 12')) }}
-        {{ m.sel('qCountry', 'Country', 'الدولة', [('iq', 'Iraq', 'العراق', true), ('other', 'Other country', 'دولة أخرى')]) }}
+        {{ m.fld('qName', 'Quarry or plant name', 'اسم المقلع أو المعمل', 'text') }}
+        {{ m.fld('qSite', 'Contract number', 'رقم العقد', 'text') }}
       </div>
+      <div class="fg"><label for="qCountry">{{ m.L('Country', 'الدولة') }}</label><select id="qCountry"><option value="iq">{{ m.L('Iraq', 'العراق') }}</option></select></div>
       <div class="fg" id="qGovWrap"><label for="qGov">{{ m.L('Governorate', 'المحافظة') }}</label><select id="qGov"></select></div>
       <div class="fg" id="qRegWrap" hidden><label for="qReg">{{ m.L('Region, state or province', 'المنطقة أو الولاية أو المقاطعة') }}</label><input id="qReg"></div>
     {{ m.panel_close() }}
@@ -91,34 +92,36 @@
 
   <div class="ws-main">
     <div id="qEmpty" class="pn">{{ m.empty('pickaxe', 'Survey the quarry', 'ابدأ مسح المقلع', 'Enter the contract, the worked dimensions, the corner coordinates and the beds in the face, then process the data.', 'أدخل بيانات العقد والأبعاد المستثمرة وإحداثيات الأركان وطبقات الواجهة، ثم عالج البيانات.') }}</div>
-    <div id="qOut" hidden style="display:grid;gap:18px">
+    <div id="qOut" hidden data-rp-paged style="display:grid;gap:18px">
+      <div data-rp-page="res" style="display:grid;gap:12px">
       <div class="kpis" id="qKpis"></div>
       <div id="qVerd" style="display:grid;gap:10px"></div>
-      {{ m.fig_open('fq1', '1', '2D plan of worked and remaining areas', 'المرتسم الثنائي للمساحات المستثمرة والمتبقية', '<button class="btn btn-line btn-xs" data-svg="qPlan">PNG</button><button class="btn btn-line btn-xs" data-svgfile="qPlan">SVG</button>') }}
+      </div>
+      <div data-rp-page="plan">{{ m.fig_open('fq1', '1', '2D plan of the worked and remaining area', 'المرتسم الثنائي للمساحة المستثمرة والمتبقية', '<button class="btn btn-line btn-xs" data-svg="qPlan">PNG</button><button class="btn btn-line btn-xs" data-svgfile="qPlan">SVG</button>') }}
         <div class="fig-b"><svg class="chart" id="qPlan" viewBox="0 0 1000 620" role="img" aria-label="Quarry plan"></svg></div>
-        <div class="fig-cap" id="qPlanCap"></div>
-      {{ m.fig_close() }}
-      <div id="qSiteWrap" hidden>
-      {{ m.fig_open('fq1b', '2', 'Site plan from the GPS corners (UTM)', 'مخطط الموقع من أركان GPS (UTM)', '<button class="btn btn-line btn-xs" data-svg="qSitePlan">PNG</button>') }}
+      {{ m.fig_close() }}</div>
+      <div id="qSiteWrap" hidden data-rp-page="site">
+      {{ m.fig_open('fq1b', '2', 'Site plan from the corner coordinates', 'مخطط الموقع من إحداثيات الأركان', '<button class="btn btn-line btn-xs" data-svg="qSitePlan">PNG</button>') }}
         <div class="fig-b"><svg class="chart" id="qSitePlan" viewBox="0 0 1000 620" role="img" aria-label="Site plan"></svg></div>
         <div class="fig-cap" id="qSiteCap"></div>
       {{ m.fig_close() }}
       </div>
-      {{ m.fig_open('fq2', '3', 'Stratigraphic column of the pit face', 'العمود الطباقي لواجهة المقلع', '<button class="btn btn-line btn-xs" data-svg="qCol">PNG</button><button class="btn btn-line btn-xs" data-svgfile="qCol">SVG</button>') }}
+      <div data-rp-page="col">{{ m.fig_open('fq2', '3', 'Geological stratigraphic column', 'العمود الطباقي الجيولوجي', '<button class="btn btn-line btn-xs" data-svg="qCol">PNG</button><button class="btn btn-line btn-xs" data-svgfile="qCol">SVG</button>') }}
         <div class="fig-b"><svg class="chart" id="qCol" viewBox="0 0 1000 900" role="img" aria-label="Stratigraphic column"></svg></div>
-        <div class="fig-cap">{{ m.L('Column width follows grain size (clastics) or Dunham texture (carbonates), so resistant coarse beds stand out as in a weathered face. Contacts, structures and fossils use standard field symbols explained in the legend.', 'يتبع عرض العمود حجم الحبيبات (للفتاتيات) أو نسيج دنهام (للكربونات)، فتبرز الطبقات الخشنة المقاومة كما في واجهة مكشوفة. ترسم التماسات والتراكيب والأحافير برموز حقلية قياسية مشروحة في المفتاح.') }}</div>
-      {{ m.fig_close() }}
-      <section class="pn"><div class="pn-h">{{ icon('table') }}<h2>{{ m.L('Bed-by-bed lithological log', 'السجل الصخاري طبقة بطبقة') }}</h2></div><div class="pn-b flush tbl-wrap"><table class="tbl" id="qLog"></table></div></section>
-      {{ m.fig_open('fq3', '4', 'Satellite view of the site', 'الصورة الفضائية للموقع') }}
+      {{ m.fig_close() }}</div>
+      <section class="pn" data-rp-page="log"><div class="pn-h">{{ icon('table') }}<h2>{{ m.L('Lithological log', 'السجل الصخاري') }}</h2></div><div class="pn-b flush tbl-wrap"><table class="tbl" id="qLog"></table></div></section>
+      <div data-rp-page="sat">{{ m.fig_open('fq3', '4', 'Satellite image of the site', 'الصورة الفضائية للموقع') }}
         <div class="fig-b pad0" style="position:relative"><div class="map" id="qMap"></div></div>
-        <div class="fig-cap">{{ m.L('Worked area outlined from the GPS corners on satellite imagery. Corner labels show UTM coordinates.', 'المساحة المستثمرة محددة من أركان GPS فوق الصورة الفضائية، وتظهر تسميات الأركان بإحداثيات UTM.') }}</div>
-      {{ m.fig_close() }}
-      <section class="pn"><div class="pn-h">{{ icon('file-text') }}<h2>{{ m.L('Geological interpretation and lithological description', 'التفسير الجيولوجي والوصف الصخاري') }}</h2></div><div class="pn-b" id="qNarr" style="font-size:.92rem;line-height:1.8"></div></section>
+        <div class="fig-cap">{{ m.L('Boundary of the worked area and its four corners (A–D).', 'حدود المساحة المستثمرة وأركانها الأربعة (A–D).') }}</div>
+      {{ m.fig_close() }}</div>
+      <section class="pn" data-rp-page="narr"><div class="pn-h">{{ icon('file-text') }}<h2>{{ m.L('Geological interpretation and lithological description', 'التفسير الجيولوجي والوصف الصخاري') }}</h2></div><div class="pn-b" id="qNarr" style="font-size:.92rem;line-height:1.8"></div></section>
+      <div data-rp-page="sum" style="display:grid;gap:18px">
       <div class="grid2">
         <section class="pn"><div class="pn-h">{{ icon('clipboard') }}<h2>{{ m.L('Site and contract', 'الموقع والعقد') }}</h2></div><div class="pn-b flush"><table class="kv" id="qSum1"></table></div></section>
         <section class="pn"><div class="pn-h">{{ icon('map-pin') }}<h2>{{ m.L('Corner coordinates', 'إحداثيات الأركان') }}</h2></div><div class="pn-b flush tbl-wrap"><table class="tbl" id="qSum2"></table></div></section>
       </div>
       <section class="pn"><div class="pn-h">{{ icon('leaf') }}<h2>{{ m.L('Technical and environmental assessment', 'التقييم الفني والبيئي') }}</h2></div><div class="pn-b flush"><table class="kv" id="qSum3"></table></div></section>
+      </div>
     </div>
   </div>
 </div>

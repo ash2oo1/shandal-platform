@@ -135,84 +135,81 @@
     if (k === 'gypsum' || k === 'calcrete' || k === 'gypcrete' || k === 'siltstone' || k === 'marly_lime' || k === 'tuff' || k === 'halite' || k === 'phosphorite' || k === 'travertine' || k === 'calcarenite') return [t('Ripping', 'تفكيك بالمخالب (Ripping)'), 'warn'];
     return [t('Hammering or blasting', 'تكسير أو تفجير'), 'bad']; }
 
-  /* ---------------- column renderer */
+  /* ---------------- column renderer: depth axis, bed numbers, lithology profile, structures, and a side panel
+     with north arrow, a vertical legend of every symbol drawn, the grain-size key and a horizontal scale bar */
   function render(svg, beds, o) {
     o = o || {}; var S = SH.svgB(svg), ink = '#1B232B', mut = '#55616B', defs = S.add('defs', {});
     beds = beds.filter(function (b) { return R[b.rock] && b.th > 0; }); var total = beds.reduce(function (a, b) { return a + b.th; }, 0);
-    var VW = 1000, top = 150, Hc = Math.max(520, Math.min(1100, beds.length * 46)), px = Hc / (total || 1);
-    var xDep = 78, xNo = 92, x0 = 122, wMin = 46, wMax = 236, xSt = x0 + wMax + 24, wSt = 112, xDs = xSt + wSt + 22, xDe = VW - 30;
+    var VW = 1000, top = 132, Hc = Math.max(480, Math.min(1000, beds.length * 50)), px = Hc / (total || 1);
+    var xDep = 70, xNo = 82, x0 = 120, wMin = 50, wMax = 290, xSt = x0 + wMax + 22, wSt = 128;
+    var PX = 616, PW = 360, PY = 74, L0 = PX + 16, R0 = PX + PW - 16;
     var W = function (b) { var g = b.gs != null && b.gs !== '' ? +b.gs : R[b.rock][4]; return wMin + (g / 7) * (wMax - wMin); };
-    var txt = function (x, y, s, a, xr) { a = a || {}; if (isAr(s) && xr != null) { a.direction = 'rtl'; a['text-anchor'] = 'start'; return S.text(xr, y, s, a); } return S.text(x, y, s, a); };
-    var wrap = function (s, n) { var w = String(s || '').split(/\s+/), out = [''], i; for (i = 0; i < w.length; i++) { if (!w[i]) continue; if ((out[out.length - 1] + ' ' + w[i]).trim().length > n && out[out.length - 1]) out.push(w[i]); else out[out.length - 1] = (out[out.length - 1] + ' ' + w[i]).trim(); } return out; };
-    // estimate description heights to size the sheet
-    var used = { rock: {}, contact: {}, st: {} }, lines = beds.map(function (b) { var L = [nm(R[b.rock]) + (b.sec && R[b.sec] ? (b.mix === 'inter' ? t(' interbedded with ', ' متعاقب مع ') : t(' with ', ' مع ')) + nm(R[b.sec]).toLowerCase() : '')]; if (b.col) L.push(b.col); if (b.desc) wrap(b.desc, 50).forEach(function (q) { L.push(q); }); return L; });
-    var legendRows = 0; beds.forEach(function (b) { used.rock[b.rock] = 1; if (b.sec && R[b.sec]) used.rock[b.sec] = 1; used.contact[b.base || 'sharp'] = 1; (b.st || []).forEach(function (k) { if (STRUCT[k]) used.st[k] = 1; }); });
-    var nR = Object.keys(used.rock).length, nC = Object.keys(used.contact).length, nS = Object.keys(used.st).length; legendRows = Math.max(Math.ceil(nR / 2), nC + 1, Math.ceil(nS / 2));
-    var VH = top + Hc + 96 + 54 + legendRows * 26 + 70; svg.setAttribute('viewBox', '0 0 ' + VW + ' ' + VH);
+    var iso = function (s) { return String(s).replace(/\(?[A-Za-z0-9][A-Za-z0-9 .,:\/°′″±+\-×()–]*[A-Za-z0-9°′″)]|[A-Za-z0-9]/g, function (m) { return '⁦' + m + '⁩'; }); };
+    var txt = function (x, y, s, a, xr) { a = a || {}; if (isAr(s)) { s = iso(s); if (xr != null) { a.direction = 'rtl'; a['text-anchor'] = a['text-anchor'] === 'middle' ? 'middle' : 'start'; return S.text(a['text-anchor'] === 'middle' ? x : xr, y, s, a); } a.direction = 'rtl'; } return S.text(x, y, s, a); };
+    var water = o.water > 0 && o.water <= total + 1e-9, floor = o.pitFloor > 0 && o.pitFloor <= total + 1e-9, face = o.faceAz != null && isFinite(o.faceAz);
+    var used = { rock: {}, contact: {}, st: {} };
+    beds.forEach(function (b) { used.rock[b.rock] = 1; if (b.sec && R[b.sec]) used.rock[b.sec] = 1; used.contact[b.base || 'sharp'] = 1; (b.st || []).forEach(function (k) { if (STRUCT[k]) used.st[k] = 1; }); });
+    // legend entries: [draw(x, y), label]
+    var items = [];
+    Object.keys(used.rock).forEach(function (k) { items.push([function (x, y) { var id = 'lg' + k + Math.random().toString(36).slice(2, 6); pattern(S, defs, id, R[k][3]); S.add('rect', { x: x, y: y - 9, width: 34, height: 18, fill: R[k][2], stroke: ink, 'stroke-width': .7 }); S.add('rect', { x: x, y: y - 9, width: 34, height: 18, fill: 'url(#' + id + ')', stroke: ink, 'stroke-width': .7 }); }, nm(R[k])]); });
+    Object.keys(used.contact).forEach(function (k) { items.push([function (x, y) { contact(S, null, k, x, x + 34, y); }, nm(CONTACTS[k])]); });
+    Object.keys(used.st).forEach(function (k) { items.push([function (x, y) { symbol(S, null, k, x + 17, y, STRUCT[k][2] === 'f' ? '#5B3A1E' : ink); }, nm(STRUCT[k])]); });
+    if (floor) items.push([function (x, y) { S.line(x, y, x + 34, y, { stroke: '#B4552D', 'stroke-width': 2, 'stroke-dasharray': '8 4' }); }, t('Pit floor', 'أرضية الحفر')]);
+    if (water) items.push([function (x, y) { S.line(x, y + 4, x + 34, y + 4, { stroke: '#1F6FB2', 'stroke-width': 1.6 }); S.path('M' + (x + 10) + ' ' + (y - 7) + 'h14l-7 10z', { fill: '#fff', stroke: '#1F6FB2', 'stroke-width': 1.2 }); }, t('Water table', 'منسوب المياه الجوفية')]);
+    if (face) items.push([function (x, y) { S.line(x + 2, y, x + 32, y, { stroke: '#B4552D', 'stroke-width': 2.4 }); S.circle(x + 2, y, 2.5, { fill: '#B4552D' }); }, t('Face direction ', 'اتجاه الواجهة ') + Math.round(o.faceAz) + '°']);
+    var IH = 25, GSN = [['cl', t('clay', 'طين')], ['si', t('silt', 'غرين')], ['vf', t('very fine sand', 'رمل ناعم جداً')], ['f', t('fine sand', 'رمل ناعم')], ['m', t('medium sand', 'رمل متوسط')], ['c', t('coarse sand', 'رمل خشن')], ['vc', t('very coarse sand', 'رمل خشن جداً')], ['gr', t('gravel', 'حصى')]];
+    var panelH = 334 + items.length * IH;
+    var VH = Math.max(top + Hc + 70, PY + panelH + 40); svg.setAttribute('viewBox', '0 0 ' + VW + ' ' + VH);
     S.add('rect', { x: 0, y: 0, width: VW, height: VH, fill: '#FFFFFF' }); S.add('rect', { x: 8, y: 8, width: VW - 16, height: VH - 16, fill: 'none', stroke: ink, 'stroke-width': 1.2 });
-    // header
-    txt(30, 44, o.title || t('Stratigraphic column', 'العمود الطباقي'), { 'font-size': 21, 'font-weight': 800, fill: ink }, VW - 150);
-    (o.meta || []).forEach(function (m, i) { txt(30, 68 + i * 17, m, { 'font-size': 12, fill: mut }, VW - 150); });
-    // face orientation compass (top right)
-    var cx = VW - 70, cy = 72, rr = 34; S.circle(cx, cy, rr, { fill: '#fff', stroke: ink, 'stroke-width': 1 }); ['N', 'E', 'S', 'W'].forEach(function (k, i) { var an = i * Math.PI / 2; S.line(cx + Math.sin(an) * (rr - 6), cy - Math.cos(an) * (rr - 6), cx + Math.sin(an) * rr, cy - Math.cos(an) * rr, { stroke: ink }); if (i) S.text(cx + Math.sin(an) * (rr + 9), cy - Math.cos(an) * (rr + 9) + 4, k, { 'font-size': 9.5, fill: mut, 'text-anchor': 'middle' }); });
-    S.path('M' + cx + ' ' + (cy - rr + 2) + 'l-7 20l7-5z', { fill: ink }); S.path('M' + cx + ' ' + (cy - rr + 2) + 'l7 20l-7-5z', { fill: '#fff', stroke: ink, 'stroke-width': .8 }); S.text(cx, cy - rr - 6, 'N', { 'font-size': 14, 'font-weight': 800, fill: ink, 'text-anchor': 'middle' });
-    if (o.faceAz != null && isFinite(o.faceAz)) { var fa = SH.rad(o.faceAz); S.line(cx, cy, cx + Math.sin(fa) * (rr - 4), cy - Math.cos(fa) * (rr - 4), { stroke: '#B4552D', 'stroke-width': 2.4 }); S.circle(cx, cy, 2.5, { fill: '#B4552D' });
-      S.text(cx, cy + rr + 18, t('Face looks ', 'الواجهة نحو ') + Math.round(o.faceAz) + '°', { 'font-size': 10, fill: '#B4552D', 'text-anchor': 'middle', 'font-weight': 700 }); }
-    else S.text(cx, cy + rr + 18, t('Face azimuth not recorded', 'اتجاه الواجهة غير مسجل'), { 'font-size': 9, fill: mut, 'text-anchor': 'middle' });
-    // column headers
-    var hy = top - 18; S.text(xDep - 4, hy, t('Depth (m)', 'العمق (م)'), { 'font-size': 10.5, 'font-weight': 700, fill: ink, 'text-anchor': 'end' }); S.text(xNo + 14, hy, t('Bed', 'طبقة'), { 'font-size': 10.5, 'font-weight': 700, fill: ink, 'text-anchor': 'middle' });
-    S.text(x0 + wMax / 2, hy - 14, t('Lithology and texture', 'الصخارية والنسيج'), { 'font-size': 10.5, 'font-weight': 700, fill: ink, 'text-anchor': 'middle' });
-    S.text(xSt + wSt / 2, hy, t('Structures · fossils', 'تراكيب · أحافير'), { 'font-size': 10.5, 'font-weight': 700, fill: ink, 'text-anchor': 'middle' });
-    txt(xDs, hy, t('Description', 'الوصف'), { 'font-size': 10.5, 'font-weight': 700, fill: ink }, xDe);
+    txt(30, 46, o.title || t('Geological stratigraphic column', 'العمود الطباقي الجيولوجي'), { 'font-size': 20, 'font-weight': 800, fill: ink }, PX - 24);
+    // column headers and grain-size ticks
+    var hy = top - 12; S.text(xDep - 2, hy, t('Depth (m)', 'العمق (م)'), { 'font-size': 10.5, 'font-weight': 700, fill: ink, 'text-anchor': 'middle' }); S.text(xNo + 18, hy - 18, t('Bed', 'الطبقة'), { 'font-size': 10.5, 'font-weight': 700, fill: ink, 'text-anchor': 'middle' });
+    S.text(x0 + wMax / 2, hy - 18, t('Lithology and texture', 'الصخارية والنسيج'), { 'font-size': 10.5, 'font-weight': 700, fill: ink, 'text-anchor': 'middle' });
+    S.text(xSt + wSt / 2, hy - 18, t('Structures and fossils', 'التراكيب والأحافير'), { 'font-size': 10.5, 'font-weight': 700, fill: ink, 'text-anchor': 'middle' });
     GS.forEach(function (g, i) { var gx = x0 + wMin + (i / 7) * (wMax - wMin); S.line(gx, top, gx, top + Hc, { stroke: '#9AA3AD', 'stroke-width': .4, 'stroke-dasharray': '2 4' }); S.text(gx, hy, g, { 'font-size': 9, fill: mut, 'text-anchor': 'middle', direction: 'ltr' }); S.text(gx, top + Hc + 16, g, { 'font-size': 9, fill: mut, 'text-anchor': 'middle', direction: 'ltr' }); });
-    S.text(x0 + wMax / 2, top + Hc + 31, t('clay · silt · sand (vf–vc) · gravel   |   carbonates by Dunham texture', 'طين · غرين · رمل (ناعم جداً–خشن جداً) · حصى   |   الكربونات حسب نسيج دنهام'), { 'font-size': 8.5, fill: mut, 'text-anchor': 'middle' });
     // depth axis
-    S.line(xDep, top, xDep, top + Hc, { stroke: ink, 'stroke-width': 1.2 }); var dt = SH.dem && SH.dem.niceInterval ? SH.dem.niceInterval(total, 10) : 1;
-    for (var dv = 0; dv <= total + 1e-9; dv += dt) { var yy = top + dv * px; S.line(xDep - 6, yy, xDep, yy, { stroke: ink }); S.text(xDep - 9, yy + 3.5, SH.fmt(dv, dt < 1 ? 1 : 0), { 'font-size': 10, fill: mut, 'text-anchor': 'end', direction: 'ltr' }); }
-    for (dv = 0; dv <= total + 1e-9; dv += dt / 5) { yy = top + dv * px; S.line(xDep - 3, yy, xDep, yy, { stroke: ink, 'stroke-width': .6 }); }
+    S.line(xDep + 8, top, xDep + 8, top + Hc, { stroke: ink, 'stroke-width': 1.2 }); var dt = SH.dem && SH.dem.niceInterval ? SH.dem.niceInterval(total, 10) : 1, xa = xDep + 8;
+    for (var dv = 0; dv <= total + 1e-9; dv += dt) { var yy = top + dv * px; S.line(xa - 6, yy, xa, yy, { stroke: ink }); S.text(xa - 9, yy + 3.5, SH.fmt(dv, dt < 1 ? 1 : 0), { 'font-size': 10, fill: mut, 'text-anchor': 'end', direction: 'ltr' }); }
+    for (dv = 0; dv <= total + 1e-9; dv += dt / 5) { yy = top + dv * px; S.line(xa - 3, yy, xa, yy, { stroke: ink, 'stroke-width': .6 }); }
     // beds
-    var y = top, prevW = null, descBottom = top - 4;
+    var y = top, prevW = null;
     beds.forEach(function (b, i) {
       var r = R[b.rock], h = b.th * px, w = W(b), id = 'sp' + i + Math.random().toString(36).slice(2, 6);
       pattern(S, defs, id, r[3]); S.add('rect', { x: x0, y: y, width: w, height: h, fill: r[2] }); S.add('rect', { x: x0, y: y, width: w, height: h, fill: 'url(#' + id + ')' });
       if (b.sec && R[b.sec]) { var id2 = id + 's'; pattern(S, defs, id2, R[b.sec][3]); if (b.mix === 'inter') { var bd = Math.max(4, Math.min(12, h / 6)); for (var k = bd; k < h - .5; k += 2 * bd) { var hh = Math.min(bd, h - k); S.add('rect', { x: x0, y: y + k, width: w, height: hh, fill: R[b.sec][2] }); S.add('rect', { x: x0, y: y + k, width: w, height: hh, fill: 'url(#' + id2 + ')' }); S.line(x0, y + k, x0 + w, y + k, { stroke: ink, 'stroke-width': .4 }); } } else S.add('rect', { x: x0, y: y, width: w, height: h, fill: 'url(#' + id2 + ')', opacity: .65 }); }
       S.line(x0, y, x0, y + h, { stroke: ink, 'stroke-width': 1.3 }); S.line(x0 + w, y, x0 + w, y + h, { stroke: ink, 'stroke-width': 1.3 });
       if (i === 0) S.line(x0, y, x0 + w, y, { stroke: ink, 'stroke-width': 1.5 }); else if (prevW !== null && prevW !== w) S.line(x0 + Math.min(prevW, w), y, x0 + Math.max(prevW, w), y, { stroke: ink, 'stroke-width': 1.3 });
-      // base contact of this bed
       contact(S, null, b.base || 'sharp', x0, x0 + w, y + h);
-      // bed number
-      S.text(xNo + 14, y + h / 2 + 4, String(i + 1), { 'font-size': 10.5, 'font-weight': 700, fill: ink, 'text-anchor': 'middle' }); S.line(xNo, y, xNo + 28, y, { stroke: '#C9CED3', 'stroke-width': .6 });
-      // structures and fossils
+      S.text(xNo + 18, y + h / 2 + 4, String(i + 1), { 'font-size': 10.5, 'font-weight': 700, fill: ink, 'text-anchor': 'middle' }); S.line(xNo + 4, y, xNo + 32, y, { stroke: '#C9CED3', 'stroke-width': .6 });
       var st = (b.st || []).filter(function (k) { return STRUCT[k]; }), perRow = 4, cw = wSt / perRow, rows = Math.ceil(st.length / perRow), rh = Math.min(22, Math.max(16, h / Math.max(1, rows)));
-      st.forEach(function (k, j) { var col = j % perRow, row = Math.floor(j / perRow), sy = y + h / 2 + (row - (rows - 1) / 2) * rh; if (sy < y + 6 || sy > y + h - 6) sy = Math.max(y + 7, Math.min(y + h - 7, sy)); symbol(S, null, k, xSt + cw / 2 + col * cw, sy, STRUCT[k][2] === 'f' ? '#5B3A1E' : ink); });
+      st.forEach(function (k, j) { var col = j % perRow, row = Math.floor(j / perRow), sy = y + h / 2 + (row - (rows - 1) / 2) * rh; sy = Math.max(y + 7, Math.min(y + h - 7, sy)); symbol(S, null, k, xSt + cw / 2 + col * cw, sy, STRUCT[k][2] === 'f' ? '#5B3A1E' : ink); });
       S.line(xSt, y, xSt + wSt, y, { stroke: '#C9CED3', 'stroke-width': .6 });
-      // description with leader
-      var L = lines[i], lh = 14, blockH = (L.length + 1) * lh, want = y + h / 2 - blockH / 2 + lh * .8, dy0 = Math.max(want, descBottom + lh * .9);
-      S.path('M' + (x0 + w) + ' ' + (y + h / 2) + 'L' + (xSt - 6) + ' ' + (y + h / 2), { stroke: '#C9CED3', 'stroke-width': .6, fill: 'none' });
-      S.path('M' + (xSt + wSt + 4) + ' ' + (y + h / 2) + 'L' + (xDs - 6) + ' ' + (dy0 - 4), { stroke: '#9AA3AD', 'stroke-width': .7, fill: 'none' });
-      txt(xDs, dy0, (i + 1) + '. ' + L[0], { 'font-size': 11.5, 'font-weight': 800, fill: ink }, xDe);
-      S.text(AR ? xDs : xDe, dy0, SH.fmt(b.th, 2) + ' m · ' + SH.fmt((y - top) / px, 2) + '–' + SH.fmt((y - top + h) / px, 2) + ' m', { 'font-size': 10, fill: mut, 'text-anchor': AR ? 'start' : 'end', direction: 'ltr' });
-      for (var q = 1; q < L.length; q++) txt(xDs, dy0 + q * lh, L[q], { 'font-size': 10.5, fill: q === 1 && b.col ? '#7A4E1F' : '#2E3740' }, xDe);
-      descBottom = dy0 + (L.length - 1) * lh + 6; prevW = w; y += h;
+      prevW = w; y += h;
     });
-    S.line(xNo, y, xNo + 28, y, { stroke: '#C9CED3', 'stroke-width': .6 });
-    if (o.pitFloor > 0 && o.pitFloor <= total + 1e-9) { var py = top + o.pitFloor * px; S.line(xDep - 30, py, xSt + wSt, py, { stroke: '#B4552D', 'stroke-width': 2, 'stroke-dasharray': '8 4' }); S.text(xDep - 32, py - 5, t('Pit floor', 'أرضية الحفر'), { 'font-size': 9.5, fill: '#B4552D', 'text-anchor': 'end', 'font-weight': 700 }); }
-    if (o.water > 0 && o.water <= total + 1e-9) { var wy = top + o.water * px; S.line(x0, wy, xSt + wSt, wy, { stroke: '#1F6FB2', 'stroke-width': 1.6 }); S.path('M' + (x0 + wMax - 18) + ' ' + (wy - 11) + 'h14l-7 10z', { fill: '#fff', stroke: '#1F6FB2', 'stroke-width': 1.3 }); S.text(x0 + wMax - 24, wy - 4, t('Water table', 'منسوب المياه'), { 'font-size': 9.5, fill: '#1F6FB2', 'text-anchor': 'end', 'font-weight': 700 }); }
-    // vertical scale bar and representative fraction
-    var sbm = SH.dem && SH.dem.niceInterval ? SH.dem.niceInterval(total, 4) : 1, sbh = sbm * px, sbx = 30, sby = top + Hc + 52;
-    for (var s2 = 0; s2 < 2; s2++) S.add('rect', { x: sbx, y: sby - sbh + s2 * sbh / 2, width: 7, height: sbh / 2, fill: s2 ? '#fff' : ink, stroke: ink, 'stroke-width': .8 });
-    S.text(sbx + 12, sby + 3, '0', { 'font-size': 9.5, fill: mut, direction: 'ltr' }); S.text(sbx + 12, sby - sbh + 4, SH.fmt(sbm, sbm < 1 ? 1 : 0) + ' m', { 'font-size': 9.5, fill: mut, direction: 'ltr' });
-    var rf = total * 1000 / (Hc * 0.19), rfn = Math.pow(10, Math.floor(Math.log10(rf)) - 1); S.text(sbx, sby + 18, t('Vertical scale ≈ 1 : ', 'المقياس الرأسي ≈ 1 : ') + SH.fmt(Math.round(rf / rfn) * rfn, 0) + t(' (A4)', ' (A4)'), { 'font-size': 9.5, fill: mut });
-    // legend box
-    var ly = top + Hc + 84, lx = 160, lw = VW - lx - 24, lh2 = 30 + legendRows * 26; S.add('rect', { x: lx, y: ly, width: lw, height: lh2, fill: '#fff', stroke: ink, 'stroke-width': 1 });
-    S.text(lx + 12, ly + 18, 'LEGEND', { 'font-size': 11.5, 'font-weight': 800, fill: ink, 'letter-spacing': 1.6 }); if (AR) S.text(lx + lw - 12, ly + 18, 'مفتاح العمود', { 'font-size': 11.5, 'font-weight': 700, fill: mut, direction: 'rtl', 'text-anchor': 'start' });
-    var c1 = lx + 12, c2 = lx + lw * 0.52, c3 = lx + lw * 0.74, ry = ly + 38;
-    Object.keys(used.rock).forEach(function (k, i) { var cx2 = c1 + (i % 2) * (lw * 0.25), cy2 = ry + Math.floor(i / 2) * 26, id = 'lg' + k + Math.random().toString(36).slice(2, 5); pattern(S, defs, id, R[k][3]);
-      S.add('rect', { x: cx2, y: cy2 - 9, width: 30, height: 18, fill: R[k][2], stroke: ink, 'stroke-width': .7 }); S.add('rect', { x: cx2, y: cy2 - 9, width: 30, height: 18, fill: 'url(#' + id + ')' }); txt(cx2 + 36, cy2 + 4, nm(R[k]), { 'font-size': 10, fill: ink }, cx2 + lw * 0.25 - 8); });
-    var ci = 0; Object.keys(used.contact).forEach(function (k) { var cy2 = ry + ci * 26; contact(S, null, k, c2, c2 + 34, cy2); txt(c2 + 42, cy2 + 4, nm(CONTACTS[k]), { 'font-size': 10, fill: ink }, c3 - 8); ci++; });
-    var cy3 = ry + ci * 26; S.line(c2, cy3, c2 + 34, cy3, { stroke: '#B4552D', 'stroke-width': 2, 'stroke-dasharray': '8 4' }); txt(c2 + 42, cy3 + 4, t('Pit floor', 'أرضية الحفر'), { 'font-size': 10, fill: ink }, c3 - 8);
-    Object.keys(used.st).forEach(function (k, i) { var cx2 = c3 + (i % 2) * (lw * 0.13), cy2 = ry + Math.floor(i / 2) * 26; symbol(S, null, k, cx2 + 9, cy2, STRUCT[k][2] === 'f' ? '#5B3A1E' : ink); txt(cx2 + 22, cy2 + 4, nm(STRUCT[k]), { 'font-size': 9, fill: ink }, cx2 + lw * 0.13 - 4); });
-    S.text(30, VH - 22, o.credit || 'Shandal System', { 'font-size': 10, 'font-weight': 700, fill: ink }); S.text(VW - 30, VH - 22, (o.source || '') + (o.source ? ' · ' : '') + new Date().toISOString().slice(0, 10), { 'font-size': 9.5, fill: mut, 'text-anchor': 'end', direction: 'ltr' });
+    S.line(xNo + 4, y, xNo + 32, y, { stroke: '#C9CED3', 'stroke-width': .6 }); S.line(xSt, y, xSt + wSt, y, { stroke: '#C9CED3', 'stroke-width': .6 });
+    if (floor) { var py = top + o.pitFloor * px; S.line(xa, py, xSt + wSt, py, { stroke: '#B4552D', 'stroke-width': 2, 'stroke-dasharray': '8 4' }); }
+    if (water) { var wy = top + o.water * px; S.line(x0, wy, xSt + wSt, wy, { stroke: '#1F6FB2', 'stroke-width': 1.6 }); S.path('M' + (x0 + wMax - 18) + ' ' + (wy - 11) + 'h14l-7 10z', { fill: '#fff', stroke: '#1F6FB2', 'stroke-width': 1.3 }); }
+    // side panel: north arrow
+    S.add('rect', { x: PX, y: PY, width: PW, height: panelH, fill: '#fff', stroke: ink, 'stroke-width': 1 });
+    var cx = PX + PW / 2, ny = PY + 20, cy = ny + 36, sep = function (yy) { S.line(PX, yy, PX + PW, yy, { stroke: ink, 'stroke-width': .7 }); };
+    S.text(cx, ny, 'N', { 'font-size': 15, 'font-weight': 800, fill: ink, 'text-anchor': 'middle' });
+    S.path('M' + cx + ' ' + (ny + 6) + 'L' + (cx - 12) + ' ' + (ny + 54) + 'L' + cx + ' ' + (ny + 44) + 'z', { fill: ink, stroke: ink }); S.path('M' + cx + ' ' + (ny + 6) + 'L' + (cx + 12) + ' ' + (ny + 54) + 'L' + cx + ' ' + (ny + 44) + 'z', { fill: '#fff', stroke: ink });
+    if (face) { var fa = SH.rad(o.faceAz); S.line(cx, cy, cx + Math.sin(fa) * 30, cy - Math.cos(fa) * 30, { stroke: '#B4552D', 'stroke-width': 2.4 }); S.circle(cx, cy, 2.5, { fill: '#B4552D' }); }
+    var yL = PY + 96; sep(yL); yL += 22;
+    var head = function (en, ar, yy) { if (AR) S.text(R0, yy, ar, { 'font-size': 12, 'font-weight': 800, fill: ink, direction: 'rtl', 'text-anchor': 'start' }); else S.text(L0, yy, en, { 'font-size': 11.5, 'font-weight': 800, fill: ink, 'letter-spacing': 1.6 }); };
+    head('LEGEND', 'مفتاح الرموز', yL); yL += 22;
+    items.forEach(function (it) { if (AR) { it[0](R0 - 34, yL); txt(0, yL + 4, it[1], { 'font-size': 10.5, fill: ink }, R0 - 44); } else { it[0](L0, yL); S.text(L0 + 44, yL + 4, it[1], { 'font-size': 10.5, fill: ink }); } yL += IH; });
+    yL += 4; sep(yL); yL += 22; head('GRAIN SIZE', 'حجم الحبيبات', yL); yL += 20;
+    GSN.forEach(function (g, i) { var col = i % 2, row = Math.floor(i / 2), half = (PW - 32) / 2, gy = yL + row * 20;
+      if (AR) { var xr = R0 - col * half; S.text(xr, gy, g[0], { 'font-size': 10, 'font-weight': 800, fill: ink, 'text-anchor': 'end', direction: 'ltr' }); S.text(xr - 26, gy, g[1], { 'font-size': 10, fill: ink, direction: 'rtl', 'text-anchor': 'start' }); }
+      else { var xl = L0 + col * half; S.text(xl, gy, g[0], { 'font-size': 10, 'font-weight': 800, fill: ink }); S.text(xl + 26, gy, g[1], { 'font-size': 10, fill: ink }); } });
+    yL += 4 * 20; sep(yL); yL += 22; head('SCALE', 'مقياس الرسم', yL); yL += 14;
+    var sbm = 1, cands = [0.1, 0.2, 0.5, 1, 2, 5, 10, 20, 50, 100]; cands.forEach(function (c) { if (c * px <= PW - 90) sbm = c; });
+    var sbw = sbm * px, sx = AR ? R0 - sbw - 12 : L0 + 6;
+    for (var q = 0; q < 4; q++) S.add('rect', { x: sx + q * sbw / 4, y: yL, width: sbw / 4, height: 7, fill: q % 2 ? '#fff' : ink, stroke: ink, 'stroke-width': .8 });
+    [0, 2, 4].forEach(function (q) { S.text(sx + q * sbw / 4, yL + 21, SH.fmt(sbm * q / 4, sbm < 4 ? (sbm < 1 ? 2 : 1) : 0), { 'font-size': 9.5, fill: mut, 'text-anchor': 'middle', direction: 'ltr' }); });
+    S.text(AR ? sx - 8 : sx + sbw + 8, yL + 8, t('m', 'م'), { 'font-size': 10, 'font-weight': 700, fill: ink, 'text-anchor': AR ? 'end' : 'start' });
+    S.text(30, VH - 22, (o.credit || 'Shandal System') + ' · ' + new Date().toISOString().slice(0, 10), { 'font-size': 10, fill: mut, direction: 'ltr' });
     return { total: total, height: VH };
   }
 
