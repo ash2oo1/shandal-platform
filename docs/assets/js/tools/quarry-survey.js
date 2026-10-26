@@ -256,6 +256,7 @@
     SH.$$('#qVar input[value=joint],#qOps input[value=exc],#qOps input[value=trans],#qMach input[value=ex],#qMach input[value=dt]').forEach(function (i) { i.checked = true; });
     SH.store.set('shandal_quarry_corners', corners); cornersUI(); run();
   });
+  if (SH.fa) { SH.fa.attach('qFace', 'faceAz'); SH.fa.attach('qWt', 'wt'); }
   document.addEventListener('sh:beforereport', function (e) { if (!last) { e.preventDefault(); SH.toast(t('Process the data first.', 'عالج البيانات أولاً.'), 'warn'); } });
   document.addEventListener('sh:redraw', function () { if (last) { planSheet(last); siteSheet(last); column(last); } });
   SH.$$('[data-svg]').forEach(function (b) { b.addEventListener('click', function () { SH.svgPng($('#' + b.getAttribute('data-svg')), 'shandal-' + b.getAttribute('data-svg') + '.png', 2); }); });

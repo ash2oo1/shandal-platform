@@ -462,4 +462,6 @@
     $$('.range input[type=range]').forEach(function (r) { if (r.nextElementSibling && r.nextElementSibling.tagName === 'OUTPUT') r.nextElementSibling.textContent = r.value; });
     var rb = d.getElementById('reportBtn'); if (rb) rb.addEventListener('click', function () { if (d.dispatchEvent(new CustomEvent('sh:beforereport', { cancelable: true }))) SH.report(rb.getAttribute('data-title')); });
   });
+  /* offline shell: keep the last good copy of pages and assets for use in the field without a connection */
+  if ('serviceWorker' in navigator && location.protocol === 'https:') w.addEventListener('load', function () { navigator.serviceWorker.register(SH.base + 'sw.js').catch(function () {}); });
 })(window);

@@ -8,7 +8,7 @@ def L(en, ar):
 TOOLS = [
 # ---------------------------------------------------------------- FIELD GEOLOGY
 {
- 'slug': 'quarry-survey', 'cat': 'geology', 'libs': ['map', 'strat'], 'icon': 'pickaxe', 'illus': 'quarry',
+ 'slug': 'quarry-survey', 'cat': 'geology', 'libs': ['map', 'strat', 'fa'], 'icon': 'pickaxe', 'illus': 'quarry',
  'name': L('Quarry & Earthworks Survey', 'مسح المقالع واستثمار التراب'),
  'tagline': L('Extracted and remaining volumes, measured on site.', 'الكميات المستخرجة والمتبقية، تُقاس في الموقع.'),
  'summary': L('Converts contract areas and field measurements into extracted and remaining volumes, maximum permitted depth, a 2D site plan and a stratigraphic column for the pit face.',
@@ -54,7 +54,7 @@ TOOLS = [
  'related': ['strata', 'geomorphology-contour', 'structural-geotechnical'],
 },
 {
- 'slug': 'structural-geotechnical', 'cat': 'geology', 'libs': ['igrf', 'strat'], 'icon': 'compass', 'illus': 'stereonet',
+ 'slug': 'structural-geotechnical', 'cat': 'geology', 'libs': ['igrf', 'strat', 'fa'], 'icon': 'compass', 'illus': 'stereonet',
  'name': L('Structural & Geotechnical Survey', 'المسح التركيبي والجيوتقني'),
  'tagline': L('Your phone becomes a geological compass.', 'هاتفك يصبح بوصلة جيولوجية.'),
  'summary': L('Reads dip and strike from the phone sensors, rates the rock mass with RMR, and runs a kinematic check for planar sliding, wedge and toppling failure on a stereonet.',

@@ -264,5 +264,6 @@
   document.addEventListener('sh:redraw', function () { if (last) render(last); });
   document.addEventListener('sh:beforereport', function (e) { if (!last) { e.preventDefault(); SH.toast(t('Run the analysis first.', 'شغّل التحليل أولاً.'), 'warn'); } });
   SH.$$('[data-svg]').forEach(function (b) { b.addEventListener('click', function () { SH.svgPng($('#' + b.getAttribute('data-svg')), 'shandal-' + b.getAttribute('data-svg') + '.png', 2); }); });
+  if (SH.fa) { SH.fa.attach('kPhi', 'phi', { ctx: function () { return { psi: last && last.sets[0] ? last.sets[0].dip : 40 }; } }); SH.fa.attach('kLimP', 'limP'); SH.fa.attach('kLimT', 'limT'); }
   drawTable(); updDecl(); if (rows.filter(function (r) { return r.t === 'P'; }).length >= 3) run();
 })();

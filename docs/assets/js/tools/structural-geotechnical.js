@@ -474,6 +474,19 @@
   document.addEventListener('sh:redraw', function () { if (last) render(last); });
   document.addEventListener('sh:beforereport', function (e) { if (!last) { e.preventDefault(); SH.toast(t('Run the analysis first.', 'شغّل التحليل أولاً.'), 'warn'); } });
   SH.$$('[data-svg]').forEach(function (b) { b.addEventListener('click', function () { SH.svgPng($('#' + b.getAttribute('data-svg')), 'shandal-' + b.getAttribute('data-svg') + '.png', 2); }); });
+  /* ---------- field assistant: measurement guides, calculators and online estimates (queued when offline) */
+  var faPend = function (id) { return function (on) { var e = document.getElementById(id); if (!e) return; var lab = e.closest('.fg').querySelector('label'), b = lab.querySelector('.fa-pend'); if (on && !b) lab.insertAdjacentHTML('beforeend', '<span class="fa-pend">' + t('awaiting connection', 'بانتظار الاتصال') + '</span>'); if (!on && b) b.remove(); }; };
+  var faSet = function (id, v, onlyEmpty) { var e = document.getElementById(id); if (!e) return false; if (onlyEmpty && e.value !== '' && +e.value !== 0) return false; e.value = v; e.dispatchEvent(new Event('change', { bubbles: true })); return true; };
+  if (SH.fa) {
+    var ctxS = function () { var cr = last && last.crit; return { H: SH.num('hgt'), gam: SH.num('gam'), psi: cr ? cr.dip : SH.num('J1dip'), psf: SH.num('Fdip'), psp: cr ? cr.dip : SH.num('J1dip') }; };
+    var pos = function () { return { lat: SH.num('sLat'), lon: SH.num('sLon') }; };
+    SH.fa.attach('phi', 'phi', { ctx: ctxS }); SH.fa.attach('coh', 'coh'); SH.fa.attach('limP', 'limP'); SH.fa.attach('limT', 'limT'); SH.fa.attach('crackW', 'water'); SH.fa.attach('gam', 'gam');
+    SH.fa.attach('kh', 'kh', { args: pos, pending: faPend('kh'), apply: function (v, q) { if (faSet('kh', v, q)) { store.save(); if (!q) SH.toast('kh = ' + v, 'ok'); } } });
+    SH.fa.attach('crackZ', 'crack', { ctx: ctxS, apply: function (v) { $('#crack').value = 'given'; faSet('crackZ', v); store.save(); SH.toast('z = ' + v + ' m', 'ok'); } });
+    SH.fa.attach('ucsV', 'ucs'); SH.fa.attach('is50', 'is50'); SH.fa.attach('spc', 'spc'); SH.fa.attach('cPer', 'cond'); SH.fa.attach('rGw', 'gw');
+    SH.fa.attach('jv', 'jv', { apply: function (v) { faSet('jv', v.jv); faSet('rqdV', v.rqd); store.save(); SH.toast('Jv = ' + v.jv + ' · RQD = ' + v.rqd + ' %', 'ok'); } });
+    SH.fa.attach('hgt', 'face', { args: pos, pending: faPend('hgt'), apply: function (v, q) { if (!v || typeof v !== 'object') return; var a = faSet('Fdd', Math.round(v.dd), q), b = faSet('Fdip', Math.round(v.dip), q), c = faSet('hgt', Math.round(v.relief), q); if (a || b) { src.F = 'typed'; SH.store.set('shandal_struct_src', src); } updStrike(); store.save(); if (!q) SH.toast(t('Terrain values applied', 'طُبّقت قيم التضاريس'), 'ok'); } });
+  }
   updBoxes(); updStrike(); showN(); updDecl();
   if (!isNaN(SH.num('J1dd')) && !isNaN(SH.num('Fdd')) && (SH.num('rqdV') >= 0 || SH.num('jv') >= 0) && SH.num('spc') > 0) { var r0 = analyse(); if (r0) render(r0); }
 })();

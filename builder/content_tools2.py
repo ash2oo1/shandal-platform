@@ -43,7 +43,7 @@ NEW_TOOLS = [
  'related': ['contour-lab', 'geomorphology-contour', 'magnetic-lab'],
 },
 {
- 'slug': 'stereonet-lab', 'cat': 'geology', 'icon': 'compass', 'illus': 'stereonet', 'libs': ['igrf', 'gm'],
+ 'slug': 'stereonet-lab', 'cat': 'geology', 'icon': 'compass', 'illus': 'stereonet', 'libs': ['igrf', 'gm', 'fa'],
  'name': L('Stereonet Lab', 'مختبر المسقط الستيريوغرافي'),
  'tagline': L('Orientation statistics, pole density, rose diagrams and kinematic counts on the lower hemisphere.', 'إحصاءات الاتجاه وكثافة الأقطاب ومخططات الوردة والعدّ الحركي على نصف الكرة السفلي.'),
  'summary': L('Analyses any number of planes and lines measured in the field or with the phone: pole density contours, Fisher statistics of each set, eigenvalue fabric and π-girdle axis, rose diagram of strikes, and the percentage of measurements critical for planar, wedge and toppling failure against a slope face.',
@@ -76,7 +76,7 @@ NEW_TOOLS = [
  'related': ['structural-geotechnical', 'strata', 'geologic-unit'],
 },
 {
- 'slug': 'rockmass-lab', 'cat': 'engineering', 'icon': 'layers', 'illus': 'stereonet', 'libs': [],
+ 'slug': 'rockmass-lab', 'cat': 'engineering', 'icon': 'layers', 'illus': 'stereonet', 'libs': ['fa'],
  'name': L('Rock Mass Classification Lab', 'مختبر تصنيف الكتلة الصخرية'),
  'tagline': L('RMR89, Q, Q-slope and GSI with Hoek–Brown strength and deformation modulus.', 'تصنيفات RMR89 وQ وQ-slope وGSI مع مقاومة Hoek–Brown ومعامل التشوه.'),
  'summary': L('Rates a rock mass with the three international classification systems, derives GSI, and converts it into the Hoek–Brown strength envelope, equivalent Mohr–Coulomb cohesion and friction angle, and the rock-mass modulus, for slopes or tunnels.',

@@ -192,5 +192,12 @@
   document.addEventListener('sh:redraw', function () { if (last) render(last); });
   document.addEventListener('sh:beforereport', function (e) { if (!last) { e.preventDefault(); SH.toast(t('Classify the rock mass first.', 'صنّف الكتلة الصخرية أولاً.'), 'warn'); } });
   SH.$$('[data-svg]').forEach(function (b) { b.addEventListener('click', function () { SH.svgPng($('#' + b.getAttribute('data-svg')), 'shandal-' + b.getAttribute('data-svg') + '.png', 2); }); });
+  /* ---------- field assistant: measurement guides, calculators and online estimates (queued when offline) */
+  var faPend = function (id) { return function (on) { var e = document.getElementById(id); if (!e) return; var lab = e.closest('.fg').querySelector('label'), b = lab.querySelector('.fa-pend'); if (on && !b) lab.insertAdjacentHTML('beforeend', '<span class="fa-pend">' + t('awaiting connection', 'بانتظار الاتصال') + '</span>'); if (!on && b) b.remove(); }; };
+  var faSet = function (id, v, onlyEmpty) { var e = document.getElementById(id); if (!e) return false; if (onlyEmpty && e.value !== '' && +e.value !== 0) return false; e.value = v; e.dispatchEvent(new Event('change', { bubbles: true })); return true; };
+  if (SH.fa) {
+    SH.fa.attach('ucs', 'ucs'); SH.fa.attach('is50', 'is50'); SH.fa.attach('spc', 'spc'); SH.fa.attach('cPer', 'cond'); SH.fa.attach('rGw', 'gw'); SH.fa.attach('Jn', 'q'); SH.fa.attach('Dfac', 'D'); SH.fa.attach('gam', 'gam');
+    SH.fa.attach('jv', 'jv', { apply: function (v) { faSet('jv', v.jv); faSet('rqd', v.rqd); store.save(); SH.toast('Jv = ' + v.jv + ' · RQD = ' + v.rqd + ' %', 'ok'); } });
+  }
   caseUI(); if (num('ucs') > 0 && (num('rqd') >= 0 || num('jv') >= 0) && num('spc') > 0) run();
 })();
