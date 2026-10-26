@@ -4,9 +4,9 @@
 <div class="sg-pl" data-pl="{{ id }}">
   <div class="sg-plh">{% if opt %}<label class="chk"><input type="checkbox" id="use{{ id }}"{% if on %} checked{% endif %}> <b>{{ m.L(en, ar) }}</b></label>{% else %}<b>{{ m.L(en, ar) }}</b>{% endif %}<span class="xsmall muted sg-n" id="n{{ id }}"></span></div>
   <div class="row3 sg-plb" id="box{{ id }}">
-    {{ m.fld(id + 'dd', 'Dip direction', 'اتجاه الميل', 'number', '', '°', 'Azimuth 0–360° toward which the plane dips.', 'السمت 0–360° الذي يميل نحوه المستوى.', '', 'any', 'min="0" max="360"') }}
+    {{ m.fld(id + 'dd', 'Dip direction', 'اتجاه الميل', 'number', '', '°', 'Azimuth 0–360° toward which the plane dips.', 'سمت اتجاه الميل مقاساً من الشمال باتجاه عقارب الساعة (0–360°).', '', 'any', 'min="0" max="360"') }}
     {{ m.fld(id + 'dip', 'Dip', 'الميل', 'number', '', '°', '', '', '', 'any', 'min="0" max="90"') }}
-    {{ m.fld(id + 's', 'Strike (RHR)', 'المضرب (قاعدة اليد اليمنى)', 'text', '', '°', 'Right-hand-rule strike = dip direction − 90°.', 'المضرب بقاعدة اليد اليمنى = اتجاه الميل − 90°.', '', 'any', 'readonly tabindex="-1"') }}
+    {{ m.fld(id + 's', 'Strike (RHR)', 'المضرب', 'text', '', '°', 'Right-hand-rule strike = dip direction − 90°.', 'يُحسب وفق قاعدة اليد اليمنى: المضرب = اتجاه الميل − 90°.', '', 'any', 'readonly tabindex="-1"') }}
   </div>
 </div>
 {% endmacro %}
@@ -17,26 +17,26 @@
     {{ m.panel_open(1, 'Site and geologist', 'الموقع والجيولوجي') }}
       {{ m.fld('geoName', 'Supervising geologist', 'الجيولوجي المشرف', 'text') }}
       {{ m.fld('sProject', 'Project or site', 'المشروع أو الموقع', 'text') }}
-      {{ m.fld('sRock', 'Lithology of the face', 'صخارية الواجهة', 'text') }}
+      {{ m.fld('sRock', 'Lithology of the face', 'صخارية وجه المنحدر', 'text') }}
       <div class="row2">
         {{ m.fld('sLat', 'Latitude', 'دائرة العرض', 'number', '', '°', '', '', '', 'any', 'min="-90" max="90"') }}
         {{ m.fld('sLon', 'Longitude', 'خط الطول', 'number', '', '°', '', '', '', 'any', 'min="-180" max="180"') }}
       </div>
       <button class="btn btn-line btn-sm" id="sLoc" type="button">{{ icon('map-pin', 'ico ico-sm') }}{{ m.L('Use GPS position', 'استخدم موقع GPS') }}</button>
       <div class="sg-decl" id="sDecl"></div>
-      {{ m.sel('sRef', 'Typed azimuths refer to', 'السموت المُدخلة يدوياً مرجعها', [('true', 'True north (declination set on the compass)', 'الشمال الحقيقي (الانحراف مضبوط في البوصلة)', true), ('mag', 'Magnetic north (convert with IGRF)', 'الشمال المغناطيسي (تحويل بنموذج IGRF)')]) }}
+      {{ m.sel('sRef', 'Typed azimuths refer to', 'مرجع السموت المُدخلة يدوياً', [('true', 'True north (declination set on the compass)', 'الشمال الجغرافي (البوصلة مصححة بالانحراف)', true), ('mag', 'Magnetic north (convert with IGRF)', 'الشمال المغناطيسي (يُصحح بنموذج IGRF)')]) }}
     {{ m.panel_close() }}
 
-    {{ m.panel_open(2, 'Digital compass-clinometer', 'البوصلة والميزان الرقمي') }}
+    {{ m.panel_open(2, 'Digital compass-clinometer', 'البوصلة الجيولوجية الرقمية') }}
       <p class="pn-note">{{ m.L('Lay the back of the phone flat on the plane. Each record is the mean of the last 30 sensor samples, corrected from magnetic to true north with the IGRF-14 declination of the site. Record several points on the same plane: the set orientation is their Fisher mean.', 'ضع ظهر الهاتف مستوياً على السطح. كل تسجيل هو متوسط آخر 30 قراءة من الحساس، مصححاً من الشمال المغناطيسي إلى الحقيقي بانحراف IGRF-14 للموقع. سجّل عدة نقاط على المستوى نفسه: اتجاه المجموعة هو متوسط Fisher لها.') }}</p>
       <button class="btn btn-ink btn-block" id="cStart" type="button">{{ icon('compass', 'ico ico-sm') }}{{ m.L('Start compass', 'شغّل البوصلة') }}</button>
       <div class="live" id="cLive" hidden>
-        <div style="display:flex;align-items:center;gap:8px;font-size:.8rem;font-weight:700"><span class="pulse"></span>{{ m.L('Live reading (true north)', 'قراءة حية (الشمال الحقيقي)') }}<span class="muted ltr" id="cSrc" style="margin-inline-start:auto;font-weight:600"></span></div>
-        <div class="vals"><div><b id="cDd">—</b><span>{{ m.L('Dip direction', 'اتجاه الميل') }}</span></div><div><b id="cDip">—</b><span>{{ m.L('Dip', 'الميل') }}</span></div><div><b id="cA95">—</b><span>{{ m.L('Spread α95', 'التشتت α95') }}</span></div></div>
+        <div style="display:flex;align-items:center;gap:8px;font-size:.8rem;font-weight:700"><span class="pulse"></span>{{ m.L('Live reading (true north)', 'القراءة الآنية (نسبةً إلى الشمال الجغرافي)') }}<span class="muted ltr" id="cSrc" style="margin-inline-start:auto;font-weight:600"></span></div>
+        <div class="vals"><div><b id="cDd">—</b><span>{{ m.L('Dip direction', 'اتجاه الميل') }}</span></div><div><b id="cDip">—</b><span>{{ m.L('Dip', 'الميل') }}</span></div><div><b id="cA95">—</b><span>{{ m.L('Spread α95', 'مخروط الثقة α95') }}</span></div></div>
         <div class="sg-rec">
-          <button class="btn btn-gold btn-sm" type="button" data-rec="J1">J1</button><button class="btn btn-line btn-sm" type="button" data-rec="J2">J2</button><button class="btn btn-line btn-sm" type="button" data-rec="J3">J3</button><button class="btn btn-line btn-sm" type="button" data-rec="S0">S0</button><button class="btn btn-ink btn-sm" type="button" data-rec="F">{{ m.L('Face', 'الوجه') }}</button>
+          <button class="btn btn-gold btn-sm" type="button" data-rec="J1">J1</button><button class="btn btn-line btn-sm" type="button" data-rec="J2">J2</button><button class="btn btn-line btn-sm" type="button" data-rec="J3">J3</button><button class="btn btn-line btn-sm" type="button" data-rec="S0">S0</button><button class="btn btn-ink btn-sm" type="button" data-rec="F">{{ m.L('Slope face', 'وجه المنحدر') }}</button>
         </div>
-        <button class="btn btn-line btn-xs" id="cClear" type="button">{{ m.L('Clear recorded readings', 'امسح القراءات المسجلة') }}</button>
+        <button class="btn btn-line btn-xs" id="cClear" type="button">{{ m.L('Clear recorded readings', 'احذف القراءات المسجلة') }}</button>
       </div>
     {{ m.panel_close() }}
 
@@ -57,15 +57,15 @@
         {{ m.fld('phi', 'Joint friction angle φ', 'زاوية احتكاك الفواصل φ', 'number', '30', '°', 'Residual or basic friction angle of the joint surfaces (tilt test or shear box).', 'زاوية الاحتكاك المتبقية أو الأساسية لأسطح الفواصل (اختبار الإمالة أو صندوق القص).', '', 'any', 'min="5" max="60"') }}
         {{ m.fld('coh', 'Joint cohesion c', 'تماسك الفواصل c', 'number', '0', 'kPa') }}
       </div>
-      {{ m.sel('crack', 'Tension crack in the upper surface', 'شق الشد في السطح العلوي', [('crit', 'At the critical depth', 'عند العمق الحرج', true), ('given', 'Measured depth', 'عمق مُقاس'), ('none', 'No tension crack', 'لا يوجد شق شد')]) }}
+      {{ m.sel('crack', 'Tension crack in the upper surface', 'شق الشد خلف قمة المنحدر', [('crit', 'At the critical depth', 'بالعمق الحرج (محسوب)', true), ('given', 'Measured depth', 'بعمق مقاس حقلياً'), ('none', 'No tension crack', 'لا يوجد شق شد')]) }}
       <div class="row2">
         {{ m.fld('crackZ', 'Crack depth z', 'عمق الشق z', 'number', '', 'm') }}
-        {{ m.sel('crackW', 'Water in the crack', 'الماء في الشق', [('0', 'Dry', 'جاف', true), ('0.5', 'Half full', 'ممتلئ للنصف'), ('1', 'Full', 'ممتلئ')]) }}
+        {{ m.sel('crackW', 'Water in the crack', 'منسوب الماء في الشق', [('0', 'Dry', 'جاف', true), ('0.5', 'Half full', 'نصف ممتلئ'), ('1', 'Full', 'ممتلئ')]) }}
       </div>
       <div class="row3">
-        {{ m.fld('kh', 'Seismic coefficient kh', 'المعامل الزلزالي kh', 'number', '0', 'g', 'Horizontal pseudo-static coefficient, commonly 0.5 × PGA/g.', 'المعامل شبه الساكن الأفقي، يُؤخذ عادة 0.5 × PGA/g.', '', 'any', 'min="0" max="0.5"') }}
-        {{ m.fld('limP', 'Planar limit', 'حد الانزلاق المستوي', 'number', '20', '°', 'Lateral limit between plane and face dip directions (Wyllie & Mah 2004).', 'الحد الجانبي بين اتجاهي ميل المستوى والوجه (Wyllie & Mah 2004).') }}
-        {{ m.fld('limT', 'Toppling limit', 'حد الانقلاب', 'number', '10', '°') }}
+        {{ m.fld('kh', 'Seismic coefficient kh', 'المعامل الزلزالي kh', 'number', '0', 'g', 'Horizontal pseudo-static coefficient, commonly 0.5 × PGA/g.', 'المعامل الزلزالي الأفقي شبه السكوني، ويؤخذ عادة 0.5 × PGA/g.', '', 'any', 'min="0" max="0.5"') }}
+        {{ m.fld('limP', 'Planar limit', 'الحد الجانبي للانزلاق', 'number', '20', '°', 'Lateral limit between plane and face dip directions (Wyllie & Mah 2004).', 'الحد الجانبي بين اتجاهي ميل المستوى والوجه (Wyllie & Mah 2004).') }}
+        {{ m.fld('limT', 'Toppling limit', 'الحد الجانبي للانقلاب', 'number', '10', '°') }}
       </div>
     {{ m.panel_close() }}
 
@@ -79,12 +79,12 @@
           ('1', '1–5 MPa · crumbles in the hand', '1–5 ميغاباسكال · يتفتت باليد'),
           ('0', '< 1 MPa', '< 1 ميغاباسكال')], 'ISRM (1981) field estimate. A measured UCS below overrides it.', 'تقدير حقلي وفق ISRM (1981). تُستخدم قيمة UCS المقاسة أدناه إن أُدخلت.') }}
       <div class="row2">
-        {{ m.fld('ucsV', 'Measured UCS', 'UCS مقاسة', 'number', '', 'MPa') }}
+        {{ m.fld('ucsV', 'Measured UCS', 'قيمة UCS المقاسة', 'number', '', 'MPa') }}
         {{ m.fld('is50', 'Point load Is(50)', 'الحمل النقطي Is(50)', 'number', '', 'MPa', 'UCS ≈ 22 × Is(50) (ISRM 1985) when UCS is not measured.', 'UCS ≈ 22 × Is(50) (ISRM 1985) إذا لم تُقس UCS.') }}
       </div>
       <div class="row2">
         {{ m.fld('rqdV', 'A2. RQD', 'A2. مؤشر جودة الصخر RQD', 'number', '', '%', 'From core logging.', 'من وصف اللباب.') }}
-        {{ m.fld('jv', 'or Jv', 'أو Jv', 'number', '', 'joints/m³', 'Volumetric joint count; RQD = 110 − 2.5 Jv (Palmström 2005).', 'عدد الفواصل الحجمي؛ RQD = 110 − 2.5 Jv (Palmström 2005).') }}
+        {{ m.fld('jv', 'or Jv', 'أو Jv', 'number', '', 'joints/m³', 'Volumetric joint count; RQD = 110 − 2.5 Jv (Palmström 2005).', 'العدد الحجمي للفواصل؛ RQD = 110 − 2.5 Jv (Palmström 2005).') }}
       </div>
       {{ m.fld('spc', 'A3. Mean spacing of discontinuities', 'A3. متوسط تباعد الانقطاعات', 'number', '', 'm') }}
       <div class="lb sg-sub">{{ m.L('A4. Condition of discontinuities', 'A4. حالة الانقطاعات') }}</div>
@@ -98,7 +98,7 @@
       </div>
       {{ m.sel('cWea', 'Weathering of the walls', 'تجوية جدران الفواصل', [('6', 'Unweathered', 'غير متجوية'), ('5', 'Slightly weathered', 'تجوية خفيفة', true), ('3', 'Moderately weathered', 'تجوية متوسطة'), ('1', 'Highly weathered', 'تجوية شديدة'), ('0', 'Decomposed', 'متحللة')]) }}
       {{ m.sel('rGw', 'A5. Groundwater', 'A5. المياه الجوفية', [('15', 'Completely dry', 'جاف تماماً', true), ('10', 'Damp', 'رطب'), ('7', 'Wet', 'مبلل'), ('4', 'Dripping', 'تقطير'), ('0', 'Flowing', 'جريان')]) }}
-      {{ m.sel('f4', 'Excavation method (SMR F4)', 'طريقة الحفر (المعامل F4 في SMR)', [('15', 'Natural slope', 'منحدر طبيعي'), ('10', 'Presplitting', 'تفجير مسبق التشطير'), ('8', 'Smooth blasting', 'تفجير ناعم'), ('0', 'Normal blasting or mechanical excavation', 'تفجير عادي أو حفر آلي', true), ('-8', 'Deficient blasting', 'تفجير رديء')]) }}
+      {{ m.sel('f4', 'Excavation method (SMR F4)', 'طريقة الحفر (المعامل F4 في SMR)', [('15', 'Natural slope', 'منحدر طبيعي'), ('10', 'Presplitting', 'تفجير التشقيق المسبق'), ('8', 'Smooth blasting', 'التفجير الناعم'), ('0', 'Normal blasting or mechanical excavation', 'تفجير عادي أو حفر آلي', true), ('-8', 'Deficient blasting', 'تفجير سيئ التنفيذ')]) }}
     {{ m.panel_close() }}
 
     {{ m.panel_open(6, 'Stratigraphic column of the outcrop', 'العمود الطباقي للمنكشف') }}
@@ -128,7 +128,7 @@
         <div class="fig-b sg-scroll"><svg class="chart" id="svgSec" viewBox="0 0 760 520" role="img" aria-label="Slope section"></svg></div>
         <div class="fig-cap" id="capSec"></div>
       {{ m.fig_close() }}</div>
-      <div data-rp-page="plan">{{ m.fig_open('sgf3', '3', 'Geological plan and cross-section A–A′', 'المسقط الأفقي الجيولوجي والمقطع A–A′', '<button class="btn btn-line btn-xs" data-svg="svgPlan" type="button">PNG</button>') }}
+      <div data-rp-page="plan">{{ m.fig_open('sgf3', '3', 'Geological plan and cross-section A–A′', 'الخريطة الجيولوجية والمقطع العرضي A–A′', '<button class="btn btn-line btn-xs" data-svg="svgPlan" type="button">PNG</button>') }}
         <div class="fig-b sg-scroll"><svg class="chart" id="svgPlan" viewBox="0 0 760 640" role="img" aria-label="Plan and section"></svg></div>
         <div class="fig-cap" id="capPlan"></div>
       {{ m.fig_close() }}</div>
@@ -136,7 +136,7 @@
         <div class="fig-b sg-scroll"><svg class="chart" id="svgRadar" viewBox="0 0 760 560" role="img" aria-label="Hazard radar"></svg></div>
         <div class="fig-cap" id="capRadar"></div>
       {{ m.fig_close() }}</div>
-      <div data-rp-page="rmr">{{ m.fig_open('sgf5', '5', 'RMR89 diagnostic column', 'عمود تشخيص RMR89', '<button class="btn btn-line btn-xs" data-svg="svgRmr" type="button">PNG</button>') }}
+      <div data-rp-page="rmr">{{ m.fig_open('sgf5', '5', 'RMR89 diagnostic column', 'مخطط تقييم معاملات RMR89', '<button class="btn btn-line btn-xs" data-svg="svgRmr" type="button">PNG</button>') }}
         <div class="fig-b sg-scroll"><svg class="chart" id="svgRmr" viewBox="0 0 760 470" role="img" aria-label="RMR parameters"></svg></div>
         <div class="fig-cap" id="capRmr"></div>
       {{ m.fig_close() }}</div>

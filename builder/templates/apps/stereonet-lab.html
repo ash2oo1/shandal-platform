@@ -13,11 +13,11 @@
       </div>
       <button class="btn btn-line btn-sm" id="nLoc" type="button">{{ icon('map-pin', 'ico ico-sm') }}{{ m.L('Use GPS position', 'استخدم موقع GPS') }}</button>
       <div class="sg-decl" id="nDecl"></div>
-      {{ m.sel('nRef', 'Typed azimuths refer to', 'السموت المُدخلة يدوياً مرجعها', [('true', 'True north', 'الشمال الحقيقي', true), ('mag', 'Magnetic north (convert with IGRF-14)', 'الشمال المغناطيسي (تحويل بنموذج IGRF-14)')]) }}
+      {{ m.sel('nRef', 'Typed azimuths refer to', 'مرجع السموت المُدخلة يدوياً', [('true', 'True north', 'الشمال الجغرافي', true), ('mag', 'Magnetic north (convert with IGRF-14)', 'الشمال المغناطيسي (يُصحح بنموذج IGRF-14)')]) }}
     {{ m.panel_close() }}
 
     {{ m.panel_open(2, 'Phone compass-clinometer', 'بوصلة وميزان الهاتف') }}
-      <p class="pn-note">{{ m.L('Lay the back of the phone on the plane and press Record. Each record is the mean of the last 30 sensor samples, corrected to true north.', 'ضع ظهر الهاتف على المستوى واضغط سجّل. كل تسجيل متوسط آخر 30 قراءة، مصحح إلى الشمال الحقيقي.') }}</p>
+      <p class="pn-note">{{ m.L('Lay the back of the phone on the plane and press Record. Each record is the mean of the last 30 sensor samples, corrected to true north.', 'ضع ظهر الهاتف على المستوى واضغط سجّل. كل تسجيل متوسط آخر 30 قراءة، مصحح إلى الشمال الجغرافي.') }}</p>
       <button class="btn btn-ink btn-block" id="cStart" type="button">{{ icon('compass', 'ico ico-sm') }}{{ m.L('Start compass', 'شغّل البوصلة') }}</button>
       <div class="live" id="cLive" hidden>
         <div class="vals"><div><b id="cDd">—</b><span>{{ m.L('Dip direction', 'اتجاه الميل') }}</span></div><div><b id="cDip">—</b><span>{{ m.L('Dip', 'الميل') }}</span></div><div><b id="cA95">—</b><span>α95</span></div></div>
@@ -57,8 +57,8 @@
       </div>
       <div class="row3">
         {{ m.fld('kPhi', 'Friction φ', 'الاحتكاك φ', 'number', '30', '°') }}
-        {{ m.fld('kLimP', 'Planar limit', 'حد الانزلاق', 'number', '20', '°') }}
-        {{ m.fld('kLimT', 'Toppling limit', 'حد الانقلاب', 'number', '10', '°') }}
+        {{ m.fld('kLimP', 'Planar limit', 'الحد الجانبي للانزلاق', 'number', '20', '°') }}
+        {{ m.fld('kLimT', 'Toppling limit', 'الحد الجانبي للانقلاب', 'number', '10', '°') }}
       </div>
       <button class="btn btn-gold btn-block" id="nRun" type="button" style="margin-top:6px">{{ icon('activity', 'ico ico-sm') }}{{ m.L('Analyse', 'حلّل البيانات') }}</button>
       <button class="btn btn-line btn-xs" id="nDemo" type="button">{{ m.L('Load example data', 'تحميل بيانات مثال') }}</button>

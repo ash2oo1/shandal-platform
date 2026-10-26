@@ -462,6 +462,18 @@
     $$('.range input[type=range]').forEach(function (r) { if (r.nextElementSibling && r.nextElementSibling.tagName === 'OUTPUT') r.nextElementSibling.textContent = r.value; });
     var rb = d.getElementById('reportBtn'); if (rb) rb.addEventListener('click', function () { if (d.dispatchEvent(new CustomEvent('sh:beforereport', { cancelable: true }))) SH.report(rb.getAttribute('data-title')); });
   });
+  /* floating help tips: positioned in the viewport so they are never clipped by narrow panels */
+  (function () {
+    var box = null, cur = null;
+    function hide() { if (box) { box.remove(); box = null; } cur = null; }
+    function show(el) { hide(); var tx = el.getAttribute('data-tip'); if (!tx) return; cur = el; box = d.createElement('div'); box.className = 'tipbox'; box.textContent = tx; box.setAttribute('dir', SH.lang === 'ar' ? 'rtl' : 'ltr'); d.body.appendChild(box);
+      var r = el.getBoundingClientRect(), bw = Math.min(280, w.innerWidth - 16); box.style.width = bw + 'px'; var bh = box.offsetHeight, x = Math.max(8, Math.min(w.innerWidth - bw - 8, r.left + r.width / 2 - bw / 2)), y = r.top - bh - 8; if (y < 8) y = r.bottom + 8; box.style.left = x + 'px'; box.style.top = y + 'px'; }
+    d.addEventListener('mouseover', function (e) { var t = e.target.closest && e.target.closest('.tip'); if (t && t !== cur) show(t); else if (!t && cur) hide(); });
+    d.addEventListener('focusin', function (e) { var t = e.target.closest && e.target.closest('.tip'); if (t) show(t); });
+    d.addEventListener('focusout', function (e) { if (e.target.closest && e.target.closest('.tip')) hide(); });
+    d.addEventListener('click', function (e) { var t = e.target.closest && e.target.closest('.tip'); if (t) { e.preventDefault(); if (cur === t) hide(); else show(t); } else if (cur) hide(); });
+    w.addEventListener('scroll', function () { if (cur) { var r = cur.getBoundingClientRect(); if (r.bottom < 0 || r.top > w.innerHeight) hide(); else show(cur); } }, true); w.addEventListener('resize', hide);
+  })();
   /* offline shell: keep the last good copy of pages and assets for use in the field without a connection */
   if ('serviceWorker' in navigator && location.protocol === 'https:') w.addEventListener('load', function () { navigator.serviceWorker.register(SH.base + 'sw.js').catch(function () {}); });
 })(window);

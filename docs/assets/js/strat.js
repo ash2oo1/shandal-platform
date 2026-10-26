@@ -156,9 +156,8 @@
     Object.keys(used.st).forEach(function (k) { items.push([function (x, y) { symbol(S, null, k, x + 17, y, STRUCT[k][2] === 'f' ? '#5B3A1E' : ink); }, nm(STRUCT[k])]); });
     if (floor) items.push([function (x, y) { S.line(x, y, x + 34, y, { stroke: '#B4552D', 'stroke-width': 2, 'stroke-dasharray': '8 4' }); }, t('Pit floor', 'أرضية الحفر')]);
     if (water) items.push([function (x, y) { S.line(x, y + 4, x + 34, y + 4, { stroke: '#1F6FB2', 'stroke-width': 1.6 }); S.path('M' + (x + 10) + ' ' + (y - 7) + 'h14l-7 10z', { fill: '#fff', stroke: '#1F6FB2', 'stroke-width': 1.2 }); }, t('Water table', 'منسوب المياه الجوفية')]);
-    if (face) items.push([function (x, y) { S.line(x + 2, y, x + 32, y, { stroke: '#B4552D', 'stroke-width': 2.4 }); S.circle(x + 2, y, 2.5, { fill: '#B4552D' }); }, t('Face direction ', 'اتجاه الواجهة ') + Math.round(o.faceAz) + '°']);
     var IH = 25, GSN = [['cl', t('clay', 'طين')], ['si', t('silt', 'غرين')], ['vf', t('very fine sand', 'رمل ناعم جداً')], ['f', t('fine sand', 'رمل ناعم')], ['m', t('medium sand', 'رمل متوسط')], ['c', t('coarse sand', 'رمل خشن')], ['vc', t('very coarse sand', 'رمل خشن جداً')], ['gr', t('gravel', 'حصى')]];
-    var panelH = 334 + items.length * IH;
+    var panelH = 334 + items.length * IH + (face ? 16 : 0);
     var VH = Math.max(top + Hc + 70, PY + panelH + 40); svg.setAttribute('viewBox', '0 0 ' + VW + ' ' + VH);
     S.add('rect', { x: 0, y: 0, width: VW, height: VH, fill: '#FFFFFF' }); S.add('rect', { x: 8, y: 8, width: VW - 16, height: VH - 16, fill: 'none', stroke: ink, 'stroke-width': 1.2 });
     txt(30, 46, o.title || t('Geological stratigraphic column', 'العمود الطباقي الجيولوجي'), { 'font-size': 20, 'font-weight': 800, fill: ink }, PX - 24);
@@ -194,8 +193,8 @@
     var cx = PX + PW / 2, ny = PY + 20, cy = ny + 36, sep = function (yy) { S.line(PX, yy, PX + PW, yy, { stroke: ink, 'stroke-width': .7 }); };
     S.text(cx, ny, 'N', { 'font-size': 15, 'font-weight': 800, fill: ink, 'text-anchor': 'middle' });
     S.path('M' + cx + ' ' + (ny + 6) + 'L' + (cx - 12) + ' ' + (ny + 54) + 'L' + cx + ' ' + (ny + 44) + 'z', { fill: ink, stroke: ink }); S.path('M' + cx + ' ' + (ny + 6) + 'L' + (cx + 12) + ' ' + (ny + 54) + 'L' + cx + ' ' + (ny + 44) + 'z', { fill: '#fff', stroke: ink });
-    if (face) { var fa = SH.rad(o.faceAz); S.line(cx, cy, cx + Math.sin(fa) * 30, cy - Math.cos(fa) * 30, { stroke: '#B4552D', 'stroke-width': 2.4 }); S.circle(cx, cy, 2.5, { fill: '#B4552D' }); }
-    var yL = PY + 96; sep(yL); yL += 22;
+    if (face) { var fz = t('Face azimuth ', 'اتجاه الواجهة ') + String(Math.round(o.faceAz) % 360).padStart(3, '0') + '° (' + SH.dir16(o.faceAz) + ')'; S.text(cx, ny + 78, AR ? iso(fz) : fz, { 'font-size': 10.5, 'font-weight': 700, fill: mut, 'text-anchor': 'middle', direction: AR ? 'rtl' : 'ltr' }); }
+    var yL = PY + (face ? 112 : 96); sep(yL); yL += 22;
     var head = function (en, ar, yy) { if (AR) S.text(R0, yy, ar, { 'font-size': 12, 'font-weight': 800, fill: ink, direction: 'rtl', 'text-anchor': 'start' }); else S.text(L0, yy, en, { 'font-size': 11.5, 'font-weight': 800, fill: ink, 'letter-spacing': 1.6 }); };
     head('LEGEND', 'مفتاح الرموز', yL); yL += 22;
     items.forEach(function (it) { if (AR) { it[0](R0 - 34, yL); txt(0, yL + 4, it[1], { 'font-size': 10.5, fill: ink }, R0 - 44); } else { it[0](L0, yL); S.text(L0 + 44, yL + 4, it[1], { 'font-size': 10.5, fill: ink }); } yL += IH; });
