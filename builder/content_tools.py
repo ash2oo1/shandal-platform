@@ -460,7 +460,7 @@ TOOLS = [
 
 from content_tools2 import NEW_TOOLS
 CATS = ['geology', 'terrain', 'remote', 'geophysics', 'engineering', 'water', 'atmosphere', 'climate', 'hazards', 'labs']
-ORDER = ['quarry-survey', 'structural-geotechnical', 'stereonet-lab', 'strata', 'geologic-unit', 'fossils', 'geoheritage',
+ORDER = ['quarry-survey', 'structural-geotechnical', 'stereonet-lab', 'rockmass-lab', 'strata', 'geologic-unit', 'fossils', 'geoheritage',
          'dem-studio', 'contour-lab', 'geomorphology-contour',
          'spectral-indices',
          'magnetic-lab', 'geothermal-lab',

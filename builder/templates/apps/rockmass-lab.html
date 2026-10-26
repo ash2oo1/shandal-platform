@@ -1,0 +1,98 @@
+{% extends "app_base.html" %}
+{% import "apps/_m.html" as m with context %}
+{% block ws %}
+<div class="ws-wrap">
+<div class="ws wide-side">
+  <aside class="ws-side">
+    {{ m.panel_open(1, 'Site, rock and design case', 'الموقع والصخر وحالة التصميم') }}
+      {{ m.fld('geoName', 'Geologist', 'الجيولوجي', 'text') }}
+      {{ m.fld('mProject', 'Project or station', 'المشروع أو المحطة', 'text') }}
+      {{ m.sel('mRock', 'Rock type (Hoek–Brown mi)', 'نوع الصخر (ثابت Hoek–Brown mi)', [
+        ('21', 'Conglomerate · 21', 'مدملكات · 21'), ('19', 'Breccia · 19', 'بريشيا · 19'), ('17', 'Sandstone · 17', 'حجر رملي · 17'), ('7', 'Siltstone · 7', 'حجر غريني · 7'), ('18', 'Greywacke · 18', 'غريواكي · 18'), ('4', 'Claystone · 4', 'حجر طيني · 4'), ('6', 'Shale · 6', 'طفل · 6'), ('7m', 'Marl · 7', 'مارل · 7'),
+        ('12', 'Crystalline limestone · 12', 'حجر جيري متبلور · 12'), ('10', 'Sparitic limestone · 10', 'حجر جيري سباريتي · 10', true), ('9', 'Micritic limestone · 9', 'حجر جيري مكرايتي · 9'), ('9d', 'Dolomite · 9', 'دولومايت · 9'), ('8', 'Gypsum · 8', 'جبس · 8'), ('12a', 'Anhydrite · 12', 'أنهيدرايت · 12'), ('7c', 'Chalk · 7', 'طباشير · 7'),
+        ('9mb', 'Marble · 9', 'رخام · 9'), ('19h', 'Hornfels · 19', 'هورنفلس · 19'), ('20', 'Quartzite · 20', 'كوارتزايت · 20'), ('7s', 'Slate · 7', 'أردواز · 7'), ('12s', 'Schist · 12', 'شيست · 12'), ('28', 'Gneiss · 28', 'نايس · 28'),
+        ('32', 'Granite · 32', 'غرانيت · 32'), ('25', 'Diorite · 25', 'دايورايت · 25'), ('27', 'Gabbro · 27', 'غابرو · 27'), ('16', 'Dolerite · 16', 'دوليرايت · 16'), ('25b', 'Basalt · 25', 'بازلت · 25'), ('25a', 'Andesite · 25', 'أنديسايت · 25'), ('13', 'Tuff · 13', 'طف · 13')], 'Marinos & Hoek (2000).', 'Marinos & Hoek (2000).') }}
+      <div class="row2">
+        {{ m.fld('ucs', 'Intact UCS σci', 'مقاومة الصخر السليم σci', 'number', '', 'MPa') }}
+        {{ m.fld('is50', 'or Is(50)', 'أو Is(50)', 'number', '', 'MPa', 'σci ≈ 22 × Is(50) (ISRM 1985).', 'σci ≈ 22 × Is(50) (ISRM 1985).') }}
+      </div>
+      {{ m.sel('mCase', 'Design case', 'حالة التصميم', [('slope', 'Rock slope', 'منحدر صخري', true), ('tunnel', 'Tunnel or underground opening', 'نفق أو فتحة تحت سطحية')]) }}
+      <div class="row3">
+        {{ m.fld('H', 'Slope height or depth', 'ارتفاع المنحدر أو العمق', 'number', '20', 'm') }}
+        {{ m.fld('gam', 'Unit weight γ', 'الوزن النوعي γ', 'number', '26', 'kN/m³') }}
+        {{ m.fld('slope', 'Slope angle', 'زاوية المنحدر', 'number', '60', '°') }}
+      </div>
+      <div class="row2" id="tunBox">
+        {{ m.fld('span', 'Span or height B', 'عرض الفتحة أو ارتفاعها B', 'number', '8', 'm') }}
+        {{ m.sel('esr', 'Excavation support ratio', 'نسبة دعم الحفريات ESR', [('3', 'Temporary mine openings · 3', 'فتحات تعدين مؤقتة · 3'), ('1.6', 'Permanent mine openings, water tunnels · 1.6', 'فتحات تعدين دائمة وأنفاق مياه · 1.6'), ('1.3', 'Storage rooms, minor road tunnels · 1.3', 'غرف تخزين وأنفاق طرق ثانوية · 1.3'), ('1', 'Road and railway tunnels · 1.0', 'أنفاق الطرق والسكك · 1.0', true), ('0.8', 'Power stations, public facilities · 0.8', 'محطات قدرة ومنشآت عامة · 0.8')]) }}
+      </div>
+      {{ m.sel('Dfac', 'Disturbance factor D', 'معامل الإزعاج D', [('0', 'Undisturbed · controlled blasting or TBM · 0', 'غير مضطرب · تفجير محكوم أو TBM · 0'), ('0.5', 'Mechanical excavation, minor disturbance · 0.5', 'حفر آلي بإزعاج طفيف · 0.5'), ('0.7', 'Slope: small-scale blasting, good control · 0.7', 'منحدر: تفجير صغير جيد التحكم · 0.7', true), ('0.8', 'Tunnel: poor blasting, severe damage · 0.8', 'نفق: تفجير رديء وضرر شديد · 0.8'), ('1', 'Large open-pit production blasting · 1.0', 'تفجير إنتاجي في منجم مكشوف كبير · 1.0')], 'Hoek, Carranza-Torres & Corkum (2002).', 'Hoek, Carranza-Torres & Corkum (2002).') }}
+    {{ m.panel_close() }}
+
+    {{ m.panel_open(2, 'Block size and joint sets', 'حجم الكتل ومجموعات الفواصل') }}
+      <div class="row2">
+        {{ m.fld('rqd', 'RQD', 'مؤشر جودة الصخر RQD', 'number', '', '%') }}
+        {{ m.fld('jv', 'or Jv', 'أو Jv', 'number', '', 'joints/m³', 'RQD = 110 − 2.5 Jv (Palmström 2005).', 'RQD = 110 − 2.5 Jv (Palmström 2005).') }}
+      </div>
+      {{ m.fld('spc', 'Mean joint spacing', 'متوسط تباعد الفواصل', 'number', '', 'm') }}
+      {{ m.sel('Jn', 'Joint set number Jn', 'عدد مجموعات الفواصل Jn', [('1', 'Massive, none or few joints · 1', 'كتلي بلا فواصل أو قليلها · 1'), ('2', 'One set · 2', 'مجموعة واحدة · 2'), ('3', 'One set plus random · 3', 'مجموعة واحدة مع فواصل عشوائية · 3'), ('4', 'Two sets · 4', 'مجموعتان · 4'), ('6', 'Two sets plus random · 6', 'مجموعتان مع عشوائية · 6'), ('9', 'Three sets · 9', 'ثلاث مجموعات · 9', true), ('12', 'Three sets plus random · 12', 'ثلاث مجموعات مع عشوائية · 12'), ('15', 'Four or more sets, heavily jointed · 15', 'أربع مجموعات أو أكثر، تشقق شديد · 15'), ('20', 'Crushed rock, earth-like · 20', 'صخر مسحوق شبيه بالتربة · 20')], 'Barton et al. (1974); NGI (2015).', 'Barton et al. (1974)؛ NGI (2015).') }}
+    {{ m.panel_close() }}
+
+    {{ m.panel_open(3, 'Joint surfaces', 'أسطح الفواصل') }}
+      {{ m.sel('Jr', 'Joint roughness Jr', 'خشونة الفواصل Jr', [('4', 'Discontinuous joints · 4', 'فواصل غير مستمرة · 4'), ('3', 'Rough or irregular, undulating · 3', 'خشنة أو غير منتظمة، متموجة · 3', true), ('2', 'Smooth, undulating · 2', 'ناعمة متموجة · 2'), ('1.5', 'Slickensided undulating, or rough planar · 1.5', 'مصقولة متموجة أو خشنة مستوية · 1.5'), ('1', 'Smooth planar, or no rock-wall contact · 1.0', 'ناعمة مستوية أو بلا تلامس للجدران · 1.0'), ('0.5', 'Slickensided planar · 0.5', 'مصقولة مستوية · 0.5')]) }}
+      {{ m.sel('Ja', 'Joint alteration Ja', 'تغير الفواصل Ja', [('0.75', 'Tightly healed, hard filling · 0.75', 'ملتئمة بإحكام بحشوة صلبة · 0.75'), ('1', 'Unaltered walls, surface staining · 1', 'جدران غير متغيرة مع تلطخ سطحي · 1', true), ('2', 'Slightly altered walls, sandy particles · 2', 'جدران متغيرة قليلاً مع حبيبات رملية · 2'), ('3', 'Silty or sandy-clay coatings · 3', 'أغلفة غرينية أو رملية طينية · 3'), ('4', 'Softening or low-friction clay coatings · 4', 'أغلفة طينية ملينة أو منخفضة الاحتكاك · 4'), ('6', 'Over-consolidated clay filling < 5 mm · 6', 'حشوة طين شديد التماسك < 5 ملم · 6'), ('8', 'Medium or low over-consolidation clay filling · 8', 'حشوة طين متوسط أو منخفض التماسك · 8'), ('12', 'Swelling clay filling · 8–12', 'حشوة طين انتفاخي · 8–12'), ('13', 'Thick zones of clay, no wall contact · 13', 'نطاقات طينية سميكة بلا تلامس · 13'), ('20', 'Thick swelling clay zones · 13–20', 'نطاقات طين انتفاخي سميكة · 13–20')]) }}
+      <div class="lb sg-sub">{{ m.L('RMR89 condition of discontinuities', 'حالة الانقطاعات في RMR89') }}</div>
+      <div class="row2">
+        {{ m.sel('cPer', 'Persistence', 'الاستمرارية', [('6', '< 1 m', '< 1 م'), ('4', '1–3 m', '1–3 م', true), ('2', '3–10 m', '3–10 م'), ('1', '10–20 m', '10–20 م'), ('0', '> 20 m', '> 20 م')]) }}
+        {{ m.sel('cApe', 'Aperture', 'الفتحة', [('6', 'None', 'مغلقة'), ('5', '< 0.1 mm', '< 0.1 ملم'), ('4', '0.1–1 mm', '0.1–1 ملم', true), ('1', '1–5 mm', '1–5 ملم'), ('0', '> 5 mm', '> 5 ملم')]) }}
+      </div>
+      <div class="row2">
+        {{ m.sel('cRou', 'Roughness', 'الخشونة', [('6', 'Very rough', 'خشنة جداً'), ('5', 'Rough', 'خشنة', true), ('3', 'Slightly rough', 'خشنة قليلاً'), ('1', 'Smooth', 'ملساء'), ('0', 'Slickensided', 'مصقولة')]) }}
+        {{ m.sel('cInf', 'Infilling', 'الحشوة', [('6', 'None', 'لا توجد', true), ('4', 'Hard < 5 mm', 'صلبة < 5 ملم'), ('2', 'Hard > 5 mm', 'صلبة > 5 ملم'), ('2s', 'Soft < 5 mm', 'لينة < 5 ملم'), ('0', 'Soft > 5 mm', 'لينة > 5 ملم')]) }}
+      </div>
+      {{ m.sel('cWea', 'Weathering', 'التجوية', [('6', 'Unweathered', 'غير متجوية'), ('5', 'Slightly weathered', 'تجوية خفيفة', true), ('3', 'Moderately weathered', 'تجوية متوسطة'), ('1', 'Highly weathered', 'تجوية شديدة'), ('0', 'Decomposed', 'متحللة')]) }}
+    {{ m.panel_close() }}
+
+    {{ m.panel_open(4, 'Water, stress and slope factors', 'الماء والإجهاد وعوامل المنحدر') }}
+      {{ m.sel('rGw', 'RMR groundwater', 'المياه الجوفية في RMR', [('15', 'Completely dry · 15', 'جاف تماماً · 15', true), ('10', 'Damp · 10', 'رطب · 10'), ('7', 'Wet · 7', 'مبلل · 7'), ('4', 'Dripping · 4', 'تقطير · 4'), ('0', 'Flowing · 0', 'جريان · 0')]) }}
+      {{ m.sel('Jw', 'Joint water reduction Jw', 'عامل خفض الماء Jw', [('1', 'Dry or minor inflow · 1.0', 'جاف أو تسرب طفيف · 1.0', true), ('0.66', 'Medium inflow, occasional outwash · 0.66', 'تسرب متوسط مع غسل عرضي · 0.66'), ('0.5', 'Large inflow, unfilled joints · 0.5', 'تسرب كبير في فواصل غير محشوة · 0.5'), ('0.33', 'Large inflow, considerable outwash · 0.33', 'تسرب كبير مع غسل ملحوظ · 0.33'), ('0.15', 'Exceptionally high, decaying · 0.2–0.1', 'تسرب استثنائي متناقص · 0.2–0.1'), ('0.07', 'Exceptionally high, persistent · 0.1–0.05', 'تسرب استثنائي مستمر · 0.1–0.05')]) }}
+      {{ m.sel('SRF', 'Stress reduction factor SRF (tunnels)', 'عامل خفض الإجهاد SRF (الأنفاق)', [('10', 'Multiple weakness zones with clay · 10', 'نطاقات ضعف متعددة مع طين · 10'), ('5', 'Single weakness zone, depth < 50 m, or loose open joints · 5', 'نطاق ضعف منفرد بعمق < 50 م أو فواصل مفتوحة مفككة · 5'), ('2.5', 'Single weakness zone > 50 m, or low stress near surface · 2.5', 'نطاق ضعف منفرد > 50 م أو إجهاد منخفض قرب السطح · 2.5'), ('1', 'Competent rock, medium stress · 1.0', 'صخر متين وإجهاد متوسط · 1.0', true), ('2', 'High stress, very tight structure · 0.5–2', 'إجهاد عالٍ وبنية محكمة جداً · 0.5–2'), ('25', 'Moderate slabbing after > 1 h · 5–50', 'تقشر متوسط بعد أكثر من ساعة · 5–50'), ('7.5', 'Mild squeezing rock · 5–10', 'صخر انضغاطي خفيف · 5–10'), ('15', 'Heavy squeezing rock · 10–20', 'صخر انضغاطي شديد · 10–20')]) }}
+      <div class="lb sg-sub">Q-slope (Bar &amp; Barton 2017)</div>
+      {{ m.sel('Oa', 'Orientation factor of the critical set', 'معامل الاتجاه للمجموعة الحرجة', [('2', 'Very favourable · 2.0', 'ملائم جداً · 2.0'), ('1', 'Quite favourable · 1.0', 'ملائم · 1.0'), ('0.75', 'Unfavourable · 0.75', 'غير ملائم · 0.75', true), ('0.5', 'Very unfavourable · 0.5', 'غير ملائم جداً · 0.5'), ('0.25', 'Causing failure if unsupported · 0.25', 'يسبب الانهيار دون تدعيم · 0.25')]) }}
+      {{ m.sel('Jwice', 'Environmental factor Jwice', 'العامل البيئي Jwice', [('1', 'Desert, competent rock · 1.0', 'بيئة صحراوية وصخر متين · 1.0', true), ('0.7', 'Desert, weak or unstable structure · 0.7', 'بيئة صحراوية وبنية ضعيفة · 0.7'), ('0.66', 'Wet environment, competent rock · 0.66', 'بيئة رطبة وصخر متين · 0.66'), ('0.5', 'Wet environment, weak rock; or tropical storms · 0.5', 'بيئة رطبة وصخر ضعيف، أو عواصف مدارية · 0.5'), ('0.3', 'Tropical storms, weak rock · 0.3', 'عواصف مدارية وصخر ضعيف · 0.3'), ('0.2', 'Ice wedging, weak rock · 0.2', 'تجمد الماء في الفواصل وصخر ضعيف · 0.2')]) }}
+      {{ m.sel('SRFs', 'SRFslope (physical condition)', 'SRFslope (الحالة الفيزيائية)', [('2.5', 'Slight loosening by surface location or blasting · 2.5', 'تفكك طفيف بسبب الموقع السطحي أو التفجير · 2.5', true), ('5', 'Loose blocks, tension cracks, joint shearing · 5', 'كتل مفككة وشقوق شد وقص فواصل · 5'), ('10', 'As above with strong susceptibility to weathering · 10', 'كما سبق مع قابلية عالية للتجوية · 10'), ('15', 'Advanced erosion and loosening by water or ice · 15', 'تعرية وتفكك متقدمان بفعل الماء أو الجليد · 15'), ('20', 'Residual slope with significant downslope transport · 20', 'منحدر متبقٍ مع نقل كبير للمواد · 20')]) }}
+      <button class="btn btn-gold btn-block" id="mRun" type="button" style="margin-top:6px">{{ icon('activity', 'ico ico-sm') }}{{ m.L('Classify the rock mass', 'صنّف الكتلة الصخرية') }}</button>
+      <button class="btn btn-line btn-xs" id="mDemo" type="button">{{ m.L('Load example data', 'تحميل بيانات مثال') }}</button>
+    {{ m.panel_close() }}
+  </aside>
+
+  <div class="ws-main">
+    <div id="mEmpty" class="pn">{{ m.empty('layers', 'Rock mass classification', 'تصنيف الكتلة الصخرية', 'Describe the intact rock, the block size and the joint surfaces. The lab rates the rock mass with RMR89, Q and Q-slope, derives GSI, and computes the Hoek–Brown strength, the equivalent Mohr–Coulomb parameters and the deformation modulus.', 'صِف الصخر السليم وحجم الكتل وأسطح الفواصل. يقيّم المختبر الكتلة الصخرية بأنظمة RMR89 وQ وQ-slope، ويشتق GSI، ويحسب مقاومة Hoek–Brown والمعاملات المكافئة لـ Mohr–Coulomb ومعامل التشوه.') }}</div>
+    <div id="mOut" hidden data-rp-paged style="display:grid;gap:18px">
+      <div data-rp-page="res" style="display:grid;gap:12px"><div class="kpis" id="mKpis"></div></div>
+      <section class="pn" data-rp-page="tab"><div class="pn-h">{{ icon('table') }}<h2>{{ m.L('Classification results', 'نتائج التصنيف') }}</h2></div><div class="pn-b flush tbl-wrap"><table class="tbl" id="mTab"></table></div></section>
+      <div data-rp-page="m1">{{ m.fig_open('rmf1', '1', 'Position of the rock mass on the classification scales', 'موقع الكتلة الصخرية على مقاييس التصنيف', '<button class="btn btn-line btn-xs" data-svg="svgM1" type="button">PNG</button>') }}
+        <div class="fig-b sg-scroll"><svg class="chart" id="svgM1" viewBox="0 0 760 460" role="img" aria-label="Classification scales"></svg></div>
+        <div class="fig-cap" id="capM1"></div>
+      {{ m.fig_close() }}</div>
+      <div data-rp-page="m2">{{ m.fig_open('rmf2', '2', 'Hoek–Brown failure envelope and equivalent Mohr–Coulomb fit', 'غلاف الانهيار لـ Hoek–Brown والملاءمة المكافئة لـ Mohr–Coulomb', '<button class="btn btn-line btn-xs" data-svg="svgM2" type="button">PNG</button>') }}
+        <div class="fig-b sg-scroll"><svg class="chart" id="svgM2" viewBox="0 0 760 500" role="img" aria-label="Hoek-Brown envelope"></svg></div>
+        <div class="fig-cap" id="capM2"></div>
+      {{ m.fig_close() }}</div>
+      <div data-rp-page="m3">{{ m.fig_open('rmf3', '3', 'Shear strength envelope in normal and shear stress', 'غلاف مقاومة القص بدلالة الإجهاد العمودي والقصي', '<button class="btn btn-line btn-xs" data-svg="svgM3" type="button">PNG</button>') }}
+        <div class="fig-b sg-scroll"><svg class="chart" id="svgM3" viewBox="0 0 760 500" role="img" aria-label="Mohr envelope"></svg></div>
+        <div class="fig-cap" id="capM3"></div>
+      {{ m.fig_close() }}</div>
+      <div data-rp-page="m4" id="qsWrap">{{ m.fig_open('rmf4', '4', 'Q-slope: steepest stable slope angle', 'Q-slope: أشد زاوية منحدر مستقرة', '<button class="btn btn-line btn-xs" data-svg="svgM4" type="button">PNG</button>') }}
+        <div class="fig-b sg-scroll"><svg class="chart" id="svgM4" viewBox="0 0 760 500" role="img" aria-label="Q-slope chart"></svg></div>
+        <div class="fig-cap" id="capM4"></div>
+      {{ m.fig_close() }}</div>
+      <div data-rp-page="m5">{{ m.fig_open('rmf5', '5', 'RMR89 diagnostic column', 'عمود تشخيص RMR89', '<button class="btn btn-line btn-xs" data-svg="svgM5" type="button">PNG</button>') }}
+        <div class="fig-b sg-scroll"><svg class="chart" id="svgM5" viewBox="0 0 760 330" role="img" aria-label="RMR parameters"></svg></div>
+        <div class="fig-cap" id="capM5"></div>
+      {{ m.fig_close() }}</div>
+    </div>
+  </div>
+</div>
+</div>
+{% endblock %}
