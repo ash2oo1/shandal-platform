@@ -1,0 +1,106 @@
+{% extends "app_base.html" %}
+{% import "apps/_m.html" as m with context %}
+{% block ws %}
+<div class="ws-wrap">
+<div class="ws wide-side">
+  <aside class="ws-side">
+    {{ m.panel_open(1, 'Site and north reference', 'الموقع ومرجع الشمال') }}
+      {{ m.fld('geoName', 'Geologist', 'الجيولوجي', 'text') }}
+      {{ m.fld('nProject', 'Project or outcrop', 'المشروع أو المنكشف', 'text') }}
+      <div class="row2">
+        {{ m.fld('nLat', 'Latitude', 'دائرة العرض', 'number', '', '°', '', '', '', 'any', 'min="-90" max="90"') }}
+        {{ m.fld('nLon', 'Longitude', 'خط الطول', 'number', '', '°', '', '', '', 'any', 'min="-180" max="180"') }}
+      </div>
+      <button class="btn btn-line btn-sm" id="nLoc" type="button">{{ icon('map-pin', 'ico ico-sm') }}{{ m.L('Use GPS position', 'استخدم موقع GPS') }}</button>
+      <div class="sg-decl" id="nDecl"></div>
+      {{ m.sel('nRef', 'Typed azimuths refer to', 'السموت المُدخلة يدوياً مرجعها', [('true', 'True north', 'الشمال الحقيقي', true), ('mag', 'Magnetic north (convert with IGRF-14)', 'الشمال المغناطيسي (تحويل بنموذج IGRF-14)')]) }}
+    {{ m.panel_close() }}
+
+    {{ m.panel_open(2, 'Phone compass-clinometer', 'بوصلة وميزان الهاتف') }}
+      <p class="pn-note">{{ m.L('Lay the back of the phone on the plane and press Record. Each record is the mean of the last 30 sensor samples, corrected to true north.', 'ضع ظهر الهاتف على المستوى واضغط سجّل. كل تسجيل متوسط آخر 30 قراءة، مصحح إلى الشمال الحقيقي.') }}</p>
+      <button class="btn btn-ink btn-block" id="cStart" type="button">{{ icon('compass', 'ico ico-sm') }}{{ m.L('Start compass', 'شغّل البوصلة') }}</button>
+      <div class="live" id="cLive" hidden>
+        <div class="vals"><div><b id="cDd">—</b><span>{{ m.L('Dip direction', 'اتجاه الميل') }}</span></div><div><b id="cDip">—</b><span>{{ m.L('Dip', 'الميل') }}</span></div><div><b id="cA95">—</b><span>α95</span></div></div>
+        <div class="row2">
+          {{ m.fld('cSet', 'Set label', 'رمز المجموعة', 'text', 'J1') }}
+          <div class="fg"><label>&nbsp;</label><button class="btn btn-gold btn-sm" id="cRec" type="button">{{ m.L('Record plane', 'سجّل المستوى') }}</button></div>
+        </div>
+      </div>
+    {{ m.panel_close() }}
+
+    {{ m.panel_open(3, 'Import measurements', 'استيراد القياسات') }}
+      {{ m.sel('nFmt', 'Plane notation', 'صيغة المستوى', [('dd', 'Dip direction / dip', 'اتجاه الميل / الميل', true), ('rhr', 'Strike (right-hand rule) / dip', 'المضرب (قاعدة اليد اليمنى) / الميل')]) }}
+      <div class="fg"><label for="nPaste">{{ m.L('Paste rows (type, azimuth, angle, set)', 'الصق الصفوف (النوع، السمت، الزاوية، المجموعة)') }}</label><textarea id="nPaste" rows="4" class="ltr" style="font-family:ui-monospace,monospace;font-size:.78rem" placeholder="P, 052, 38, J1&#10;P, 128, 60, J2&#10;L, 064, 37, F1"></textarea></div>
+      <div class="row2">
+        <button class="btn btn-line btn-sm" id="nPasteGo" type="button">{{ m.L('Read rows', 'اقرأ الصفوف') }}</button>
+        <button class="btn btn-line btn-sm" id="nFileBtn" type="button">{{ icon('upload', 'ico ico-sm') }}{{ m.L('Import CSV', 'استورد CSV') }}</button>
+      </div>
+      <input type="file" id="nFile" accept=".csv,.txt,text/plain" hidden>
+      <p class="pn-note">{{ m.L('P = plane (bedding, joint, fault, foliation); L = line (lineation, fold axis, slickenline) as trend, plunge.', 'P = مستوى (تطبق، فاصل، فالق، تورّق)؛ L = خط (تخطط، محور طية، خطوط احتكاك) بصيغة الاتجاه والغطس.') }}</p>
+    {{ m.panel_close() }}
+
+    {{ m.panel_open(4, 'Sets and display', 'المجموعات والعرض') }}
+      <div class="row2">
+        {{ m.sel('nSets', 'Set assignment', 'تحديد المجموعات', [('manual', 'From the set column', 'من عمود المجموعة', true), ('auto', 'Automatic (k-means)', 'آلياً (k-means)')]) }}
+        {{ m.fld('nK', 'Number of sets k', 'عدد المجموعات k', 'number', '3', '', '', '', '', '1', 'min="1" max="6"') }}
+      </div>
+      <label class="chk"><input type="checkbox" id="oCont" checked> {{ m.L('Pole density contours (Kamb)', 'كنتور كثافة الأقطاب (Kamb)') }}</label>
+      <label class="chk"><input type="checkbox" id="oGc"> {{ m.L('Great circles of all planes', 'الدوائر العظمى لكل المستويات') }}</label>
+      <label class="chk"><input type="checkbox" id="oCone" checked> {{ m.L('Set means with α95 cones', 'متوسطات المجموعات مع مخاريط α95') }}</label>
+    {{ m.panel_close() }}
+
+    {{ m.panel_open(5, 'Slope face for kinematic analysis', 'وجه المنحدر للتحليل الحركي') }}
+      <label class="chk"><input type="checkbox" id="kOn" checked> {{ m.L('Run the kinematic analysis', 'نفّذ التحليل الحركي') }}</label>
+      <div class="row2">
+        {{ m.fld('kFdd', 'Face dip direction', 'اتجاه ميل الوجه', 'number', '060', '°', '', '', '', 'any', 'min="0" max="360"') }}
+        {{ m.fld('kFdip', 'Face dip', 'ميل الوجه', 'number', '65', '°', '', '', '', 'any', 'min="1" max="90"') }}
+      </div>
+      <div class="row3">
+        {{ m.fld('kPhi', 'Friction φ', 'الاحتكاك φ', 'number', '30', '°') }}
+        {{ m.fld('kLimP', 'Planar limit', 'حد الانزلاق', 'number', '20', '°') }}
+        {{ m.fld('kLimT', 'Toppling limit', 'حد الانقلاب', 'number', '10', '°') }}
+      </div>
+      <button class="btn btn-gold btn-block" id="nRun" type="button" style="margin-top:6px">{{ icon('activity', 'ico ico-sm') }}{{ m.L('Analyse', 'حلّل البيانات') }}</button>
+      <button class="btn btn-line btn-xs" id="nDemo" type="button">{{ m.L('Load example data', 'تحميل بيانات مثال') }}</button>
+    {{ m.panel_close() }}
+  </aside>
+
+  <div class="ws-main">
+    <section class="pn" data-rp-skip><div class="pn-h">{{ icon('table') }}<h2>{{ m.L('Measurements', 'القياسات') }}</h2><div class="sp no-print"><button class="btn btn-line btn-xs" id="nAdd" type="button">{{ m.L('Add row', 'أضف صفاً') }}</button><button class="btn btn-line btn-xs" id="nClear" type="button">{{ m.L('Clear all', 'مسح الكل') }}</button></div></div>
+      <div class="pn-b flush tbl-wrap" style="max-height:340px;overflow:auto"><table class="tbl" id="nIn"></table></div>
+    </section>
+    <div id="nEmpty" class="pn">{{ m.empty('compass', 'Stereographic analysis of orientation data', 'التحليل الستيريوغرافي لبيانات الاتجاه', 'Record planes with the phone, type them or paste a field sheet, then analyse: pole density, set statistics, fabric eigenvalues, rose diagram and kinematic analysis against a slope face.', 'سجّل المستويات بالهاتف أو أدخلها أو الصق جدولاً حقلياً، ثم حلّل: كثافة الأقطاب وإحصاءات المجموعات وقيم النسيج الذاتية ومخطط الوردة والتحليل الحركي مقابل وجه منحدر.') }}</div>
+    <div id="nOut" hidden data-rp-paged style="display:grid;gap:18px">
+      <div data-rp-page="res" style="display:grid;gap:12px"><div class="kpis" id="nKpis"></div></div>
+      <section class="pn" data-rp-page="stats"><div class="pn-h">{{ icon('table') }}<h2>{{ m.L('Set statistics and fabric', 'إحصاءات المجموعات والنسيج') }}</h2></div><div class="pn-b flush tbl-wrap"><table class="tbl" id="nStats"></table></div><div class="pn-b flush tbl-wrap"><table class="tbl" id="nFab"></table></div></section>
+      <div data-rp-page="n1">{{ m.fig_open('snf1', '1', 'Pole density and set means', 'كثافة الأقطاب ومتوسطات المجموعات', '<div class="seg" id="projSeg" style="padding:2px"><button data-v="area" aria-pressed="true" type="button">' + ('Schmidt' if lang == 'en' else 'شميت') + '</button><button data-v="angle" aria-pressed="false" type="button">' + ('Wulff' if lang == 'en' else 'وولف') + '</button></div><button class="btn btn-line btn-xs" data-svg="svgN1" type="button">PNG</button>') }}
+        <div class="fig-b sg-scroll"><svg class="chart" id="svgN1" viewBox="0 0 760 600" role="img" aria-label="Pole density"></svg></div>
+        <div class="fig-cap" id="capN1"></div>
+      {{ m.fig_close() }}</div>
+      <div data-rp-page="n2">{{ m.fig_open('snf2', '2', 'Great circles of the set means and fabric axes', 'الدوائر العظمى لمتوسطات المجموعات ومحاور النسيج', '<button class="btn btn-line btn-xs" data-svg="svgN2" type="button">PNG</button>') }}
+        <div class="fig-b sg-scroll"><svg class="chart" id="svgN2" viewBox="0 0 760 600" role="img" aria-label="Great circles"></svg></div>
+        <div class="fig-cap" id="capN2"></div>
+      {{ m.fig_close() }}</div>
+      <div data-rp-page="n3">{{ m.fig_open('snf3', '3', 'Rose diagram of strikes', 'مخطط الوردة للمضارب', '<button class="btn btn-line btn-xs" data-svg="svgN3" type="button">PNG</button>') }}
+        <div class="fig-b sg-scroll"><svg class="chart" id="svgN3" viewBox="0 0 760 560" role="img" aria-label="Rose diagram"></svg></div>
+        <div class="fig-cap" id="capN3"></div>
+      {{ m.fig_close() }}</div>
+      <div id="kinWrap" data-rp-page="n4" style="display:grid;gap:18px">
+        {{ m.fig_open('snf4', '4', 'Kinematic analysis against the slope face', 'التحليل الحركي مقابل وجه المنحدر', '<button class="btn btn-line btn-xs" data-svg="svgN4" type="button">PNG</button>') }}
+          <div class="fig-b sg-scroll"><svg class="chart" id="svgN4" viewBox="0 0 760 600" role="img" aria-label="Kinematic analysis"></svg></div>
+          <div class="fig-cap" id="capN4"></div>
+        {{ m.fig_close() }}
+        <section class="pn"><div class="pn-h">{{ icon('table') }}<h2>{{ m.L('Kinematic counts', 'نتائج العدّ الحركي') }}</h2></div><div class="pn-b flush tbl-wrap"><table class="tbl" id="nKin"></table></div></section>
+      </div>
+      <div id="radWrap" data-rp-page="n5">{{ m.fig_open('snf5', '5', 'Directional hazard radar', 'رادار الخطر الاتجاهي', '<button class="btn btn-line btn-xs" data-svg="svgN5" type="button">PNG</button>') }}
+        <div class="fig-b sg-scroll"><svg class="chart" id="svgN5" viewBox="0 0 760 560" role="img" aria-label="Hazard radar"></svg></div>
+        <div class="fig-cap" id="capN5"></div>
+      {{ m.fig_close() }}</div>
+      <section class="pn no-print"><div class="pn-h">{{ icon('download') }}<h2>{{ m.L('Downloads', 'التنزيلات') }}</h2></div>
+        <div class="pn-b" style="display:flex;flex-wrap:wrap;gap:8px"><button class="btn btn-gold btn-sm" id="nCsv" type="button">{{ m.L('Measurements with sets (CSV)', 'القياسات مع المجموعات (CSV)') }}</button><button class="btn btn-line btn-sm" id="nCsvS" type="button">{{ m.L('Set statistics (CSV)', 'إحصاءات المجموعات (CSV)') }}</button></div>
+      </section>
+    </div>
+  </div>
+</div>
+</div>
+{% endblock %}

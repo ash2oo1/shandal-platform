@@ -101,7 +101,7 @@ TOOLS = [
               L('Describe the rock mass for RMR', 'وصف الكتلة الصخرية لحساب RMR'),
               L('Read the stereonet and export the report', 'قراءة المسقط وتصدير التقرير')],
  'exports': L('PDF report with six engineering figures', 'تقرير PDF مع ستة أشكال هندسية'),
- 'related': ['seismic-evaluation', 'quarry-survey', 'hydro-alert'],
+ 'related': ['stereonet-lab', 'quarry-survey', 'strata'],
 },
 {
  'slug': 'geomorphology-contour', 'cat': 'geology', 'libs': ['map', 'plot', 'dem'], 'icon': 'mountain-snow', 'illus': 'contours',
@@ -460,7 +460,7 @@ TOOLS = [
 
 from content_tools2 import NEW_TOOLS
 CATS = ['geology', 'terrain', 'remote', 'geophysics', 'engineering', 'water', 'atmosphere', 'climate', 'hazards', 'labs']
-ORDER = ['quarry-survey', 'structural-geotechnical', 'strata', 'geologic-unit', 'fossils', 'geoheritage',
+ORDER = ['quarry-survey', 'structural-geotechnical', 'stereonet-lab', 'strata', 'geologic-unit', 'fossils', 'geoheritage',
          'dem-studio', 'contour-lab', 'geomorphology-contour',
          'spectral-indices',
          'magnetic-lab', 'geothermal-lab',

@@ -48,6 +48,7 @@
 <script src="{{ u('assets/js/ws.js') }}?v={{ version }}"></script>
 <script src="{{ u('assets/js/report.js') }}?v={{ version }}" defer></script>
 {% if 'strat' in tool.libs %}<script src="{{ u('assets/js/strat.js') }}?v={{ version }}" defer></script>{% endif %}
+{% if 'gm' in tool.libs %}<script src="{{ u('assets/js/geomech.js') }}?v={{ version }}" defer></script>{% endif %}
 {% block appscripts %}{% endblock %}
 <script src="{{ u('assets/js/tools/' + tool.slug + '.js') }}?v={{ version }}" defer></script>
 {% endblock %}
