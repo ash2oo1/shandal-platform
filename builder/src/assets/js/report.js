@@ -102,12 +102,12 @@
     side.querySelectorAll('.pn, .sec').forEach(function (p) {
       if (!vis(p)) return; var h = p.querySelector('.pn-h h2, h3'), rows = [];
       p.querySelectorAll('.fg').forEach(function (f) {
-        if (!vis(f)) return; var lab = f.querySelector('label'), c = f.querySelector('input, select, textarea'); if (!c || !lab || c.closest('.chks') || c.type === 'file' || c.type === 'color' || c.type === 'hidden') return;
+        if (!vis(f) || f.closest('[data-rp-skip]')) return; var lab = f.querySelector('label'), c = f.querySelector('input, select, textarea'); if (!c || !lab || c.closest('.chks') || c.type === 'file' || c.type === 'color' || c.type === 'hidden') return;
         var v = c.tagName === 'SELECT' ? (c.selectedOptions[0] ? c.selectedOptions[0].textContent : '') : c.type === 'checkbox' ? (c.checked ? '✓' : '') : c.value;
         v = String(v || '').trim(); if (!v) return; var l = lab ? lab.cloneNode(true) : null; if (l) l.querySelectorAll('.tip').forEach(function (x) { x.remove(); });
         rows.push([l ? txt(l) : (c.getAttribute('aria-label') || c.id), v]);
       });
-      p.querySelectorAll('.chks').forEach(function (g) { if (!vis(g)) return; var on = Array.prototype.filter.call(g.querySelectorAll('label'), function (lb) { var c = lb.querySelector('input[type=checkbox]'); return c && c.checked; }).map(txt); if (!on.length) return; var f = g.closest('.fg'), lb = f && f.querySelector(':scope > .lb, :scope > label'); rows.push([lb ? txt(lb) : t('Selected', 'المحدد'), on.join(AR ? '، ' : ', ')]); });
+      p.querySelectorAll('.chks').forEach(function (g) { if (!vis(g) || g.closest('[data-rp-skip]')) return; var on = Array.prototype.filter.call(g.querySelectorAll('label'), function (lb) { var c = lb.querySelector('input[type=checkbox]'); return c && c.checked; }).map(txt); if (!on.length) return; var f = g.closest('.fg'), lb = f && f.querySelector(':scope > .lb, :scope > label'); rows.push([lb ? txt(lb) : t('Selected', 'المحدد'), on.join(AR ? '، ' : ', ')]); });
       if (rows.length) groups.push({ h: h ? txt(h).replace(/^\d+\s*/, '') : '', rows: rows });
     });
     return groups;

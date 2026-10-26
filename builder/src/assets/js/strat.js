@@ -213,5 +213,40 @@
     return { total: total, height: VH };
   }
 
-  SH.strat = { R: R, GROUPS: GROUPS, CONTACTS: CONTACTS, STRUCT: STRUCT, GS: GS, pattern: pattern, symbol: symbol, render: render, facies: facies, dig: dig, name: function (k) { return nm(R[k]); } };
+  /* ---------------- bed editor: shared by every survey that logs a section bed by bed */
+  function editor(box, addBtn, key, defaults, onChange) {
+    var beds = SH.store.get(key, defaults || [{ rock: 'limestone', th: 1 }]);
+    beds.forEach(function (b) { if (!R[b.rock]) b.rock = 'limestone'; if (b.sec && !R[b.sec]) b.sec = ''; });
+    var save = function () { SH.store.set(key, beds); if (onChange) onChange(beds); };
+    var opts = function (sel) { return GROUPS.map(function (g) { return '<optgroup label="' + SH.esc(g[SH.lang === 'ar' ? 2 : 1]) + '">' + Object.keys(R).filter(function (k) { return R[k][5] === g[0]; }).map(function (k) { return '<option value="' + k + '"' + (k === sel ? ' selected' : '') + '>' + nm(R[k]) + '</option>'; }).join('') + '</optgroup>'; }).join(''); };
+    var gsOpts = function (sel) { var n = [t('clay', 'طين'), t('silt', 'غرين'), t('very fine sand', 'رمل ناعم جداً'), t('fine sand', 'رمل ناعم'), t('medium sand', 'رمل متوسط'), t('coarse sand', 'رمل خشن'), t('very coarse sand', 'رمل خشن جداً'), t('gravel / crystalline', 'حصى / متبلور')];
+      return '<option value="">' + t('Texture: typical for the rock', 'النسيج: النموذجي للصخر') + '</option>' + n.map(function (x, i) { return '<option value="' + i + '"' + (String(sel) === String(i) ? ' selected' : '') + '>' + GS[i] + ' · ' + x + '</option>'; }).join(''); };
+    var ctOpts = function (sel) { return Object.keys(CONTACTS).map(function (k) { return '<option value="' + k + '"' + ((sel || 'sharp') === k ? ' selected' : '') + '>' + t('Base: ', 'القاعدة: ') + CONTACTS[k][SH.lang === 'ar' ? 1 : 0] + '</option>'; }).join(''); };
+    function bedsUI() {
+      var top = 0;
+      box.innerHTML = beds.map(function (b, i) {
+        var st = b.st || [], chips = Object.keys(STRUCT).map(function (k) { return '<label class="chk" style="font-size:.78rem"><input type="checkbox" data-st="' + k + '"' + (st.indexOf(k) > -1 ? ' checked' : '') + '> ' + STRUCT[k][SH.lang === 'ar' ? 1 : 0] + '</label>'; }).join('');
+        var html = '<div style="border:1px solid var(--line);border-radius:12px;padding:10px;display:grid;gap:8px" data-bed="' + i + '"><div style="display:flex;align-items:center;gap:8px"><span style="width:14px;height:14px;border-radius:3px;border:1px solid #555;background:' + (R[b.rock] ? R[b.rock][2] : '#ccc') + '"></span><b class="small">' + t('Bed ', 'الطبقة ') + (i + 1) + '</b><span class="xsmall muted ltr">' + SH.fmt(top, 2) + '–' + SH.fmt(top + (b.th || 0), 2) + ' m</span><button class="x" style="margin-inline-start:auto" type="button" data-delbed="' + i + '" aria-label="' + t('Delete', 'حذف') + '">✕</button></div>' +
+          '<div class="row2"><div class="fg"><select data-f="rock">' + opts(b.rock) + '</select></div><div class="fg"><input type="number" step="0.05" min="0.05" data-f="th" value="' + (b.th || '') + '" placeholder="' + t('Thickness m', 'السمك م') + '"></div></div>' +
+          '<div class="row2"><div class="fg"><select data-f="sec"><option value="">' + t('No secondary rock', 'بلا صخر ثانوي') + '</option>' + opts(b.sec) + '</select></div><div class="fg"><select data-f="mix"><option value="mixed"' + (b.mix === 'mixed' ? ' selected' : '') + '>' + t('Mixed', 'مختلط') + '</option><option value="inter"' + (b.mix === 'inter' ? ' selected' : '') + '>' + t('Interbedded', 'متعاقب') + '</option></select></div></div>' +
+          '<div class="row2"><div class="fg"><select data-f="gs">' + gsOpts(b.gs) + '</select></div><div class="fg"><select data-f="base">' + ctOpts(b.base) + '</select></div></div>' +
+          '<details' + (st.length || b.desc || b.col ? ' open' : '') + '><summary class="small" style="cursor:pointer;font-weight:700">' + t('Colour, description, structures and fossils', 'اللون والوصف والتراكيب والأحافير') + (st.length ? ' · ' + st.length : '') + '</summary><div style="display:grid;gap:8px;margin-top:8px">' +
+          '<div class="fg"><input data-f="col" value="' + SH.esc(b.col || '') + '" placeholder="' + t('Colour, e.g. pale yellowish brown (10YR 6/2)', 'اللون، مثل بني مصفر فاتح (10YR 6/2)') + '"></div>' +
+          '<div class="fg"><textarea data-f="desc" rows="2" style="min-height:58px" placeholder="' + t('Field description: sorting, hardness, cement, bedding thickness…', 'الوصف الحقلي: الفرز، الصلابة، المادة اللاحمة، سمك التطبق…') + '">' + SH.esc(b.desc || '') + '</textarea></div>' +
+          '<div class="chks" style="display:flex;flex-wrap:wrap;gap:4px 12px">' + chips + '</div></div></details></div>';
+        top += b.th || 0; return html;
+      }).join('');
+    }
+    box.addEventListener('change', function (e) {
+      var box = e.target.closest('[data-bed]'); if (!box) return; var i = +box.getAttribute('data-bed'), f = e.target.getAttribute('data-f'), s = e.target.getAttribute('data-st');
+      if (s) { var a = beds[i].st || []; if (e.target.checked) { if (a.indexOf(s) < 0) a.push(s); } else a = a.filter(function (x) { return x !== s; }); beds[i].st = a; save(); return; }
+      if (!f) return; beds[i][f] = f === 'th' ? parseFloat(e.target.value) || 0 : e.target.value; save(); if (f !== 'desc' && f !== 'col') bedsUI();
+    });
+    box.addEventListener('click', function (e) { var b = e.target.closest('[data-delbed]'); if (!b) return; beds.splice(+b.getAttribute('data-delbed'), 1); save(); bedsUI(); });
+    addBtn.addEventListener('click', function () { beds.push({ rock: 'limestone', th: 1 }); save(); bedsUI(); });
+    bedsUI();
+    return { get: function () { return beds; }, set: function (b) { beds = b; save(); bedsUI(); }, redraw: bedsUI };
+  }
+
+  SH.strat = { R: R, GROUPS: GROUPS, CONTACTS: CONTACTS, STRUCT: STRUCT, GS: GS, pattern: pattern, symbol: symbol, render: render, editor: editor, facies: facies, dig: dig, name: function (k) { return nm(R[k]); } };
 })();

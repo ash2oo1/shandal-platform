@@ -75,7 +75,7 @@
     {{ m.panel_close() }}
 
     {{ m.panel_open(6, 'Beds in the pit face (top to bottom)', 'طبقات واجهة المقلع (من الأعلى للأسفل)') }}
-      <div id="qBeds" style="display:grid;gap:10px"></div>
+      <div id="qBeds" data-rp-skip style="display:grid;gap:10px"></div>
       <button class="btn btn-line btn-sm" id="qAddBed" type="button">{{ icon('plus', 'ico ico-sm') }}{{ m.L('Add bed', 'أضف طبقة') }}</button>
       <div class="row2">
         {{ m.fld('qFace', 'Face azimuth', 'اتجاه الواجهة', 'number', '', '°', 'Direction the pit face looks towards, measured clockwise from north with a compass (0–360°). Shown on the column.', 'الاتجاه الذي تنظر إليه واجهة المقلع، مقاساً باتجاه عقارب الساعة من الشمال بالبوصلة (0–360°). يظهر على العمود.', 'e.g. 90') }}

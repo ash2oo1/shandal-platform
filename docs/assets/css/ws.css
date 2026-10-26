@@ -318,3 +318,9 @@ bdi.u{unicode-bidi:isolate}
 .pill.ok{color:var(--ok);border-color:color-mix(in srgb,var(--ok) 45%,transparent);background:color-mix(in srgb,var(--ok) 10%,transparent)}
 .pill.warn{color:var(--warn,#B7791F);border-color:color-mix(in srgb,var(--warn,#B7791F) 45%,transparent);background:color-mix(in srgb,var(--warn,#B7791F) 10%,transparent)}
 .pill.bad{color:var(--danger);border-color:color-mix(in srgb,var(--danger) 45%,transparent);background:color-mix(in srgb,var(--danger) 10%,transparent)}
+.sg-pl{border:1px solid var(--line);border-radius:12px;padding:10px;display:grid;gap:8px}
+.sg-plh{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:.86rem}.sg-plh .chk{margin:0}.sg-n{margin-inline-start:auto;direction:ltr}
+.sg-rec{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}.sg-rec .btn{padding-inline:4px}
+.sg-decl{font-size:.82rem;color:var(--text-2)}.sg-decl:empty{display:none}
+.sg-sub{font-weight:800;font-size:.8rem;color:var(--accent);margin-top:4px}
+@media (max-width:640px){ .fig-b.sg-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch} .fig-b.sg-scroll>svg{min-width:620px} }

@@ -1,127 +1,149 @@
 {% extends "app_base.html" %}
 {% import "apps/_m.html" as m with context %}
+{% macro plane(id, en, ar, opt=false, on=false) %}
+<div class="sg-pl" data-pl="{{ id }}">
+  <div class="sg-plh">{% if opt %}<label class="chk"><input type="checkbox" id="use{{ id }}"{% if on %} checked{% endif %}> <b>{{ m.L(en, ar) }}</b></label>{% else %}<b>{{ m.L(en, ar) }}</b>{% endif %}<span class="xsmall muted sg-n" id="n{{ id }}"></span></div>
+  <div class="row3 sg-plb" id="box{{ id }}">
+    {{ m.fld(id + 'dd', 'Dip direction', 'اتجاه الميل', 'number', '', '°', 'Azimuth 0–360° toward which the plane dips.', 'السمت 0–360° الذي يميل نحوه المستوى.', '', 'any', 'min="0" max="360"') }}
+    {{ m.fld(id + 'dip', 'Dip', 'الميل', 'number', '', '°', '', '', '', 'any', 'min="0" max="90"') }}
+    {{ m.fld(id + 's', 'Strike (RHR)', 'المضرب (قاعدة اليد اليمنى)', 'text', '', '°', 'Right-hand-rule strike = dip direction − 90°.', 'المضرب بقاعدة اليد اليمنى = اتجاه الميل − 90°.', '', 'any', 'readonly tabindex="-1"') }}
+  </div>
+</div>
+{% endmacro %}
 {% block ws %}
 <div class="ws-wrap">
 <div class="ws wide-side">
   <aside class="ws-side">
     {{ m.panel_open(1, 'Site and geologist', 'الموقع والجيولوجي') }}
-      {{ m.fld('geoName', 'Supervising geologist', 'الجيولوجي المشرف', 'text', '', '', '', '', '') }}
-      {{ m.fld('sProject', 'Project or site', 'المشروع أو الموقع', 'text', '', '', '', '', m.L('e.g. Aqra road cut, km 14', 'مثال: قطع طريق عقرة، كم 14')) }}
-      {{ m.fld('sRock', 'Lithology', 'الصخارية', 'text', '', '', '', '', m.L('e.g. jointed hard limestone', 'مثال: حجر جيري صلب متشقق')) }}
+      {{ m.fld('geoName', 'Supervising geologist', 'الجيولوجي المشرف', 'text') }}
+      {{ m.fld('sProject', 'Project or site', 'المشروع أو الموقع', 'text') }}
+      {{ m.fld('sRock', 'Lithology of the face', 'صخارية الواجهة', 'text') }}
+      <div class="row2">
+        {{ m.fld('sLat', 'Latitude', 'دائرة العرض', 'number', '', '°', '', '', '', 'any', 'min="-90" max="90"') }}
+        {{ m.fld('sLon', 'Longitude', 'خط الطول', 'number', '', '°', '', '', '', 'any', 'min="-180" max="180"') }}
+      </div>
+      <button class="btn btn-line btn-sm" id="sLoc" type="button">{{ icon('map-pin', 'ico ico-sm') }}{{ m.L('Use GPS position', 'استخدم موقع GPS') }}</button>
+      <div class="sg-decl" id="sDecl"></div>
+      {{ m.sel('sRef', 'Typed azimuths refer to', 'السموت المُدخلة يدوياً مرجعها', [('true', 'True north (declination set on the compass)', 'الشمال الحقيقي (الانحراف مضبوط في البوصلة)', true), ('mag', 'Magnetic north (convert with IGRF)', 'الشمال المغناطيسي (تحويل بنموذج IGRF)')]) }}
     {{ m.panel_close() }}
 
-    {{ m.panel_open(2, 'Digital compass', 'البوصلة الرقمية') }}
-      <p class="pn-note">{{ m.L('Lay the phone flat on the rock surface, screen up. The reading uses the accelerometer and magnetometer; calibrate by moving the phone in a figure of eight first and keep away from steel.', 'ضع الهاتف مسطحاً على سطح الصخر والشاشة للأعلى. تعتمد القراءة على مقياس التسارع والمغناطيسية؛ عاير البوصلة أولاً بتحريك الهاتف على شكل الرقم 8 وابتعد عن الحديد.') }}</p>
+    {{ m.panel_open(2, 'Digital compass-clinometer', 'البوصلة والميزان الرقمي') }}
+      <p class="pn-note">{{ m.L('Lay the back of the phone flat on the plane. Each record is the mean of the last 30 sensor samples, corrected from magnetic to true north with the IGRF-14 declination of the site. Record several points on the same plane: the set orientation is their Fisher mean.', 'ضع ظهر الهاتف مستوياً على السطح. كل تسجيل هو متوسط آخر 30 قراءة من الحساس، مصححاً من الشمال المغناطيسي إلى الحقيقي بانحراف IGRF-14 للموقع. سجّل عدة نقاط على المستوى نفسه: اتجاه المجموعة هو متوسط Fisher لها.') }}</p>
       <button class="btn btn-ink btn-block" id="cStart" type="button">{{ icon('compass', 'ico ico-sm') }}{{ m.L('Start compass', 'شغّل البوصلة') }}</button>
       <div class="live" id="cLive" hidden>
-        <div style="display:flex;align-items:center;gap:8px;font-size:.8rem;font-weight:700"><span class="pulse"></span>{{ m.L('Live reading', 'قراءة حية') }}<span class="muted" id="cSrc" style="margin-inline-start:auto;font-weight:600"></span></div>
-        <div class="vals"><div><b id="cDd">—</b><span>{{ m.L('Dip direction', 'اتجاه الميل') }}</span></div><div><b id="cDip">—</b><span>{{ m.L('Dip', 'الميل') }}</span></div><div><b id="cStk">—</b><span>{{ m.L('Strike (RHR)', 'المضرب') }}</span></div></div>
-        <div class="row2"><button class="btn btn-gold btn-sm" id="cToJ1" type="button">{{ m.L('Use for joint J1', 'استخدم للفاصل J1') }}</button><button class="btn btn-line btn-sm" id="cToSlope" type="button">{{ m.L('Use for slope face', 'استخدم لوجه المنحدر') }}</button></div>
-        <button class="btn btn-line btn-xs" id="cToJ2" type="button">{{ m.L('Use for joint J2', 'استخدم للفاصل J2') }}</button>
+        <div style="display:flex;align-items:center;gap:8px;font-size:.8rem;font-weight:700"><span class="pulse"></span>{{ m.L('Live reading (true north)', 'قراءة حية (الشمال الحقيقي)') }}<span class="muted ltr" id="cSrc" style="margin-inline-start:auto;font-weight:600"></span></div>
+        <div class="vals"><div><b id="cDd">—</b><span>{{ m.L('Dip direction', 'اتجاه الميل') }}</span></div><div><b id="cDip">—</b><span>{{ m.L('Dip', 'الميل') }}</span></div><div><b id="cA95">—</b><span>{{ m.L('Spread α95', 'التشتت α95') }}</span></div></div>
+        <div class="sg-rec">
+          <button class="btn btn-gold btn-sm" type="button" data-rec="J1">J1</button><button class="btn btn-line btn-sm" type="button" data-rec="J2">J2</button><button class="btn btn-line btn-sm" type="button" data-rec="J3">J3</button><button class="btn btn-line btn-sm" type="button" data-rec="S0">S0</button><button class="btn btn-ink btn-sm" type="button" data-rec="F">{{ m.L('Face', 'الوجه') }}</button>
+        </div>
+        <button class="btn btn-line btn-xs" id="cClear" type="button">{{ m.L('Clear recorded readings', 'امسح القراءات المسجلة') }}</button>
       </div>
     {{ m.panel_close() }}
 
-    {{ m.panel_open(3, 'Discontinuities and slope', 'الانقطاعات والمنحدر') }}
-      <div class="lb" style="font-size:.8rem;font-weight:800;color:var(--accent)">{{ m.L('Joint set J1 (main plane)', 'مجموعة الفواصل J1 (المستوى الرئيسي)') }}</div>
-      <div class="row3">
-        {{ m.fld('j1dd', 'Dip dir.', 'اتجاه الميل', 'number', '', '°', 'Azimuth 0–360° the plane dips toward.', 'السمت 0–360° الذي يميل نحوه المستوى.', '045', 'any', 'min="0" max="360"') }}
-        {{ m.fld('j1d', 'Dip', 'الميل', 'number', '', '°', '', '', '38', 'any', 'min="0" max="90"') }}
-        {{ m.fld('j1s', 'Strike', 'المضرب', 'text', '', '°', 'Right-hand-rule strike, calculated automatically.', 'المضرب بقاعدة اليد اليمنى، يُحسب تلقائياً.', '', 'any', 'readonly') }}
-      </div>
-      <label class="chk"><input type="checkbox" id="useJ2"> {{ m.L('Add a second joint set J2 (wedge analysis)', 'أضف مجموعة فواصل ثانية J2 (تحليل الإسفين)') }}</label>
-      <div class="row3" id="j2box" hidden>
-        {{ m.fld('j2dd', 'J2 dip dir.', 'اتجاه ميل J2', 'number', '', '°', '', '', '110', 'any', 'min="0" max="360"') }}
-        {{ m.fld('j2d', 'J2 dip', 'ميل J2', 'number', '', '°', '', '', '62', 'any', 'min="0" max="90"') }}
-        {{ m.fld('j2s', 'J2 strike', 'مضرب J2', 'text', '', '°', '', '', '', 'any', 'readonly') }}
-      </div>
-      <div class="lb" style="font-size:.8rem;font-weight:800;color:var(--accent);margin-top:4px">{{ m.L('Slope face', 'وجه المنحدر') }}</div>
+    {{ m.panel_open(3, 'Discontinuities and slope geometry', 'الانقطاعات وهندسة المنحدر') }}
+      {{ plane('J1', 'Joint set J1', 'مجموعة الفواصل J1') }}
+      {{ plane('J2', 'Joint set J2', 'مجموعة الفواصل J2', true) }}
+      {{ plane('J3', 'Joint set J3', 'مجموعة الفواصل J3', true) }}
+      {{ plane('S0', 'Bedding S0', 'التطبق S0', true) }}
+      {{ plane('F', 'Slope face', 'وجه المنحدر') }}
       <div class="row2">
-        {{ m.fld('sfdd', 'Dip dir.', 'اتجاه الميل', 'number', '', '°', '', '', '060', 'any', 'min="0" max="360"') }}
-        {{ m.fld('sfd', 'Slope angle', 'زاوية المنحدر', 'number', '', '°', '', '', '62', 'any', 'min="0" max="90"') }}
+        {{ m.fld('hgt', 'Slope height H', 'ارتفاع المنحدر H', 'number', '15', 'm') }}
+        {{ m.fld('gam', 'Unit weight γ', 'الوزن النوعي γ', 'number', '26', 'kN/m³') }}
       </div>
-      <div class="row3">
-        {{ m.fld('phi', 'Friction φ', 'زاوية الاحتكاك φ', 'number', '30', '°', 'Friction angle of the joint surfaces. Limestone joints ≈ 27–31°, sandstone ≈ 30–35°.', 'زاوية احتكاك أسطح الفواصل. الجيري ≈ 27–31°، الرملي ≈ 30–35°.', '', 'any', 'min="5" max="60"') }}
-        {{ m.fld('coh', 'Cohesion', 'التماسك', 'number', '0', 'kPa', 'Cohesion on the joint. Use 0 for clean joints.', 'التماسك على سطح الفاصل. استخدم 0 للفواصل النظيفة.') }}
-        {{ m.fld('hgt', 'Slope height', 'ارتفاع المنحدر', 'number', '15', 'm', 'Height of the slope or cut, used for the planar factor of safety.', 'ارتفاع المنحدر أو القطع، يُستخدم لمعامل الأمان المستوي.') }}
-      </div>
-      {{ m.fld('gam', 'Rock unit weight', 'الوزن النوعي للصخر', 'number', '26', 'kN/m³') }}
     {{ m.panel_close() }}
 
-    {{ m.panel_open(4, 'Rock Mass Rating (Bieniawski 1989)', 'تصنيف الكتلة الصخرية (Bieniawski 1989)') }}
-      {{ m.sel('rUcs', '1. Intact rock strength (UCS)', '1. مقاومة الانضغاط للصخر السليم', [
+    {{ m.panel_open(4, 'Shear strength and loading', 'مقاومة القص والأحمال') }}
+      <div class="row2">
+        {{ m.fld('phi', 'Joint friction angle φ', 'زاوية احتكاك الفواصل φ', 'number', '30', '°', 'Residual or basic friction angle of the joint surfaces (tilt test or shear box).', 'زاوية الاحتكاك المتبقية أو الأساسية لأسطح الفواصل (اختبار الإمالة أو صندوق القص).', '', 'any', 'min="5" max="60"') }}
+        {{ m.fld('coh', 'Joint cohesion c', 'تماسك الفواصل c', 'number', '0', 'kPa') }}
+      </div>
+      {{ m.sel('crack', 'Tension crack in the upper surface', 'شق الشد في السطح العلوي', [('crit', 'At the critical depth', 'عند العمق الحرج', true), ('given', 'Measured depth', 'عمق مُقاس'), ('none', 'No tension crack', 'لا يوجد شق شد')]) }}
+      <div class="row2">
+        {{ m.fld('crackZ', 'Crack depth z', 'عمق الشق z', 'number', '', 'm') }}
+        {{ m.sel('crackW', 'Water in the crack', 'الماء في الشق', [('0', 'Dry', 'جاف', true), ('0.5', 'Half full', 'ممتلئ للنصف'), ('1', 'Full', 'ممتلئ')]) }}
+      </div>
+      <div class="row3">
+        {{ m.fld('kh', 'Seismic coefficient kh', 'المعامل الزلزالي kh', 'number', '0', 'g', 'Horizontal pseudo-static coefficient, commonly 0.5 × PGA/g.', 'المعامل شبه الساكن الأفقي، يُؤخذ عادة 0.5 × PGA/g.', '', 'any', 'min="0" max="0.5"') }}
+        {{ m.fld('limP', 'Planar limit', 'حد الانزلاق المستوي', 'number', '20', '°', 'Lateral limit between plane and face dip directions (Wyllie & Mah 2004).', 'الحد الجانبي بين اتجاهي ميل المستوى والوجه (Wyllie & Mah 2004).') }}
+        {{ m.fld('limT', 'Toppling limit', 'حد الانقلاب', 'number', '10', '°') }}
+      </div>
+    {{ m.panel_close() }}
+
+    {{ m.panel_open(5, 'Rock Mass Rating RMR89 (Bieniawski 1989)', 'تصنيف الكتلة الصخرية RMR89 (Bieniawski 1989)') }}
+      {{ m.sel('rUcs', 'A1. Intact rock strength', 'A1. مقاومة الصخر السليم', [
           ('15', '> 250 MPa · rings under the hammer', '> 250 ميغاباسكال · يرن تحت المطرقة'),
-          ('12', '100–250 MPa · many blows to break', '100–250 ميغاباسكال · يحتاج ضربات عديدة', true),
-          ('7', '50–100 MPa · breaks with one firm blow', '50–100 ميغاباسكال · ينكسر بضربة واحدة قوية'),
+          ('12', '100–250 MPa · many blows to break', '100–250 ميغاباسكال · يتطلب ضربات عديدة', true),
+          ('7', '50–100 MPa · breaks with one firm blow', '50–100 ميغاباسكال · ينكسر بضربة قوية واحدة'),
           ('4', '25–50 MPa · knife scratches with difficulty', '25–50 ميغاباسكال · تخدشه المطواة بصعوبة'),
           ('2', '5–25 MPa · scratched easily', '5–25 ميغاباسكال · يُخدش بسهولة'),
           ('1', '1–5 MPa · crumbles in the hand', '1–5 ميغاباسكال · يتفتت باليد'),
-          ('0', '< 1 MPa · soil-like', '< 1 ميغاباسكال · كالتربة')],
-          'Field estimate of uniaxial compressive strength (ISRM).', 'تقدير حقلي لمقاومة الانضغاط أحادية المحور (ISRM).') }}
-      {{ m.sel('rRqd', '2. Rock Quality Designation (RQD)', '2. مؤشر جودة الصخر RQD', [
-          ('20', '90–100 % · excellent', '90–100% · ممتاز'), ('17', '75–90 % · good', '75–90% · جيد', true), ('13', '50–75 % · fair', '50–75% · متوسط'), ('8', '25–50 % · poor', '25–50% · ضعيف'), ('3', '< 25 % · very poor', '< 25% · ضعيف جداً')],
-          'From core, or in the field from the volumetric joint count: RQD ≈ 115 − 3.3 Jv.', 'من اللباب، أو حقلياً من عدد الفواصل الحجمي: RQD ≈ 115 − 3.3 Jv.') }}
-      {{ m.sel('rSp', '3. Spacing of discontinuities', '3. المسافة بين الانقطاعات', [
-          ('20', '> 2 m', '> 2 م'), ('15', '0.6–2 m', '0.6–2 م', true), ('10', '200–600 mm', '200–600 ملم'), ('8', '60–200 mm', '60–200 ملم'), ('5', '< 60 mm', '< 60 ملم')]) }}
-      {{ m.sel('rCo', '4. Condition of discontinuities', '4. حالة أسطح الانقطاعات', [
-          ('30', 'Very rough, not continuous, no separation, unweathered', 'خشنة جداً، غير مستمرة، بلا فتحة، غير متجوية'),
-          ('25', 'Slightly rough, separation < 1 mm, slightly weathered', 'خشنة قليلاً، فتحة < 1 ملم، تجوية خفيفة', true),
-          ('20', 'Slightly rough, separation < 1 mm, highly weathered', 'خشنة قليلاً، فتحة < 1 ملم، تجوية شديدة'),
-          ('10', 'Slickensided, or gouge < 5 mm, or open 1–5 mm', 'مصقولة، أو حشوة < 5 ملم، أو فتحة 1–5 ملم'),
-          ('0', 'Soft gouge > 5 mm, or open > 5 mm, continuous', 'حشوة لينة > 5 ملم، أو فتحة > 5 ملم، مستمرة')]) }}
-      {{ m.sel('rGw', '5. Groundwater', '5. المياه الجوفية', [
-          ('15', 'Completely dry', 'جاف تماماً', true), ('10', 'Damp', 'رطب'), ('7', 'Wet', 'مبلل'), ('4', 'Dripping', 'تقطير'), ('0', 'Flowing', 'جريان')]) }}
-      {{ m.sel('f4', 'Excavation method (SMR F4)', 'طريقة الحفر (معامل F4 في SMR)', [
-          ('15', 'Natural slope', 'منحدر طبيعي'), ('10', 'Presplitting', 'تفجير مسبق التشطير'), ('8', 'Smooth blasting', 'تفجير ناعم'), ('0', 'Normal blasting or mechanical excavation', 'تفجير عادي أو حفر آلي', true), ('-8', 'Deficient blasting', 'تفجير رديء')]) }}
+          ('0', '< 1 MPa', '< 1 ميغاباسكال')], 'ISRM (1981) field estimate. A measured UCS below overrides it.', 'تقدير حقلي وفق ISRM (1981). تُستخدم قيمة UCS المقاسة أدناه إن أُدخلت.') }}
+      <div class="row2">
+        {{ m.fld('ucsV', 'Measured UCS', 'UCS مقاسة', 'number', '', 'MPa') }}
+        {{ m.fld('is50', 'Point load Is(50)', 'الحمل النقطي Is(50)', 'number', '', 'MPa', 'UCS ≈ 22 × Is(50) (ISRM 1985) when UCS is not measured.', 'UCS ≈ 22 × Is(50) (ISRM 1985) إذا لم تُقس UCS.') }}
+      </div>
+      <div class="row2">
+        {{ m.fld('rqdV', 'A2. RQD', 'A2. مؤشر جودة الصخر RQD', 'number', '', '%', 'From core logging.', 'من وصف اللباب.') }}
+        {{ m.fld('jv', 'or Jv', 'أو Jv', 'number', '', 'joints/m³', 'Volumetric joint count; RQD = 110 − 2.5 Jv (Palmström 2005).', 'عدد الفواصل الحجمي؛ RQD = 110 − 2.5 Jv (Palmström 2005).') }}
+      </div>
+      {{ m.fld('spc', 'A3. Mean spacing of discontinuities', 'A3. متوسط تباعد الانقطاعات', 'number', '', 'm') }}
+      <div class="lb sg-sub">{{ m.L('A4. Condition of discontinuities', 'A4. حالة الانقطاعات') }}</div>
+      <div class="row2">
+        {{ m.sel('cPer', 'Persistence', 'الاستمرارية', [('6', '< 1 m', '< 1 م'), ('4', '1–3 m', '1–3 م', true), ('2', '3–10 m', '3–10 م'), ('1', '10–20 m', '10–20 م'), ('0', '> 20 m', '> 20 م')]) }}
+        {{ m.sel('cApe', 'Aperture', 'الفتحة', [('6', 'None', 'مغلقة'), ('5', '< 0.1 mm', '< 0.1 ملم'), ('4', '0.1–1 mm', '0.1–1 ملم', true), ('1', '1–5 mm', '1–5 ملم'), ('0', '> 5 mm', '> 5 ملم')]) }}
+      </div>
+      <div class="row2">
+        {{ m.sel('cRou', 'Roughness', 'الخشونة', [('6', 'Very rough', 'خشنة جداً'), ('5', 'Rough', 'خشنة'), ('3', 'Slightly rough', 'خشنة قليلاً', true), ('1', 'Smooth', 'ملساء'), ('0', 'Slickensided', 'مصقولة')]) }}
+        {{ m.sel('cInf', 'Infilling', 'الحشوة', [('6', 'None', 'لا توجد', true), ('4', 'Hard < 5 mm', 'صلبة < 5 ملم'), ('2', 'Hard > 5 mm', 'صلبة > 5 ملم'), ('2s', 'Soft < 5 mm', 'لينة < 5 ملم'), ('0', 'Soft > 5 mm', 'لينة > 5 ملم')]) }}
+      </div>
+      {{ m.sel('cWea', 'Weathering of the walls', 'تجوية جدران الفواصل', [('6', 'Unweathered', 'غير متجوية'), ('5', 'Slightly weathered', 'تجوية خفيفة', true), ('3', 'Moderately weathered', 'تجوية متوسطة'), ('1', 'Highly weathered', 'تجوية شديدة'), ('0', 'Decomposed', 'متحللة')]) }}
+      {{ m.sel('rGw', 'A5. Groundwater', 'A5. المياه الجوفية', [('15', 'Completely dry', 'جاف تماماً', true), ('10', 'Damp', 'رطب'), ('7', 'Wet', 'مبلل'), ('4', 'Dripping', 'تقطير'), ('0', 'Flowing', 'جريان')]) }}
+      {{ m.sel('f4', 'Excavation method (SMR F4)', 'طريقة الحفر (المعامل F4 في SMR)', [('15', 'Natural slope', 'منحدر طبيعي'), ('10', 'Presplitting', 'تفجير مسبق التشطير'), ('8', 'Smooth blasting', 'تفجير ناعم'), ('0', 'Normal blasting or mechanical excavation', 'تفجير عادي أو حفر آلي', true), ('-8', 'Deficient blasting', 'تفجير رديء')]) }}
     {{ m.panel_close() }}
 
-    {{ m.panel_open(5, 'External conditions', 'المؤثرات الخارجية') }}
-      <label class="chk"><input type="checkbox" id="xUnder"> {{ m.L('Active toe undercutting by water', 'تقويض سفلي نشط بفعل المياه') }}</label>
-      <label class="chk"><input type="checkbox" id="xFreeze"> {{ m.L('Strong freeze–thaw cycles', 'دورات انجماد وذوبان قوية') }}</label>
-      <label class="chk"><input type="checkbox" id="xVib"> {{ m.L('Heavy machinery or blasting nearby', 'آليات ثقيلة أو تفجير قريب') }}</label>
+    {{ m.panel_open(6, 'Stratigraphic column of the outcrop', 'العمود الطباقي للمنكشف') }}
+      <label class="chk"><input type="checkbox" id="useCol"> {{ m.L('Log the beds exposed in the face (top to bottom)', 'وثّق الطبقات المكشوفة في الواجهة (من الأعلى للأسفل)') }}</label>
+      <div id="colBox" hidden style="display:grid;gap:10px">
+        <div id="sBeds" data-rp-skip style="display:grid;gap:10px"></div>
+        <button class="btn btn-line btn-sm" id="sAddBed" type="button">{{ icon('plus', 'ico ico-sm') }}{{ m.L('Add bed', 'أضف طبقة') }}</button>
+      </div>
       <button class="btn btn-gold btn-block" id="sRun" type="button" style="margin-top:6px">{{ icon('activity', 'ico ico-sm') }}{{ m.L('Analyse', 'حلّل البيانات') }}</button>
       <button class="btn btn-line btn-xs" id="sDemo" type="button">{{ m.L('Load example data', 'تحميل بيانات مثال') }}</button>
     {{ m.panel_close() }}
   </aside>
 
   <div class="ws-main">
-    <div id="sEmpty" class="pn">{{ m.empty('compass', 'Enter field measurements', 'أدخل القياسات الحقلية', 'Measure the joint and the slope face with the digital compass or type them in, describe the rock mass, then press Analyse.', 'قِس الفاصل ووجه المنحدر بالبوصلة الرقمية أو أدخلهما يدوياً، وصِف الكتلة الصخرية، ثم اضغط حلّل البيانات.') }}</div>
-    <div id="sOut" hidden style="display:grid;gap:18px">
-      <div class="kpis">
-        <div class="kpi" id="kRmr"><span class="k">RMR<sub>89</sub></span><span class="v" id="vRmr">—</span><span class="s" id="sRmr">—</span></div>
-        <div class="kpi" id="kSmr"><span class="k">SMR (Romana)</span><span class="v" id="vSmr">—</span><span class="s" id="sSmr">—</span></div>
-        <div class="kpi" id="kFs"><span class="k">{{ m.L('Planar factor of safety', 'معامل الأمان المستوي') }}</span><span class="v" id="vFs">—</span><span class="s" id="sFs">—</span></div>
-        <div class="kpi" id="kKin"><span class="k">{{ m.L('Kinematic check', 'الفحص الكينماتيكي') }}</span><span class="v" id="vKin" style="font-size:1.15rem">—</span><span class="s" id="sKin">—</span></div>
+    <div id="sEmpty" class="pn">{{ m.empty('compass', 'Enter field measurements', 'أدخل القياسات الحقلية', 'Measure the discontinuity sets and the slope face with the compass-clinometer or type them in, describe the rock mass, then press Analyse.', 'قِس مجموعات الانقطاعات ووجه المنحدر بالبوصلة والميزان أو أدخلها يدوياً، وصِف الكتلة الصخرية، ثم اضغط حلّل البيانات.') }}</div>
+    <div id="sOut" hidden data-rp-paged style="display:grid;gap:18px">
+      <div data-rp-page="res" style="display:grid;gap:12px">
+        <div class="kpis" id="sKpis"></div>
+        <div id="verdicts" style="display:grid;gap:10px"></div>
       </div>
-      <div id="verdicts" style="display:grid;gap:10px"></div>
-      <div class="grid2">
-        {{ m.fig_open('f1', '1', 'Stereonet · lower hemisphere', 'المسقط الستيريوغرافي · النصف السفلي', '<div class="seg" id="projSeg" style="padding:2px"><button data-v="angle" aria-pressed="true">' + ('Wulff' if lang == 'en' else 'وولف') + '</button><button data-v="area" aria-pressed="false">' + ('Schmidt' if lang == 'en' else 'شميت') + '</button></div><button class="btn btn-line btn-xs" data-svg="svgNet">PNG</button>') }}
-          <div class="fig-b"><svg class="chart" id="svgNet" viewBox="0 0 520 520" role="img" aria-label="Stereonet"></svg></div>
-          <div class="legend" id="netLegend"></div>
-          <div class="fig-cap" id="capNet"></div>
-        {{ m.fig_close() }}
-        {{ m.fig_open('f2', '2', 'Section through the slope and free-body forces', 'مقطع المنحدر وقوى الكتلة الحرة', '<button class="btn btn-line btn-xs" data-svg="svgSec">PNG</button>') }}
-          <div class="fig-b"><svg class="chart" id="svgSec" viewBox="0 0 560 400" role="img" aria-label="Slope section"></svg></div>
-          <div class="legend"><span><i style="background:var(--b2)"></i>{{ m.L('Rock mass', 'الكتلة الصخرية') }}</span><span><i style="background:color-mix(in srgb,var(--warn) 35%,transparent)"></i>{{ m.L('Sliding block', 'الكتلة المنزلقة') }}</span><span><i class="ln" style="background:var(--warn)"></i>{{ m.L('Joint J1 (apparent dip)', 'الفاصل J1 (ميل ظاهري)') }}</span><span>W · N · T</span></div>
-          <div class="fig-cap" id="capSec"></div>
-        {{ m.fig_close() }}
-      </div>
-      <div class="grid2">
-        {{ m.fig_open('f3', '3', 'Plan view and cross-section of the beds', 'المسقط الأفقي والمقطع العرضي للطبقات', '<button class="btn btn-line btn-xs" data-svg="svgPlan">PNG</button>') }}
-          <div class="fig-b"><svg class="chart" id="svgPlan" viewBox="0 0 560 420" role="img" aria-label="Plan and section"></svg></div>
-          <div class="fig-cap">{{ m.L('Map view with the strike-and-dip symbol, and a section at right angles to strike showing the true dip and true thickness of a bed exposed between two contacts.', 'منظر خرائطي مع رمز المضرب والميل، ومقطع عمودي على المضرب يبين الميل الحقيقي والسمك الحقيقي لطبقة مكشوفة بين حدّين.') }}</div>
-        {{ m.fig_close() }}
-        {{ m.fig_open('f4', '4', 'Directional hazard radar', 'رادار الخطر الاتجاهي', '<button class="btn btn-line btn-xs" data-svg="svgRadar">PNG</button>') }}
-          <div class="fig-b"><svg class="chart" id="svgRadar" viewBox="0 0 520 420" role="img" aria-label="Hazard radar"></svg></div>
-          <div class="fig-cap">{{ m.L('Top-down view of the slope crest. Red sectors show the directions in which planar sliding (±20° of the slope dip direction) or flexural toppling (±10° of the opposite direction) can occur.', 'منظر علوي لقمة المنحدر. القطاعات الحمراء تبين الاتجاهات التي يمكن أن يحدث فيها الانزلاق المستوي (±20° من اتجاه ميل المنحدر) أو الانقلاب الانثنائي (±10° من الاتجاه المعاكس).') }}</div>
-        {{ m.fig_close() }}
-      </div>
-      <div class="grid2">
-        {{ m.fig_open('f5', '5', 'RMR diagnostic column', 'عمود تشخيص RMR', '<button class="btn btn-line btn-xs" data-svg="svgRmr">PNG</button>') }}
-          <div class="fig-b"><svg class="chart" id="svgRmr" viewBox="0 0 560 330" role="img" aria-label="RMR parameters"></svg></div>
-          <div class="fig-cap">{{ m.L('Each parameter is shown as a share of its maximum rating. The weakest bar is the critical factor to investigate or improve.', 'يُعرض كل معامل كنسبة من أعلى قيمة له. أضعف شريط هو العامل الحرج الذي يجب التحقق منه أو معالجته.') }}</div>
-        {{ m.fig_close() }}
-        <section class="pn"><div class="pn-h">{{ icon('clipboard') }}<h2>{{ m.L('Field data summary', 'ملخص البيانات الحقلية') }}</h2></div><div class="pn-b flush"><table class="kv" id="sumTable"></table></div></section>
-      </div>
+      <section class="pn" data-rp-page="kin"><div class="pn-h">{{ icon('table') }}<h2>{{ m.L('Kinematic and limit-equilibrium analysis', 'التحليل الحركي وتحليل التوازن الحدّي') }}</h2></div><div class="pn-b flush tbl-wrap"><table class="tbl" id="kinTable"></table></div></section>
+      <div data-rp-page="net">{{ m.fig_open('sgf1', '1', 'Stereographic projection · lower hemisphere', 'المسقط الستيريوغرافي · نصف الكرة السفلي', '<div class="seg" id="projSeg" style="padding:2px"><button data-v="angle" aria-pressed="true" type="button">' + ('Wulff' if lang == 'en' else 'وولف') + '</button><button data-v="area" aria-pressed="false" type="button">' + ('Schmidt' if lang == 'en' else 'شميت') + '</button></div><button class="btn btn-line btn-xs" data-svg="svgNet" type="button">PNG</button>') }}
+        <div class="fig-b sg-scroll"><svg class="chart" id="svgNet" viewBox="0 0 760 600" role="img" aria-label="Stereonet"></svg></div>
+        <div class="fig-cap" id="capNet"></div>
+      {{ m.fig_close() }}</div>
+      <div data-rp-page="sec">{{ m.fig_open('sgf2', '2', 'Slope section and forces on the sliding block', 'مقطع المنحدر والقوى المؤثرة في الكتلة المنزلقة', '<button class="btn btn-line btn-xs" data-svg="svgSec" type="button">PNG</button>') }}
+        <div class="fig-b sg-scroll"><svg class="chart" id="svgSec" viewBox="0 0 760 520" role="img" aria-label="Slope section"></svg></div>
+        <div class="fig-cap" id="capSec"></div>
+      {{ m.fig_close() }}</div>
+      <div data-rp-page="plan">{{ m.fig_open('sgf3', '3', 'Geological plan and cross-section A–A′', 'المسقط الأفقي الجيولوجي والمقطع A–A′', '<button class="btn btn-line btn-xs" data-svg="svgPlan" type="button">PNG</button>') }}
+        <div class="fig-b sg-scroll"><svg class="chart" id="svgPlan" viewBox="0 0 760 640" role="img" aria-label="Plan and section"></svg></div>
+        <div class="fig-cap" id="capPlan"></div>
+      {{ m.fig_close() }}</div>
+      <div data-rp-page="radar">{{ m.fig_open('sgf4', '4', 'Directional hazard radar', 'رادار الخطر الاتجاهي', '<button class="btn btn-line btn-xs" data-svg="svgRadar" type="button">PNG</button>') }}
+        <div class="fig-b sg-scroll"><svg class="chart" id="svgRadar" viewBox="0 0 760 560" role="img" aria-label="Hazard radar"></svg></div>
+        <div class="fig-cap" id="capRadar"></div>
+      {{ m.fig_close() }}</div>
+      <div data-rp-page="rmr">{{ m.fig_open('sgf5', '5', 'RMR89 diagnostic column', 'عمود تشخيص RMR89', '<button class="btn btn-line btn-xs" data-svg="svgRmr" type="button">PNG</button>') }}
+        <div class="fig-b sg-scroll"><svg class="chart" id="svgRmr" viewBox="0 0 760 470" role="img" aria-label="RMR parameters"></svg></div>
+        <div class="fig-cap" id="capRmr"></div>
+      {{ m.fig_close() }}</div>
+      <div id="colWrap" hidden data-rp-page="col">{{ m.fig_open('sgf6', '6', 'Stratigraphic column of the outcrop', 'العمود الطباقي للمنكشف', '<button class="btn btn-line btn-xs" data-svg="svgCol" type="button">PNG</button>') }}
+        <div class="fig-b sg-scroll"><svg class="chart" id="svgCol" viewBox="0 0 1000 900" role="img" aria-label="Stratigraphic column"></svg></div>
+      {{ m.fig_close() }}</div>
+      <section class="pn" data-rp-page="sum"><div class="pn-h">{{ icon('clipboard') }}<h2>{{ m.L('Field data summary', 'ملخص البيانات الحقلية') }}</h2></div><div class="pn-b flush"><table class="kv" id="sumTable"></table></div></section>
     </div>
   </div>
 </div>

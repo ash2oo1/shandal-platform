@@ -54,7 +54,7 @@ TOOLS = [
  'related': ['strata', 'geomorphology-contour', 'structural-geotechnical'],
 },
 {
- 'slug': 'structural-geotechnical', 'cat': 'geology', 'libs': [], 'icon': 'compass', 'illus': 'stereonet',
+ 'slug': 'structural-geotechnical', 'cat': 'geology', 'libs': ['igrf', 'strat'], 'icon': 'compass', 'illus': 'stereonet',
  'name': L('Structural & Geotechnical Survey', 'المسح التركيبي والجيوتقني'),
  'tagline': L('Your phone becomes a geological compass.', 'هاتفك يصبح بوصلة جيولوجية.'),
  'summary': L('Reads dip and strike from the phone sensors, rates the rock mass with RMR, and runs a kinematic check for planar sliding, wedge and toppling failure on a stereonet.',

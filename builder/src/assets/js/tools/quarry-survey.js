@@ -6,8 +6,6 @@
   var ST = SH.strat, LITH = ST.R;
   var ln = function (k) { return ST.name(k) || k; };
   var corners = SH.store.get('shandal_quarry_corners', [null, null, null, null]);
-  var beds = SH.store.get('shandal_quarry_beds', [{ rock: 'topsoil', th: 0.5 }, { rock: 'clay', th: 1 }, { rock: 'sand', th: 2, sec: 'gravel', mix: 'mixed' }]);
-  beds.forEach(function (b) { if (!LITH[b.rock]) b.rock = 'limestone'; if (b.sec && !LITH[b.sec]) b.sec = ''; });
   var CC = 'AF AX AL DZ AS AD AO AI AQ AG AR AM AW AU AT AZ BS BH BD BB BY BE BZ BJ BM BT BO BQ BA BW BR IO BN BG BF BI CV KH CM CA KY CF TD CL CN CX CC CO KM CG CD CK CR CI HR CU CW CY CZ DK DJ DM DO EC EG SV GQ ER EE SZ ET FK FO FJ FI FR GF PF GA GM GE DE GH GI GR GL GD GP GU GT GG GN GW GY HT VA HN HK HU IS IN ID IR IE IM IT JM JP JE JO KZ KE KI KP KR XK KW KG LA LV LB LS LR LY LI LT LU MO MG MW MY MV ML MT MH MQ MR MU YT MX FM MD MC MN ME MS MA MZ MM NA NR NP NL NC NZ NI NE NG NU NF MK MP NO OM PK PW PS PA PG PY PE PH PN PL PT PR QA RE RO RU RW BL SH KN LC MF PM VC WS SM ST SA SN RS SC SL SG SX SK SI SB SO ZA GS SS ES LK SD SR SJ SE CH SY TW TJ TZ TH TL TG TK TO TT TN TR TM TC TV UG UA AE GB US UM UY UZ VU VE VN VG VI WF EH YE ZM ZW'.split(' ');
   (function () { var dn = null; try { dn = new Intl.DisplayNames([SH.lang], { type: 'region' }); } catch (e) {}
     var list = CC.map(function (c) { return [c.toLowerCase(), dn ? dn.of(c) : c]; }).sort(function (a, b) { return a[1].localeCompare(b[1], SH.lang); });
@@ -59,32 +57,7 @@
   });
 
   /* ---------- beds editor */
-  var opts = function (sel) { return ST.GROUPS.map(function (g) { return '<optgroup label="' + SH.esc(g[SH.lang === 'ar' ? 2 : 1]) + '">' + Object.keys(LITH).filter(function (k) { return LITH[k][5] === g[0]; }).map(function (k) { return '<option value="' + k + '"' + (k === sel ? ' selected' : '') + '>' + ln(k) + '</option>'; }).join('') + '</optgroup>'; }).join(''); };
-  var gsOpts = function (sel) { var n = [t('clay', 'طين'), t('silt', 'غرين'), t('very fine sand', 'رمل ناعم جداً'), t('fine sand', 'رمل ناعم'), t('medium sand', 'رمل متوسط'), t('coarse sand', 'رمل خشن'), t('very coarse sand', 'رمل خشن جداً'), t('gravel / crystalline', 'حصى / متبلور')];
-    return '<option value="">' + t('Texture: typical for the rock', 'النسيج: النموذجي للصخر') + '</option>' + n.map(function (x, i) { return '<option value="' + i + '"' + (String(sel) === String(i) ? ' selected' : '') + '>' + ST.GS[i] + ' · ' + x + '</option>'; }).join(''); };
-  var ctOpts = function (sel) { return Object.keys(ST.CONTACTS).map(function (k) { return '<option value="' + k + '"' + ((sel || 'sharp') === k ? ' selected' : '') + '>' + t('Base: ', 'القاعدة: ') + ST.CONTACTS[k][SH.lang === 'ar' ? 1 : 0] + '</option>'; }).join(''); };
-  function bedsUI() {
-    var top = 0;
-    $('#qBeds').innerHTML = beds.map(function (b, i) {
-      var st = b.st || [], chips = Object.keys(ST.STRUCT).map(function (k) { return '<label class="chk" style="font-size:.78rem"><input type="checkbox" data-st="' + k + '"' + (st.indexOf(k) > -1 ? ' checked' : '') + '> ' + ST.STRUCT[k][SH.lang === 'ar' ? 1 : 0] + '</label>'; }).join('');
-      var html = '<div style="border:1px solid var(--line);border-radius:12px;padding:10px;display:grid;gap:8px" data-bed="' + i + '"><div style="display:flex;align-items:center;gap:8px"><span style="width:14px;height:14px;border-radius:3px;border:1px solid #555;background:' + (LITH[b.rock] ? LITH[b.rock][2] : '#ccc') + '"></span><b class="small">' + t('Bed ', 'الطبقة ') + (i + 1) + '</b><span class="xsmall muted ltr">' + SH.fmt(top, 2) + '–' + SH.fmt(top + (b.th || 0), 2) + ' m</span><button class="x" style="margin-inline-start:auto" type="button" data-delbed="' + i + '" aria-label="' + t('Delete', 'حذف') + '">✕</button></div>' +
-        '<div class="row2"><div class="fg"><select data-f="rock">' + opts(b.rock) + '</select></div><div class="fg"><input type="number" step="0.05" min="0.05" data-f="th" value="' + (b.th || '') + '" placeholder="' + t('Thickness m', 'السمك م') + '"></div></div>' +
-        '<div class="row2"><div class="fg"><select data-f="sec"><option value="">' + t('No secondary rock', 'بلا صخر ثانوي') + '</option>' + opts(b.sec) + '</select></div><div class="fg"><select data-f="mix"><option value="mixed"' + (b.mix === 'mixed' ? ' selected' : '') + '>' + t('Mixed', 'مختلط') + '</option><option value="inter"' + (b.mix === 'inter' ? ' selected' : '') + '>' + t('Interbedded', 'متعاقب') + '</option></select></div></div>' +
-        '<div class="row2"><div class="fg"><select data-f="gs">' + gsOpts(b.gs) + '</select></div><div class="fg"><select data-f="base">' + ctOpts(b.base) + '</select></div></div>' +
-        '<details' + (st.length || b.desc || b.col ? ' open' : '') + '><summary class="small" style="cursor:pointer;font-weight:700">' + t('Colour, description, structures and fossils', 'اللون والوصف والتراكيب والأحافير') + (st.length ? ' · ' + st.length : '') + '</summary><div style="display:grid;gap:8px;margin-top:8px">' +
-        '<div class="fg"><input data-f="col" value="' + SH.esc(b.col || '') + '" placeholder="' + t('Colour, e.g. pale yellowish brown (10YR 6/2)', 'اللون، مثل بني مصفر فاتح (10YR 6/2)') + '"></div>' +
-        '<div class="fg"><textarea data-f="desc" rows="2" style="min-height:58px" placeholder="' + t('Field description: sorting, hardness, cement, bedding thickness…', 'الوصف الحقلي: الفرز، الصلابة، المادة اللاحمة، سمك التطبق…') + '">' + SH.esc(b.desc || '') + '</textarea></div>' +
-        '<div class="chks" style="display:flex;flex-wrap:wrap;gap:4px 12px">' + chips + '</div></div></details></div>';
-      top += b.th || 0; return html;
-    }).join('');
-  }
-  $('#qBeds').addEventListener('change', function (e) {
-    var box = e.target.closest('[data-bed]'); if (!box) return; var i = +box.getAttribute('data-bed'), f = e.target.getAttribute('data-f'), s = e.target.getAttribute('data-st');
-    if (s) { var a = beds[i].st || []; if (e.target.checked) { if (a.indexOf(s) < 0) a.push(s); } else a = a.filter(function (x) { return x !== s; }); beds[i].st = a; SH.store.set('shandal_quarry_beds', beds); return; }
-    if (!f) return; beds[i][f] = f === 'th' ? parseFloat(e.target.value) || 0 : e.target.value; SH.store.set('shandal_quarry_beds', beds); if (f !== 'desc' && f !== 'col') bedsUI();
-  });
-  $('#qBeds').addEventListener('click', function (e) { var b = e.target.closest('[data-delbed]'); if (!b) return; beds.splice(+b.getAttribute('data-delbed'), 1); SH.store.set('shandal_quarry_beds', beds); bedsUI(); });
-  $('#qAddBed').addEventListener('click', function () { beds.push({ rock: 'limestone', th: 1 }); SH.store.set('shandal_quarry_beds', beds); bedsUI(); });
+  var bedEd = ST.editor($('#qBeds'), $('#qAddBed'), 'shandal_quarry_beds', [{ rock: 'topsoil', th: 0.5 }, { rock: 'clay', th: 1 }, { rock: 'sand', th: 2, sec: 'gravel', mix: 'mixed' }]);
 
   var checked = function (id) { return SH.$$('#' + id + ' input:checked').map(function (i) { return i.value; }); };
   var label = function (id, v) { var i = $('#' + id + ' input[value="' + v + '"]'); return i ? i.parentElement.textContent.trim() : v; };
@@ -97,7 +70,7 @@
     r.invA = Lm * Wm; r.extV = r.invA * Dm; r.remA = A > 0 ? A - r.invA : NaN; r.remV = V > 0 ? V - r.extV : NaN; r.pctA = A > 0 ? 100 * r.invA / A : NaN; r.pctV = V > 0 ? 100 * r.extV / V : NaN;
     var pts = corners.filter(Boolean);
     if (pts.length >= 3) { var z = SH.toUTM(pts[0].lat, pts[0].lon).zone, xy = pts.map(function (p) { var u = SH.toUTM(p.lat, p.lon, z); return [u.E, u.N]; }), s = 0; for (var i = 0; i < xy.length; i++) { var j = (i + 1) % xy.length; s += xy[i][0] * xy[j][1] - xy[j][0] * xy[i][1]; } r.gpsA = Math.abs(s) / 2; }
-    r.beds = beds.filter(function (b) { return b.rock && b.th > 0; }); r.bedsTotal = r.beds.reduce(function (a, b) { return a + b.th; }, 0);
+    r.beds = bedEd.get().filter(function (b) { return b.rock && b.th > 0; }); r.bedsTotal = r.beds.reduce(function (a, b) { return a + b.th; }, 0);
     last = r; persist.save(); render(r);
   }
   function kpi(cls, k, v, s) { return '<div class="kpi ' + cls + '"><span class="k">' + k + '</span><span class="v">' + v + '</span><span class="s">' + s + '</span></div>'; }
@@ -279,12 +252,12 @@
     var v = { qName: t('Sand and gravel quarry', 'مقلع رمل وحصى'), qSite: '12/2026', qDunam: 20, qArea: 50000, qVol: 300000, qMaxD: 6, qL: 140, qW: 120, qD: 5.5 };
     for (var k in v) $('#' + k).value = v[k];
     var c = [33.3010, 44.7020]; corners = [{ lat: c[0], lon: c[1] }, { lat: c[0], lon: c[1] + 0.00151 }, { lat: c[0] - 0.00108, lon: c[1] + 0.00151 }, { lat: c[0] - 0.00108, lon: c[1] }];
-    beds = [{ rock: 'topsoil', th: 0.5 }, { rock: 'clay', th: 1.5 }, { rock: 'sand', th: 2, sec: 'gravel', mix: 'mixed' }, { rock: 'gravel', th: 2.5 }];
+    bedEd.set([{ rock: 'topsoil', th: 0.5 }, { rock: 'clay', th: 1.5 }, { rock: 'sand', th: 2, sec: 'gravel', mix: 'mixed' }, { rock: 'gravel', th: 2.5 }]);
     SH.$$('#qVar input[value=joint],#qOps input[value=exc],#qOps input[value=trans],#qMach input[value=ex],#qMach input[value=dt]').forEach(function (i) { i.checked = true; });
-    SH.store.set('shandal_quarry_corners', corners); SH.store.set('shandal_quarry_beds', beds); cornersUI(); bedsUI(); run();
+    SH.store.set('shandal_quarry_corners', corners); cornersUI(); run();
   });
   document.addEventListener('sh:beforereport', function (e) { if (!last) { e.preventDefault(); SH.toast(t('Process the data first.', 'عالج البيانات أولاً.'), 'warn'); } });
   document.addEventListener('sh:redraw', function () { if (last) { planSheet(last); siteSheet(last); column(last); } });
   SH.$$('[data-svg]').forEach(function (b) { b.addEventListener('click', function () { SH.svgPng($('#' + b.getAttribute('data-svg')), 'shandal-' + b.getAttribute('data-svg') + '.png', 2); }); });
-  cornersUI(); bedsUI();
+  cornersUI();
 })();
