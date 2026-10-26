@@ -276,7 +276,7 @@
 
   /* ---------- 2. section and forces */
   function drawSection(r) {
-    var VW = 760, VH = 520, S = SH.svgB('svgSec'), F = r.F, s0 = r.crit || r.sets[0], le = r.crit ? r.crit.le : null; S.el.setAttribute('viewBox', '0 0 ' + VW + ' ' + VH); frame(S, VW, VH);
+    var VW = 760, VH = 660, S = SH.svgB('svgSec'), F = r.F, s0 = r.crit || r.sets[0], le = r.crit ? r.crit.le : null; S.el.setAttribute('viewBox', '0 0 ' + VW + ' ' + VH); frame(S, VW, VH);
     var H = r.H > 0 ? r.H : 10, psf = R(F.dip), psp = R(s0.dip), cf = 1 / Math.tan(psf), cp = s0.dip > 0.5 ? 1 / Math.tan(psp) : 1e3;
     var xCrest = H * cf, xTop = Math.min(H * cp, xCrest + 6 * H), z = le ? le.z : 0, xc = le ? (H - z) * cp : xTop;
     var x0 = -0.35 * H, x1 = Math.max(xc, xCrest) + 0.45 * H, y0 = -0.45 * H, y1 = H * 1.18;
@@ -322,9 +322,15 @@
     if (r.kh > 0) { S.arrow(cxp, cyp, cxp - 40, cyp, '#9C4D9A', 1.6, ''); halo(S, cxp - 46, cyp - 6, 'kh·W', { 'font-size': 10, 'font-weight': 700, fill: '#9C4D9A', 'text-anchor': 'end' }); }
     S.path('M' + cxp + ' ' + (cyp + 30) + ' A30 30 0 0 ' + (1) + ' ' + (cxp - nx2[0] * 30) + ' ' + (cyp - nx2[1] * 30), { fill: 'none', stroke: MUT, 'stroke-width': .9 });
     halo(S, cxp + 26, cyp + 30, 'ψp', { 'font-size': 10, fill: MUT });
-    var rows = le ? [['W', SH.fmt(le.W, 0) + ' kN/m'], ['U', SH.fmt(le.U, 0) + ' kN/m'], ['V', SH.fmt(le.V, 0) + ' kN/m'], ['A', SH.fmt(le.A, 2) + ' m²/m'], ['ΣR (resisting)', SH.fmt(le.Rs, 0) + ' kN/m'], ['ΣD (driving)', SH.fmt(le.T, 0) + ' kN/m'], ['FS = ΣR / ΣD', f2(le.fs)]] : [['FS', '—']];
-    var ty = IY + IH + 24; S.add('rect', { x: IX, y: IY + IH + 8, width: IW, height: rows.length * 18 + 12, fill: '#fff', stroke: INK, 'stroke-width': 1 });
-    rows.forEach(function (rw, i) { S.text(IX + 10, ty + i * 18, rw[0], { 'font-size': 10.5, fill: MUT, direction: 'ltr' }); S.text(IX + IW - 10, ty + i * 18, rw[1], { 'font-size': 10.5, 'font-weight': 800, fill: i === rows.length - 1 ? COL.crit : INK, 'text-anchor': 'end', direction: 'ltr' }); });
+    var rows = le ? [['W', 'Weight of the sliding block', SH.fmt(le.W, 0) + ' kN/m'], ['U', 'Water uplift on the sliding plane', SH.fmt(le.U, 0) + ' kN/m'], ['V', 'Water thrust in the tension crack', SH.fmt(le.V, 0) + ' kN/m'], ['A', 'Area of the sliding plane', SH.fmt(le.A, 2) + ' m²/m'], ['ΣR', 'Resisting force cA + N tanφ', SH.fmt(le.Rs, 0) + ' kN/m'], ['ΣD', 'Driving force along the plane', SH.fmt(le.T, 0) + ' kN/m'], ['FS', 'Factor of safety ΣR / ΣD', f2(le.fs)]] : [['FS', 'Factor of safety', '—']];
+    var RH = 28, ty = IY + IH + 26; S.add('rect', { x: IX, y: IY + IH + 8, width: IW, height: rows.length * RH + 10, fill: '#fff', stroke: INK, 'stroke-width': 1 });
+    rows.forEach(function (rw, i) { var yy = ty + i * RH; if (i) S.line(IX + 8, yy - 15, IX + IW - 8, yy - 15, { stroke: '#E6E8EB', 'stroke-width': .7 });
+      S.text(IX + 10, yy, rw[0], { 'font-size': 11, 'font-weight': 800, fill: INK, direction: 'ltr' }); S.text(IX + 10, yy + 11, rw[1], { 'font-size': 8.8, fill: MUT, direction: 'ltr' });
+      S.text(IX + IW - 10, yy + 4, rw[2], { 'font-size': 10.5, 'font-weight': 800, fill: i === rows.length - 1 ? COL.crit : INK, 'text-anchor': 'end', direction: 'ltr' }); });
+    // notation key for every symbol drawn on the section and the force diagram
+    var NY = 566, keys = [['H', 'Slope height'], ['ψf', 'Dip of the slope face'], ['ψp', 'Dip of the sliding plane (' + s0.k + ')'], ['z', 'Depth of the tension crack'], ['b', 'Crack distance behind the crest'], ['zw', 'Water depth in the crack'], ['W cosψp', 'Weight component normal to the plane'], ['W sinψp', 'Weight component along the plane'], ['kh·W', 'Horizontal seismic force (kh = ' + r.kh + ')'], ['c, φ', 'Cohesion and friction angle of the joint'], ['N', 'Effective normal force on the plane'], ['T', 'Shear force mobilised along the plane']];
+    S.line(20, NY - 22, VW - 20, NY - 22, { stroke: INK, 'stroke-width': .7 }); S.text(20, NY - 6, 'NOTATION', { 'font-size': 10.5, 'font-weight': 800, fill: INK, 'letter-spacing': 1.2 });
+    keys.forEach(function (k, i) { var col = i % 3, row = Math.floor(i / 3), x = 20 + col * 245, y = NY + 14 + row * 18; S.text(x, y, k[0], { 'font-size': 10.5, 'font-weight': 800, fill: INK, direction: 'ltr' }); S.text(x + 54, y, k[1], { 'font-size': 9.8, fill: MUT, direction: 'ltr' }); });
     footer(S, VH);
     var crackTxt = r.crack === 'none' ? t('no tension crack', 'دون شق شد') : t('tension crack depth z = ', 'عمق شق الشد z = ') + (le ? SH.fmt(le.z, 2) : '—') + ' m' + (r.crack === 'crit' ? t(' (critical depth)', ' (العمق الحرج)') : '') + t(', water depth zw = ', '، وعمق الماء zw = ') + (le ? SH.fmt(le.zw, 2) : '—') + ' m';
     $('#capSec').innerHTML = '<b>' + t('Input: ', 'المدخلات: ') + '</b>' + 'H = ' + SH.fmt(H, 1) + ' m، ψf = ' + F.dip + '°، ψp (' + s0.k + ') = ' + Math.round(s0.dip) + '°، γ = ' + r.gam + ' kN/m³، c = ' + r.c + ' kPa، φ = ' + r.phi + '°، kh = ' + r.kh + '، ' + crackTxt + '. ' +
@@ -384,6 +390,8 @@
     S.line(PX + 10, ly, PX + 34, ly, { stroke: '#2A8FB8', 'stroke-width': 1.6, 'stroke-dasharray': '6 3' }); S.text(PX + 42, ly + 4, 'Section line A–A′', { 'font-size': 9.5, fill: INK, direction: 'ltr' }); ly += 20;
     S.line(PX, ly, PX + PW, ly, { stroke: INK, 'stroke-width': .7 }); ly += 20; S.text(PX + 10, ly, 'SCALE (plan and section)', { 'font-size': 10, 'font-weight': 800, fill: INK, direction: 'ltr' }); scaleBar(S, PX + 14, ly + 12, sc, PW - 60);
     S.text(PX + 10, ly + 52, 'Vertical exaggeration 1.0', { 'font-size': 9.5, fill: MUT, direction: 'ltr' });
+    var ny = ly + 78; S.line(PX, ny - 18, PX + PW, ny - 18, { stroke: INK, 'stroke-width': .7 }); S.text(PX + 10, ny, 'NOTATION', { 'font-size': 10, 'font-weight': 800, fill: INK, 'letter-spacing': 1.2 });
+    [['δ', 'True dip of the ' + (isBed ? 'bedding' : 'joint set')], ['t', isBed ? 'True thickness of a bed' : 'True spacing of the set'], ['w', 'Outcrop width on a level surface'], ['A–A′', 'Section line normal to strike'], ['S0', 'Bedding plane'], ['J', 'Joint set']].forEach(function (k, i) { var y = ny + 20 + i * 30; S.text(PX + 10, y, k[0], { 'font-size': 10.5, 'font-weight': 800, fill: INK, direction: 'ltr' }); S.text(PX + 10, y + 13, k[1], { 'font-size': 9.3, fill: MUT, direction: 'ltr' }); });
     footer(S, VH);
     $('#capPlan').innerHTML = '<b>' + t('Input: ', 'المدخلات: ') + '</b>' + (isBed ? t('bedding S0 ', 'التطبق S0 ') : t('joint set ', 'مجموعة الفواصل ') + P.k + ' ') + bdi(att(dd, dip)) + t(' (strike ', ' (المضرب ') + p3(strikeOf(dd)) + '°)' + (units ? t(', bed thicknesses from the logged column', '، وسماكات الطبقات من العمود الموثّق') : isBed ? t(', uniform bed thickness t = ', '، بسمك طبقي منتظم t = ') + SH.fmt(sp, 2) + ' m' : t(', mean spacing S = ', '، بتباعد متوسط S = ') + SH.fmt(sp, 2) + ' m') + '. ' +
       '<br><b>' + t('Output: ', 'المخرجات: ') + '</b>' + t('outcrop pattern on a horizontal surface and the section perpendicular to strike at the same scale; the outcrop width of a layer of true thickness t is w = t / sin δ = ', 'نمط التكشف على سطح أفقي والمقطع العمودي على المضرب بالمقياس نفسه؛ عرض التكشف لطبقة سمكها الحقيقي t هو w = t / sin δ = ') + SH.fmt(1 / sd, 2) + ' t. ' +
