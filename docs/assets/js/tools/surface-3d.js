@@ -5,7 +5,7 @@
 (function () {
   'use strict';
   var t = SH.t, $ = SH.$, AR = SH.lang === 'ar', P = window.Plotly;
-  var persist = SH.persist('surface3d', ['geoName', 'sTitle', 'sData', 'sX', 'sY', 'sZ', 'sLab', 'sMeth', 'sSmooth', 'sGrid', 'sVex', 'sNc', 'sRamp', 'sBase', 'sMesh', 'sPts', 'sEq', 'sAz', 'sEl']);
+  var persist = SH.persist('surface3d3', ['geoName', 'sTitle', 'sData', 'sX', 'sY', 'sZ', 'sLab', 'sMeth', 'sSmooth', 'sGrid', 'sVex', 'sNc', 'sRamp', 'sBase', 'sMesh', 'sPts', 'sEq', 'sAz', 'sEl']);
   var RAMPS = { spec: ['#8B00FF', '#5A1EFF', '#1F3FBF', '#16A34A', '#7FE000', '#FFF200', '#FFB300', '#FF6A00', '#E00000'], viridis: ['#440154', '#3B528B', '#21918C', '#5EC962', '#FDE725'], terrain: ['#2B83BA', '#ABDDA4', '#FFFFBF', '#E6B86A', '#A6611A', '#F2F2F2'], blue: ['#2166AC', '#67A9CF', '#D1E5F0', '#FDDBC7', '#EF8A62', '#B2182B'] };
   var DEMO = ['Sample\tLL, %\tPI, %\tLS, %\tClay, %\tFines, %\tSand, %\tGravel, %\tGs\tFSR\tFSI, %\tSmectite, %\tSilica, %\tK-feldspar, %\tPlagioclase, %',
     'PTS-A\t48.91\t31.08\t13.51\t23.14\t52.19\t30.75\t16.03\t2.60\t1.42\t50.71\t49.64\t12.58\t27.05\t4.67', 'PTS-B\t51.08\t32.46\t12.93\t26.56\t54.51\t32.45\t12.16\t2.63\t1.49\t53.21\t51.55\t13.14\t25.12\t5.21', 'PTS-C\t54.78\t34.81\t12.06\t29.85\t58.45\t31.97\t9.45\t2.66\t1.60\t57.14\t55.61\t13.10\t24.96\t6.33',
@@ -36,8 +36,10 @@
   function fitter(pts, meth, sm) {
     var n = pts.length, U = function (r) { return r > 1e-12 ? r * r * Math.log(r) : 0; };
     if (meth === 'plane' || meth === 'quad') { var row = meth === 'plane' ? function (x, y) { return [1, x, y]; } : function (x, y) { return [1, x, y, x * x, x * y, y * y]; }; if (n < row(0, 0).length) return null; var c = lsq(pts.map(function (p) { return row(p[0], p[1]); }), pts.map(function (p) { return p[2]; })); if (!c) return null; return function (x, y) { return row(x, y).reduce(function (a, v, i) { return a + v * c[i]; }, 0); }; }
-    if (meth === 'idw') { var pw = 2 + sm / 25, e2 = 1e-6 + sm / 2000; return function (x, y) { var sw = 0, sz = 0; for (var i = 0; i < n; i++) { var d2 = (x - pts[i][0]) * (x - pts[i][0]) + (y - pts[i][1]) * (y - pts[i][1]) + e2; if (d2 < 1e-14) return pts[i][2]; var w = Math.pow(d2, -pw / 2); sw += w; sz += w * pts[i][2]; } return sz / sw; }; }
-    if (meth === 'dwls') { var h = 0.12 + sm / 100 * 0.5; return function (x, y) { var A = [[0, 0, 0], [0, 0, 0], [0, 0, 0]], b = [0, 0, 0]; for (var i = 0; i < n; i++) { var dx = pts[i][0] - x, dy = pts[i][1] - y, w = Math.exp(-(dx * dx + dy * dy) / (h * h)) + 1e-9, v = [1, dx, dy]; for (var r = 0; r < 3; r++) { for (var q = 0; q < 3; q++) A[r][q] += w * v[r] * v[q]; b[r] += w * v[r] * pts[i][2]; } } var s = solve(A, b); return s ? s[0] : NaN; }; }
+    if (meth === 'idw') { var pw = 4 - sm / 50, e2 = 1e-7; return function (x, y) { var sw = 0, sz = 0; for (var i = 0; i < n; i++) { var d2 = (x - pts[i][0]) * (x - pts[i][0]) + (y - pts[i][1]) * (y - pts[i][1]) + e2; if (d2 < 1e-14) return pts[i][2]; var w = Math.pow(d2, -pw / 2); sw += w; sz += w * pts[i][2]; } return sz / sw; }; }
+    if (meth === 'dwls') { var h = 0.05 + sm / 100 * 0.45, h2 = h * h; return function (x, y) { var d2 = pts.map(function (p) { return (p[0] - x) * (p[0] - x) + (p[1] - y) * (p[1] - y); }), dm = Math.min.apply(null, d2), A = [[0, 0, 0], [0, 0, 0], [0, 0, 0]], b = [0, 0, 0], sw = 0;
+      for (var i = 0; i < n; i++) { var dx = pts[i][0] - x, dy = pts[i][1] - y, w = Math.exp(-(d2[i] - dm) / h2), v = [1, dx, dy]; sw += w; for (var r = 0; r < 3; r++) { for (var q = 0; q < 3; q++) A[r][q] += w * v[r] * v[q]; b[r] += w * v[r] * pts[i][2]; } }
+      A[1][1] += 1e-3 * sw; A[2][2] += 1e-3 * sw; var s2 = solve(A, b); return s2 ? s2[0] : NaN; }; }
     // thin-plate spline with smoothing parameter
     if (n < 3) return null; var lam = sm <= 0 ? 0 : Math.pow(10, sm / 25 - 4), N = n + 3, A2 = [], b2 = [];
     for (var i = 0; i < N; i++) { A2.push(new Array(N).fill(0)); b2.push(i < n ? pts[i][2] : 0); }
@@ -58,13 +60,13 @@
     var S = D.rows.map(function (r, i) { return { x: r[jx], y: r[jy], z: r[jz], l: jl > -1 ? String(r[jl]) : String(i + 1) }; }).filter(function (p) { return isFinite(p.x) && isFinite(p.y) && isFinite(p.z); });
     if (S.length < 4 || jx === jy || jx === jz || jy === jz) return null;
     var xs = S.map(function (p) { return p.x; }), ys = S.map(function (p) { return p.y; }), zs = S.map(function (p) { return p.z; });
-    var x0 = Math.min.apply(null, xs), x1 = Math.max.apply(null, xs), y0 = Math.min.apply(null, ys), y1 = Math.max.apply(null, ys); if (x1 === x0 || y1 === y0) return null;
+    var nr = function (a, b) { var raw = (b - a) / 5, pp = Math.pow(10, Math.floor(Math.log10(raw))), mm = raw / pp, st = (mm <= 1 ? 1 : mm <= 2 ? 2 : mm <= 5 ? 5 : 10) * pp; return [Math.floor(a / st + 1e-9) * st, Math.ceil(b / st - 1e-9) * st, st]; }, xa = nr(Math.min.apply(null, xs), Math.max.apply(null, xs)), ya = nr(Math.min.apply(null, ys), Math.max.apply(null, ys)), x0 = xa[0], x1 = xa[1], y0 = ya[0], y1 = ya[1], dtx = xa[2], dty = ya[2]; if (x1 === x0 || y1 === y0) return null;
     var nx = function (x) { return (x - x0) / (x1 - x0); }, ny = function (y) { return (y - y0) / (y1 - y0); }, pts = S.map(function (p) { return [nx(p.x), ny(p.y), p.z]; });
     var meth = $('#sMeth').value, sm = SH.num('sSmooth'), f = fitter(pts, meth, sm); if (!f) return null;
     var G = +$('#sGrid').value, gx = [], gy = [], Z = [];
     for (var i = 0; i < G; i++) { gx.push(x0 + (x1 - x0) * i / (G - 1)); gy.push(y0 + (y1 - y0) * i / (G - 1)); }
     for (var r = 0; r < G; r++) { var row = []; for (var c = 0; c < G; c++) row.push(f(c / (G - 1), r / (G - 1))); Z.push(row); }
-    var flat = [].concat.apply([], Z).filter(isFinite), zmin = Math.min.apply(null, flat.concat(zs)), zmax = Math.max.apply(null, flat.concat(zs));
+    var flat = [].concat.apply([], Z).filter(isFinite), zmin = Math.min.apply(null, flat.concat(zs)), zmax = Math.max.apply(null, flat.concat(zs)), za = (function () { var st = niceStep(zmax - zmin, 5), lo = Math.floor(zmin / st + 1e-9) * st; if (zmin >= 0 && lo - st * 2 <= 0 && zmin < (zmax - zmin) * 0.6) lo = 0; return [lo, Math.ceil(zmax / st - 1e-9) * st]; })();
     var nc = +$('#sNc').value, st = niceStep(zmax - zmin, nc), b0 = Math.floor(zmin / st) * st, bounds = [b0]; while (bounds[bounds.length - 1] < zmax - 1e-9) bounds.push(+(bounds[bounds.length - 1] + st).toFixed(10));
     var K = bounds.length - 1, cols = []; for (i = 0; i < K; i++) cols.push(ramp($('#sRamp').value, K === 1 ? 0.5 : i / (K - 1)));
     // statistics
@@ -74,22 +76,23 @@
     var fit = pts.map(function (p) { return f(p[0], p[1]); }), rmsF = Math.sqrt(fit.reduce(function (a, v, k) { return a + (v - zs[k]) * (v - zs[k]); }, 0) / n);
     var im = 0, iM = 0; flat = [].concat.apply([], Z); flat.forEach(function (v, k) { if (v < flat[im]) im = k; if (v > flat[iM]) iM = k; });
     return { S: S, gx: gx, gy: gy, Z: Z, zmin: zmin, zmax: zmax, bounds: bounds, cols: cols, st: st, rx: rx, ry: ry, rxy: rxy, mc: mc, r2m: r2m, adj: adj, rmse: Math.sqrt(sse / n), cv: cv, rmsF: rmsF, n: n,
-      lo: [gx[im % G], gy[Math.floor(im / G)], flat[im]], hi: [gx[iM % G], gy[Math.floor(iM / G)], flat[iM]], jx: jx, jy: jy, jz: jz, meth: meth, zr: [Math.min.apply(null, zs), Math.max.apply(null, zs)] };
+      za: za, dtx: dtx, dty: dty, lo: [gx[im % G], gy[Math.floor(im / G)], flat[im]], hi: [gx[iM % G], gy[Math.floor(iM / G)], flat[iM]], jx: jx, jy: jy, jz: jz, meth: meth, zr: [Math.min.apply(null, zs), Math.max.apply(null, zs)] };
   }
+  function cf(v) { var d = Math.max(0, -Math.floor(Math.log10(R.st) + 1e-9)); if (Math.abs(R.st * Math.pow(10, d) - Math.round(R.st * Math.pow(10, d))) > 1e-9) d++; return v.toFixed(d); }
   function cscale(R) { var a = R.bounds[0], b = R.bounds[R.bounds.length - 1], s = []; R.cols.forEach(function (c, i) { s.push([(R.bounds[i] - a) / (b - a), c]); s.push([(R.bounds[i + 1] - a) / (b - a), c]); }); s[s.length - 1][0] = 1; return s; }
-  function eye() { var az = SH.num('sAz') * Math.PI / 180, el = SH.num('sEl') * Math.PI / 180, r = 2.1; return { x: r * Math.cos(el) * Math.cos(az), y: r * Math.cos(el) * Math.sin(az), z: r * Math.sin(el) + 0.1 }; }
+  function eye(k) { var az = SH.num('sAz') * Math.PI / 180, el = SH.num('sEl') * Math.PI / 180, r = k || 1.75; return { x: r * Math.cos(el) * Math.cos(az), y: r * Math.cos(el) * Math.sin(az), z: r * Math.sin(el) + 0.1 }; }
   function eqs(R) { var X = short(nm(R.jx)), Y = short(nm(R.jy)), Zn = nm(R.jz), sgn = function (v) { return (v < 0 ? ' − ' : ' + ') + sig(Math.abs(v)); };
     return [Zn + ' = ' + sig(R.rx.a) + sgn(R.rx.b) + '·' + X + '   R² = ' + SH.fmt(R.rx.r2 * 100, 2) + '%', Zn + ' = ' + sig(R.ry.a) + sgn(R.ry.b) + '·' + Y + '   R² = ' + SH.fmt(R.ry.r2 * 100, 2) + '%', Zn + ' = ' + sig(R.mc[0]) + sgn(R.mc[1]) + '·' + X + sgn(R.mc[2]) + '·' + Y + '   R² = ' + SH.fmt(R.r2m * 100, 2) + '%']; }
   function figs(R, exp) {
-    var cs = cscale(R), zr = R.bounds[R.bounds.length - 1] - R.bounds[0], zb = R.bounds[0] - zr * 0.0, mesh = $('#sMesh').checked, sx = (R.gx[1] - R.gx[0]) * 2, sy = (R.gy[1] - R.gy[0]) * 2;
+    var cs = cscale(R), zr = R.bounds[R.bounds.length - 1] - R.bounds[0], zb = R.bounds[0] - zr * 0.0, mesh = $('#sMesh').checked, sx = (R.gx[1] - R.gx[0]), sy = (R.gy[1] - R.gy[0]);
     var tr = [{ type: 'surface', x: R.gx, y: R.gy, z: R.Z, colorscale: cs, cmin: R.bounds[0], cmax: R.bounds[R.bounds.length - 1], showscale: !exp, colorbar: { title: { text: nm(R.jz) }, tickvals: R.bounds, len: .75, thickness: 16 },
-      contours: mesh ? { x: { show: true, start: R.gx[0], end: R.gx[R.gx.length - 1], size: sx, color: 'rgba(20,20,20,.45)', width: 1 }, y: { show: true, start: R.gy[0], end: R.gy[R.gy.length - 1], size: sy, color: 'rgba(20,20,20,.45)', width: 1 } } : {},
-      lighting: { ambient: .75, diffuse: .6, specular: .15, roughness: .8 }, hovertemplate: short(nm(R.jx)) + ' %{x:.3g}<br>' + short(nm(R.jy)) + ' %{y:.3g}<br>' + short(nm(R.jz)) + ' %{z:.3g}<extra></extra>' }];
-    var base = R.bounds[0] - zr * 0.06;
+      contours: mesh ? { x: { show: true, start: R.gx[0], end: R.gx[R.gx.length - 1], size: sx, color: '#000000', width: 3 }, y: { show: true, start: R.gy[0], end: R.gy[R.gy.length - 1], size: sy, color: '#000000', width: 3 } } : {},
+      lighting: { ambient: .85, diffuse: .45, specular: .05, roughness: .9 }, hovertemplate: short(nm(R.jx)) + ' %{x:.3g}<br>' + short(nm(R.jy)) + ' %{y:.3g}<br>' + short(nm(R.jz)) + ' %{z:.3g}<extra></extra>' }];
+    var zlo = R.za[0], zhi = Math.max(R.za[1], R.bounds[R.bounds.length - 1]), base = zlo + (zhi - zlo) * 0.004;
     if ($('#sBase').checked) tr.push({ type: 'surface', x: R.gx, y: R.gy, z: R.Z.map(function (r) { return r.map(function () { return base; }); }), surfacecolor: R.Z, colorscale: cs, cmin: R.bounds[0], cmax: R.bounds[R.bounds.length - 1], showscale: false, hoverinfo: 'skip', lighting: { ambient: 1, diffuse: 0, specular: 0 } });
     if ($('#sPts').checked) tr.push({ type: 'scatter3d', mode: 'markers', x: R.S.map(function (p) { return p.x; }), y: R.S.map(function (p) { return p.y; }), z: R.S.map(function (p) { return p.z; }), text: R.S.map(function (p) { return p.l; }), marker: { size: 4, color: '#111', line: { color: '#fff', width: 1 } }, hovertemplate: '%{text}<br>%{z:.3g}<extra></extra>', showlegend: false });
-    var ax = function (title, rng) { return { title: { text: title, font: { size: 13, color: '#1B232B' } }, backgroundcolor: '#F2F2F2', showbackground: true, gridcolor: '#C9C9C9', zerolinecolor: '#999', tickfont: { size: 11, color: '#333' }, range: rng }; };
-    var lay = { margin: { l: 0, r: 0, t: 10, b: 0 }, paper_bgcolor: exp ? '#fff' : 'rgba(0,0,0,0)', scene: { xaxis: ax(nm(R.jx)), yaxis: ax(nm(R.jy)), zaxis: ax(nm(R.jz), [base - zr * 0.06, R.bounds[R.bounds.length - 1]]), aspectmode: 'manual', aspectratio: { x: 1, y: 1, z: SH.num('sVex') / 100 }, camera: { eye: eye() } }, font: { family: 'Manrope, Arial, sans-serif' } };
+    var ax = function (title, rng, dt) { return { title: { text: title, font: { size: exp ? 22 : 13, color: '#1B232B' } }, backgroundcolor: '#F2F2F2', showbackground: true, gridcolor: '#C9C9C9', zerolinecolor: '#999', tickfont: { size: exp ? 19 : 11, color: '#333' }, dtick: dt, tick0: rng ? rng[0] : undefined, range: rng }; };
+    var lay = { margin: { l: 0, r: 0, t: 10, b: 0 }, paper_bgcolor: exp ? '#fff' : 'rgba(0,0,0,0)', scene: { xaxis: ax(nm(R.jx), [R.gx[0], R.gx[R.gx.length - 1]], R.dtx), yaxis: ax(nm(R.jy), [R.gy[0], R.gy[R.gy.length - 1]], R.dty), zaxis: ax(nm(R.jz), [zlo, zhi], niceStep(zhi - zlo, 5)), aspectmode: 'manual', aspectratio: { x: exp ? 1.3 : 1.15, y: exp ? 1.3 : 1.15, z: (exp ? 1.3 : 1.15) * SH.num('sVex') / 100 }, camera: { eye: eye(exp ? 1.02 : 1.15), center: { x: 0, y: 0, z: -0.04 }, projection: { type: 'orthographic' } } }, font: { family: 'Manrope, Arial, sans-serif' } };
     return { data: tr, layout: lay };
   }
   /* plan view: classed raster, contour lines with labels, samples, axes and legend (SVG) */
@@ -101,7 +104,7 @@
     // raster of classes (bilinear on the grid, 3 px cells)
     var N = 230, cv = document.createElement('canvas'); cv.width = N; cv.height = N; var cx = cv.getContext('2d'), img = cx.createImageData(N, N), cl = R.cols.map(function (c) { return c.match(/\d+/g).map(Number); });
     for (var j = 0; j < N; j++) for (var i = 0; i < N; i++) { var gx = i / (N - 1) * (G - 1), gy = (1 - j / (N - 1)) * (G - 1), i0 = Math.min(G - 2, Math.floor(gx)), j0 = Math.min(G - 2, Math.floor(gy)), u = gx - i0, v = gy - j0, z = R.Z[j0][i0] * (1 - u) * (1 - v) + R.Z[j0][i0 + 1] * u * (1 - v) + R.Z[j0 + 1][i0] * (1 - u) * v + R.Z[j0 + 1][i0 + 1] * u * v;
-      var k = Math.max(0, Math.min(cl.length - 1, Math.floor((z - R.bounds[0]) / R.st))), o = (j * N + i) * 4; img.data[o] = cl[k][0]; img.data[o + 1] = cl[k][1]; img.data[o + 2] = cl[k][2]; img.data[o + 3] = 255; }
+      var k = Math.max(0, Math.min(cl.length - 1, Math.floor((z - R.bounds[0]) / R.st))), o = (j * N + i) * 4; if (!isFinite(z)) continue; img.data[o] = cl[k][0]; img.data[o + 1] = cl[k][1]; img.data[o + 2] = cl[k][2]; img.data[o + 3] = 255; }
     cx.putImageData(img, 0, 0); S.add('image', { x: X0, y: Y0, width: PW, height: PH, href: cv.toDataURL('image/png'), preserveAspectRatio: 'none' });
     // contour lines at the class limits
     var Gd = { nx: G, ny: G, z: new Float32Array(G * G), b: { n: yr[1], s: yr[0], w: xr[0], e: xr[1] } }; for (j = 0; j < G; j++) for (i = 0; i < G; i++) Gd.z[j * G + i] = R.Z[G - 1 - j][i];
@@ -119,7 +122,7 @@
     tx(X0 + PW / 2, Y0 + PH + 52, nm(R.jx), { 'text-anchor': 'middle', 'font-weight': 700, 'font-size': 14 }); var cy = Y0 + PH / 2; tx(30, cy, nm(R.jy), { 'text-anchor': 'middle', 'font-weight': 700, 'font-size': 14, transform: 'rotate(-90 30 ' + cy + ')' });
     // legend
     var LX = X0 + PW + 40; tx(LX, Y0 + 14, nm(R.jz), { 'font-weight': 800, 'font-size': 15 });
-    for (var q = R.cols.length - 1, r = 0; q >= 0; q--, r++) { var yy = Y0 + 34 + r * 30; S.add('rect', { x: LX, y: yy, width: 34, height: 22, fill: R.cols[q], stroke: INK, 'stroke-width': .8 }); tx(LX + 44, yy + 16, sig(R.bounds[q], 3) + '–' + sig(R.bounds[q + 1], 3), { 'font-size': 13, 'font-weight': 600 }); }
+    for (var q = R.cols.length - 1, r = 0; q >= 0; q--, r++) { var yy = Y0 + 34 + r * 30; S.add('rect', { x: LX, y: yy, width: 34, height: 22, fill: R.cols[q], stroke: INK, 'stroke-width': .8 }); tx(LX + 44, yy + 16, cf(R.bounds[q]) + '–' + cf(R.bounds[q + 1]), { 'font-size': 13, 'font-weight': 600 }); }
     var ly = Y0 + 34 + R.cols.length * 30 + 20; S.circle(LX + 17, ly, 4.5, { fill: INK, stroke: '#fff', 'stroke-width': 1.5 }); tx(LX + 44, ly + 4, 'Sample', { 'font-size': 13 }); S.line(LX, ly + 26, LX + 34, ly + 26, { stroke: INK, 'stroke-width': 1 }); tx(LX + 44, ly + 30, 'Class limit (contour)', { 'font-size': 13 });
     S.add('rect', { x: 6, y: 6, width: W - 12, height: VH - 12, fill: 'none', stroke: INK, 'stroke-width': 1.2 });
   }
@@ -142,7 +145,7 @@
       row(t('Multiple, on X and Y', 'متعدد على X وY'), SH.esc(E[2].split('   ')[0]), SH.fmt(R.r2m * 100, 2) + '% (' + t('adj. ', 'معدّل ') + SH.fmt(R.adj * 100, 2) + '%)', '—') + row(t('X with Y (collinearity)', 'X مع Y (التداخل الخطي)'), SH.esc(short(nm(R.jy)) + ' = ' + sig(R.rxy.a) + (R.rxy.b < 0 ? ' − ' : ' + ') + sig(Math.abs(R.rxy.b)) + '·' + short(nm(R.jx))), SH.fmt(R.rxy.r2 * 100, 2) + '%', SH.fmt(R.rxy.r, 3)) + '</tbody>';
     narr(); table(); caps();
   }
-  var MN = { tps: ['thin-plate spline', 'شريحة الصفيحة الرقيقة'], dwls: ['distance-weighted least squares', 'المربعات الصغرى الموزونة بالمسافة'], idw: ['inverse distance weighting', 'وزن مقلوب المسافة'], quad: ['quadratic polynomial regression', 'انحدار متعدد الحدود من الدرجة الثانية'], plane: ['linear plane regression', 'الانحدار المستوي الخطي'] };
+  var MN = { tps: ['thin-plate spline', 'شريحة الصفيحة الرقيقة'], dwls: ['distance-weighted least squares', 'المربعات الصغرى الموزونة بالمسافة'], idw: ['inverse distance weighting (Shepard)', 'وزن مقلوب المسافة (طريقة شيبارد)'], quad: ['quadratic polynomial regression', 'انحدار متعدد الحدود من الدرجة الثانية'], plane: ['linear plane regression', 'الانحدار المستوي الخطي'] };
   function strength(r2) { return r2 >= .9 ? t('very strong', 'قوية جداً') : r2 >= .7 ? t('strong', 'قوية') : r2 >= .5 ? t('moderate', 'متوسطة') : r2 >= .3 ? t('weak', 'ضعيفة') : t('very weak', 'ضعيفة جداً'); }
   function narr() {
     var X = SH.esc(nm(R.jx)), Y = SH.esc(nm(R.jy)), Zn = SH.esc(nm(R.jz)), p = function (s) { return '<p>' + s + '</p>'; }, b = function (s) { return '<b>' + s + '</b>'; }, dir = function (v) { return v > 0 ? t('increases', 'يزداد') : t('decreases', 'يتناقص'); }, h = '';
@@ -163,13 +166,13 @@
 
   /* ---------- composed figure for download: title, class legend, plot, equations */
   function composed(which) {
-    var W = 1500, Fg = figs(R, true), pw = 1180, ph = 940;
+    var W = 1500, Fg = figs(R, true), pw = 1200, ph = 980;
     return P.toImage({ data: Fg.data, layout: Fg.layout }, { format: 'png', width: pw, height: ph, scale: 1.6 }).then(function (u) { return SH.loadImage(u); }).then(function (im) {
       var eq = $('#sEq').checked ? eqs(R) : [], title = SH.val('sTitle').trim(), top = title ? 90 : 30, Hh = top + ph + 40 + eq.length * 34 + 30, cv = document.createElement('canvas'), k = 1.6; cv.width = W * k; cv.height = Hh * k; var x = cv.getContext('2d'); x.scale(k, k);
       var Fn = 'Manrope, Arial, sans-serif'; x.fillStyle = '#fff'; x.fillRect(0, 0, W, Hh); x.fillStyle = '#1B232B'; x.textBaseline = 'alphabetic';
       if (title) { x.font = '800 30px ' + Fn; x.textAlign = 'center'; x.fillText(title, W / 2, 56); }
       x.textAlign = 'left'; x.font = '800 22px ' + Fn; x.fillText(nm(R.jz), 30, top + 34);
-      for (var i = R.cols.length - 1, row = 0; i >= 0; i--, row++) { var y = top + 52 + row * 36; x.fillStyle = R.cols[i]; x.fillRect(30, y, 40, 26); x.strokeStyle = '#1B232B'; x.lineWidth = 1; x.strokeRect(30, y, 40, 26); x.fillStyle = '#1B232B'; x.font = '700 19px ' + Fn; x.fillText(sig(R.bounds[i], 3) + '–' + sig(R.bounds[i + 1], 3), 82, y + 20); }
+      for (var i = R.cols.length - 1, row = 0; i >= 0; i--, row++) { var y = top + 52 + row * 36; x.fillStyle = R.cols[i]; x.fillRect(30, y, 40, 26); x.strokeStyle = '#1B232B'; x.lineWidth = 1; x.strokeRect(30, y, 40, 26); x.fillStyle = '#1B232B'; x.font = '700 19px ' + Fn; x.fillText(cf(R.bounds[i]) + '–' + cf(R.bounds[i + 1]), 82, y + 20); }
       x.drawImage(im, W - pw - 20, top, pw, ph);
       x.font = '700 22px ' + Fn; eq.forEach(function (s, j) { x.fillText(s, 40, top + ph + 44 + j * 34); });
       x.strokeStyle = '#1B232B'; x.lineWidth = 1.5; x.strokeRect(8, 8, W - 16, Hh - 16);
@@ -182,13 +185,13 @@
   /* ---------- view controls */
   function setCam() { if (R && P && $('#s3d').data) P.relayout($('#s3d'), { 'scene.camera.eye': eye() }); }
   $('#sAz').addEventListener('input', setCam); $('#sEl').addEventListener('input', setCam);
-  $('#sReset').addEventListener('click', function () { $('#sAz').value = 225; $('#sEl').value = 28; setCam(); persist.save(); });
+  $('#sReset').addEventListener('click', function () { $('#sAz').value = 315; $('#sEl').value = 24; setCam(); persist.save(); });
   $('#sSpin').addEventListener('click', function () { if (spin) { cancelAnimationFrame(spin); spin = 0; return; } var a0 = SH.num('sAz'), d = 0; (function step() { d += 2; $('#sAz').value = (a0 + d) % 360; setCam(); if (d < 360) spin = requestAnimationFrame(step); else { spin = 0; persist.save(); } })(); });
   ['sX', 'sY', 'sZ', 'sLab', 'sMeth', 'sGrid', 'sNc', 'sRamp', 'sBase', 'sMesh', 'sPts', 'sEq'].forEach(function (id) { $('#' + id).addEventListener('change', run); });
   ['sSmooth', 'sVex'].forEach(function (id) { $('#' + id).addEventListener('change', run); });
   var tm = 0; $('#sData').addEventListener('input', function () { clearTimeout(tm); tm = setTimeout(run, 500); });
   $('#sFile').addEventListener('change', function () { var f = this.files[0]; if (!f) return; var r = new FileReader(); r.onload = function () { $('#sData').value = r.result; run(); }; r.readAsText(f); });
-  $('#sDemo').addEventListener('click', function () { $('#sData').value = DEMO; fill(); $('#sX').value = 2; $('#sY').value = 9; $('#sZ').value = 11; $('#sLab').value = 0; $('#sTitle').value = 'Smectite vs plasticity index and free swell ratio'; run(); SH.toast(t('Example: 15 heaving soils from Free State, South Africa (Fondjo & Theron 2020).', 'مثال: 15 تربة منتفخة من ولاية فري ستيت، جنوب أفريقيا (Fondjo & Theron 2020).'), 'ok'); });
+  $('#sDemo').addEventListener('click', function () { $('#sData').value = DEMO; fill(); $('#sX').value = 1; $('#sY').value = 3; $('#sZ').value = 14; $('#sLab').value = 0; $('#sMeth').value = 'idw'; $('#sSmooth').value = 50; $('#sGrid').value = 30; $('#sAz').value = 315; $('#sEl').value = 22; $('#sVex').value = 85; $('#sTitle').value = 'Plagioclase vs liquid limit and linear shrinkage'; run(); SH.toast(t('Example: 15 heaving soils from Free State, South Africa (Fondjo & Theron 2020).', 'مثال: 15 تربة منتفخة من ولاية فري ستيت، جنوب أفريقيا (Fondjo & Theron 2020).'), 'ok'); });
   $('#sCsv').addEventListener('click', function () { if (!R) return; SH.csv('shandal-surface-samples.csv', [['sample', nm(R.jx), nm(R.jy), nm(R.jz)]].concat(R.S.map(function (p) { return [p.l, p.x, p.y, p.z]; }))); });
   document.addEventListener('sh:beforereport', function (e) { if (!R) { e.preventDefault(); SH.toast(t('Enter the data first.', 'أدخل البيانات أولاً.'), 'warn'); } });
   if (!$('#sData').value.trim()) { $('#sDemo').click(); } else run();

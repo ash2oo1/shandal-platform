@@ -23,11 +23,11 @@
       </div>
     {{ m.panel_close() }}
     {{ m.panel_open(3, 'Surface', 'السطح') }}
-      {{ m.sel('sMeth', 'Surface fitting method', 'طريقة ملاءمة السطح', [('tps', 'Thin-plate spline', 'شريحة الصفيحة الرقيقة (Thin-plate spline)', true), ('dwls', 'Distance-weighted least squares', 'المربعات الصغرى الموزونة بالمسافة'), ('idw', 'Inverse distance weighting', 'وزن مقلوب المسافة (IDW)'), ('quad', 'Quadratic polynomial regression', 'انحدار متعدد الحدود من الدرجة الثانية'), ('plane', 'Linear plane regression', 'انحدار مستوي خطي')], 'Spline, DWLS and IDW pass through or close to the samples and show local relief; the regressions give a smooth trend surface.', 'الشريحة وDWLS وIDW تمر بالعينات أو قربها وتُظهر التضرس المحلي، أما الانحدارات فتعطي سطح اتجاه عام أملس.') }}
-      {{ m.fld('sSmooth', 'Smoothing', 'التنعيم', 'range', '20', '', 'Higher values give a smoother surface that no longer passes exactly through the samples.', 'القيم الأعلى تعطي سطحاً أنعم لا يمر بالعينات تماماً.', '', '1', 'min="0" max="100"') }}
+      {{ m.sel('sMeth', 'Surface fitting method', 'طريقة ملاءمة السطح', [('idw', 'Inverse distance weighting (Shepard)', 'وزن مقلوب المسافة (طريقة شيبارد)', true), ('dwls', 'Distance-weighted least squares (DWLS)', 'المربعات الصغرى الموزونة بالمسافة (DWLS)'), ('tps', 'Thin-plate spline', 'شريحة الصفيحة الرقيقة (Thin-plate spline)'), ('quad', 'Quadratic polynomial regression', 'انحدار متعدد الحدود من الدرجة الثانية'), ('plane', 'Linear plane regression', 'انحدار مستوي خطي')], 'Inverse distance weighting gives the surface of common laboratory plotting software: it honours the samples, shows local highs and lows around them and tends to the mean far from the data. DWLS and the spline follow local trends; the regressions give a smooth trend surface.', 'يعطي وزن مقلوب المسافة سطح برامج الرسم المختبرية الشائعة: يحترم العينات ويُظهر القمم والمنخفضات المحلية حولها ويقترب من المتوسط بعيداً عن البيانات. أما DWLS والشريحة فيتبعان الاتجاهات المحلية، والانحدارات تعطي سطح اتجاه عام أملس.') }}
+      {{ m.fld('sSmooth', 'Smoothing', 'التنعيم', 'range', '50', '', 'Higher values give a smoother surface that no longer passes exactly through the samples.', 'القيم الأعلى تعطي سطحاً أنعم لا يمر بالعينات تماماً.', '', '1', 'min="0" max="100"') }}
       <div class="row2">
-        {{ m.sel('sGrid', 'Grid resolution', 'دقة الشبكة', [('30', '30 × 30', '30 × 30'), ('45', '45 × 45', '45 × 45', true), ('70', '70 × 70', '70 × 70')]) }}
-        {{ m.fld('sVex', 'Height of the Z axis', 'ارتفاع المحور Z', 'range', '70', '%', '', '', '', '5', 'min="20" max="150"') }}
+        {{ m.sel('sGrid', 'Grid resolution', 'دقة الشبكة', [('30', '30 × 30', '30 × 30', true), ('45', '45 × 45', '45 × 45'), ('70', '70 × 70', '70 × 70')]) }}
+        {{ m.fld('sVex', 'Height of the Z axis', 'ارتفاع المحور Z', 'range', '85', '%', '', '', '', '5', 'min="20" max="150"') }}
       </div>
     {{ m.panel_close() }}
     {{ m.panel_open(4, 'Colour classes and view', 'فئات الألوان والعرض') }}
@@ -41,8 +41,8 @@
         <label class="chk"><input type="checkbox" id="sPts" checked> {{ m.L('Sample points', 'نقاط العينات') }}</label>
         <label class="chk"><input type="checkbox" id="sEq" checked> {{ m.L('Equations on the figure', 'المعادلات على الشكل') }}</label>
       </div>
-      {{ m.fld('sAz', 'Rotation (azimuth)', 'الدوران (السمت)', 'range', '225', '°', 'Drag the figure to rotate freely, or set the angle here.', 'اسحب الشكل لتدويره بحرية، أو حدد الزاوية هنا.', '', '1', 'min="0" max="360"') }}
-      {{ m.fld('sEl', 'Viewing elevation', 'زاوية النظر', 'range', '28', '°', '', '', '', '1', 'min="0" max="90"') }}
+      {{ m.fld('sAz', 'Rotation (azimuth)', 'الدوران (السمت)', 'range', '315', '°', 'Drag the figure to rotate freely, or set the angle here.', 'اسحب الشكل لتدويره بحرية، أو حدد الزاوية هنا.', '', '1', 'min="0" max="360"') }}
+      {{ m.fld('sEl', 'Viewing elevation', 'زاوية النظر', 'range', '24', '°', '', '', '', '1', 'min="0" max="90"') }}
       <div class="row2"><button class="btn btn-line btn-sm" id="sSpin" type="button">{{ icon('rotate-3d', 'ico ico-sm') }}<span>{{ m.L('Rotate 360°', 'دوران 360°') }}</span></button><button class="btn btn-line btn-sm" id="sReset" type="button">{{ m.L('Reset view', 'إعادة العرض') }}</button></div>
     {{ m.panel_close() }}
   </aside>
