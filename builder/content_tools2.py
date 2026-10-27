@@ -76,6 +76,28 @@ NEW_TOOLS = [
  'related': ['structural-geotechnical', 'strata', 'geologic-unit'],
 },
 {
+ 'slug': 'surface-3d', 'cat': 'engineering', 'icon': 'box', 'illus': 'mesh', 'libs': ['plot3d', 'dem'],
+ 'name': L('3-D Surface Plotter', 'مُرسِم الأسطح ثلاثية الأبعاد'),
+ 'tagline': L('Z = f(X, Y) from your samples: rotatable surface, contour map and regressions.', 'Z = f(X, Y) من عيناتك: سطح قابل للتدوير وخريطة كنتورية ومعادلات انحدار.'),
+ 'summary': L('Turns a table of samples into a three-dimensional response surface of one property against two others, as in published laboratory studies: classed colour surface with grid lines and a projected map on its base, a contour map with the samples, simple and multiple regression equations with R², and a written interpretation.',
+              'يحوّل جدول العينات إلى سطح استجابة ثلاثي الأبعاد لخاصية واحدة مقابل خاصيتين أخريين، كما في الدراسات المختبرية المنشورة: سطح ملوّن بفئات مع خطوط شبكة وخريطة مسقطة على قاعدته، وخريطة كنتورية مع العينات، ومعادلات انحدار بسيطة ومتعددة مع معامل التحديد، وتفسير مكتوب.'),
+ 'overview': [
+   L('Paste the laboratory table (for example Atterberg limits, specific gravity, swelling indices and XRD mineral percentages), choose the two predictors and the response, and the tool fits the surface by thin-plate spline, distance-weighted least squares, inverse distance weighting or polynomial regression. The surface can be rotated through 360° and exported with its legend and equations.',
+     'الصق جدول المختبر (مثل حدود أتربرغ والوزن النوعي ومؤشرات الانتفاخ ونسب المعادن من حيود الأشعة السينية)، واختر المتغيرين المستقلين والاستجابة، فتلائم الأداة السطح بالشريحة الرقيقة أو المربعات الصغرى الموزونة بالمسافة أو وزن مقلوب المسافة أو الانحدار متعدد الحدود. ويمكن تدوير السطح 360° وتصديره مع مفتاحه ومعادلاته.'),
+ ],
+ 'inputs': [L('Table of samples with at least three numeric columns', 'جدول عينات فيه ثلاثة أعمدة رقمية على الأقل'), L('Choice of X, Y and Z', 'اختيار X وY وZ'), L('Fitting method, smoothing and colour classes', 'طريقة الملاءمة والتنعيم وفئات الألوان')],
+ 'outputs': [L('Rotatable 3-D surface with classed colours and projected base map', 'سطح ثلاثي الأبعاد قابل للتدوير بألوان مصنفة وخريطة مسقطة على القاعدة'), L('Contour map with the samples', 'خريطة كنتورية مع العينات'), L('Simple and multiple regression equations, R², adjusted R², cross-validation error', 'معادلات الانحدار البسيط والمتعدد ومعامل التحديد والمعدّل وخطأ التحقق المتقاطع'), L('PNG, JPG and PDF figures, CSV', 'أشكال PNG وJPG وPDF وCSV')],
+ 'workflow': [L('Enter the samples', 'أدخل العينات'), L('Choose X, Y and Z', 'اختر X وY وZ'), L('Rotate, read and export', 'دوّر واقرأ وصدّر')],
+ 'method': [
+   {'h': L('Surface fitting', 'ملاءمة السطح'), 'p': L('Coordinates are scaled to 0–1 before fitting so that variables with different units weigh equally. The thin-plate spline minimises bending energy with an optional smoothing term; DWLS fits a local plane with Gaussian distance weights; IDW averages the samples with inverse-distance weights; the regressions fit a plane or a quadratic surface by least squares.', 'تُحوَّل الإحداثيات إلى المدى 0–1 قبل الملاءمة ليتساوى وزن المتغيرات ذات الوحدات المختلفة. تقلل الشريحة الرقيقة طاقة الانحناء مع حد تنعيم اختياري، وتلائم DWLS مستوياً محلياً بأوزان مسافة غاوسية، ويحسب IDW متوسط العينات بأوزان مقلوب المسافة، وتلائم الانحدارات مستوياً أو سطحاً تربيعياً بالمربعات الصغرى.'), 'eq': 'f(x,y) = a0 + a1·x + a2·y + Σ wi·r²·ln r'},
+   {'h': L('Statistics', 'الإحصاء'), 'p': L('Simple regressions of Z on X and on Y, multiple regression on both with adjusted R², the correlation between the two predictors to detect collinearity, and leave-one-out cross-validation of the fitted surface.', 'الانحدار البسيط لـ Z على X وعلى Y، والانحدار المتعدد على الاثنين مع معامل التحديد المعدّل، والارتباط بين المتغيرين المستقلين لكشف التداخل الخطي، والتحقق المتقاطع للسطح بترك عينة واحدة.'), 'eq': 'R²adj = 1 − (1 − R²)(n − 1)/(n − p − 1)'},
+ ],
+ 'users': [L('Geotechnical and materials laboratories', 'مختبرات الجيوتقنية والمواد'), L('Researchers and postgraduate students', 'الباحثون وطلبة الدراسات العليا'), L('Geochemists and hydrogeologists', 'الجيوكيميائيون والهيدروجيولوجيون')],
+ 'refs': ['Duchon, J. (1977). Splines minimizing rotation-invariant semi-norms in Sobolev spaces. Lecture Notes in Mathematics, 571, 85–100.', 'McLain, D.H. (1974). Drawing contours from arbitrary data points. The Computer Journal, 17(4), 318–324.', 'Shepard, D. (1968). A two-dimensional interpolation function for irregularly-spaced data. Proc. 23rd ACM National Conference, 517–524.', 'Fondjo, A.A. & Theron, E. (2020). Assessment of the mineral composition of heaving soils using geotechnical properties. Civil Engineering and Architecture, 8(4), 619–631.'],
+ 'exports': L('PNG, JPG and PDF figures, CSV, PDF report', 'أشكال PNG وJPG وPDF وCSV وتقرير PDF'),
+ 'related': ['atterberg-limits', 'soil-properties', 'grain-size'],
+},
+{
  'slug': 'rockmass-lab', 'cat': 'engineering', 'icon': 'layers', 'illus': 'stereonet', 'libs': ['fa'],
  'name': L('Rock Mass Classification Lab', 'مختبر تصنيف الكتلة الصخرية'),
  'tagline': L('RMR89, Q, Q-slope and GSI with Hoek–Brown strength and deformation modulus.', 'تصنيفات RMR89 وQ وQ-slope وGSI مع مقاومة Hoek–Brown ومعامل التشوه.'),

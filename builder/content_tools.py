@@ -477,7 +477,7 @@ ORDER = ['quarry-survey', 'structural-geotechnical', 'stereonet-lab', 'rockmass-
          'dem-studio', 'contour-lab', 'geomorphology-contour',
          'spectral-indices',
          'magnetic-lab', 'geothermal-lab',
-         'seismic-evaluation', 'seismic-hazard', 'soil-properties', 'bearing-capacity', 'mohr-circle', 'atterberg-limits', 'grain-size',
+         'seismic-evaluation', 'seismic-hazard', 'soil-properties', 'bearing-capacity', 'mohr-circle', 'atterberg-limits', 'grain-size', 'surface-3d',
          'water-lab', 'hydro-alert',
          'air-quality',
          'env-monitoring',
