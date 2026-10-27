@@ -156,8 +156,6 @@ PLANS = [
   'text': L('Every tool, renewable month by month.', 'كل الأدوات، يتجدد شهراً بشهر.'), 'best': False},
  {'key': 'annual', 'name': L('Annual', 'سنوي'), 'price': '500,000', 'per': L('IQD per year', 'دينار عراقي سنوياً'),
   'text': L('Twelve months for less than the price of seven.', 'اثنا عشر شهراً بأقل من سعر سبعة.'), 'best': True},
- {'key': 'geonb', 'name': L('GeoNB members', 'مشتركو جيونبأ'), 'price': '56,250', 'per': L('IQD per month', 'دينار عراقي شهرياً'),
-  'text': L('Monthly plan with the 25% partner discount for members of the GeoNB app.', 'الاشتراك الشهري بخصم الشريك 25% لمشتركي تطبيق جيونبأ.'), 'best': False},
 ]
 PLAN_FEATURES = [L('All {N} field, data and laboratory tools', 'جميع الأدوات الحقلية والبيانية والمختبرية ({N} أداة)'), L('PDF reports with QR verification', 'تقارير PDF مع رمز تحقق QR'),
                  L('Shandal AI assistant', 'مساعد شندل الذكي'), L('Arabic and English interface', 'واجهة عربية وإنجليزية'), L('Phone, tablet and desktop', 'الهاتف والجهاز اللوحي والحاسوب')]
@@ -166,7 +164,6 @@ FAQ = [
  (L('Does it work without internet in the field?', 'هل يعمل دون إنترنت في الحقل؟'), L('You need a connection to sign in and to load maps and satellite data. Calculations and report export continue to work once a tool is open.', 'تحتاج إلى اتصال لتسجيل الدخول وتحميل الخرائط والبيانات الفضائية، ثم تستمر الحسابات وتصدير التقارير بعد فتح الأداة.')),
  (L('How do I pay?', 'كيف أدفع؟'), L('By ZainCash or Mastercard. Contact us and we send the payment details and activate your account.', 'عبر زين كاش أو ماستركارد. تواصل معنا لنرسل لك تفاصيل الدفع ونفعّل حسابك.')),
  (L('Can a university or company subscribe for a team?', 'هل يمكن لجامعة أو شركة الاشتراك لفريق؟'), L('Yes. Institutional plans include several accounts and training. Send us the number of users.', 'نعم. تشمل خطط المؤسسات عدة حسابات وتدريباً. أرسل لنا عدد المستخدمين.')),
- (L('How do I get the GeoNB discount?', 'كيف أحصل على خصم جيونبأ؟'), L('Subscribe through the Shandal banner inside the GeoNB app, or tell us your GeoNB account when you contact us.', 'اشترك عبر إعلان نظام شندل داخل تطبيق جيونبأ، أو أخبرنا بحسابك في جيونبأ عند التواصل معنا.')),
  (L('Can the results be used in official reports?', 'هل يمكن استخدام النتائج في التقارير الرسمية؟'), L('Yes, as supporting analysis. Final engineering decisions must be signed by a qualified, licensed professional.', 'نعم، كتحليل داعم. يجب أن يوقّع القرارات الهندسية النهائية مختص مؤهل ومرخّص.')),
 ]
 

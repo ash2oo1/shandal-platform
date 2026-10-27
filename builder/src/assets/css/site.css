@@ -471,7 +471,7 @@ html[lang="ar"] .refs{padding-inline-start:0;padding-left:20px}
 .empty{padding:40px;text-align:center;color:var(--text-2);border:1px dashed var(--line-2);border-radius:var(--radius)}
 
 /* pricing */
-.plans{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;align-items:stretch}
+.plans{display:grid;grid-template-columns:repeat(2,minmax(0,420px));justify-content:center;gap:22px;align-items:stretch}
 .plan{display:flex;flex-direction:column;gap:14px;padding:30px;border-radius:var(--radius-l);background:var(--surface);border:1px solid var(--line)}
 .plan.best{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent),var(--shadow-2);position:relative}
 .plan .tag{position:absolute;top:-12px;inset-inline-start:24px;background:var(--gold-500);color:#141C24;font-size:.75rem;font-weight:800;padding:4px 12px;border-radius:999px}
