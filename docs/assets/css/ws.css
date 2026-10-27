@@ -14,6 +14,7 @@
 .ws.wide-side{grid-template-columns:minmax(320px,440px) minmax(0,1fr)}
 .ws-side{display:grid;gap:14px;align-content:start}
 .ws-main{display:grid;gap:18px;min-width:0}
+.ws-main>*{min-width:0;max-width:100%}
 @media (max-width:1000px){ .ws,.ws.wide-side{grid-template-columns:1fr}  }
 
 /* panels */

@@ -110,7 +110,8 @@
   }
 
   /* ---------------- facies and engineering notes */
-  function facies(b) {
+  function facies(b, L) {
+    var t = L ? function (en, ar) { return L === 'ar' ? ar : en; } : SH.t;
     var r = R[b.rock] || {}, st = b.st || [], has = function (k) { return st.indexOf(k) > -1; }, k = b.rock, g = r[5];
     if (k === 'topsoil') return t('Modern soil horizon with organic matter.', 'أفق تربة حديثة غني بالمادة العضوية.');
     if (k === 'fill') return t('Anthropogenic made ground.', 'أرض مصطنعة من نشاط بشري.');
@@ -247,5 +248,5 @@
     return { get: function () { return beds; }, set: function (b) { beds = b; save(); bedsUI(); }, redraw: bedsUI };
   }
 
-  SH.strat = { R: R, GROUPS: GROUPS, CONTACTS: CONTACTS, STRUCT: STRUCT, GS: GS, pattern: pattern, symbol: symbol, render: render, editor: editor, facies: facies, dig: dig, name: function (k) { return nm(R[k]); } };
+  SH.strat = { R: R, GROUPS: GROUPS, CONTACTS: CONTACTS, STRUCT: STRUCT, GS: GS, pattern: pattern, symbol: symbol, contact: contact, render: render, editor: editor, facies: facies, dig: dig, name: function (k) { return nm(R[k]); } };
 })();

@@ -54,7 +54,7 @@ OVERRIDES = {
           'Wyllie, D.C. & Mah, C.W. (2004). Rock Slope Engineering: Civil and Mining, 4th ed. Spon Press, London.'],
  'exports': L('PDF report, PNG figures', 'تقرير PDF، أشكال PNG'),
 },
-'strata': {'exports': L('SVG and PNG column, CSV bed table', 'عمود SVG وPNG، جدول طبقات CSV')},
+'strata': {'exports': L('SVG and PNG column, CSV unit table, PDF report', 'عمود SVG وPNG، جدول وحدات CSV، تقرير PDF')},
 'kerogen-lab': {
  'summary': L('Calculates hydrogen, oxygen and production indices from Rock-Eval pyrolysis, estimates vitrinite-equivalent maturity from Tmax, and plots samples on HI–TOC, pseudo-Van Krevelen and HI–Tmax diagrams.',
               'يحسب مؤشرات الهيدروجين والأكسجين والإنتاج من التحلل الحراري Rock-Eval، ويقدّر النضج المكافئ للفيترينايت من Tmax، ويسقط العينات على مخططات HI–TOC وفان كريفيلين وHI–Tmax.'),
