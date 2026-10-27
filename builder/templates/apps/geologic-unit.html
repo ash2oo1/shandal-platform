@@ -19,6 +19,10 @@
       <label class="chk"><input type="checkbox" id="uOv" checked> {{ m.L('Geological map overlay', 'طبقة الخريطة الجيولوجية') }}</label>
       {{ m.fld('uOp', 'Overlay opacity', 'شفافية الطبقة', 'range', '60', '%', '', '', '', '5', 'min="10" max="100"') }}
       <label class="chk"><input type="checkbox" id="uLab" checked> {{ m.L('Show the place name under the point', 'أظهر اسم المكان تحت النقطة') }}</label>
+      <div class="row2"><button class="btn btn-line btn-sm" id="uArea" type="button">{{ icon('square-dashed', 'ico ico-sm') }}{{ m.L('Draw study area', 'حدد منطقة الدراسة') }}</button><button class="btn btn-line btn-sm" id="uAreaX" type="button" hidden>{{ m.L('Remove study area', 'احذف منطقة الدراسة') }}</button></div>
+      <p class="xsmall muted" id="uAreaHint" hidden style="margin:0">{{ m.L('Drag a rectangle on the map, or tap two opposite corners on a phone. The map sheet is exported to this extent.', 'اسحب مستطيلاً على الخريطة، أو انقر زاويتين متقابلتين على الهاتف. تُصدَّر لوحة الخريطة بحدود هذه المنطقة.') }}</p>
+      {{ m.fld('uTitle', 'Map sheet title', 'عنوان لوحة الخريطة', 'text', '', '', '', '', m.L('e.g. Geological map of the Rutba area', 'مثال: الخريطة الجيولوجية لمنطقة الرطبة')) }}
+      <label class="chk"><input type="checkbox" id="uSheetTs" checked> {{ m.L('Add the time-scale panel to the map sheet', 'أضف مخطط الزمن الجيولوجي إلى لوحة الخريطة') }}</label>
       <label class="chk"><input type="checkbox" id="uNb" checked> {{ m.L('Survey the surrounding units (25 km) for the succession', 'استقصِ الوحدات المحيطة (25 كم) لبناء التتابع') }}</label>
     {{ m.panel_close() }}
   </aside>

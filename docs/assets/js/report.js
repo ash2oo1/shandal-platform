@@ -40,7 +40,7 @@
   /* Leaflet: draw the loaded tiles ourselves (html2canvas often leaves them blank), then the overlays and
      markers on top, then a proper graphic scale and north arrow in place of the on-screen controls */
   function tileImg(t) { return new Promise(function (res) { var i = new Image(); i.crossOrigin = 'anonymous'; i.onload = function () { res(i); }; i.onerror = function () { res(null); }; i.src = t.src; }); }
-  function mapImg(m) {
+  function mapImg(m, bare) {
     var W = m.offsetWidth, H = m.offsetHeight, R0 = m.getBoundingClientRect(), lm = m._shMap;
     var tiles = Array.prototype.filter.call(m.querySelectorAll('.leaflet-tile-pane img.leaflet-tile'), function (t) { var r = t.getBoundingClientRect(); return t.classList.contains('leaflet-tile-loaded') && r.right > R0.left && r.left < R0.right && r.bottom > R0.top && r.top < R0.bottom && getComputedStyle(t.closest('.leaflet-layer') || t).opacity !== '0'; });
     if (!tiles.length) return mapImg0(m);
@@ -52,7 +52,7 @@
         return imgFromURL('data:image/svg+xml;charset=utf-8,' + encodeURIComponent(new XMLSerializer().serializeToString(c))).then(function (im) { x.drawImage(im, (r.left - R0.left) * k, (r.top - R0.top) * k, r.width * k, r.height * k); }).catch(function () {}); })).then(function () { return ov; });
     }).then(function (ov) {
       if (ov && ov.width && ov.height) x.drawImage(ov, 0, 0, cv.width, cv.height);
-      if (lm && w.L) try { mapDeco(x, k, W, H, lm, m); } catch (e) {}
+      if (lm && w.L && !bare) try { mapDeco(x, k, W, H, lm, m); } catch (e) {}
       return { src: cv.toDataURL('image/jpeg', .92), w: W, h: H };
     });
   }
@@ -146,15 +146,20 @@
     return p;
   }
 
-  SH.mapImage = function (m) { return libs().then(function () { return mapImg(m); }); };
+  SH.mapImage = function (m, bare) { return libs().then(function () { return mapImg(m, bare); }); };
+  SH.svgImage = function (svg) { return libs().then(function () { return svgImg(svg); }); };
+  SH.loadImage = imgFromURL;
+  /* save a canvas as PNG, JPG or a one-page PDF (orientation follows the canvas) */
+  SH.exportCanvas = function (cv, name, fmt) {
+    if (fmt === 'pdf') return libs().then(function () { var land = cv.width > cv.height, pdf = new w.jspdf.jsPDF({ unit: 'pt', format: 'a4', orientation: land ? 'landscape' : 'portrait', compress: true }), pw = pdf.internal.pageSize.getWidth(), ph = pdf.internal.pageSize.getHeight(), m = 20, k = Math.min((pw - 2 * m) / cv.width, (ph - 2 * m) / cv.height);
+      pdf.addImage(cv.toDataURL('image/jpeg', .95), 'JPEG', (pw - cv.width * k) / 2, (ph - cv.height * k) / 2, cv.width * k, cv.height * k); return SH.download(name + '.pdf', pdf.output('blob')); });
+    return new Promise(function (res) { cv.toBlob(function (b) { res(SH.download(name + (fmt === 'jpg' ? '.jpg' : '.png'), b)); }, fmt === 'jpg' ? 'image/jpeg' : 'image/png', .95); });
+  };
   /* export one figure (Leaflet map element or SVG) as PNG, JPG or a one-page PDF */
   SH.exportFigure = function (node, name, fmt) {
-    var get = node.tagName && node.tagName.toLowerCase() === 'svg' ? libs().then(function () { return svgImg(node); }) : SH.mapImage(node);
+    var get = node.tagName && node.tagName.toLowerCase() === 'svg' ? SH.svgImage(node) : SH.mapImage(node);
     return get.then(function (im) { return imgFromURL(im.src).then(function (i) {
-      var cv = d.createElement('canvas'); cv.width = i.naturalWidth; cv.height = i.naturalHeight; var x = cv.getContext('2d'); x.fillStyle = '#fff'; x.fillRect(0, 0, cv.width, cv.height); x.drawImage(i, 0, 0);
-      if (fmt === 'pdf') { var land = cv.width > cv.height, pdf = new w.jspdf.jsPDF({ unit: 'pt', format: 'a4', orientation: land ? 'landscape' : 'portrait', compress: true }), pw = pdf.internal.pageSize.getWidth(), ph = pdf.internal.pageSize.getHeight(), m = 28, k = Math.min((pw - 2 * m) / cv.width, (ph - 2 * m) / cv.height);
-        pdf.addImage(cv.toDataURL('image/jpeg', .95), 'JPEG', (pw - cv.width * k) / 2, (ph - cv.height * k) / 2, cv.width * k, cv.height * k); return SH.download(name + '.pdf', pdf.output('blob')); }
-      return new Promise(function (res) { cv.toBlob(function (b) { res(SH.download(name + (fmt === 'jpg' ? '.jpg' : '.png'), b)); }, fmt === 'jpg' ? 'image/jpeg' : 'image/png', .95); }); }); });
+      var cv = d.createElement('canvas'); cv.width = i.naturalWidth; cv.height = i.naturalHeight; var x = cv.getContext('2d'); x.fillStyle = '#fff'; x.fillRect(0, 0, cv.width, cv.height); x.drawImage(i, 0, 0); return SH.exportCanvas(cv, name, fmt); }); });
   };
   SH.report = function (title) {
     var host = d.body, meta0 = {}; try { meta0 = JSON.parse((d.getElementById('toolMeta') || {}).textContent || '{}'); } catch (e) {}

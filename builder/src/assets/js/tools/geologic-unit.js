@@ -7,7 +7,7 @@
   'use strict';
   var t = SH.t, $ = SH.$, L = window.L, AR = SH.lang === 'ar', ST = SH.strat;
   var INK = '#1B232B', MUT = '#55616B', API = 'https://macrostrat.org/api/v2/', NOM = 'https://nominatim.openstreetmap.org/';
-  var persist = SH.persist('geounit', ['uLat', 'uLon', 'uOv', 'uOp', 'uLab', 'uNb']);
+  var persist = SH.persist('geounit', ['uLat', 'uLon', 'uOv', 'uOp', 'uLab', 'uNb', 'uTitle', 'uSheetTs']);
   var map = SH.map('uMap', { zoom: 6, base: 'light', center: [33.3, 43.5] }), ov = null, mk = null, polys = {}, polyLayer = null;
   var S0 = { lat: NaN, lon: NaN, place: null, units: [], elev: null, col: [], colMode: '', nb: [], seq: 0 };
 
@@ -85,7 +85,7 @@
     if (map) { if (mk) mk.setLatLng([lat, lon]); else mk = L.marker([lat, lon], { icon: SH.pin('', 'mk mk-site', [18, 18]) }).addTo(map); mk.unbindTooltip(); }
     $('#uEmpty').hidden = true; $('#uOut').hidden = false; $('#uKpis').hidden = false;
     $('#uRes').innerHTML = '<div class="xsmall muted" style="padding:14px 16px">' + t('Querying the geological maps…', 'جارٍ الاستعلام من الخرائط الجيولوجية…') + '</div>';
-    reverse(lat, lon).then(function (p) { if (seq !== S0.seq) return; S0.place = p; label(); kpis(); narrative(); });
+    S0.placeEn = null; reverse(lat, lon).then(function (p) { if (seq !== S0.seq) return; S0.place = p; label(); kpis(); narrative(); if (!AR) { S0.placeEn = p; return; } return new Promise(function (r) { setTimeout(r, 1100); }).then(function () { return JS(NOM + 'reverse?format=jsonv2&zoom=10&lat=' + lat.toFixed(5) + '&lon=' + lon.toFixed(5) + '&accept-language=en', 12000); }).then(function (q) { if (seq === S0.seq) S0.placeEn = q; }).catch(function () {}); });
     units(lat, lon).then(function (r) {
       if (seq !== S0.seq) return; S0.units = r.units; S0.elev = r.elev; S0.col = []; S0.nb = []; S0.colMode = ''; render(); kpis(); timescale(); narrative(); table(); drawCol();
       return column(lat, lon).then(function (c) { if (seq !== S0.seq) return; if (c.length) { S0.col = c; S0.colMode = 'col'; drawCol(); narrative(); return; }
@@ -250,11 +250,84 @@
   $('#uJson').addEventListener('click', function () { if (!isFinite(S0.lat)) return; var f = [{ type: 'Feature', geometry: { type: 'Point', coordinates: [S0.lon, S0.lat] }, properties: { place: placeTxt(S0.place), elevation_m: S0.elev, units: S0.units } }];
     Object.keys(polys).forEach(function (k) { if (polys[k]._f) f.push(Object.assign({}, polys[k]._f, { properties: Object.assign({ unit: S0.units[k].name }, polys[k]._f.properties || {}) })); }); SH.json('shandal-geological-units.geojson', { type: 'FeatureCollection', features: f }); });
   document.addEventListener('click', function (e) { var b = e.target.closest('[data-exp]'); if (!b) return; if (!isFinite(S0.lat)) { SH.toast(t('Identify a point first.', 'حدد نقطة أولاً.'), 'warn'); return; } if (b.disabled) return; b.disabled = true;
-    SH.exportFigure($('#' + b.getAttribute('data-exp')), b.getAttribute('data-nm'), b.getAttribute('data-f')).catch(function () { SH.toast(t('The image could not be created. Wait for the map to finish loading and try again.', 'تعذر إنشاء الصورة. انتظر اكتمال تحميل الخريطة ثم أعد المحاولة.'), 'warn'); }).then(function () { b.disabled = false; }); });
-  function mapCap() { $('#uMapCap').innerHTML = '<b>' + t('Input: ', 'المدخلات: ') + '</b>' + t('the selected point.', 'النقطة المختارة.') + ' <b>' + t('Output: ', 'المخرجات: ') + '</b>' + t('integrated geological map, the point with its place name, and the unit boundary when requested.', 'الخريطة الجيولوجية المدمجة، والنقطة مع اسم المكان، وحدود الوحدة عند الطلب.') + ' <b>' + t('Interpretation: ', 'التفسير: ') + '</b>' + t('colours distinguish the mapped units; the boundary shows the extent of the selected unit, and its precision is limited by the map scale given in the unit list.', 'تميّز الألوان الوحدات المرسومة، وتُظهر الحدود امتداد الوحدة المختارة، ودقتها محدودة بمقياس الخريطة المبين في قائمة الوحدات.'); }
+    (b.getAttribute('data-exp') === 'uMap' ? sheet().then(function (cv) { return SH.exportCanvas(cv, b.getAttribute('data-nm'), b.getAttribute('data-f')); }) : SH.exportFigure($('#' + b.getAttribute('data-exp')), b.getAttribute('data-nm'), b.getAttribute('data-f'))).catch(function () { SH.toast(t('The image could not be created. Wait for the map to finish loading and try again.', 'تعذر إنشاء الصورة. انتظر اكتمال تحميل الخريطة ثم أعد المحاولة.'), 'warn'); }).then(function () { b.disabled = false; }); });
+  function mapCap() { $('#uMapCap').innerHTML = '<b>' + t('Input: ', 'المدخلات: ') + '</b>' + t('the selected point.', 'النقطة المختارة.') + ' <b>' + t('Output: ', 'المخرجات: ') + '</b>' + t('integrated geological map, the point with its place name, the unit boundary and the study area when requested. The downloaded map is a complete sheet: title, coordinate graticule, graphic scale and representative fraction, north arrow, legend of the units and the time-scale panel.', 'الخريطة الجيولوجية المدمجة، والنقطة مع اسم المكان، وحدود الوحدة ومنطقة الدراسة عند الطلب. والخريطة المنزّلة لوحة كاملة: العنوان، وشبكة الإحداثيات، ومقياس الرسم الخطي والنسبي، وسهم الشمال، ومفتاح الوحدات، ومخطط الزمن الجيولوجي.') + ' <b>' + t('Interpretation: ', 'التفسير: ') + '</b>' + t('colours distinguish the mapped units; the boundary shows the extent of the selected unit, and its precision is limited by the map scale given in the unit list.', 'تميّز الألوان الوحدات المرسومة، وتُظهر الحدود امتداد الوحدة المختارة، ودقتها محدودة بمقياس الخريطة المبين في قائمة الوحدات.'); }
   mapCap();
 
-  if (map) map.on('click', function (e) { query(e.latlng.lat, e.latlng.lng); });
+
+  /* ---------- study area and the composed map sheet (map, graticule, scale, north arrow, legend, time scale, credits) */
+  var area = null, drawing = false, drawer = null;
+  $('#uArea').addEventListener('click', function () { if (!map) return; if (drawer) drawer.cancel(); drawing = true;
+    drawer = SH.drawRect(map, function (bb, r) { if (r) map.removeLayer(r); if (area) map.removeLayer(area); area = L.rectangle(bb, { color: '#C0392B', weight: 2.5, dashArray: '8 5', fill: false, interactive: false }).addTo(map); $('#uAreaX').hidden = false; setTimeout(function () { drawing = false; }, 400); }, $('#uAreaHint')); });
+  $('#uAreaX').addEventListener('click', function () { if (area && map) map.removeLayer(area); area = null; this.hidden = true; });
+  function tilesReady() { return new Promise(function (res) { var n = 0, iv = setInterval(function () { var pend = map.getContainer().querySelectorAll('.leaflet-tile-pane img.leaflet-tile:not(.leaflet-tile-loaded)').length; if (!pend || ++n > 40) { clearInterval(iv); setTimeout(res, 350); } }, 200); }); }
+  function dms(v, ax) { var a = Math.abs(v), d = Math.floor(a + 1e-9), m = Math.round((a - d) * 60); if (m === 60) { d++; m = 0; } return d + '°' + (m ? (m < 10 ? '0' : '') + m + '′' : '') + (ax === 'lat' ? (v >= 0 ? 'N' : 'S') : (v >= 0 ? 'E' : 'W')); }
+  function niceDeg(span) { var c = [1 / 60, 2 / 60, 5 / 60, 10 / 60, 0.25, 0.5, 1, 2, 5, 10, 20]; for (var i = 0; i < c.length; i++) if (span / c[i] <= 5) return c[i]; return 30; }
+  function sheet() {
+    if (!map) return Promise.reject(new Error('map'));
+    var view = { c: map.getCenter(), z: map.getZoom() }, snap = map.options.zoomSnap, prep = area ? (map.options.zoomSnap = 0, map.fitBounds(area.getBounds(), { padding: [12, 12], animate: false }), tilesReady()) : tilesReady();
+    return prep.then(function () {
+      var el = map.getContainer(), W0 = el.offsetWidth, H0 = el.offsetHeight, cr = { x: 0, y: 0, w: W0, h: H0 };
+      if (area) { var b = area.getBounds(), p1 = map.latLngToContainerPoint(b.getNorthWest()), p2 = map.latLngToContainerPoint(b.getSouthEast()), mx = 10, my = 10; cr.x = Math.max(0, p1.x - mx); cr.y = Math.max(0, p1.y - my); cr.w = Math.min(W0, p2.x + mx) - cr.x; cr.h = Math.min(H0, p2.y + my) - cr.y; }
+      var W = cr.w, H = cr.h, geo = { tl: map.containerPointToLatLng([cr.x, cr.y]), br: map.containerPointToLatLng([cr.x + W, cr.y + H]), c: map.containerPointToLatLng([cr.x + W / 2, cr.y + H / 2]) };
+      var mpp = map.distance(map.containerPointToLatLng([cr.x + W / 2 - 50, cr.y + H / 2]), map.containerPointToLatLng([cr.x + W / 2 + 50, cr.y + H / 2])) / 100, pt = function (la, lo) { var q = map.latLngToContainerPoint([la, lo]); return { x: q.x - cr.x, y: q.y - cr.y }; };
+      var proj = { lat: [], lon: [] }, st = niceDeg(Math.max(geo.br.lng - geo.tl.lng, geo.tl.lat - geo.br.lat));
+      for (var v = Math.ceil(geo.tl.lng / st) * st; v < geo.br.lng; v += st) proj.lon.push([v, pt(geo.c.lat, v).x]);
+      for (v = Math.ceil(geo.br.lat / st) * st; v < geo.tl.lat; v += st) proj.lat.push([v, pt(v, geo.c.lng).y]);
+      return Promise.all([SH.mapImage(el, true), $('#uSheetTs').checked && S0.units.some(function (u) { return isFinite(u.b_age); }) ? SH.svgImage($('#uSvg')) : null]).then(function (r) {
+        if (area) { map.options.zoomSnap = snap; map.setView(view.c, view.z, { animate: false }); }
+        return Promise.all([SH.loadImage(r[0].src), r[1] ? SH.loadImage(r[1].src) : null]).then(function (im) { var r0 = im[0].naturalWidth / W0, c2 = document.createElement('canvas'); c2.width = Math.round(W * r0); c2.height = Math.round(H * r0); c2.getContext('2d').drawImage(im[0], cr.x * r0, cr.y * r0, W * r0, H * r0, 0, 0, c2.width, c2.height); return compose(c2, im[1], { W: W, H: H, mpp: mpp, proj: proj, st: st }); });
+      });
+    });
+  }
+  function compose(mapIm, tsIm, g) {
+    var SW = 2400, SH2 = 3400, cv = document.createElement('canvas'); cv.width = SW; cv.height = SH2; var x = cv.getContext('2d'), F = 'Manrope, "IBM Plex Sans Arabic", Arial, sans-serif';
+    var txt = function (s, X, Y, sz, wt, col, al) { x.font = (wt || 400) + ' ' + sz + 'px ' + F; x.fillStyle = col || INK; x.textAlign = al || 'left'; x.fillText(s, X, Y); };
+    x.fillStyle = '#fff'; x.fillRect(0, 0, SW, SH2);
+    var place = placeTxt(S0.placeEn || (AR ? null : S0.place), false), title = SH.val('uTitle').trim() || ('Geological map' + (place ? ' — ' + place : ''));
+    txt(title, 60, 74, 40, 800); txt(SH.fmtLatLon(S0.lat, S0.lon, 4) + (S0.elev != null ? '  ·  elevation ' + SH.fmt(S0.elev, 0) + ' m' : '') + '  ·  WGS 84, Web Mercator projection', 60, 112, 22, 500, MUT);
+    x.strokeStyle = INK; x.lineWidth = 2; x.beginPath(); x.moveTo(40, 136); x.lineTo(SW - 40, 136); x.stroke();
+    // map frame
+    var FX = 120, FY = 196, FWmax = 1560, FHmax = 1500, f = Math.min(FWmax / g.W, FHmax / g.H), FW = g.W * f, FH = g.H * f;
+    x.drawImage(mapIm, FX, FY, FW, FH); x.lineWidth = 3; x.strokeRect(FX, FY, FW, FH); x.lineWidth = 1; x.strokeRect(FX - 10, FY - 10, FW + 20, FH + 20);
+    // graticule ticks and labels
+    x.strokeStyle = INK; x.lineWidth = 1.6;
+    g.proj.lon.forEach(function (q) { var X = FX + q[1] * f; if (X < FX + 4 || X > FX + FW - 4) return; x.beginPath(); x.moveTo(X, FY - 10); x.lineTo(X, FY + 12); x.moveTo(X, FY + FH + 10); x.lineTo(X, FY + FH - 12); x.stroke(); txt(dms(q[0], 'lon'), X, FY - 20, 20, 600, INK, 'center'); txt(dms(q[0], 'lon'), X, FY + FH + 38, 20, 600, INK, 'center'); });
+    g.proj.lat.forEach(function (q) { var Y = FY + q[1] * f; if (Y < FY + 4 || Y > FY + FH - 4) return; x.beginPath(); x.moveTo(FX - 10, Y); x.lineTo(FX + 12, Y); x.moveTo(FX + FW + 10, Y); x.lineTo(FX + FW - 12, Y); x.stroke();
+      x.save(); x.translate(FX - 22, Y); x.rotate(-Math.PI / 2); txt(dms(q[0], 'lat'), 0, 0, 20, 600, INK, 'center'); x.restore(); x.save(); x.translate(FX + FW + 34, Y); x.rotate(-Math.PI / 2); txt(dms(q[0], 'lat'), 0, 0, 20, 600, INK, 'center'); x.restore(); });
+    g.proj.lon.forEach(function (a) { g.proj.lat.forEach(function (b) { var X = FX + a[1] * f, Y = FY + b[1] * f; if (X < FX + 20 || X > FX + FW - 20 || Y < FY + 20 || Y > FY + FH - 20) return; x.strokeStyle = 'rgba(27,35,43,.75)'; x.lineWidth = 1.4; x.beginPath(); x.moveTo(X - 10, Y); x.lineTo(X + 10, Y); x.moveTo(X, Y - 10); x.lineTo(X, Y + 10); x.stroke(); }); });
+    // side panel
+    var PX = FX + FW + 90, PW = SW - 40 - PX, y = FY;
+    // north arrow
+    var cx = PX + 46, cy = y + 52; x.fillStyle = INK; x.beginPath(); x.moveTo(cx, cy - 44); x.lineTo(cx - 20, cy + 26); x.lineTo(cx, cy + 12); x.closePath(); x.fill(); x.fillStyle = '#fff'; x.strokeStyle = INK; x.lineWidth = 2; x.beginPath(); x.moveTo(cx, cy - 44); x.lineTo(cx + 20, cy + 26); x.lineTo(cx, cy + 12); x.closePath(); x.fill(); x.stroke(); txt('N', cx, cy - 54, 28, 800, INK, 'center');
+    // scale bar
+    var mps = g.mpp / f, want = mps * Math.min(PW - 150, 420), p = Math.pow(10, Math.floor(Math.log10(want))), n = want / p, len = (n >= 5 ? 5 : n >= 2 ? 2 : 1) * p, px = len / mps, sx = PX + 120, sy = y + 40, lab = function (m) { return m >= 1000 ? SH.fmt(m / 1000, m % 1000 ? 1 : 0) : SH.fmt(m, 0); }, un = len >= 1000 ? 'km' : 'm';
+    for (var i = 0; i < 4; i++) { x.fillStyle = i % 2 ? '#fff' : INK; x.fillRect(sx + i * px / 4, sy, px / 4, 14); } x.strokeStyle = INK; x.lineWidth = 1.5; x.strokeRect(sx, sy, px, 14);
+    [[0, '0'], [px / 2, lab(len / 2)], [px, lab(len) + ' ' + un]].forEach(function (q) { x.beginPath(); x.moveTo(sx + q[0], sy); x.lineTo(sx + q[0], sy - 6); x.stroke(); txt(q[1], sx + q[0], sy - 12, 20, 700, INK, 'center'); });
+    var rf = mps / (297 / SW / 1000), rp = Math.pow(10, Math.floor(Math.log10(rf)) - 1); txt('Scale 1 : ' + (Math.round(rf / rp) * rp).toLocaleString('en-US') + ' (sheet printed at A4 width)', sx, sy + 46, 19, 500, MUT);
+    y += 130; x.strokeStyle = '#C9CED3'; x.lineWidth = 1; x.beginPath(); x.moveTo(PX, y); x.lineTo(SW - 40, y); x.stroke(); y += 42;
+    // legend
+    txt('LEGEND', PX, y, 24, 800); y += 34;
+    var L0 = (S0.nb.length ? S0.nb : S0.units).filter(function (u) { return u.name; }).slice().sort(function (a, b) { return (a.t_age - b.t_age) || (a.b_age - b.b_age); }), seen = {};
+    L0 = L0.filter(function (u) { var k = u.name + u.b_age; if (seen[k]) return false; seen[k] = 1; return true; }).slice(0, tsIm ? 7 : 12);
+    var clip = function (s, w, sz, wt) { x.font = (wt || 400) + ' ' + sz + 'px ' + F; if (x.measureText(s).width <= w) return s; while (s.length > 3 && x.measureText(s + '…').width > w) s = s.slice(0, -1); return s + '…'; };
+    L0.forEach(function (u) { x.fillStyle = u.color || '#ddd'; x.fillRect(PX, y - 2, 52, 32); x.strokeStyle = INK; x.lineWidth = 1.2; x.strokeRect(PX, y - 2, 52, 32); var here = S0.units.some(function (q) { return q.name === u.name && q.b_age === u.b_age; });
+      txt(clip(u.name, PW - 74, 20, 700), PX + 68, y + 12, 20, 700); txt(clip((isFinite(u.b_age) ? fmtMa(u.b_age) + '–' + fmtMa(u.t_age) + ' Ma' : '') + (u.lith ? ' · ' + u.lith : '') + (here ? ' · at the point' : ''), PW - 74, 17, 400), PX + 68, y + 34, 17, 400, MUT); y += 50; });
+    var sym = function (draw, s) { draw(PX + 26, y + 12); txt(s, PX + 68, y + 19, 19, 500); y += 40; };
+    y += 4; sym(function (X, Y) { x.fillStyle = '#C0392B'; x.beginPath(); x.arc(X, Y, 9, 0, 7); x.fill(); x.strokeStyle = '#fff'; x.lineWidth = 3; x.stroke(); }, 'Selected point');
+    if (area) sym(function (X, Y) { x.strokeStyle = '#C0392B'; x.lineWidth = 3; x.setLineDash([10, 6]); x.strokeRect(X - 24, Y - 12, 48, 24); x.setLineDash([]); }, 'Study area');
+    if (polyLayer && polyLayer.getLayers().length) sym(function (X, Y) { x.fillStyle = 'rgba(192,57,43,.15)'; x.fillRect(X - 24, Y - 12, 48, 24); x.strokeStyle = '#C0392B'; x.lineWidth = 2.5; x.setLineDash([8, 5]); x.strokeRect(X - 24, Y - 12, 48, 24); x.setLineDash([]); }, 'Boundary of the selected unit');
+    // time scale panel
+    if (tsIm) { y += 10; x.strokeStyle = '#C9CED3'; x.lineWidth = 1; x.beginPath(); x.moveTo(PX, y); x.lineTo(SW - 40, y); x.stroke(); y += 36; txt('POSITION ON THE GEOLOGICAL TIME SCALE', PX, y, 20, 800); y += 14;
+      var k2 = PW / tsIm.width; x.drawImage(tsIm, PX, y, tsIm.width * k2, tsIm.height * k2); y += tsIm.height * k2; }
+    // credits (the sheet height follows the content, at least A4 landscape proportions)
+    var bot = Math.max(FY + FH + 60, y + 20), HH = Math.max(1697, bot + 110), out = document.createElement('canvas'); out.width = SW; out.height = HH; var ox = out.getContext('2d'); ox.fillStyle = '#fff'; ox.fillRect(0, 0, SW, HH); ox.drawImage(cv, 0, 0); cv = out; x = ox; SH2 = HH;
+    x.strokeStyle = INK; x.lineWidth = 2; x.beginPath(); x.moveTo(40, SH2 - 76); x.lineTo(SW - 40, SH2 - 76); x.stroke();
+    txt('Data: Macrostrat (CC BY 4.0). Basemap © Esri, HERE, Garmin, © OpenStreetMap contributors. Place names: OpenStreetMap Nominatim. Map units are generalised to the scale of the source maps.', 40, SH2 - 44, 17, 400, MUT);
+    txt('Shandal System · ' + new Date().toISOString().slice(0, 10) + (SH.val('geoName') ? ' · ' + SH.val('geoName') : ''), SW - 40, SH2 - 44, 17, 600, MUT, 'right');
+    return cv;
+  }
+  if (map) map.on('click', function (e) { if (drawing) return; query(e.latlng.lat, e.latlng.lng); });
   $('#uGo').addEventListener('click', function () { var a = SH.num('uLat'), b = SH.num('uLon'); if (isNaN(a) || isNaN(b)) { SH.toast(t('Enter coordinates.', 'أدخل الإحداثيات.'), 'warn'); return; } if (map) map.setView([a, b], Math.max(map.getZoom(), 9)); query(a, b); });
   $('#uMe').addEventListener('click', function () { var bt = this; bt.disabled = true; SH.locate().then(function (p) { if (map) map.setView([p.lat, p.lon], 10); query(p.lat, p.lon); }).catch(function (e) { SH.toast(e.message, 'bad'); }).then(function () { bt.disabled = false; }); });
   document.addEventListener('sh:beforereport', function (e) { if (!S0.units.length) { e.preventDefault(); SH.toast(t('Identify a point first.', 'حدد نقطة أولاً.'), 'warn'); } });
