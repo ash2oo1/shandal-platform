@@ -207,7 +207,7 @@
       var prj = G.crs === 'utm' ? 'PROJCS["WGS_1984_UTM_Zone_' + G.zone + (G.south ? 'S' : 'N') + '",GEOGCS["GCS_WGS_1984",DATUM["D_WGS_1984",SPHEROID["WGS_1984",6378137.0,298.257223563]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]],PROJECTION["Transverse_Mercator"],PARAMETER["False_Easting",500000.0],PARAMETER["False_Northing",' + (G.south ? '10000000.0' : '0.0') + '],PARAMETER["Central_Meridian",' + ((G.zone - 1) * 6 - 177) + '.0],PARAMETER["Scale_Factor",0.9996],PARAMETER["Latitude_Of_Origin",0.0],UNIT["Meter",1.0]]' : 'GEOGCS["GCS_WGS_1984",DATUM["D_WGS_1984",SPHEROID["WGS_1984",6378137.0,298.257223563]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]]';
       setTimeout(function () { SH.download(nm + '.prj', prj, 'text/plain'); }, 500);
     } else if (kind === 'png') {
-      var a = document.createElement('a'); a.href = D.render(G, { ramp: ramp(), shade: $('#dShade').checked }); a.download = nm + '-relief.png'; a.click();
+      var im0 = new Image(); im0.onload = function () { var c = document.createElement('canvas'); c.width = im0.width; c.height = im0.height; c.getContext('2d').drawImage(im0, 0, 0); SH.canvasPng(c, nm + '-relief.png'); }; im0.src = D.render(G, { ramp: ramp(), shade: $('#dShade').checked });
     } else if (kind === 'geojson') {
       var cs2 = CS.map(function (c) { return { level: c.level, lines: c.lines.map(function (l) { return smoothed(l).map(function (p) { return toLL(p[0], p[1]); }); }) }; });
       SH.json(nm + '-contours.geojson', D.toGeoJSON(cs2, { interval_m: step, source: D.sources[G.source].short }));

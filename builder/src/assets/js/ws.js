@@ -107,6 +107,25 @@
   };
   SH.tableRows = function (table) { return $$('tr', table).map(function (tr) { return $$('th,td', tr).filter(function (c) { return !c.hasAttribute('data-noexport'); }).map(function (c) { return c.innerText.trim(); }); }); };
   SH.json = function (name, obj) { SH.download(name, JSON.stringify(obj, null, 1), 'application/geo+json'); };
+  /* geologist name shared by all tools (field #geoName), and the ownership stamp printed at the foot of every downloaded image */
+  SH.geologist = function () { var e = d.getElementById('geoName'), v = e && e.value.trim(); if (v) return v; try { return localStorage.getItem('shandal_geologist') || ''; } catch (er) { return ''; } };
+  d.addEventListener('change', function (e) { if (e.target && e.target.id === 'geoName') try { localStorage.setItem('shandal_geologist', e.target.value.trim()); } catch (er) {} });
+  d.addEventListener('DOMContentLoaded', function () { var e = d.getElementById('geoName'); if (e && !e.value) try { e.value = localStorage.getItem('shandal_geologist') || ''; } catch (er) {} });
+  var EMB = null; function emblem() { return EMB || (EMB = new Promise(function (res) { var i = new Image(); i.onload = function () { res(i); }; i.onerror = function () { res(null); }; i.src = SH.base + 'assets/img/emblem-192.png'; })); }
+  SH.stamp = function (cv) {
+    return emblem().then(function (logo) {
+      var W = cv.width, h = Math.round(Math.max(56, Math.min(120, W * 0.04))), out = d.createElement('canvas'); out.width = W; out.height = cv.height + h; var x = out.getContext('2d');
+      x.fillStyle = '#fff'; x.fillRect(0, 0, W, out.height); x.drawImage(cv, 0, 0); x.fillStyle = '#F4F2EC'; x.fillRect(0, cv.height, W, h); x.fillStyle = '#B08A3E'; x.fillRect(0, cv.height, W, Math.max(2, h * 0.04));
+      var pad = h * 0.28, y0 = cv.height, ls = h * 0.62, F = 'Manrope, "IBM Plex Sans Arabic", Arial, sans-serif', geo = SH.geologist(), dt = new Date().toISOString().slice(0, 10);
+      if (logo) x.drawImage(logo, pad, y0 + (h - ls) / 2, ls, ls);
+      var tx0 = pad + (logo ? ls + pad * 0.7 : 0); x.fillStyle = '#1B232B'; x.textBaseline = 'middle'; x.textAlign = 'left';
+      x.font = '800 ' + Math.round(h * 0.27) + 'px ' + F; x.fillText('© Shandal Geological Field Survey System', tx0, y0 + h * 0.4);
+      x.font = '500 ' + Math.round(h * 0.2) + 'px ' + F; x.fillStyle = '#55616B'; x.fillText('نظام شندل للمسح الميداني الجيولوجي · geologicalfieldsurvey.com', tx0, y0 + h * 0.72);
+      x.textAlign = 'right'; x.fillStyle = '#1B232B'; x.font = '700 ' + Math.round(h * 0.24) + 'px ' + F; if (geo) x.fillText('Geologist: ' + geo, W - pad, y0 + h * 0.4);
+      x.font = '500 ' + Math.round(h * 0.2) + 'px ' + F; x.fillStyle = '#55616B'; x.fillText(dt, W - pad, y0 + (geo ? h * 0.72 : h * 0.5));
+      return out;
+    });
+  };
   SH.svgPng = function (svg, name, scale, bg) {
     scale = scale || 2;
     var clone = svg.cloneNode(true), vb = svg.viewBox && svg.viewBox.baseVal, wdt = vb && vb.width || svg.clientWidth, hgt = vb && vb.height || svg.clientHeight;
@@ -119,11 +138,11 @@
     var img = new Image(); img.onload = function () {
       var c = d.createElement('canvas'); c.width = wdt * scale; c.height = hgt * scale; var x = c.getContext('2d');
       x.fillStyle = bg || getComputedStyle(svg).getPropertyValue('--il-bg') || '#fff'; x.fillRect(0, 0, c.width, c.height);
-      x.drawImage(img, 0, 0, c.width, c.height); c.toBlob(function (b) { SH.download(name, b); });
+      x.drawImage(img, 0, 0, c.width, c.height); SH.stamp(c).then(function (o) { o.toBlob(function (b) { SH.download(name, b); }); });
     };
     img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(xml);
   };
-  SH.canvasPng = function (canvas, name) { canvas.toBlob(function (b) { SH.download(name, b); }); };
+  SH.canvasPng = function (canvas, name) { SH.stamp(canvas).then(function (o) { o.toBlob(function (b) { SH.download(name, b); }); }); };
 
   /* ---------------------------------------------------------------- tiny SVG builder */
   SH.svgB = function (svg) {
@@ -174,14 +193,15 @@
   SH.plot = function (el, traces, layout, cfg) {
     el = typeof el === 'string' ? d.getElementById(el) : el;
     if (!w.Plotly) { el.innerHTML = '<div class="empty-s"><p>' + SH.t('Chart library failed to load. Refresh the page.', 'تعذر تحميل مكتبة المخططات. أعد تحميل الصفحة.') + '</p></div>'; return; }
-    var conf = Object.assign({ displaylogo: false, responsive: true, modeBarButtonsToRemove: ['select2d', 'lasso2d', 'autoScale2d', 'toggleSpikelines', 'hoverCompareCartesian'], toImageButtonOptions: { format: 'png', scale: 2, filename: (cfg && cfg.filename) || 'shandal-chart' } }, cfg || {});
+    var conf = Object.assign({ displaylogo: false, responsive: true, modeBarButtonsToRemove: ['select2d', 'lasso2d', 'autoScale2d', 'toggleSpikelines', 'hoverCompareCartesian', 'toImage'], modeBarButtonsToAdd: [{ name: SH.t('Download image (PNG)', 'تنزيل صورة (PNG)'), icon: w.Plotly.Icons.camera, click: function (gd) { SH.plotPng(gd, ((cfg && cfg.filename) || 'shandal-chart') + '.png'); } }] }, cfg || {});
     var lay = typeof layout === 'function' ? layout() : layout;
     w.Plotly.react(el, traces, SH.plotLayout(JSON.parse(JSON.stringify(lay || {}))), conf);
     var rec = plots.filter(function (p) { return p.el === el; })[0];
     if (!rec) plots.push({ el: el, layout: layout, traces: traces, cfg: conf }); else { rec.layout = layout; rec.traces = traces; }
     return el;
   };
-  SH.plotPng = function (el, name) { el = typeof el === 'string' ? d.getElementById(el) : el; if (w.Plotly) w.Plotly.downloadImage(el, { format: 'png', scale: 2, filename: name || 'shandal-chart' }); };
+  SH.plotPng = function (el, name) { el = typeof el === 'string' ? d.getElementById(el) : el; if (!w.Plotly) return; name = (name || 'shandal-chart').replace(/\.png$/, '') + '.png';
+    w.Plotly.toImage(el, { format: 'png', scale: 2, width: el.offsetWidth || 800, height: el.offsetHeight || 450 }).then(function (u) { var i = new Image(); i.onload = function () { var c = d.createElement('canvas'); c.width = i.width; c.height = i.height; var x = c.getContext('2d'); x.fillStyle = '#fff'; x.fillRect(0, 0, c.width, c.height); x.drawImage(i, 0, 0); SH.canvasPng(c, name); }; i.src = u; }); };
   d.addEventListener('themechange', function () {
     setTimeout(function () {
       plots.forEach(function (p) { if (d.body.contains(p.el)) w.Plotly.react(p.el, p.traces, SH.plotLayout(JSON.parse(JSON.stringify((typeof p.layout === 'function' ? p.layout() : p.layout) || {}))), p.cfg); });

@@ -150,11 +150,11 @@
   SH.svgImage = function (svg) { return libs().then(function () { return svgImg(svg); }); };
   SH.loadImage = imgFromURL;
   /* save a canvas as PNG, JPG or a one-page PDF (orientation follows the canvas) */
-  SH.exportCanvas = function (cv, name, fmt) {
+  SH.exportCanvas = function (cv0, name, fmt) { return SH.stamp(cv0).then(function (cv) {
     if (fmt === 'pdf') return libs().then(function () { var land = cv.width > cv.height, pdf = new w.jspdf.jsPDF({ unit: 'pt', format: 'a4', orientation: land ? 'landscape' : 'portrait', compress: true }), pw = pdf.internal.pageSize.getWidth(), ph = pdf.internal.pageSize.getHeight(), m = 20, k = Math.min((pw - 2 * m) / cv.width, (ph - 2 * m) / cv.height);
       pdf.addImage(cv.toDataURL('image/jpeg', .95), 'JPEG', (pw - cv.width * k) / 2, (ph - cv.height * k) / 2, cv.width * k, cv.height * k); return SH.download(name + '.pdf', pdf.output('blob')); });
     return new Promise(function (res) { cv.toBlob(function (b) { res(SH.download(name + (fmt === 'jpg' ? '.jpg' : '.png'), b)); }, fmt === 'jpg' ? 'image/jpeg' : 'image/png', .95); });
-  };
+  }); };
   /* export one figure (Leaflet map element or SVG) as PNG, JPG or a one-page PDF */
   SH.exportFigure = function (node, name, fmt) {
     var get = node.tagName && node.tagName.toLowerCase() === 'svg' ? SH.svgImage(node) : SH.mapImage(node);
