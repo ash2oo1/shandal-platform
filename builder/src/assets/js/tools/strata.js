@@ -49,6 +49,7 @@
     units = old.map(function (b) { var rk = b.rock === 'dolostone' ? 'dolomite' : b.rock, r2 = b.rock2 === 'dolostone' ? 'dolomite' : b.rock2; return { fm: b.fm === '—' ? '' : b.fm, grp: '', age: '', ageTxt: b.age || '', rock: R[rk] ? rk : 'limestone', sec: b.mix && R[r2] ? r2 : '', mix: b.mixStyle || 'inter', th: b.th, res: b.hard || 3, gs: '', base: CM[b.contact] || 'sharp', st: (b.acc || []).map(function (a) { return AM[a]; }).filter(Boolean), pet: [], col: '', desc: b.desc || '', com: '' }; });
     SH.store.set(KEY, units);
   }
+  (function () { var ch = false; units.forEach(function (u) { if (!u.age && isFinite(u.ma)) { var best = '', bw = 1e9; for (var k in AGE) { var a = AGE[k]; if (u.ma >= a.top && u.ma <= a.base && a.base - a.top < bw) { best = k; bw = a.base - a.top; } } u.age = best; delete u.ma; ch = true; } }); if (ch) SH.store.set(KEY, units); })();
   var FL = function () { return $('#cLang').value === 'ar'; }; // figure language
   var tf = function (en, ar) { return FL() ? ar : en; };
   var rname = function (k, ar) { return R[k] ? R[k][ar ? 1 : 0] : k; };

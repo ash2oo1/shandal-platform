@@ -146,6 +146,7 @@
     return p;
   }
 
+  SH.mapImage = function (m) { return mapImg(m); };
   SH.report = function (title) {
     var host = d.body, meta0 = {}; try { meta0 = JSON.parse((d.getElementById('toolMeta') || {}).textContent || '{}'); } catch (e) {}
     var s = SH.session(), geo = (d.getElementById('geoName') && d.getElementById('geoName').value) || (d.getElementById('qGeo') && d.getElementById('qGeo').value) || (s && s.name) || '—';
