@@ -16,7 +16,7 @@
       <p class="xsmall muted" style="margin:0">{{ m.L('Or click anywhere on the map.', 'أو انقر أي مكان على الخريطة.') }}</p>
     {{ m.panel_close() }}
     {{ m.panel_open(2, 'Map display', 'عرض الخريطة') }}
-      <label class="chk"><input type="checkbox" id="uOv" checked> {{ m.L('Geological map overlay (Macrostrat)', 'طبقة الخريطة الجيولوجية (Macrostrat)') }}</label>
+      <label class="chk"><input type="checkbox" id="uOv" checked> {{ m.L('Geological map overlay', 'طبقة الخريطة الجيولوجية') }}</label>
       {{ m.fld('uOp', 'Overlay opacity', 'شفافية الطبقة', 'range', '60', '%', '', '', '', '5', 'min="10" max="100"') }}
       <label class="chk"><input type="checkbox" id="uLab" checked> {{ m.L('Show the place name under the point', 'أظهر اسم المكان تحت النقطة') }}</label>
       <label class="chk"><input type="checkbox" id="uNb" checked> {{ m.L('Survey the surrounding units (25 km) for the succession', 'استقصِ الوحدات المحيطة (25 كم) لبناء التتابع') }}</label>
@@ -24,7 +24,7 @@
   </aside>
 
   <div class="ws-main">
-    {{ m.fig_open('guf1', '1', 'Geological map', 'الخريطة الجيولوجية', '<button class="btn btn-line btn-xs" id="uMapPng" type="button">PNG</button>') }}
+    {{ m.fig_open('guf1', '1', 'Geological map', 'الخريطة الجيولوجية', '<button class="btn btn-line btn-xs" data-exp="uMap" data-nm="shandal-geological-map" data-f="png" type="button">PNG</button><button class="btn btn-line btn-xs" data-exp="uMap" data-nm="shandal-geological-map" data-f="jpg" type="button">JPG</button><button class="btn btn-line btn-xs" data-exp="uMap" data-nm="shandal-geological-map" data-f="pdf" type="button">PDF</button>') }}
       <div class="fig-b pad0" style="position:relative"><div class="map" id="uMap" style="height:540px"></div></div>
       <div class="fig-cap" id="uMapCap"></div>
     {{ m.fig_close() }}
@@ -32,16 +32,15 @@
     <div id="uEmpty" class="pn">{{ m.empty('layers-2', 'Pick a point', 'اختر نقطة', 'Click the map, search a place or enter coordinates to identify the geological units, their age, lithology, source map and the local succession.', 'انقر الخريطة أو ابحث عن مكان أو أدخل الإحداثيات للتعرف على الوحدات الجيولوجية وعمرها وصخاريتها والخريطة المصدر والتتابع المحلي.') }}</div>
     <div id="uOut" hidden style="display:grid;gap:18px">
       <section class="pn"><div class="pn-h">{{ icon('layers-2') }}<h2>{{ m.L('Geological units at the point', 'الوحدات الجيولوجية عند النقطة') }}</h2></div><div class="pn-b flush" id="uRes"></div></section>
-      <div data-rp-page="ts">{{ m.fig_open('guf2', '2', 'Position of the units on the geological time scale', 'موقع الوحدات على مقياس الزمن الجيولوجي', '<button class="btn btn-line btn-xs" id="uTsPng" type="button">PNG</button>') }}
+      <div data-rp-page="ts">{{ m.fig_open('guf2', '2', 'Position of the units on the geological time scale', 'موقع الوحدات على مقياس الزمن الجيولوجي', '<button class="btn btn-line btn-xs" data-exp="uSvg" data-nm="shandal-time-scale" data-f="png" type="button">PNG</button><button class="btn btn-line btn-xs" data-exp="uSvg" data-nm="shandal-time-scale" data-f="jpg" type="button">JPG</button><button class="btn btn-line btn-xs" data-exp="uSvg" data-nm="shandal-time-scale" data-f="pdf" type="button">PDF</button>') }}
         <div class="fig-b" style="overflow:auto"><svg class="chart" id="uSvg" viewBox="0 0 760 520" role="img" aria-label="Geological time scale" style="min-width:560px"></svg></div>
         <div class="fig-cap" id="uTsCap"></div>
       {{ m.fig_close() }}</div>
-      <div data-rp-page="col">{{ m.fig_open('guf3', '3', 'Stratigraphic succession at the point', 'التتابع الطباقي عند النقطة', '<button class="btn btn-line btn-xs" id="uColDes" type="button">' + ('Open in the Column Designer' if lang == 'en' else 'افتح في مصمم العمود') + '</button><button class="btn btn-line btn-xs" id="uColPng" type="button">PNG</button>') }}
+      <div data-rp-page="col">{{ m.fig_open('guf3', '3', 'Stratigraphic succession at the point', 'التتابع الطباقي عند النقطة', '<button class="btn btn-line btn-xs" id="uColDes" type="button">' + ('Open in the Column Designer' if lang == 'en' else 'افتح في مصمم العمود') + '</button><button class="btn btn-line btn-xs" data-exp="uCol" data-nm="shandal-stratigraphic-succession" data-f="png" type="button">PNG</button><button class="btn btn-line btn-xs" data-exp="uCol" data-nm="shandal-stratigraphic-succession" data-f="jpg" type="button">JPG</button><button class="btn btn-line btn-xs" data-exp="uCol" data-nm="shandal-stratigraphic-succession" data-f="pdf" type="button">PDF</button>') }}
         <div class="fig-b" style="overflow:auto"><svg class="chart" id="uCol" viewBox="0 0 900 400" role="img" aria-label="Stratigraphic succession" style="min-width:640px"></svg></div>
         <div class="fig-cap" id="uColCap"></div>
       {{ m.fig_close() }}</div>
       <section class="pn" data-rp-page="narr"><div class="pn-h">{{ icon('file-text') }}<h2>{{ m.L('Geological description and interpretation', 'الوصف والتفسير الجيولوجي') }}</h2></div><div class="pn-b" id="uNarr" style="font-size:.92rem;line-height:1.85"></div></section>
-      <section class="pn"><div class="pn-h">{{ icon('external-link') }}<h2>{{ m.L('Sources and further reading for this point', 'المصادر والقراءات الإضافية لهذه النقطة') }}</h2></div><div class="pn-b" id="uLinks"></div></section>
       <section class="pn" data-rp-skip><div class="pn-h">{{ icon('table') }}<h2>{{ m.L('Data', 'البيانات') }}</h2><div class="sp no-print"><button class="btn btn-line btn-xs" id="uCsv" type="button">CSV</button><button class="btn btn-line btn-xs" id="uJson" type="button">GeoJSON</button></div></div><div class="pn-b flush tbl-wrap"><table class="tbl" id="uTbl"></table></div></section>
     </div>
   </div>

@@ -146,7 +146,16 @@
     return p;
   }
 
-  SH.mapImage = function (m) { return mapImg(m); };
+  SH.mapImage = function (m) { return libs().then(function () { return mapImg(m); }); };
+  /* export one figure (Leaflet map element or SVG) as PNG, JPG or a one-page PDF */
+  SH.exportFigure = function (node, name, fmt) {
+    var get = node.tagName && node.tagName.toLowerCase() === 'svg' ? libs().then(function () { return svgImg(node); }) : SH.mapImage(node);
+    return get.then(function (im) { return imgFromURL(im.src).then(function (i) {
+      var cv = d.createElement('canvas'); cv.width = i.naturalWidth; cv.height = i.naturalHeight; var x = cv.getContext('2d'); x.fillStyle = '#fff'; x.fillRect(0, 0, cv.width, cv.height); x.drawImage(i, 0, 0);
+      if (fmt === 'pdf') { var land = cv.width > cv.height, pdf = new w.jspdf.jsPDF({ unit: 'pt', format: 'a4', orientation: land ? 'landscape' : 'portrait', compress: true }), pw = pdf.internal.pageSize.getWidth(), ph = pdf.internal.pageSize.getHeight(), m = 28, k = Math.min((pw - 2 * m) / cv.width, (ph - 2 * m) / cv.height);
+        pdf.addImage(cv.toDataURL('image/jpeg', .95), 'JPEG', (pw - cv.width * k) / 2, (ph - cv.height * k) / 2, cv.width * k, cv.height * k); return SH.download(name + '.pdf', pdf.output('blob')); }
+      return new Promise(function (res) { cv.toBlob(function (b) { res(SH.download(name + (fmt === 'jpg' ? '.jpg' : '.png'), b)); }, fmt === 'jpg' ? 'image/jpeg' : 'image/png', .95); }); }); });
+  };
   SH.report = function (title) {
     var host = d.body, meta0 = {}; try { meta0 = JSON.parse((d.getElementById('toolMeta') || {}).textContent || '{}'); } catch (e) {}
     var s = SH.session(), geo = (d.getElementById('geoName') && d.getElementById('geoName').value) || (d.getElementById('qGeo') && d.getElementById('qGeo').value) || (s && s.name) || '—';
