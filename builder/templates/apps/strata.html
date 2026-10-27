@@ -64,7 +64,7 @@
         {{ m.sel('uRes', 'Resistance', 'المقاومة', [('1', '1 · very weak', '1 · ضعيفة جداً'), ('2', '2 · weak', '2 · ضعيفة'), ('3', '3 · moderate', '3 · متوسطة', true), ('4', '4 · strong', '4 · قوية'), ('5', '5 · very strong', '5 · قوية جداً')]) }}
         <div class="fg"><label for="uBase">{{ m.L('Lower contact', 'الحد السفلي') }}</label><select id="uBase"></select></div>
       </div>
-      <div class="fg"><span class="lb">{{ m.L('Sedimentary structures and fossils', 'التراكيب الرسوبية والأحافير') }}</span><div class="chks" id="uSt" style="display:flex;flex-wrap:wrap;gap:4px 12px"></div></div>
+      <div class="fg"><span class="lb">{{ m.L('Sedimentary structures and fossils', 'التراكيب الرسوبية والأحافير') }}</span><div id="uSt"></div></div>
       <div class="fg"><span class="lb">{{ m.L('Petroleum system', 'النظام البترولي') }}</span>
         <div class="chks" id="uPet" style="grid-template-columns:repeat(2,minmax(0,1fr))">
           <label class="chk"><input type="checkbox" value="oil"> {{ m.L('Oil reservoir', 'مكمن نفطي') }}</label>

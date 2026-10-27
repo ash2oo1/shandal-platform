@@ -64,7 +64,7 @@
     var gn = [t('clay', 'طين'), t('silt', 'غرين'), t('very fine sand', 'رمل ناعم جداً'), t('fine sand', 'رمل ناعم'), t('medium sand', 'رمل متوسط'), t('coarse sand', 'رمل خشن'), t('very coarse sand', 'رمل خشن جداً'), t('gravel / crystalline', 'حصى / متبلور')];
     $('#uGs').innerHTML = '<option value="">' + t('Typical of the rock', 'النموذجي للصخر') + '</option>' + gn.map(function (x, i) { return '<option value="' + i + '">' + ST.GS[i] + ' · ' + x + '</option>'; }).join('');
     $('#uBase').innerHTML = Object.keys(ST.CONTACTS).map(function (k) { return '<option value="' + k + '">' + ST.CONTACTS[k][AR ? 1 : 0] + '</option>'; }).join('');
-    $('#uSt').innerHTML = Object.keys(ST.STRUCT).map(function (k) { return '<label class="chk" style="font-size:.8rem"><input type="checkbox" value="' + k + '"> ' + ST.STRUCT[k][AR ? 1 : 0] + '</label>'; }).join('');
+    $('#uSt').innerHTML = ST.chips([], 'value', '.8rem');
   })();
   $('#uMix').addEventListener('change', function () { $('#uMixRow').hidden = !this.checked; });
   function readForm() {
@@ -115,7 +115,7 @@
     if (u.col) s = ar ? s + ' ' + u.col : u.col.charAt(0).toUpperCase() + u.col.slice(1) + ' ' + s.toLowerCase();
     if (u.gs !== '' && u.gs != null && (g === 'clastic' || g === 'unc')) s += (ar ? '، ' : ', ') + GSN[+u.gs][ar ? 1 : 0];
     if (u.sec) s += u.mix === 'inter' ? (ar ? '، مع تعاقبات من ' : ', with interbeds of ') + rname(u.sec, ar).toLowerCase() : (ar ? '، مع ' : ', with ') + rname(u.sec, ar).toLowerCase();
-    var st = (u.st || []).filter(function (k) { return ST.STRUCT[k]; }).map(function (k) { return ST.STRUCT[k][ar ? 1 : 0].toLowerCase(); }); if (st.length) s += (ar ? '؛ ' : '; ') + st.join(ar ? '، ' : ', ');
+    var st = (u.st || []).filter(function (k) { return ST.STRUCT[k]; }).map(function (k) { var n = ST.STRUCT[k][ar ? 1 : 0]; return ar ? n : n.charAt(0).toLowerCase() + n.slice(1); }); if (st.length) s += (ar ? '؛ ' : '; ') + st.join(ar ? '، ' : ', ');
     return s;
   }
 
@@ -180,7 +180,7 @@
       ST.pattern(S, defs, id, r[3]); S.add('rect', { x: lc.x, y: ya, width: w, height: h, fill: r[2] }); S.add('rect', { x: lc.x, y: ya, width: w, height: h, fill: 'url(#' + id + ')' });
       if (u.sec && R[u.sec]) { var id2 = id + 's'; ST.pattern(S, defs, id2, R[u.sec][3]); if (u.mix === 'inter') { var bd = SH.clamp(h / 6, 3, 12); for (var k = bd; k < h - .5; k += 2 * bd) { var hh = Math.min(bd, h - k); S.add('rect', { x: lc.x, y: ya + k, width: w, height: hh, fill: R[u.sec][2] }); S.add('rect', { x: lc.x, y: ya + k, width: w, height: hh, fill: 'url(#' + id2 + ')' }); S.line(lc.x, ya + k, lc.x + w, ya + k, { stroke: INK, 'stroke-width': .35 }); } } else S.add('rect', { x: lc.x, y: ya, width: w, height: h, fill: 'url(#' + id2 + ')', opacity: .6 }); }
       S.add('rect', { x: lc.x, y: ya, width: w, height: h, fill: 'none', stroke: INK, 'stroke-width': .9 });
-      var st = (u.st || []).filter(function (k) { return ST.STRUCT[k]; }); st.slice(0, Math.max(1, Math.floor(h / 18))).forEach(function (k, j) { var sx = lc.x + w - 14 - (j % 3) * 20, sy = ya + Math.min(h / 2, 12) + Math.floor(j / 3) * 18; if (h < 14) return; S.add('rect', { x: sx - 9, y: sy - 9, width: 18, height: 18, rx: 3, fill: '#fff', opacity: .85 }); ST.symbol(S, null, k, sx, sy, ST.STRUCT[k][2] === 'f' ? '#5B3A1E' : INK); });
+      var st = (u.st || []).filter(function (k) { return ST.STRUCT[k]; }); st.slice(0, Math.max(1, Math.floor(h / 18))).forEach(function (k, j) { var sx = lc.x + w - 14 - (j % 3) * 20, sy = ya + Math.min(h / 2, 12) + Math.floor(j / 3) * 18; if (h < 14) return; S.add('rect', { x: sx - 9, y: sy - 9, width: 18, height: 18, rx: 3, fill: '#fff', opacity: .85 }); ST.symbol(S, null, k, sx, sy, ST.scol(k)); });
     });
     // grid row lines in text columns
     units.forEach(function (u, i) { var yy = ys[i + 1]; C.forEach(function (c) { if (['sys', 'ser', 'stg', 'grp', 'fm', 'com', 'dep', 'lith'].indexOf(c.k) < 0) S.line(c.x, yy, c.x + c.w, yy, { stroke: GRID, 'stroke-width': .6 }); }); });
@@ -200,12 +200,11 @@
     var items = []; Object.keys(used.rock).forEach(function (k) { items.push([function (x, y) { var id = 'lg' + k; ST.pattern(S, defs, id, R[k][3]); S.add('rect', { x: x, y: y - 9, width: 36, height: 18, fill: R[k][2], stroke: INK, 'stroke-width': .7 }); S.add('rect', { x: x, y: y - 9, width: 36, height: 18, fill: 'url(#' + id + ')', stroke: INK, 'stroke-width': .7 }); }, rname(k, ar)]); });
     Object.keys(used.contact).forEach(function (k) { items.push([function (x, y) { if (k === 'uncon') wavy(S, x, x + 36, y, '#C0392B', 1.6); else ST.contact(S, null, k, x, x + 36, y); }, k === 'uncon' ? tf('Unconformity', 'عدم توافق') : ST.CONTACTS[k][ar ? 1 : 0]]); });
     if (used.hiatus) items.push([function (x, y) { S.add('rect', { x: x, y: y - 9, width: 36, height: 18, fill: '#fff', stroke: INK, 'stroke-width': .7 }); tx(S, x + 18, y + 4, 'H', { 'font-size': 10, 'font-style': 'italic', 'text-anchor': 'middle' }); }, tf('Hiatus (missing section)', 'فجوة ترسيبية (مقطع مفقود)')]);
-    Object.keys(used.st).forEach(function (k) { items.push([function (x, y) { ST.symbol(S, null, k, x + 18, y, ST.STRUCT[k][2] === 'f' ? '#5B3A1E' : INK); }, ST.STRUCT[k][ar ? 1 : 0]]); });
+    Object.keys(used.st).forEach(function (k) { items.push([function (x, y) { ST.symbol(S, null, k, x + 18, y, ST.scol(k)); }, ST.STRUCT[k][ar ? 1 : 0]]); });
     var PN = { oil: tf('Oil reservoir', 'مكمن نفطي'), gas: tf('Gas reservoir', 'مكمن غازي'), src: tf('Source rock', 'صخرة مصدرية'), seal: tf('Seal rock', 'صخرة غطائية') };
     Object.keys(used.pet).forEach(function (k) { items.push([function (x, y) { petSym(S, k, x + 18, y); }, PN[k]]); });
     var cw = (X1 - X0) / 4; items.forEach(function (it, i) { var y2 = ly + 26 + Math.floor(i / 4) * 26, x2 = ar ? X1 - (i % 4) * cw - 36 : X0 + (i % 4) * cw; it[0](x2, y2); tx(S, ar ? x2 - 10 : x2 + 46, y2 + 4, it[1], { 'font-size': 10.5, 'text-anchor': ar ? 'end' : 'start' }); });
     tx(S, ar ? X1 : X0, VH - 18, 'Shandal System · ' + new Date().toISOString().slice(0, 10) + (SH.val('geoName') ? ' · ' + SH.val('geoName') : ''), { 'font-size': 9.5, fill: MUT, 'text-anchor': ar ? 'end' : 'start' });
-    tx(S, ar ? X0 : X1, VH - 18, tf('Chronostratigraphy: ICS International Chronostratigraphic Chart 2023', 'التقسيم الزمني: المخطط الطباقي الزمني الدولي ICS 2023'), { 'font-size': 9.5, fill: MUT, 'text-anchor': ar ? 'start' : 'end' });
   }
   function HALO(a) { return Object.assign(a, { stroke: '#fff', 'stroke-width': 3.5, 'paint-order': 'stroke', 'stroke-linejoin': 'round' }); }
   function wavy(S, x1, x2, y, col, w) { var n = Math.max(4, Math.round((x2 - x1) / 12)), d = 'M' + x1 + ' ' + y, s = (x2 - x1) / n; for (var i = 0; i < n; i++) d += 'q' + s / 2 + ' ' + (i % 2 ? 4 : -4) + ' ' + s + ' 0'; S.path(d, { stroke: col, 'stroke-width': w, fill: 'none' }); }

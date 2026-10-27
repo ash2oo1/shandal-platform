@@ -26,13 +26,35 @@
   };
   var GROUPS = [['unc', 'Unconsolidated sediments and soils', 'رسوبيات غير متماسكة وترب'], ['clastic', 'Siliciclastic rocks', 'صخور فتاتية'], ['carb', 'Carbonate rocks', 'صخور كربونية'], ['evap', 'Evaporites', 'متبخرات'], ['chem', 'Chemical and organic rocks', 'صخور كيميائية وعضوية'], ['ign', 'Igneous rocks', 'صخور نارية'], ['meta', 'Metamorphic rocks', 'صخور متحولة']];
   var CONTACTS = { sharp: ['Sharp contact', 'تماس حاد'], grad: ['Gradational contact', 'تماس تدريجي'], erosive: ['Erosional (scoured) contact', 'تماس تعريتي'], uncon: ['Unconformity', 'عدم توافق'], covered: ['Covered / inferred contact', 'تماس مغطى أو مستنتج'] };
+  /* [en, ar, category]: s physical structures and discontinuities, d diagenetic features and grains,
+     b biogenic structures and trace fossils, f animal fossils, p plant fossils and algae */
+  var STCAT = [['s', 'Physical sedimentary structures', 'التراكيب الرسوبية الفيزيائية'], ['d', 'Grains and diagenetic features', 'الحبيبات والملامح التحويرية'], ['b', 'Biogenic structures and trace fossils', 'التراكيب الحيوية والأحافير الأثرية'], ['f', 'Animal fossils', 'الأحافير الحيوانية'], ['p', 'Plant fossils, algae and microflora', 'الأحافير النباتية والطحالب والنباتات الدقيقة']];
   var STRUCT = {
-    lam: ['Parallel lamination', 'تصفّح متوازٍ', 's'], xbed: ['Cross-bedding', 'تطبق متقاطع', 's'], ripple: ['Ripple marks', 'علامات تموج', 's'], graded: ['Graded bedding', 'تطبق متدرج', 's'],
-    mudcrack: ['Mud cracks', 'تشققات طينية', 's'], bioturb: ['Bioturbation', 'اضطراب حيوي', 's'], nodule: ['Nodules', 'عقد', 's'], concretion: ['Concretions', 'تكورات', 's'], root: ['Root traces', 'آثار جذور', 's'],
-    vug: ['Vugs / karst cavities', 'فجوات وكهوف كارستية', 's'], stylolite: ['Stylolites', 'ستايلولايت', 's'], gypvein: ['Gypsum veins', 'عروق جبسية', 's'], joint: ['Joints / fractures', 'فواصل وكسور', 's'], seep: ['Water seepage', 'رشح مائي', 's'],
-    shell: ['Bivalve shells', 'أصداف ذوات المصراعين', 'f'], oyster: ['Oysters', 'محار', 'f'], gastropod: ['Gastropods', 'بطنيات القدم', 'f'], foram: ['Foraminifera', 'منخربات', 'f'], nummulite: ['Nummulites', 'نميوليتات', 'f'],
-    coral: ['Corals', 'مرجان', 'f'], echinoid: ['Echinoids', 'قنافذ البحر', 'f'], plant: ['Plant remains', 'بقايا نباتية', 'f'], bone: ['Vertebrate bones', 'عظام فقاريات', 'f'], trace: ['Trace fossils', 'أحافير أثرية', 'f']
+    lam: ['Parallel lamination', 'تصفّح متوازٍ', 's'], xbed: ['Planar cross-bedding', 'تطبق متقاطع مستوٍ', 's'], trough: ['Trough cross-bedding', 'تطبق متقاطع حوضي', 's'], herring: ['Herringbone cross-bedding', 'تطبق متقاطع عظم السمكة', 's'],
+    hcs: ['Hummocky cross-stratification', 'تطبق متقاطع ركامي (هموكي)', 's'], ripple: ['Ripple marks', 'علامات تموج', 's'], xlamr: ['Ripple cross-lamination', 'تصفّح متقاطع تموجي', 's'], flaser: ['Flaser bedding', 'تطبق فليزري', 's'],
+    wavy: ['Wavy bedding', 'تطبق متموج', 's'], lenticular: ['Lenticular bedding', 'تطبق عدسي', 's'], graded: ['Normal grading', 'تطبق متدرج طبيعي', 's'], revgrad: ['Inverse grading', 'تطبق متدرج معكوس', 's'],
+    massive: ['Massive (structureless)', 'كتلي عديم التركيب', 's'], convolute: ['Convolute lamination', 'تصفّح ملتوٍ', 's'], load: ['Load casts and flame structures', 'قوالب حمل وتراكيب لهبية', 's'], flute: ['Flute and groove casts', 'قوالب أخدودية ومحززة', 's'],
+    slump: ['Slump folds', 'طيات انزلاقية', 's'], imbric: ['Clast imbrication', 'تراكب الحبيبات (تسقيف)', 's'], scour: ['Scour and fill', 'حفر وملء', 's'], mudcrack: ['Mud cracks', 'تشققات طينية', 's'], raindrop: ['Raindrop imprints', 'آثار قطرات المطر', 's'],
+    fenestral: ['Fenestral (birdseye) fabric', 'نسيج نافذي (عين الطائر)', 's'], tepee: ['Tepee structures', 'تراكيب خيمية (تيبي)', 's'], hardground: ['Hardground', 'سطح صلب (هاردغراوند)', 's'], karst: ['Palaeokarst surface', 'سطح كارستي قديم', 's'],
+    joint: ['Joints / fractures', 'فواصل وكسور', 's'], seep: ['Water seepage', 'رشح مائي', 's'],
+    ooid: ['Ooids', 'سرئيات (أووئيدات)', 'd'], peloid: ['Peloids', 'كريات طينية (بيلوئيدات)', 'd'], oncoid: ['Oncoids', 'أونكوئيدات', 'd'], intraclast: ['Intraclasts', 'فتات داخلي', 'd'], ripup: ['Mud rip-up clasts', 'فتات طيني ممزق', 'd'],
+    nodule: ['Nodules', 'عقد', 'd'], chertnod: ['Chert nodules', 'عقد صوانية', 'd'], concretion: ['Concretions', 'تكورات', 'd'], chickenwire: ['Chicken-wire anhydrite', 'أنهيدرايت شبكي (سلك الدجاج)', 'd'], saltcast: ['Halite pseudomorphs', 'أشباه بلورات الهاليت', 'd'],
+    gypvein: ['Gypsum veins', 'عروق جبسية', 'd'], calvein: ['Calcite veins', 'عروق كالسيتية', 'd'], pyrite: ['Pyrite', 'بايرايت', 'd'], glauconite: ['Glauconite', 'غلوكونايت', 'd'], phosgr: ['Phosphatic grains', 'حبيبات فوسفاتية', 'd'],
+    ferrug: ['Ferruginous (iron-oxide) staining', 'تبقع حديدي (أكاسيد الحديد)', 'd'], dolom: ['Dolomitisation', 'دلمتة', 'd'], silic: ['Silicification', 'سلكنة', 'd'], vug: ['Vugs / moulds', 'فجوات وقوالب انحلالية', 'd'], stylolite: ['Stylolites', 'ستايلولايت', 'd'],
+    bioturb: ['Bioturbation', 'اضطراب حيوي', 'b'], burrowv: ['Vertical burrows (Skolithos)', 'جحور رأسية (سكوليثوس)', 'b'], burrowh: ['Horizontal burrows (Thalassinoides)', 'جحور أفقية (ثالاسينويدس)', 'b'], boring: ['Borings', 'ثقوب حفرية', 'b'],
+    trace: ['Trace fossils (undifferentiated)', 'أحافير أثرية', 'b'], tracks: ['Footprints and trackways', 'آثار أقدام ومسارات', 'b'], stromatolite: ['Stromatolites', 'ستروماتولايت', 'b'], microbial: ['Microbial mats', 'حصائر ميكروبية', 'b'], root: ['Root traces (rhizoliths)', 'آثار جذور (ريزوليث)', 'b'],
+    shell: ['Bivalves', 'ذوات المصراعين', 'f'], oyster: ['Oysters', 'محار', 'f'], rudist: ['Rudists', 'روديستات', 'f'], brachiopod: ['Brachiopods', 'ذراعيات الأرجل', 'f'], gastropod: ['Gastropods', 'بطنيات القدم', 'f'],
+    ammonite: ['Ammonites', 'أمونيتات', 'f'], belemnite: ['Belemnites', 'بلمنيتات', 'f'], nautiloid: ['Nautiloids', 'نوتيلويدات', 'f'], foram: ['Benthic foraminifera', 'منخربات قاعية', 'f'], pforam: ['Planktonic foraminifera', 'منخربات طافية', 'f'],
+    nummulite: ['Nummulites', 'نميوليتات', 'f'], alveolina: ['Alveolinids and miliolids', 'ألفيولينات وميليوليدات', 'f'], fusulinid: ['Fusulinids', 'فيوزيولينات', 'f'], ostracod: ['Ostracods', 'محاريات الصدفة (أوستراكودا)', 'f'], radiolaria: ['Radiolaria', 'شعاعيات', 'f'],
+    coral: ['Corals', 'مرجان', 'f'], sponge: ['Sponges and spicules', 'إسفنجيات وأشواكها', 'f'], bryozoan: ['Bryozoans', 'حزازيات حيوانية (برايوزوا)', 'f'], crinoid: ['Crinoids', 'زنبقيات البحر', 'f'], echinoid: ['Echinoids', 'قنافذ البحر', 'f'],
+    trilobite: ['Trilobites', 'ثلاثيات الفصوص', 'f'], graptolite: ['Graptolites', 'غرابتوليتات', 'f'], fish: ['Fish remains', 'بقايا أسماك', 'f'], teeth: ['Shark teeth', 'أسنان قرش', 'f'], bone: ['Vertebrate bones', 'عظام فقاريات', 'f'], shellfrag: ['Shell fragments (bioclasts)', 'فتات أصداف (حطام حيوي)', 'f'],
+    plant: ['Plant remains (undifferentiated)', 'بقايا نباتية', 'p'], leaf: ['Leaf impressions', 'طبعات أوراق', 'p'], wood: ['Fossil wood and logs', 'خشب متحجر وجذوع', 'p'], coalfrag: ['Coalified plant debris', 'حطام نباتي متفحم', 'p'],
+    calgae: ['Calcareous algae', 'طحالب كلسية', 'p'], charophyte: ['Charophytes', 'كاروفيتات (طحالب المياه العذبة)', 'p'], pollen: ['Spores and pollen', 'أبواغ وحبوب لقاح', 'p'], diatom: ['Diatoms', 'دايتومات', 'p'], nanno: ['Calcareous nannofossils', 'متحجرات نانوية كلسية', 'p']
   };
+  var STCOL = { f: '#5B3A1E', p: '#2E7D32', b: '#4E342E' }, scol = function (k) { return STCOL[(STRUCT[k] || [])[2]] || '#1B232B'; };
+  function stChips(sel, attr, size) { sel = sel || []; return STCAT.map(function (c) { var ks = Object.keys(STRUCT).filter(function (k) { return STRUCT[k][2] === c[0]; });
+    var nSel = ks.filter(function (k) { return sel.indexOf(k) > -1; }).length;
+    return '<details style="border:1px solid var(--line,#DDE2E6);border-radius:10px;padding:6px 10px;margin:4px 0"' + (nSel ? ' open' : '') + '><summary style="cursor:pointer;font-size:.82rem;font-weight:800">' + c[SH.lang === 'ar' ? 2 : 1] + ' <span class="muted" style="font-weight:600">(' + ks.length + ')</span></summary><div style="display:flex;flex-wrap:wrap;gap:4px 12px;margin-top:6px">' + ks.map(function (k) { return '<label class="chk" style="font-size:' + (size || '.8rem') + '"><input type="checkbox" ' + attr + '="' + k + '"' + (sel.indexOf(k) > -1 ? ' checked' : '') + '> ' + STRUCT[k][SH.lang === 'ar' ? 1 : 0] + '</label>'; }).join('') + '</div></details>'; }).join(''); }
   var nm = function (o) { return o ? o[AR ? 1 : 0] : ''; };
 
   /* ---------------- patterns (24 × 24 user-space tiles) */
@@ -94,7 +116,74 @@
       coral: function () { p(M(0, 7, 0, -2) + M(0, 1, -5, -6) + M(0, -2, 5, -7) + M(0, 4, 4, 0)); }, echinoid: function () { S.circle(x, y, 6.5, a, g); for (var i = 0; i < 5; i++) { var an = -Math.PI / 2 + i * 2 * Math.PI / 5; p(M(0, 0, Math.cos(an) * 5, Math.sin(an) * 5), { 'stroke-width': .7 }); } },
       plant: function () { p('M' + X(-6) + ' ' + Y(6) + 'Q' + X(-6) + ' ' + Y(-6) + ' ' + X(6) + ' ' + Y(-6) + 'Q' + X(6) + ' ' + Y(6) + ' ' + X(-6) + ' ' + Y(6) + 'Z' + M(-6, 6, 4, -4), { stroke: '#2E7D32' }); },
       bone: function () { p(M(-5, 0, 5, 0), { 'stroke-width': 2.4 }); S.circle(X(-6), Y(-2), 2.2, a, g); S.circle(X(-6), Y(2), 2.2, a, g); S.circle(X(6), Y(-2), 2.2, a, g); S.circle(X(6), Y(2), 2.2, a, g); },
-      trace: function () { p('M' + X(-7) + ' ' + Y(5) + 'c3-12 6 4 9-6s3 4 5 2'); }
+      trace: function () { p('M' + X(-7) + ' ' + Y(5) + 'c3-12 6 4 9-6s3 4 5 2'); },
+      trough: function () { p('M' + X(-8) + ' ' + Y(-2) + 'Q' + x + ' ' + Y(8) + ' ' + X(8) + ' ' + Y(-2)); p('M' + X(-5) + ' ' + Y(-6) + 'Q' + x + ' ' + Y(3) + ' ' + X(5) + ' ' + Y(-6), { 'stroke-width': .8 }); },
+      herring: function () { p(M(-8, 0, 8, 0), { 'stroke-width': .7 }); p(M(-7, -6, -2, 0) + M(-2, -6, 3, 0) + M(3, -6, 8, 0) + M(-7, 6, -2, 0) + M(-2, 6, 3, 0) + M(3, 6, 8, 0)); },
+      hcs: function () { p('M' + X(-8) + ' ' + Y(-2) + 'q4-6 8 0t8 0'); p('M' + X(-8) + ' ' + Y(3) + 'q4-5 8 0t8 0', { 'stroke-width': .8 }); },
+      xlamr: function () { p('M' + X(-8) + ' ' + Y(-1) + 'q2-5 4 0t4 0t4 0t4 0'); p(M(-7, 6, -5, -1) + M(-3, 6, -1, -1) + M(1, 6, 3, -1) + M(5, 6, 7, -1), { 'stroke-width': .7 }); },
+      flaser: function () { p(M(-8, 5, 8, 5) + M(-8, -5, 8, -5), { 'stroke-width': .7 }); p('M' + X(-6) + ' ' + Y(0) + 'q3-3 6 0M' + X(1) + ' ' + Y(1) + 'q3-3 6 0'); },
+      wavy: function () { p('M' + X(-8) + ' ' + Y(-3) + 'q4-4 8 0t8 0M' + X(-8) + ' ' + Y(3) + 'q4-4 8 0t8 0'); },
+      lenticular: function () { S.add('ellipse', Object.assign({ cx: X(-3), cy: y, rx: 4, ry: 2 }, a), null, g); S.add('ellipse', Object.assign({ cx: X(4), cy: Y(4), rx: 3.5, ry: 1.6 }, a), null, g); p(M(-8, -5, 8, -5) + M(-8, 8, 8, 8), { 'stroke-width': .6 }); },
+      revgrad: function () { p(M(-6, 7, 6, 7, 0, -7) + 'Z'); },
+      massive: function () { S.add('rect', Object.assign({ x: X(-7), y: Y(-6), width: 14, height: 12 }, a), null, g); p(M(-4, -3, 4, 3), { 'stroke-width': .6 }); },
+      convolute: function () { p('M' + X(-8) + ' ' + Y(2) + 'c3 0 2-8 6-6s-1 6 2 6 3-8 6-4'); p(M(-8, 6, 8, 6), { 'stroke-width': .6 }); },
+      load: function () { p(M(-8, -2, 8, -2), { 'stroke-width': .6 }); p('M' + X(-8) + ' ' + Y(-2) + 'q2 8 5 0q1-5 2 0q2 8 5 0q1-5 2 0'); },
+      flute: function () { p('M' + X(-8) + ' ' + Y(-4) + 'L' + X(8) + ' ' + Y(-4)); p('M' + X(-6) + ' ' + Y(-4) + 'q2 8 6 8t4-8', { 'stroke-width': .9 }); p(M(2, 6, 8, 6), { 'stroke-width': .6 }); },
+      slump: function () { p('M' + X(-8) + ' ' + Y(4) + 'c4 0 4-9 8-9s4 9 0 9-4-4 0-4'); },
+      imbric: function () { for (var i = -2; i <= 2; i++) S.add('ellipse', Object.assign({ cx: X(i * 4), cy: Y(1), rx: 3, ry: 1.6, transform: 'rotate(-30 ' + X(i * 4) + ' ' + Y(1) + ')' }, a), null, g); },
+      scour: function () { p('M' + X(-8) + ' ' + Y(-4) + 'L' + X(-5) + ' ' + Y(-4) + 'Q' + x + ' ' + Y(9) + ' ' + X(5) + ' ' + Y(-4) + 'L' + X(8) + ' ' + Y(-4)); p(M(-3, 0, 3, 0), { 'stroke-width': .6 }); },
+      raindrop: function () { [[-4, -3], [3, -4], [-1, 3], [5, 3]].forEach(function (q) { S.circle(X(q[0]), Y(q[1]), 1.8, a, g); }); },
+      fenestral: function () { [[-4, -3, 3], [3, -2, 2.5], [-1, 3, 3.5]].forEach(function (q) { S.add('ellipse', { cx: X(q[0]), cy: Y(q[1]), rx: q[2], ry: 1.3, fill: '#fff', stroke: col, 'stroke-width': .8 }, null, g); }); },
+      tepee: function () { p(M(-8, 6, -2, -6, 4, 6) + M(-5, 6, -2, 0, 1, 6), { 'stroke-width': 1 }); },
+      hardground: function () { p(M(-8, 0, 8, 0), { 'stroke-width': 2.2 }); p(M(-6, 0, -6, 5) + M(-1, 0, -1, 6) + M(4, 0, 4, 4), { 'stroke-width': .8 }); },
+      karst: function () { p('M' + X(-8) + ' ' + Y(-4) + 'L' + X(-4) + ' ' + Y(-4) + 'L' + X(-2) + ' ' + Y(5) + 'L' + X(1) + ' ' + Y(-4) + 'L' + X(4) + ' ' + Y(-4) + 'L' + X(6) + ' ' + Y(3) + 'L' + X(8) + ' ' + Y(-4)); },
+      ooid: function () { [[-4, -3], [3, -3], [0, 3], [-5, 4], [5, 4]].forEach(function (q) { S.circle(X(q[0]), Y(q[1]), 2.2, a, g); S.circle(X(q[0]), Y(q[1]), .6, { fill: col }, g); }); },
+      peloid: function () { [[-4, -3], [3, -3], [0, 3], [-5, 4], [5, 4]].forEach(function (q) { S.add('ellipse', { cx: X(q[0]), cy: Y(q[1]), rx: 2.2, ry: 1.5, fill: col }, null, g); }); },
+      oncoid: function () { S.add('ellipse', Object.assign({ cx: x, cy: y, rx: 7, ry: 5 }, a), null, g); S.add('ellipse', Object.assign({ cx: x, cy: y, rx: 4.5, ry: 3 }, a, { 'stroke-width': .7 }), null, g); S.add('ellipse', Object.assign({ cx: x, cy: y, rx: 2, ry: 1.3 }, a, { 'stroke-width': .7 }), null, g); },
+      intraclast: function () { p(M(-7, -2, -3, -5, 0, -2, -3, 1) + 'Z' + M(1, 2, 6, 0, 7, 5, 2, 6) + 'Z'); },
+      ripup: function () { p('M' + X(-7) + ' ' + Y(-2) + 'q3-4 6-1q-2 4-6 1zM' + X(1) + ' ' + Y(3) + 'q3-4 7-1q-3 4-7 1z', { fill: '#8D7B68' }); },
+      chertnod: function () { S.add('ellipse', { cx: x, cy: y, rx: 7, ry: 4, fill: '#3E3E3E', stroke: col, 'stroke-width': .8 }, null, g); },
+      chickenwire: function () { [[-4, -3], [3, -3], [-1, 3], [6, 3], [-7, 3]].forEach(function (q) { S.add('ellipse', Object.assign({ cx: X(q[0]), cy: Y(q[1]), rx: 3, ry: 2.4 }, a, { 'stroke-width': .8 }), null, g); }); },
+      saltcast: function () { p(M(-5, -2, -1, -2, -1, 2, -5, 2) + 'Z' + M(-5, -2, -3, -4, 1, -4, -1, -2) + M(1, -4, 1, 0, -1, 2)); p(M(3, 2, 7, 2, 7, 6, 3, 6) + 'Z', { 'stroke-width': .8 }); },
+      calvein: function () { p(M(-7, 6, 7, -6), { 'stroke-width': 2, stroke: '#6D8FA8' }); p(M(-7, 0, 1, -7), { 'stroke-width': 1.2, stroke: '#6D8FA8' }); },
+      pyrite: function () { S.add('rect', { x: X(-4), y: Y(-4), width: 8, height: 8, fill: '#C9A227', stroke: '#6B5A12', 'stroke-width': .8, transform: 'rotate(15 ' + x + ' ' + y + ')' }, null, g); },
+      glauconite: function () { [[-4, -2], [3, -3], [0, 3], [-6, 4], [6, 3]].forEach(function (q) { S.circle(X(q[0]), Y(q[1]), 1.7, { fill: '#3C8D4F' }, g); }); },
+      phosgr: function () { [[-4, -2], [3, -3], [0, 3], [-6, 4], [6, 3]].forEach(function (q) { S.add('ellipse', { cx: X(q[0]), cy: Y(q[1]), rx: 2.2, ry: 1.5, fill: '#7A5C3A' }, null, g); }); },
+      ferrug: function () { S.circle(x, y, 6, { fill: '#C1653A', opacity: .55 }, g); S.circle(X(3), Y(-2), 2.5, { fill: '#9A3F1C' }, g); },
+      dolom: function () { p(M(-6, -2, -2, -6, 2, -2, -2, 2) + 'Z' + M(1, 2, 5, -2, 8, 2, 4, 6) + 'Z'); },
+      silic: function () { p(M(-6, 6, 0, -7, 6, 6) + 'Z'); p(M(-3, 1, 3, 1), { 'stroke-width': .7 }); },
+      burrowv: function () { p(M(-4, -7, -4, 7) + M(1, -7, 1, 4) + M(5, -7, 5, 6)); },
+      burrowh: function () { p('M' + X(-8) + ' ' + Y(0) + 'h6v-4h6v4h4M' + X(-2) + ' ' + Y(0) + 'v5', { 'stroke-width': 1.4 }); },
+      boring: function () { p(M(-8, -5, 8, -5), { 'stroke-width': 1.6 }); p('M' + X(-4) + ' ' + Y(-5) + 'v6a2 2 0 0 0 4 0v-6M' + X(3) + ' ' + Y(-5) + 'v4a2 2 0 0 0 4 0v-4'); },
+      tracks: function () { [[-5, 4], [0, -1], [5, -5]].forEach(function (q) { p(M(q[0], q[1], q[0] - 2.5, q[1] - 3) + M(q[0], q[1], q[0], q[1] - 3.5) + M(q[0], q[1], q[0] + 2.5, q[1] - 3)); }); },
+      stromatolite: function () { p('M' + X(-7) + ' ' + Y(6) + 'Q' + X(-7) + ' ' + Y(-4) + ' ' + x + ' ' + Y(-5) + 'Q' + X(7) + ' ' + Y(-4) + ' ' + X(7) + ' ' + Y(6)); p('M' + X(-4) + ' ' + Y(6) + 'Q' + X(-4) + ' ' + Y(-1) + ' ' + x + ' ' + Y(-2) + 'Q' + X(4) + ' ' + Y(-1) + ' ' + X(4) + ' ' + Y(6), { 'stroke-width': .8 }); },
+      microbial: function () { p('M' + X(-8) + ' ' + Y(-3) + 'q2-2 4 0t4 0t4 0t4 0M' + X(-8) + ' ' + Y(1) + 'q2-2 4 0t4 0t4 0t4 0M' + X(-8) + ' ' + Y(5) + 'q2-2 4 0t4 0t4 0t4 0', { 'stroke-width': .8 }); },
+      rudist: function () { p(M(-4, 7, -6, -5, 6, -5, 4, 7) + 'Z'); p(M(-6, -5, 0, -8, 6, -5)); },
+      brachiopod: function () { p('M' + X(-7) + ' ' + Y(-2) + 'Q' + x + ' ' + Y(10) + ' ' + X(7) + ' ' + Y(-2) + 'Q' + x + ' ' + Y(-7) + ' ' + X(-7) + ' ' + Y(-2) + 'Z'); p(M(0, -4, 0, 4), { 'stroke-width': .7 }); },
+      ammonite: function () { S.circle(x, y, 7, a, g); p('M' + x + ' ' + y + 'm4.5 0a4.5 4.5 0 1 1-1.5-3.4M' + x + ' ' + y + 'm2.2 0a2.2 2.2 0 1 1-.7-1.6', { 'stroke-width': .8 }); },
+      belemnite: function () { p('M' + X(-8) + ' ' + Y(-2) + 'L' + X(6) + ' ' + Y(-2) + 'Q' + X(9) + ' ' + y + ' ' + X(6) + ' ' + Y(2) + 'L' + X(-8) + ' ' + Y(2) + 'Z', { fill: col, 'fill-opacity': .25 }); },
+      nautiloid: function () { p(M(-8, 2, 6, -3, 8, -1, -6, 4) + 'Z'); p(M(-3, 3, 0, -1) + M(2, 1, 5, -2), { 'stroke-width': .7 }); },
+      pforam: function () { [[-3, 2, 2.4], [2, 2, 2.8], [0, -3, 3.2]].forEach(function (q) { S.circle(X(q[0]), Y(q[1]), q[2], a, g); }); },
+      alveolina: function () { S.add('ellipse', Object.assign({ cx: x, cy: y, rx: 8, ry: 4 }, a), null, g); p(M(-4, -3.4, -4, 3.4) + M(0, -4, 0, 4) + M(4, -3.4, 4, 3.4), { 'stroke-width': .6 }); },
+      fusulinid: function () { p('M' + X(-8) + ' ' + y + 'Q' + x + ' ' + Y(-9) + ' ' + X(8) + ' ' + y + 'Q' + x + ' ' + Y(9) + ' ' + X(-8) + ' ' + y + 'Z'); p(M(-8, 0, 8, 0), { 'stroke-width': .6 }); },
+      ostracod: function () { S.add('ellipse', Object.assign({ cx: x, cy: y, rx: 6, ry: 3.6 }, a), null, g); p('M' + X(-6) + ' ' + y + 'q6 2 12 0', { 'stroke-width': .7 }); },
+      radiolaria: function () { S.circle(x, Y(1), 4.5, a, g); for (var i = 0; i < 8; i++) { var an = i * Math.PI / 4; p(M(Math.cos(an) * 4.5, 1 + Math.sin(an) * 4.5, Math.cos(an) * 7.5, 1 + Math.sin(an) * 7.5), { 'stroke-width': .7 }); } },
+      sponge: function () { p('M' + X(-5) + ' ' + Y(7) + 'L' + X(-6) + ' ' + Y(-6) + 'L' + X(6) + ' ' + Y(-6) + 'L' + X(5) + ' ' + Y(7) + 'Z'); p(M(-3, -2, 3, 2) + M(-3, 2, 3, -2), { 'stroke-width': .7 }); },
+      bryozoan: function () { p(M(0, 7, 0, -1) + M(0, -1, -5, -6) + M(0, -1, 5, -6)); [[-2, 2], [2, 2], [-3, -3], [3, -3]].forEach(function (q) { S.circle(X(q[0]), Y(q[1]), .9, { fill: col }, g); }); },
+      crinoid: function () { [-4, 0, 4].forEach(function (dx) { S.circle(X(dx), y, 2, a, g); S.circle(X(dx), y, .5, { fill: col }, g); }); p(M(-6, -3, 6, -3) + M(-6, 3, 6, 3), { 'stroke-width': .6 }); },
+      trilobite: function () { p('M' + X(-6) + ' ' + Y(-5) + 'Q' + x + ' ' + Y(-9) + ' ' + X(6) + ' ' + Y(-5) + 'L' + X(4) + ' ' + Y(7) + 'L' + X(-4) + ' ' + Y(7) + 'Z'); p(M(-2, -6, -2, 7) + M(2, -6, 2, 7) + M(-5, -1, 5, -1) + M(-4.5, 3, 4.5, 3), { 'stroke-width': .6 }); },
+      graptolite: function () { p(M(-8, 4, 8, -2)); for (var i = -6; i <= 6; i += 3) p(M(i, 4 - (i + 8) * 6 / 16, i + 1.5, 1 - (i + 8) * 6 / 16), { 'stroke-width': .8 }); },
+      fish: function () { p('M' + X(-6) + ' ' + y + 'Q' + x + ' ' + Y(-6) + ' ' + X(5) + ' ' + y + 'Q' + x + ' ' + Y(6) + ' ' + X(-6) + ' ' + y + 'ZM' + X(5) + ' ' + y + 'L' + X(8) + ' ' + Y(-3) + 'L' + X(8) + ' ' + Y(3) + 'Z'); S.circle(X(-3), Y(-1), .8, { fill: col }, g); },
+      teeth: function () { p(M(-6, 5, 0, -7, 6, 5) + 'Q' + x + ' ' + Y(2) + ' ' + X(-6) + ' ' + Y(5) + 'Z'); },
+      shellfrag: function () { p('M' + X(-7) + ' ' + Y(-3) + 'q3-3 5 0M' + X(1) + ' ' + Y(-5) + 'q3 2 6 0M' + X(-4) + ' ' + Y(4) + 'q3-3 6 0M' + X(4) + ' ' + Y(3) + 'q2 2 4 0'); },
+      leaf: function () { p('M' + X(-7) + ' ' + Y(5) + 'Q' + X(-5) + ' ' + Y(-7) + ' ' + X(7) + ' ' + Y(-5) + 'Q' + X(5) + ' ' + Y(7) + ' ' + X(-7) + ' ' + Y(5) + 'Z' + M(-7, 5, 4, -3) + M(-2, 1, -1, -3) + M(1, -1, 3, 2)); },
+      wood: function () { S.add('rect', Object.assign({ x: X(-8), y: Y(-3.5), width: 16, height: 7, rx: 3 }, a), null, g); p(M(-5, -1, 5, -1) + M(-6, 1.5, 4, 1.5), { 'stroke-width': .6 }); },
+      coalfrag: function () { [[-5, -2, 4], [2, -4, 3], [-1, 3, 5], [5, 2, 3]].forEach(function (q) { S.add('rect', { x: X(q[0]), y: Y(q[1]), width: q[2], height: 1.6, fill: '#222' }, null, g); }); },
+      calgae: function () { p(M(0, 7, 0, -6) + M(0, 3, -4, 0) + M(-4, 0, -4, -5) + M(0, 0, 4, -3) + M(4, -3, 4, -7)); [[-4, -6], [4, -7], [0, -7]].forEach(function (q) { S.circle(X(q[0]), Y(q[1]), 1.3, a, g); }); },
+      charophyte: function () { S.add('ellipse', Object.assign({ cx: x, cy: y, rx: 4.5, ry: 6 }, a), null, g); p('M' + X(-4) + ' ' + Y(-2) + 'q4 3 8-1M' + X(-4.3) + ' ' + Y(2) + 'q4 3 8.6-1', { 'stroke-width': .7 }); },
+      pollen: function () { S.circle(X(-3), Y(1), 3.2, a, g); S.circle(X(4), Y(-2), 2.6, a, g); p(M(-3, -2, -3, 4) + M(-6, 1, 0, 1), { 'stroke-width': .5 }); },
+      diatom: function () { S.add('ellipse', Object.assign({ cx: x, cy: y, rx: 7.5, ry: 2.8 }, a), null, g); for (var i = -5; i <= 5; i += 2.5) p(M(i, -2, i, 2), { 'stroke-width': .5 }); },
+      nanno: function () { S.circle(x, y, 5, a, g); S.circle(x, y, 2.4, a, g); for (var i = 0; i < 6; i++) { var an = i * Math.PI / 3; p(M(Math.cos(an) * 2.4, Math.sin(an) * 2.4, Math.cos(an) * 5, Math.sin(an) * 5), { 'stroke-width': .5 }); } }
     };
     (F[k] || function () { S.circle(x, y, 3, { fill: col }, g); })();
   }
@@ -116,6 +205,15 @@
     if (k === 'topsoil') return t('Modern soil horizon with organic matter.', 'أفق تربة حديثة غني بالمادة العضوية.');
     if (k === 'fill') return t('Anthropogenic made ground.', 'أرض مصطنعة من نشاط بشري.');
     if (g === 'evap' || k === 'sabkha') return t('Evaporitic sabkha or restricted lagoon under an arid climate.', 'سبخة تبخرية أو لاغون محصور في مناخ جاف.');
+    if (has('chickenwire') || has('saltcast')) return t('Evaporitic sabkha or restricted lagoon under an arid climate.', 'سبخة تبخرية أو لاغون محصور في مناخ جاف.');
+    if (has('stromatolite') || has('microbial') || has('fenestral') || has('tepee')) return t('Peritidal setting: intertidal to supratidal flat with microbial mats.', 'بيئة مدّية: مسطح بين مدّي إلى فوق مدّي مع حصائر ميكروبية.');
+    if (has('rudist')) return t('Rudist build-ups on a shallow carbonate platform margin.', 'تجمعات روديستية على حافة منصة كربونية ضحلة.');
+    if (has('ammonite') || has('belemnite') || has('pforam') || has('radiolaria') || has('graptolite') || has('nanno')) return t('Open marine, pelagic to hemipelagic setting.', 'بيئة بحرية مفتوحة، بحرية عميقة إلى شبه عميقة.');
+    if (has('hcs')) return t('Storm-influenced shelf between fair-weather and storm wave base.', 'رف متأثر بالعواصف بين قاعدتي أمواج الطقس الهادئ والعواصف.');
+    if (has('herring') || has('flaser') || has('lenticular') || has('wavy')) return t('Tidal flat or tide-dominated estuary.', 'مسطح مدّي أو مصب يسوده المد.');
+    if (g === 'clastic' && (has('flute') || has('load') || has('slump') || has('convolute'))) return t('Gravity-flow deposit on a slope or basin floor (turbidite).', 'رواسب جريان ثقالي على منحدر أو قاع حوض (تيربيدايت).');
+    if (has('charophyte')) return t('Freshwater lake or pond.', 'بحيرة أو بركة مياه عذبة.');
+    if (has('leaf') || has('wood') || has('coalfrag')) return t('Continental or deltaic setting with abundant vegetation.', 'بيئة قارية أو دلتاوية غنية بالنباتات.');
     if (k === 'reef' || has('coral')) return t('Warm, shallow, normal-marine carbonate platform with reef growth.', 'منصة كربونية بحرية ضحلة دافئة طبيعية الملوحة مع نمو شعابي.');
     if (k === 'oolitic' || k === 'grainstone' || k === 'calcarenite') return t('High-energy carbonate shoal or beach, agitated by waves and tides.', 'ضحل كربوني عالي الطاقة أو شاطئ تحركه الأمواج والمد.');
     if (k === 'chalk' || k === 'lime_mud' || (k === 'marl' && has('foram'))) return t('Quiet, low-energy marine water below wave base.', 'مياه بحرية هادئة منخفضة الطاقة تحت قاعدة الأمواج.');
@@ -154,7 +252,7 @@
     var items = [];
     Object.keys(used.rock).forEach(function (k) { items.push([function (x, y) { var id = 'lg' + k + Math.random().toString(36).slice(2, 6); pattern(S, defs, id, R[k][3]); S.add('rect', { x: x, y: y - 9, width: 34, height: 18, fill: R[k][2], stroke: ink, 'stroke-width': .7 }); S.add('rect', { x: x, y: y - 9, width: 34, height: 18, fill: 'url(#' + id + ')', stroke: ink, 'stroke-width': .7 }); }, nm(R[k])]); });
     Object.keys(used.contact).forEach(function (k) { items.push([function (x, y) { contact(S, null, k, x, x + 34, y); }, nm(CONTACTS[k])]); });
-    Object.keys(used.st).forEach(function (k) { items.push([function (x, y) { symbol(S, null, k, x + 17, y, STRUCT[k][2] === 'f' ? '#5B3A1E' : ink); }, nm(STRUCT[k])]); });
+    Object.keys(used.st).forEach(function (k) { items.push([function (x, y) { symbol(S, null, k, x + 17, y, scol(k)); }, nm(STRUCT[k])]); });
     if (floor) items.push([function (x, y) { S.line(x, y, x + 34, y, { stroke: '#B4552D', 'stroke-width': 2, 'stroke-dasharray': '8 4' }); }, t('Pit floor', 'أرضية الحفر')]);
     if (water) items.push([function (x, y) { S.line(x, y + 4, x + 34, y + 4, { stroke: '#1F6FB2', 'stroke-width': 1.6 }); S.path('M' + (x + 10) + ' ' + (y - 7) + 'h14l-7 10z', { fill: '#fff', stroke: '#1F6FB2', 'stroke-width': 1.2 }); }, t('Water table', 'منسوب المياه الجوفية')]);
     var IH = 25, GSN = [['cl', t('clay', 'طين')], ['si', t('silt', 'غرين')], ['vf', t('very fine sand', 'رمل ناعم جداً')], ['f', t('fine sand', 'رمل ناعم')], ['m', t('medium sand', 'رمل متوسط')], ['c', t('coarse sand', 'رمل خشن')], ['vc', t('very coarse sand', 'رمل خشن جداً')], ['gr', t('gravel', 'حصى')]];
@@ -182,7 +280,7 @@
       contact(S, null, b.base || 'sharp', x0, x0 + w, y + h);
       S.text(xNo + 18, y + h / 2 + 4, String(i + 1), { 'font-size': 10.5, 'font-weight': 700, fill: ink, 'text-anchor': 'middle' }); S.line(xNo + 4, y, xNo + 32, y, { stroke: '#C9CED3', 'stroke-width': .6 });
       var st = (b.st || []).filter(function (k) { return STRUCT[k]; }), perRow = 4, cw = wSt / perRow, rows = Math.ceil(st.length / perRow), rh = Math.min(22, Math.max(16, h / Math.max(1, rows)));
-      st.forEach(function (k, j) { var col = j % perRow, row = Math.floor(j / perRow), sy = y + h / 2 + (row - (rows - 1) / 2) * rh; sy = Math.max(y + 7, Math.min(y + h - 7, sy)); symbol(S, null, k, xSt + cw / 2 + col * cw, sy, STRUCT[k][2] === 'f' ? '#5B3A1E' : ink); });
+      st.forEach(function (k, j) { var col = j % perRow, row = Math.floor(j / perRow), sy = y + h / 2 + (row - (rows - 1) / 2) * rh; sy = Math.max(y + 7, Math.min(y + h - 7, sy)); symbol(S, null, k, xSt + cw / 2 + col * cw, sy, scol(k)); });
       S.line(xSt, y, xSt + wSt, y, { stroke: '#C9CED3', 'stroke-width': .6 });
       prevW = w; y += h;
     });
@@ -225,7 +323,7 @@
     function bedsUI() {
       var top = 0;
       box.innerHTML = beds.map(function (b, i) {
-        var st = b.st || [], chips = Object.keys(STRUCT).map(function (k) { return '<label class="chk" style="font-size:.78rem"><input type="checkbox" data-st="' + k + '"' + (st.indexOf(k) > -1 ? ' checked' : '') + '> ' + STRUCT[k][SH.lang === 'ar' ? 1 : 0] + '</label>'; }).join('');
+        var st = b.st || [], chips = stChips(st, 'data-st', '.78rem');
         var html = '<div style="border:1px solid var(--line);border-radius:12px;padding:10px;display:grid;gap:8px" data-bed="' + i + '"><div style="display:flex;align-items:center;gap:8px"><span style="width:14px;height:14px;border-radius:3px;border:1px solid #555;background:' + (R[b.rock] ? R[b.rock][2] : '#ccc') + '"></span><b class="small">' + t('Bed ', 'الطبقة ') + (i + 1) + '</b><span class="xsmall muted ltr">' + SH.fmt(top, 2) + '–' + SH.fmt(top + (b.th || 0), 2) + ' m</span><button class="x" style="margin-inline-start:auto" type="button" data-delbed="' + i + '" aria-label="' + t('Delete', 'حذف') + '">✕</button></div>' +
           '<div class="row2"><div class="fg"><select data-f="rock">' + opts(b.rock) + '</select></div><div class="fg"><input type="number" step="0.05" min="0.05" data-f="th" value="' + (b.th || '') + '" placeholder="' + t('Thickness m', 'السمك م') + '"></div></div>' +
           '<div class="row2"><div class="fg"><select data-f="sec"><option value="">' + t('No secondary rock', 'بلا صخر ثانوي') + '</option>' + opts(b.sec) + '</select></div><div class="fg"><select data-f="mix"><option value="mixed"' + (b.mix === 'mixed' ? ' selected' : '') + '>' + t('Mixed', 'مختلط') + '</option><option value="inter"' + (b.mix === 'inter' ? ' selected' : '') + '>' + t('Interbedded', 'متعاقب') + '</option></select></div></div>' +
@@ -233,7 +331,7 @@
           '<details' + (st.length || b.desc || b.col ? ' open' : '') + '><summary class="small" style="cursor:pointer;font-weight:700">' + t('Colour, description, structures and fossils', 'اللون والوصف والتراكيب والأحافير') + (st.length ? ' · ' + st.length : '') + '</summary><div style="display:grid;gap:8px;margin-top:8px">' +
           '<div class="fg"><input data-f="col" value="' + SH.esc(b.col || '') + '" placeholder="' + t('Colour, e.g. pale yellowish brown (10YR 6/2)', 'اللون، مثل بني مصفر فاتح (10YR 6/2)') + '"></div>' +
           '<div class="fg"><textarea data-f="desc" rows="2" style="min-height:58px" placeholder="' + t('Field description: sorting, hardness, cement, bedding thickness…', 'الوصف الحقلي: الفرز، الصلابة، المادة اللاحمة، سمك التطبق…') + '">' + SH.esc(b.desc || '') + '</textarea></div>' +
-          '<div class="chks" style="display:flex;flex-wrap:wrap;gap:4px 12px">' + chips + '</div></div></details></div>';
+          '<div class="chks">' + chips + '</div></div></details></div>';
         top += b.th || 0; return html;
       }).join('');
     }
@@ -248,5 +346,5 @@
     return { get: function () { return beds; }, set: function (b) { beds = b; save(); bedsUI(); }, redraw: bedsUI };
   }
 
-  SH.strat = { R: R, GROUPS: GROUPS, CONTACTS: CONTACTS, STRUCT: STRUCT, GS: GS, pattern: pattern, symbol: symbol, contact: contact, render: render, editor: editor, facies: facies, dig: dig, name: function (k) { return nm(R[k]); } };
+  SH.strat = { R: R, GROUPS: GROUPS, CONTACTS: CONTACTS, STRUCT: STRUCT, STCAT: STCAT, scol: scol, chips: stChips, GS: GS, pattern: pattern, symbol: symbol, contact: contact, render: render, editor: editor, facies: facies, dig: dig, name: function (k) { return nm(R[k]); } };
 })();
