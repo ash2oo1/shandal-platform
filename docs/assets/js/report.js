@@ -45,13 +45,13 @@
     var tiles = Array.prototype.filter.call(m.querySelectorAll('.leaflet-tile-pane img.leaflet-tile'), function (t) { var r = t.getBoundingClientRect(); return t.classList.contains('leaflet-tile-loaded') && r.right > R0.left && r.left < R0.right && r.bottom > R0.top && r.top < R0.bottom && getComputedStyle(t.closest('.leaflet-layer') || t).opacity !== '0'; });
     if (!tiles.length) return mapImg0(m);
     var cv = d.createElement('canvas'), k = 2; cv.width = W * k; cv.height = H * k; var x = cv.getContext('2d'); x.fillStyle = '#e9e6df'; x.fillRect(0, 0, cv.width, cv.height);
-    return Promise.all(tiles.map(function (t) { return tileImg(t).then(function (im) { if (!im) return; var r = t.getBoundingClientRect(); x.drawImage(im, (r.left - R0.left) * k, (r.top - R0.top) * k, r.width * k, r.height * k); }); })).then(function () {
+    return Promise.all(tiles.map(tileImg)).then(function (ims) { ims.forEach(function (im, i) { if (!im) return; var t = tiles[i], r = t.getBoundingClientRect(), lay = t.closest('.leaflet-layer'), op = lay ? parseFloat(getComputedStyle(lay).opacity) : 1; x.globalAlpha = isFinite(op) ? op : 1; x.drawImage(im, (r.left - R0.left) * k, (r.top - R0.top) * k, r.width * k, r.height * k); }); x.globalAlpha = 1; }).then(function () {
       return w.html2canvas(m, { useCORS: true, scale: k, backgroundColor: null, onclone: function (doc, el) { ONCLONE(doc, el); el.style.setProperty('background', 'transparent', 'important'); }, logging: false, ignoreElements: function (e) { return e.classList && (e.classList.contains('leaflet-tile-pane') || e.classList.contains('leaflet-overlay-pane') || e.classList.contains('leaflet-control-container') || e.classList.contains('map-tools') || e.classList.contains('map-hint') || e.classList.contains('loading')); } }).catch(function () { return null; });
     }).then(function (ov) {
       return Promise.all(Array.prototype.map.call(m.querySelectorAll('.leaflet-overlay-pane svg'), function (sv) { var r = sv.getBoundingClientRect(), c = sv.cloneNode(true); c.setAttribute('width', r.width); c.setAttribute('height', r.height); c.setAttribute('xmlns', 'http://www.w3.org/2000/svg'); c.removeAttribute('style');
         return imgFromURL('data:image/svg+xml;charset=utf-8,' + encodeURIComponent(new XMLSerializer().serializeToString(c))).then(function (im) { x.drawImage(im, (r.left - R0.left) * k, (r.top - R0.top) * k, r.width * k, r.height * k); }).catch(function () {}); })).then(function () { return ov; });
     }).then(function (ov) {
-      if (ov) x.drawImage(ov, 0, 0, cv.width, cv.height);
+      if (ov && ov.width && ov.height) x.drawImage(ov, 0, 0, cv.width, cv.height);
       if (lm && w.L) try { mapDeco(x, k, W, H, lm, m); } catch (e) {}
       return { src: cv.toDataURL('image/jpeg', .92), w: W, h: H };
     });
