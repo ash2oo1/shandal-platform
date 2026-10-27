@@ -4,25 +4,12 @@
 <div class="ws-wrap">
 <div class="ws wide-side">
   <aside class="ws-side">
-    {{ m.panel_open(1, 'Data', 'البيانات') }}
+    {{ m.panel_open(1, 'Project', 'بيانات المشروع') }}
       {{ m.fld('geoName', 'Analyst', 'المحلّل', 'text', '', '', 'Printed at the foot of every downloaded image.', 'يُطبع أسفل كل صورة تُنزَّل.') }}
-      {{ m.fld('sTitle', 'Figure title', 'عنوان الشكل', 'text', '', '', '', '', m.L('e.g. Smectite vs plasticity index and free swell ratio', 'مثال: السمكتايت مقابل دليل اللدونة ونسبة الانتفاخ الحر')) }}
-      <div class="fg"><label for="sData">{{ m.L('Data table (one sample per row, first row = column names)', 'جدول البيانات (عينة في كل صف، والصف الأول أسماء الأعمدة)') }} {{ m.tipx('Paste from Excel, or type values separated by tabs, commas or semicolons. A decimal comma is accepted when columns are separated by tabs or semicolons. Write the unit after a comma in the column name, e.g. "PI, %".', 'الصق من Excel، أو اكتب القيم مفصولة بعلامة جدولة أو فاصلة أو فاصلة منقوطة. تُقبل الفاصلة العشرية عندما تُفصل الأعمدة بعلامة الجدولة أو الفاصلة المنقوطة. اكتب الوحدة بعد فاصلة في اسم العمود، مثل "PI, %".') }}</label>
-        <textarea id="sData" rows="8" spellcheck="false" style="font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.8rem;white-space:pre;direction:ltr"></textarea></div>
-      <div class="row2"><label class="btn btn-line btn-sm" style="cursor:pointer">{{ icon('upload', 'ico ico-sm') }}{{ m.L('Open CSV file', 'افتح ملف CSV') }}<input id="sFile" type="file" accept=".csv,.txt,.tsv" hidden></label><button class="btn btn-line btn-sm" id="sDemo" type="button">{{ m.L('Example: heaving soils', 'مثال: الترب المنتفخة') }}</button></div>
-      <p class="xsmall muted" id="sInfo" style="margin:0"></p>
+      {{ m.fld('sTitle', 'Table and figure title', 'عنوان الجدول والشكل', 'text', '', '', '', '', m.L('e.g. Plagioclase vs liquid limit and linear shrinkage', 'مثال: البلاجيوكليز مقابل حد السيولة والانكماش الخطي')) }}
+      <input type="hidden" id="sX"><input type="hidden" id="sY"><input type="hidden" id="sZ"><input type="hidden" id="sLab">
     {{ m.panel_close() }}
-    {{ m.panel_open(2, 'Variables', 'المتغيرات') }}
-      <div class="row2">
-        <div class="fg"><label for="sX">{{ m.L('X axis', 'المحور X') }}</label><select id="sX"></select></div>
-        <div class="fg"><label for="sY">{{ m.L('Y axis', 'المحور Y') }}</label><select id="sY"></select></div>
-      </div>
-      <div class="row2">
-        <div class="fg"><label for="sZ">{{ m.L('Z (surface value)', 'Z (قيمة السطح)') }}</label><select id="sZ"></select></div>
-        <div class="fg"><label for="sLab">{{ m.L('Sample labels', 'أسماء العينات') }}</label><select id="sLab"></select></div>
-      </div>
-    {{ m.panel_close() }}
-    {{ m.panel_open(3, 'Surface', 'السطح') }}
+    {{ m.panel_open(2, 'Surface', 'السطح') }}
       {{ m.sel('sMeth', 'Surface fitting method', 'طريقة ملاءمة السطح', [('idw', 'Inverse distance weighting (Shepard)', 'وزن مقلوب المسافة (طريقة شيبارد)', true), ('dwls', 'Distance-weighted least squares (DWLS)', 'المربعات الصغرى الموزونة بالمسافة (DWLS)'), ('tps', 'Thin-plate spline', 'شريحة الصفيحة الرقيقة (Thin-plate spline)'), ('quad', 'Quadratic polynomial regression', 'انحدار متعدد الحدود من الدرجة الثانية'), ('plane', 'Linear plane regression', 'انحدار مستوي خطي')], 'Inverse distance weighting gives the surface of common laboratory plotting software: it honours the samples, shows local highs and lows around them and tends to the mean far from the data. DWLS and the spline follow local trends; the regressions give a smooth trend surface.', 'يعطي وزن مقلوب المسافة سطح برامج الرسم المختبرية الشائعة: يحترم العينات ويُظهر القمم والمنخفضات المحلية حولها ويقترب من المتوسط بعيداً عن البيانات. أما DWLS والشريحة فيتبعان الاتجاهات المحلية، والانحدارات تعطي سطح اتجاه عام أملس.') }}
       {{ m.fld('sSmooth', 'Smoothing', 'التنعيم', 'range', '50', '', 'Higher values give a smoother surface that no longer passes exactly through the samples.', 'القيم الأعلى تعطي سطحاً أنعم لا يمر بالعينات تماماً.', '', '1', 'min="0" max="100"') }}
       <div class="row2">
@@ -30,7 +17,7 @@
         {{ m.fld('sVex', 'Height of the Z axis', 'ارتفاع المحور Z', 'range', '85', '%', '', '', '', '5', 'min="20" max="150"') }}
       </div>
     {{ m.panel_close() }}
-    {{ m.panel_open(4, 'Colour classes and view', 'فئات الألوان والعرض') }}
+    {{ m.panel_open(3, 'Colour classes and view', 'فئات الألوان والعرض') }}
       <div class="row2">
         {{ m.sel('sNc', 'Number of classes', 'عدد الفئات', [('6', '6', '6'), ('8', '8', '8'), ('9', '9', '9', true), ('10', '10', '10'), ('12', '12', '12')]) }}
         {{ m.sel('sRamp', 'Colour ramp', 'تدرج الألوان', [('spec', 'Spectral (purple → red)', 'طيفي (بنفسجي ← أحمر)', true), ('viridis', 'Viridis', 'Viridis'), ('terrain', 'Terrain', 'تضاريسي'), ('blue', 'Blue → red', 'أزرق ← أحمر')]) }}
@@ -48,6 +35,12 @@
   </aside>
 
   <div class="ws-main">
+    <section class="pn" data-rp-skip><div class="pn-h">{{ icon('table') }}<h2>{{ m.L('Data table', 'جدول البيانات') }}</h2><div class="sp no-print"><button class="btn btn-line btn-xs" id="sDemo" type="button">{{ m.L('Example', 'مثال') }}</button><button class="btn btn-danger btn-xs" id="sClr" type="button">{{ m.L('Clear', 'مسح') }}</button></div></div>
+      <div class="pn-b" style="display:grid;gap:10px">
+        <p class="xsmall muted" style="margin:0">{{ m.L('Write the name and unit of each column (for example "LL, %"), choose which column is plotted on X, Y and Z, then enter one sample per row. Columns not assigned to an axis are kept for later use.', 'اكتب اسم كل عمود ووحدته (مثل "LL, %")، واختر العمود الذي يُرسم على المحور X وY وZ، ثم أدخل عينة واحدة في كل صف. الأعمدة غير المخصصة لمحور تبقى محفوظة لاستعمال لاحق.') }}</p>
+        <div class="tbl-wrap" style="overflow:auto"><table class="tbl" id="sGridT" style="min-width:520px"></table></div>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center"><button class="btn btn-line btn-sm" id="sAddR" type="button">{{ icon('plus', 'ico ico-sm') }}{{ m.L('Add sample', 'أضف عينة') }}</button><button class="btn btn-line btn-sm" id="sAddC" type="button">{{ icon('plus', 'ico ico-sm') }}{{ m.L('Add column', 'أضف عموداً') }}</button><span class="xsmall muted" id="sInfo"></span></div>
+      </div></section>
     <div class="kpis" id="sKpis" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr))"></div>
     <div data-rp-page="s3">{{ m.fig_open('sf1', '1', '3-D surface plot', 'المخطط السطحي ثلاثي الأبعاد', '<button class="btn btn-line btn-xs" data-ex="s3d" data-f="png" type="button">PNG</button><button class="btn btn-line btn-xs" data-ex="s3d" data-f="jpg" type="button">JPG</button><button class="btn btn-line btn-xs" data-ex="s3d" data-f="pdf" type="button">PDF</button>') }}
       <div class="fig-b pad0"><div class="plot" id="s3d" style="height:600px"></div></div>

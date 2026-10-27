@@ -5,7 +5,7 @@
 (function () {
   'use strict';
   var t = SH.t, $ = SH.$, AR = SH.lang === 'ar', P = window.Plotly;
-  var persist = SH.persist('surface3d3', ['geoName', 'sTitle', 'sData', 'sX', 'sY', 'sZ', 'sLab', 'sMeth', 'sSmooth', 'sGrid', 'sVex', 'sNc', 'sRamp', 'sBase', 'sMesh', 'sPts', 'sEq', 'sAz', 'sEl']);
+  var persist = SH.persist('surface3d4', ['geoName', 'sTitle', 'sMeth', 'sSmooth', 'sGrid', 'sVex', 'sNc', 'sRamp', 'sBase', 'sMesh', 'sPts', 'sEq', 'sAz', 'sEl']);
   var RAMPS = { spec: ['#8B00FF', '#5A1EFF', '#1F3FBF', '#16A34A', '#7FE000', '#FFF200', '#FFB300', '#FF6A00', '#E00000'], viridis: ['#440154', '#3B528B', '#21918C', '#5EC962', '#FDE725'], terrain: ['#2B83BA', '#ABDDA4', '#FFFFBF', '#E6B86A', '#A6611A', '#F2F2F2'], blue: ['#2166AC', '#67A9CF', '#D1E5F0', '#FDDBC7', '#EF8A62', '#B2182B'] };
   var DEMO = ['Sample\tLL, %\tPI, %\tLS, %\tClay, %\tFines, %\tSand, %\tGravel, %\tGs\tFSR\tFSI, %\tSmectite, %\tSilica, %\tK-feldspar, %\tPlagioclase, %',
     'PTS-A\t48.91\t31.08\t13.51\t23.14\t52.19\t30.75\t16.03\t2.60\t1.42\t50.71\t49.64\t12.58\t27.05\t4.67', 'PTS-B\t51.08\t32.46\t12.93\t26.56\t54.51\t32.45\t12.16\t2.63\t1.49\t53.21\t51.55\t13.14\t25.12\t5.21', 'PTS-C\t54.78\t34.81\t12.06\t29.85\t58.45\t31.97\t9.45\t2.66\t1.60\t57.14\t55.61\t13.10\t24.96\t6.33',
@@ -24,11 +24,36 @@
     return { cols: cols, rows: rows.map(function (r) { return cols.map(function (c, j) { return num[j] ? toN(r[j], dec) : r[j] || ''; }); }), num: num };
   }
   function toN(s, dec) { s = String(s == null ? '' : s).trim(); if (/^trace$/i.test(s) || s === '') return NaN; if (dec) s = s.replace(/\s/g, '').replace(',', '.'); return +s; }
-  function fill() { D = parse($('#sData').value); var o = D.cols.map(function (c, j) { return D.num[j] ? '<option value="' + j + '">' + SH.esc(c) + '</option>' : ''; }).join(''), ol = '<option value="-1">' + t('— none —', '— بلا —') + '</option>' + D.cols.map(function (c, j) { return '<option value="' + j + '">' + SH.esc(c) + '</option>'; }).join('');
-    ['sX', 'sY', 'sZ'].forEach(function (id, k) { var e = $('#' + id), v = e.value; e.innerHTML = o; var nums = D.num.map(function (f, j) { return f ? j : -1; }).filter(function (j) { return j > -1; }); if (v !== '' && D.num[+v]) e.value = v; else if (nums[k] != null) e.value = nums[k]; });
-    var l = $('#sLab'), lv = l.value; l.innerHTML = ol; l.value = lv !== '' && +lv < D.cols.length ? lv : String(D.num.indexOf(false)); if (l.value === '') l.value = '-1';
-    $('#sInfo').textContent = D.rows.length ? D.rows.length + t(' samples · ', ' عينة · ') + D.num.filter(Boolean).length + t(' numeric columns', ' عموداً رقمياً') : '';
+  /* manual data table: T = { cols: [{ n: name, r: 'x'|'y'|'z'|'' }], rows: [[label, v1, v2, …]] } */
+  var TK = 'shandal_surface_table', T = SH.store.get(TK, null);
+  function fromText(txt) { var p = parse(txt), cols = [], idx = []; p.cols.forEach(function (c, j) { if (p.num[j]) { cols.push({ n: c, r: '' }); idx.push(j); } }); var lj = p.num.indexOf(false);
+    return { cols: cols, rows: p.rows.map(function (r, i) { return [lj > -1 ? String(r[lj]) : String(i + 1)].concat(idx.map(function (j) { return isFinite(r[j]) ? r[j] : ''; })); }) }; }
+  function blankT() { return { cols: [{ n: '', r: 'x' }, { n: '', r: 'y' }, { n: '', r: 'z' }], rows: [['S1', '', '', ''], ['S2', '', '', ''], ['S3', '', '', ''], ['S4', '', '', ''], ['S5', '', '', '']] }; }
+  function saveT() { SH.store.set(TK, T); }
+  var ROLE = function (r) { return '<option value=""' + (r ? '' : ' selected') + '>—</option>' + ['x', 'y', 'z'].map(function (k) { return '<option value="' + k + '"' + (r === k ? ' selected' : '') + '>' + k.toUpperCase() + '</option>'; }).join(''); };
+  function drawT() {
+    var h = '<thead><tr><th style="min-width:110px">' + t('Sample', 'العينة') + '</th>' + T.cols.map(function (c, j) { return '<th style="min-width:120px"><div style="display:flex;gap:4px;align-items:center"><input data-cn="' + j + '" value="' + SH.esc(c.n) + '" placeholder="' + t('Name, unit', 'الاسم، الوحدة') + '" style="min-width:0;flex:1;direction:ltr"><button class="x" type="button" data-dc="' + j + '" aria-label="' + t('Delete column', 'احذف العمود') + '">✕</button></div></th>'; }).join('') + '<th></th></tr>' +
+      '<tr><th class="xsmall muted">' + t('Axis', 'المحور') + '</th>' + T.cols.map(function (c, j) { return '<th><select data-cr="' + j + '" style="width:100%">' + ROLE(c.r) + '</select></th>'; }).join('') + '<th></th></tr></thead><tbody>' +
+      T.rows.map(function (r, i) { return '<tr><td><input data-rl="' + i + '" value="' + SH.esc(r[0]) + '" style="width:100%;direction:ltr"></td>' + T.cols.map(function (c, j) { return '<td><input data-rv="' + i + ',' + (j + 1) + '" value="' + (r[j + 1] === '' || r[j + 1] == null ? '' : r[j + 1]) + '" inputmode="decimal" style="width:100%;direction:ltr;text-align:end"></td>'; }).join('') + '<td><button class="x" type="button" data-dr="' + i + '" aria-label="' + t('Delete row', 'احذف الصف') + '">✕</button></td></tr>'; }).join('') + '</tbody>';
+    $('#sGridT').innerHTML = h; info();
   }
+  function info() { var c = T.rows.filter(function (r) { return ['x', 'y', 'z'].every(function (k) { var j = T.cols.findIndex(function (q) { return q.r === k; }); return j > -1 && isFinite(num(r[j + 1])) && r[j + 1] !== ''; }); }).length, miss = ['x', 'y', 'z'].filter(function (k) { return !T.cols.some(function (q) { return q.r === k; }); });
+    $('#sInfo').textContent = (miss.length ? t('Assign the axis ', 'حدد المحور ') + miss.join(', ').toUpperCase() + t(' to a column. ', ' لعمود. ') : '') + c + t(' complete samples', ' عينة مكتملة'); }
+  function num(v) { return v === '' || v == null ? NaN : +String(v).replace(',', '.'); }
+  function fill() {
+    D = { cols: T.cols.map(function (c, j) { return c.n.trim() || ('V' + (j + 1)); }), num: T.cols.map(function () { return true; }), rows: T.rows.map(function (r) { return T.cols.map(function (c, j) { return num(r[j + 1]); }); }), labels: T.rows.map(function (r, i) { return String(r[0] || i + 1); }) };
+    var f = function (k) { return T.cols.findIndex(function (q) { return q.r === k; }); }; $('#sX').value = f('x'); $('#sY').value = f('y'); $('#sZ').value = f('z'); $('#sLab').value = -2;
+  }
+  var tmT = 0, later = function () { clearTimeout(tmT); tmT = setTimeout(run, 450); };
+  $('#sGridT').addEventListener('input', function (e) { var el = e.target, v;
+    if ((v = el.getAttribute('data-cn')) != null) T.cols[+v].n = el.value; else if ((v = el.getAttribute('data-rl')) != null) T.rows[+v][0] = el.value; else if ((v = el.getAttribute('data-rv')) != null) { var q = v.split(','); T.rows[+q[0]][+q[1]] = el.value.replace(',', '.').trim(); } else return; saveT(); info(); later(); });
+  $('#sGridT').addEventListener('change', function (e) { var el = e.target, v = el.getAttribute('data-cr'); if (v == null) return; T.cols.forEach(function (c, j) { if (j !== +v && el.value && c.r === el.value) c.r = ''; }); T.cols[+v].r = el.value; saveT(); drawT(); run(); });
+  $('#sGridT').addEventListener('click', function (e) { var b = e.target.closest('button'); if (!b) return; var v;
+    if ((v = b.getAttribute('data-dr')) != null) { T.rows.splice(+v, 1); } else if ((v = b.getAttribute('data-dc')) != null) { if (T.cols.length <= 3) { SH.toast(t('At least three columns are needed (X, Y and Z).', 'يلزم ثلاثة أعمدة على الأقل (X وY وZ).'), 'warn'); return; } T.cols.splice(+v, 1); T.rows.forEach(function (r) { r.splice(+v + 1, 1); }); } else return; saveT(); drawT(); run(); });
+  $('#sAddR').addEventListener('click', function () { T.rows.push(['S' + (T.rows.length + 1)].concat(T.cols.map(function () { return ''; }))); saveT(); drawT(); var ins = SH.$$('#sGridT tbody tr:last-child input'); if (ins[1]) ins[1].focus(); });
+  $('#sAddC').addEventListener('click', function () { T.cols.push({ n: '', r: '' }); T.rows.forEach(function (r) { r.push(''); }); saveT(); drawT(); });
+  $('#sClr').addEventListener('click', function () { SH.confirm(t('Clear the whole table?', 'هل تريد مسح الجدول كاملاً؟')).then(function (ok) { if (!ok) return; T = blankT(); saveT(); drawT(); run(); }); });
+
 
   /* ---------- linear algebra and fitting (coordinates normalised to 0–1) */
   function solve(A, b) { var n = b.length, M = A.map(function (r, i) { return r.concat([b[i]]); }); for (var c = 0; c < n; c++) { var p = c; for (var r = c + 1; r < n; r++) if (Math.abs(M[r][c]) > Math.abs(M[p][c])) p = r; var tmp = M[c]; M[c] = M[p]; M[p] = tmp; if (Math.abs(M[c][c]) < 1e-12) return null; for (r = 0; r < n; r++) if (r !== c) { var f = M[r][c] / M[c][c]; for (var k = c; k <= n; k++) M[r][k] -= f * M[c][k]; } } return M.map(function (r, i) { return r[n] / r[i]; }); }
@@ -57,7 +82,7 @@
   /* ---------- compute */
   function compute() {
     var jx = +$('#sX').value, jy = +$('#sY').value, jz = +$('#sZ').value, jl = +$('#sLab').value;
-    var S = D.rows.map(function (r, i) { return { x: r[jx], y: r[jy], z: r[jz], l: jl > -1 ? String(r[jl]) : String(i + 1) }; }).filter(function (p) { return isFinite(p.x) && isFinite(p.y) && isFinite(p.z); });
+    if (jx < 0 || jy < 0 || jz < 0) return null; var S = D.rows.map(function (r, i) { return { x: r[jx], y: r[jy], z: r[jz], l: D.labels ? D.labels[i] : jl > -1 ? String(r[jl]) : String(i + 1) }; }).filter(function (p) { return isFinite(p.x) && isFinite(p.y) && isFinite(p.z); });
     if (S.length < 4 || jx === jy || jx === jz || jy === jz) return null;
     var xs = S.map(function (p) { return p.x; }), ys = S.map(function (p) { return p.y; }), zs = S.map(function (p) { return p.z; });
     var nr = function (a, b) { var raw = (b - a) / 5, pp = Math.pow(10, Math.floor(Math.log10(raw))), mm = raw / pp, st = (mm <= 1 ? 1 : mm <= 2 ? 2 : mm <= 5 ? 5 : 10) * pp; return [Math.floor(a / st + 1e-9) * st, Math.ceil(b / st - 1e-9) * st, st]; }, xa = nr(Math.min.apply(null, xs), Math.max.apply(null, xs)), ya = nr(Math.min.apply(null, ys), Math.max.apply(null, ys)), x0 = xa[0], x1 = xa[1], y0 = ya[0], y1 = ya[1], dtx = xa[2], dty = ya[2]; if (x1 === x0 || y1 === y0) return null;
@@ -85,7 +110,7 @@
     return [Zn + ' = ' + sig(R.rx.a) + sgn(R.rx.b) + '·' + X + '   R² = ' + SH.fmt(R.rx.r2 * 100, 2) + '%', Zn + ' = ' + sig(R.ry.a) + sgn(R.ry.b) + '·' + Y + '   R² = ' + SH.fmt(R.ry.r2 * 100, 2) + '%', Zn + ' = ' + sig(R.mc[0]) + sgn(R.mc[1]) + '·' + X + sgn(R.mc[2]) + '·' + Y + '   R² = ' + SH.fmt(R.r2m * 100, 2) + '%']; }
   function figs(R, exp) {
     var cs = cscale(R), zr = R.bounds[R.bounds.length - 1] - R.bounds[0], zb = R.bounds[0] - zr * 0.0, mesh = $('#sMesh').checked, sx = (R.gx[1] - R.gx[0]), sy = (R.gy[1] - R.gy[0]);
-    var tr = [{ type: 'surface', x: R.gx, y: R.gy, z: R.Z, colorscale: cs, cmin: R.bounds[0], cmax: R.bounds[R.bounds.length - 1], showscale: !exp, colorbar: { title: { text: nm(R.jz) }, tickvals: R.bounds, len: .75, thickness: 16 },
+    var tr = [{ type: 'surface', x: R.gx, y: R.gy, z: R.Z, colorscale: cs, cmin: R.bounds[0], cmax: R.bounds[R.bounds.length - 1], showscale: !exp, colorbar: { title: { text: nm(R.jz), side: 'top' }, tickvals: R.bounds, ticktext: R.bounds.map(cf), orientation: 'h', x: .5, xanchor: 'center', y: -0.02, yanchor: 'top', len: .7, thickness: 14 },
       contours: mesh ? { x: { show: true, start: R.gx[0], end: R.gx[R.gx.length - 1], size: sx, color: '#000000', width: 3 }, y: { show: true, start: R.gy[0], end: R.gy[R.gy.length - 1], size: sy, color: '#000000', width: 3 } } : {},
       lighting: { ambient: .85, diffuse: .45, specular: .05, roughness: .9 }, hovertemplate: short(nm(R.jx)) + ' %{x:.3g}<br>' + short(nm(R.jy)) + ' %{y:.3g}<br>' + short(nm(R.jz)) + ' %{z:.3g}<extra></extra>' }];
     var zlo = R.za[0], zhi = Math.max(R.za[1], R.bounds[R.bounds.length - 1]), base = zlo + (zhi - zlo) * 0.004;
@@ -101,29 +126,38 @@
     var tx = function (x, y, s, a) { return S.text(x, y, s, Object.assign({ fill: INK, 'font-size': 13, direction: 'ltr' }, a || {})); };
     var xr = [R.gx[0], R.gx[G - 1]], yr = [R.gy[0], R.gy[G - 1]], px = function (x) { return X0 + (x - xr[0]) / (xr[1] - xr[0]) * PW; }, py = function (y) { return Y0 + PH - (y - yr[0]) / (yr[1] - yr[0]) * PH; };
     var VH = MT + PH + 80; S.el.setAttribute('viewBox', '0 0 ' + W + ' ' + VH); S.add('rect', { x: 0, y: 0, width: W, height: VH, fill: '#fff' });
-    // raster of classes (bilinear on the grid, 3 px cells)
-    var N = 230, cv = document.createElement('canvas'); cv.width = N; cv.height = N; var cx = cv.getContext('2d'), img = cx.createImageData(N, N), cl = R.cols.map(function (c) { return c.match(/\d+/g).map(Number); });
-    for (var j = 0; j < N; j++) for (var i = 0; i < N; i++) { var gx = i / (N - 1) * (G - 1), gy = (1 - j / (N - 1)) * (G - 1), i0 = Math.min(G - 2, Math.floor(gx)), j0 = Math.min(G - 2, Math.floor(gy)), u = gx - i0, v = gy - j0, z = R.Z[j0][i0] * (1 - u) * (1 - v) + R.Z[j0][i0 + 1] * u * (1 - v) + R.Z[j0 + 1][i0] * (1 - u) * v + R.Z[j0 + 1][i0 + 1] * u * v;
-      var k = Math.max(0, Math.min(cl.length - 1, Math.floor((z - R.bounds[0]) / R.st))), o = (j * N + i) * 4; if (!isFinite(z)) continue; img.data[o] = cl[k][0]; img.data[o + 1] = cl[k][1]; img.data[o + 2] = cl[k][2]; img.data[o + 3] = 255; }
+    // smoothed field for the map: bilinear resampling to 101 × 101, then a Gaussian filter (σ = 4 % of the frame)
+    var M = 101, F = new Float64Array(M * M), sig2 = 4, at = function (gx, gy) { var i0 = Math.min(G - 2, Math.floor(gx)), j0 = Math.min(G - 2, Math.floor(gy)), u = gx - i0, v = gy - j0; return R.Z[j0][i0] * (1 - u) * (1 - v) + R.Z[j0][i0 + 1] * u * (1 - v) + R.Z[j0 + 1][i0] * (1 - u) * v + R.Z[j0 + 1][i0 + 1] * u * v; };
+    for (var j = 0; j < M; j++) for (var i = 0; i < M; i++) F[j * M + i] = at(i / (M - 1) * (G - 1), j / (M - 1) * (G - 1));
+    var ker = [], kr = Math.ceil(sig2 * 3); for (var k = -kr; k <= kr; k++) ker.push(Math.exp(-k * k / (2 * sig2 * sig2)));
+    var blur = function (A, horiz) { var O = new Float64Array(M * M); for (var j = 0; j < M; j++) for (var i = 0; i < M; i++) { var s0 = 0, w0 = 0; for (var q = -kr; q <= kr; q++) { var ii = horiz ? i + q : i, jj = horiz ? j : j + q; if (ii < 0 || jj < 0 || ii >= M || jj >= M) continue; var w = ker[q + kr]; s0 += w * A[jj * M + ii]; w0 += w; } O[j * M + i] = s0 / w0; } return O; };
+    F = blur(blur(F, true), false);
+    // raster of classes
+    var N = 300, cv = document.createElement('canvas'); cv.width = N; cv.height = N; var cx = cv.getContext('2d'), img = cx.createImageData(N, N), cl = R.cols.map(function (c) { return c.match(/\d+/g).map(Number); });
+    for (j = 0; j < N; j++) for (i = 0; i < N; i++) { var gx = i / (N - 1) * (M - 1), gy = (1 - j / (N - 1)) * (M - 1), i0 = Math.min(M - 2, Math.floor(gx)), j0 = Math.min(M - 2, Math.floor(gy)), u = gx - i0, v = gy - j0, z = F[j0 * M + i0] * (1 - u) * (1 - v) + F[j0 * M + i0 + 1] * u * (1 - v) + F[(j0 + 1) * M + i0] * (1 - u) * v + F[(j0 + 1) * M + i0 + 1] * u * v;
+      var kk = Math.max(0, Math.min(cl.length - 1, Math.floor((z - R.bounds[0]) / R.st))), o = (j * N + i) * 4; img.data[o] = cl[kk][0]; img.data[o + 1] = cl[kk][1]; img.data[o + 2] = cl[kk][2]; img.data[o + 3] = 255; }
     cx.putImageData(img, 0, 0); S.add('image', { x: X0, y: Y0, width: PW, height: PH, href: cv.toDataURL('image/png'), preserveAspectRatio: 'none' });
-    // contour lines at the class limits
-    var Gd = { nx: G, ny: G, z: new Float32Array(G * G), b: { n: yr[1], s: yr[0], w: xr[0], e: xr[1] } }; for (j = 0; j < G; j++) for (i = 0; i < G; i++) Gd.z[j * G + i] = R.Z[G - 1 - j][i];
-    var lv = R.bounds.slice(1, -1), cs = SH.dem.contours(Gd, lv), labs = [];
-    cs.forEach(function (c) { var best = null; c.lines.forEach(function (ln) { if (ln.length < 2) return; S.path('M' + ln.map(function (p) { return px(p[1]).toFixed(1) + ' ' + py(p[0]).toFixed(1); }).join('L'), { fill: 'none', stroke: 'rgba(20,20,20,.75)', 'stroke-width': .9 }); if (!best || ln.length > best.length) best = ln; });
-      if (best && best.length > 6) { var m = best[Math.floor(best.length / 2)]; labs.push([px(m[1]), py(m[0]), sig(c.level, 3)]); } });
-    labs.filter(function (l) { return !R.S.some(function (p) { var dx = px(p.x) - l[0], dy = py(p.y) - l[1]; return dx > -30 && dx < 80 && Math.abs(dy) < 26; }); }).forEach(function (l) { tx(l[0], l[1] + 4, l[2], { 'font-size': 11, 'font-weight': 700, 'text-anchor': 'middle', stroke: '#fff', 'stroke-width': 3, 'paint-order': 'stroke' }); });
-    // samples
-    R.S.forEach(function (p) { var x = px(p.x), y = py(p.y); S.circle(x, y, 4.5, { fill: INK, stroke: '#fff', 'stroke-width': 1.5 }); tx(x + 7, y - 6, p.l, { 'font-size': 11, 'font-weight': 700, stroke: '#fff', 'stroke-width': 3, 'paint-order': 'stroke' }); });
-    // frame and axes
+    // contour lines (smoothed) at the class limits
+    var Gd = { nx: M, ny: M, z: new Float32Array(M * M), b: { n: yr[1], s: yr[0], w: xr[0], e: xr[1] } }; for (j = 0; j < M; j++) for (i = 0; i < M; i++) Gd.z[j * M + i] = F[(M - 1 - j) * M + i];
+    var boxes = [], hit = function (b) { return boxes.some(function (q) { return b.x < q.x + q.w && b.x + b.w > q.x && b.y < q.y + q.h && b.y + b.h > q.y; }) || b.x < X0 + 2 || b.x + b.w > X0 + PW - 2 || b.y < Y0 + 2 || b.y + b.h > Y0 + PH - 2; };
+    R.S.forEach(function (p) { boxes.push({ x: px(p.x) - 6, y: py(p.y) - 6, w: 12, h: 12 }); });
+    var cls = SH.dem.contours(Gd, R.bounds.slice(1, -1)), clab = [];
+    cls.forEach(function (c) { var best = null; c.lines.forEach(function (ln) { if (ln.length < 3) return; var pl = SH.dem.smooth(ln.map(function (p) { return [px(p[1]), py(p[0])]; }), 2); S.path('M' + pl.map(function (p) { return p[0].toFixed(1) + ' ' + p[1].toFixed(1); }).join('L'), { fill: 'none', stroke: INK, 'stroke-width': 1, 'stroke-opacity': .8 }); if (!best || pl.length > best.length) best = pl; }); if (best) clab.push([best, c.level]); });
+    // samples and their labels (placed to avoid each other, the points and the contour labels)
+    R.S.forEach(function (p) { S.circle(px(p.x), py(p.y), 4, { fill: INK }); });
+    var OFF = [[8, -6, 'start'], [8, 14, 'start'], [-8, -6, 'end'], [-8, 14, 'end'], [0, -10, 'middle'], [0, 20, 'middle']];
+    R.S.forEach(function (p) { var x = px(p.x), y = py(p.y), w = p.l.length * 6.6 + 2, h = 13; for (var q = 0; q < OFF.length; q++) { var o = OFF[q], bx = o[2] === 'start' ? x + o[0] : o[2] === 'end' ? x + o[0] - w : x - w / 2, by = y + o[1] - 11, b = { x: bx, y: by, w: w, h: h }; if (!hit(b) || q === OFF.length - 1) { boxes.push(b); tx(x + o[0], y + o[1], p.l, { 'font-size': 11, 'font-weight': 700, 'text-anchor': o[2] }); break; } } });
+    clab.forEach(function (c) { var pl = c[0], lab = cf(c[1]), w = lab.length * 6.4 + 4; for (var f = 0.5, n = 0; n < 9; n++, f = 0.5 + (n % 2 ? 1 : -1) * Math.ceil(n / 2) * 0.1) { if (f < 0.05 || f > 0.95) continue; var pt = pl[Math.floor(f * (pl.length - 1))], b = { x: pt[0] - w / 2, y: pt[1] - 14, w: w, h: 12 }; if (!hit(b)) { boxes.push(b); tx(pt[0], pt[1] - 4, lab, { 'font-size': 10.5, 'font-style': 'italic', fill: INK, 'text-anchor': 'middle' }); break; } } });
+    // frame and axes with tick labels formatted to the tick interval
     S.add('rect', { x: X0, y: Y0, width: PW, height: PH, fill: 'none', stroke: INK, 'stroke-width': 1.4 });
-    var nice = function (a, b) { var st = niceStep(b - a, 6), v = Math.ceil(a / st) * st, out = []; for (; v <= b + 1e-9; v += st) out.push(+v.toFixed(10)); return out; };
-    nice(xr[0], xr[1]).forEach(function (v) { var x = px(v); S.line(x, Y0 + PH, x, Y0 + PH + 6, { stroke: INK }); tx(x, Y0 + PH + 22, sig(v, 3), { 'text-anchor': 'middle', fill: MUT, 'font-size': 12 }); });
-    nice(yr[0], yr[1]).forEach(function (v) { var y = py(v); S.line(X0 - 6, y, X0, y, { stroke: INK }); tx(X0 - 10, y + 4, sig(v, 3), { 'text-anchor': 'end', fill: MUT, 'font-size': 12 }); });
+    var ticks = function (a, b, st) { var v = Math.ceil(a / st - 1e-9) * st, out = []; for (; v <= b + 1e-9; v += st) out.push(+v.toFixed(10)); return out; }, fmtT = function (v, st) { var d = Math.max(0, -Math.floor(Math.log10(st) + 1e-9)); if (Math.abs(st * Math.pow(10, d) - Math.round(st * Math.pow(10, d))) > 1e-9) d++; return v.toFixed(d); };
+    ticks(xr[0], xr[1], R.dtx).forEach(function (v) { var x = px(v); S.line(x, Y0 + PH, x, Y0 + PH + 6, { stroke: INK }); tx(x, Y0 + PH + 22, fmtT(v, R.dtx), { 'text-anchor': 'middle', fill: MUT, 'font-size': 12 }); });
+    ticks(yr[0], yr[1], R.dty).forEach(function (v) { var y = py(v); S.line(X0 - 6, y, X0, y, { stroke: INK }); tx(X0 - 10, y + 4, fmtT(v, R.dty), { 'text-anchor': 'end', fill: MUT, 'font-size': 12 }); });
     tx(X0 + PW / 2, Y0 + PH + 52, nm(R.jx), { 'text-anchor': 'middle', 'font-weight': 700, 'font-size': 14 }); var cy = Y0 + PH / 2; tx(30, cy, nm(R.jy), { 'text-anchor': 'middle', 'font-weight': 700, 'font-size': 14, transform: 'rotate(-90 30 ' + cy + ')' });
     // legend
     var LX = X0 + PW + 40; tx(LX, Y0 + 14, nm(R.jz), { 'font-weight': 800, 'font-size': 15 });
     for (var q = R.cols.length - 1, r = 0; q >= 0; q--, r++) { var yy = Y0 + 34 + r * 30; S.add('rect', { x: LX, y: yy, width: 34, height: 22, fill: R.cols[q], stroke: INK, 'stroke-width': .8 }); tx(LX + 44, yy + 16, cf(R.bounds[q]) + '–' + cf(R.bounds[q + 1]), { 'font-size': 13, 'font-weight': 600 }); }
-    var ly = Y0 + 34 + R.cols.length * 30 + 20; S.circle(LX + 17, ly, 4.5, { fill: INK, stroke: '#fff', 'stroke-width': 1.5 }); tx(LX + 44, ly + 4, 'Sample', { 'font-size': 13 }); S.line(LX, ly + 26, LX + 34, ly + 26, { stroke: INK, 'stroke-width': 1 }); tx(LX + 44, ly + 30, 'Class limit (contour)', { 'font-size': 13 });
+    var ly = Y0 + 34 + R.cols.length * 30 + 20; S.circle(LX + 17, ly, 4, { fill: INK }); tx(LX + 44, ly + 4, 'Sample', { 'font-size': 13 }); S.line(LX, ly + 26, LX + 34, ly + 26, { stroke: INK, 'stroke-width': 1 }); tx(LX + 44, ly + 30, 'Class limit', { 'font-size': 13 });
     S.add('rect', { x: 6, y: 6, width: W - 12, height: VH - 12, fill: 'none', stroke: INK, 'stroke-width': 1.2 });
   }
   /* ---------- render */
@@ -158,8 +192,8 @@
     $('#sNarr').innerHTML = h;
   }
   function caps() {
-    $('#s3dCap').textContent = t('Colours show classes of ', 'تمثل الألوان فئات ') + nm(R.jz) + t(' every ', ' كل ') + SH.fmt(R.st, 2) + t('; the base shows the same classes projected as a map, and black dots are the measured samples. Drag the figure to rotate it.', '؛ وتُظهر القاعدة الفئات نفسها مسقطة كخريطة، والنقاط السوداء هي العينات المقيسة. اسحب الشكل لتدويره.');
-    $('#s2dCap').textContent = t('Plan view of the same surface: contour interval ', 'مسقط أفقي للسطح نفسه: الفاصل الكنتوري ') + SH.fmt(R.st, 2) + t('. Values far from the labelled samples are interpolated or extrapolated.', '. القيم البعيدة عن العينات المسماة مستكمَلة أو مستقرأة.');
+    $('#s3dCap').textContent = t('Colours show classes of ', 'تمثل الألوان فئات ') + nm(R.jz) + t(' every ', ' كل ') + cf(R.st) + t('; the base shows the same classes projected as a map, and black dots are the measured samples. Drag the figure to rotate it.', '؛ وتُظهر القاعدة الفئات نفسها مسقطة كخريطة، والنقاط السوداء هي العينات المقيسة. اسحب الشكل لتدويره.');
+    $('#s2dCap').textContent = t('Plan view of the surface after smoothing (Gaussian filter): contour interval ', 'مسقط أفقي للسطح بعد التنعيم (مرشح غاوسي): الفاصل الكنتوري ') + cf(R.st) + t('. Values far from the labelled samples are interpolated or extrapolated.', '. القيم البعيدة عن العينات المسماة مستكمَلة أو مستقرأة.');
   }
   function table() { var cs = [R.jx, R.jy, R.jz]; $('#sTbl').innerHTML = '<thead><tr><th>' + t('Sample', 'العينة') + '</th>' + cs.map(function (j) { return '<th class="num">' + SH.esc(nm(j)) + '</th>'; }).join('') + '<th class="num">' + t('Fitted Z', 'Z المحسوبة') + '</th></tr></thead><tbody>' +
     R.S.map(function (p) { var x = (p.x - R.gx[0]) / (R.gx[R.gx.length - 1] - R.gx[0]), y = (p.y - R.gy[0]) / (R.gy[R.gy.length - 1] - R.gy[0]); return '<tr><td><b>' + SH.esc(p.l) + '</b></td><td class="num">' + sig(p.x) + '</td><td class="num">' + sig(p.y) + '</td><td class="num">' + sig(p.z) + '</td><td class="num">' + sig(R.mc[0] + R.mc[1] * p.x + R.mc[2] * p.y) + '</td></tr>'; }).join('') + '</tbody>'; }
@@ -187,12 +221,10 @@
   $('#sAz').addEventListener('input', setCam); $('#sEl').addEventListener('input', setCam);
   $('#sReset').addEventListener('click', function () { $('#sAz').value = 315; $('#sEl').value = 24; setCam(); persist.save(); });
   $('#sSpin').addEventListener('click', function () { if (spin) { cancelAnimationFrame(spin); spin = 0; return; } var a0 = SH.num('sAz'), d = 0; (function step() { d += 2; $('#sAz').value = (a0 + d) % 360; setCam(); if (d < 360) spin = requestAnimationFrame(step); else { spin = 0; persist.save(); } })(); });
-  ['sX', 'sY', 'sZ', 'sLab', 'sMeth', 'sGrid', 'sNc', 'sRamp', 'sBase', 'sMesh', 'sPts', 'sEq'].forEach(function (id) { $('#' + id).addEventListener('change', run); });
+  ['sMeth', 'sGrid', 'sNc', 'sRamp', 'sBase', 'sMesh', 'sPts', 'sEq'].forEach(function (id) { $('#' + id).addEventListener('change', run); });
   ['sSmooth', 'sVex'].forEach(function (id) { $('#' + id).addEventListener('change', run); });
-  var tm = 0; $('#sData').addEventListener('input', function () { clearTimeout(tm); tm = setTimeout(run, 500); });
-  $('#sFile').addEventListener('change', function () { var f = this.files[0]; if (!f) return; var r = new FileReader(); r.onload = function () { $('#sData').value = r.result; run(); }; r.readAsText(f); });
-  $('#sDemo').addEventListener('click', function () { $('#sData').value = DEMO; fill(); $('#sX').value = 1; $('#sY').value = 3; $('#sZ').value = 14; $('#sLab').value = 0; $('#sMeth').value = 'idw'; $('#sSmooth').value = 50; $('#sGrid').value = 30; $('#sAz').value = 315; $('#sEl').value = 22; $('#sVex').value = 85; $('#sTitle').value = 'Plagioclase vs liquid limit and linear shrinkage'; run(); SH.toast(t('Example: 15 heaving soils from Free State, South Africa (Fondjo & Theron 2020).', 'مثال: 15 تربة منتفخة من ولاية فري ستيت، جنوب أفريقيا (Fondjo & Theron 2020).'), 'ok'); });
+  $('#sDemo').addEventListener('click', function () { T = fromText(DEMO); [1, 3, 14].forEach(function (c, k) { T.cols[c - 1].r = ['x', 'y', 'z'][k]; }); saveT(); drawT(); $('#sMeth').value = 'idw'; $('#sSmooth').value = 50; $('#sGrid').value = 30; $('#sAz').value = 315; $('#sEl').value = 22; $('#sVex').value = 85; $('#sTitle').value = 'Plagioclase vs liquid limit and linear shrinkage'; run(); SH.toast(t('Example: 15 heaving soils from Free State, South Africa (Fondjo & Theron 2020).', 'مثال: 15 تربة منتفخة من ولاية فري ستيت، جنوب أفريقيا (Fondjo & Theron 2020).'), 'ok'); });
   $('#sCsv').addEventListener('click', function () { if (!R) return; SH.csv('shandal-surface-samples.csv', [['sample', nm(R.jx), nm(R.jy), nm(R.jz)]].concat(R.S.map(function (p) { return [p.l, p.x, p.y, p.z]; }))); });
   document.addEventListener('sh:beforereport', function (e) { if (!R) { e.preventDefault(); SH.toast(t('Enter the data first.', 'أدخل البيانات أولاً.'), 'warn'); } });
-  if (!$('#sData').value.trim()) { $('#sDemo').click(); } else run();
+  if (!T) { $('#sDemo').click(); } else { drawT(); run(); }
 })();
