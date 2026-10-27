@@ -25,6 +25,12 @@
       <label class="chk"><input type="checkbox" id="uSheetTs" checked> {{ m.L('Add the time-scale panel to the map sheet', 'أضف مخطط الزمن الجيولوجي إلى لوحة الخريطة') }}</label>
       <label class="chk"><input type="checkbox" id="uNb" checked> {{ m.L('Survey the surrounding units (25 km) for the succession', 'استقصِ الوحدات المحيطة (25 كم) لبناء التتابع') }}</label>
     {{ m.panel_close() }}
+    {{ m.panel_open(3, 'Geological cross-section', 'المقطع الجيولوجي') }}
+      <p class="xsmall muted" style="margin:0">{{ m.L('Click the start (A) and the end (A′) of the section on the map. The topographic profile is drawn from the elevation model and coloured by the mapped units it crosses.', 'انقر بداية المقطع (A) ونهايته (A′) على الخريطة. يُرسم المقطع الطبوغرافي من نموذج الارتفاع الرقمي ملوّناً بالوحدات المرسومة التي يقطعها.') }}</p>
+      <div class="row2"><button class="btn btn-gold btn-sm" id="uSecDraw" type="button">{{ icon('spline', 'ico ico-sm') }}{{ m.L('Draw section line', 'ارسم خط المقطع') }}</button><button class="btn btn-line btn-sm" id="uSecX" type="button" hidden>{{ m.L('Remove section', 'احذف المقطع') }}</button></div>
+      <p class="xsmall" id="uSecHint" hidden style="margin:0;color:var(--accent)"></p>
+      {{ m.sel('uVe', 'Vertical exaggeration', 'المبالغة الرأسية', [('auto', 'Automatic', 'تلقائية', true), ('1', '× 1 (true scale)', '× 1 (مقياس حقيقي)'), ('2', '× 2', '× 2'), ('5', '× 5', '× 5'), ('10', '× 10', '× 10'), ('20', '× 20', '× 20'), ('50', '× 50', '× 50')]) }}
+    {{ m.panel_close() }}
   </aside>
 
   <div class="ws-main">
@@ -32,6 +38,10 @@
       <div class="fig-b pad0" style="position:relative"><div class="map" id="uMap" style="height:540px"></div></div>
       <div class="fig-cap" id="uMapCap"></div>
     {{ m.fig_close() }}
+    <div id="uSecWrap" hidden data-rp-page="sec">{{ m.fig_open('guf4', '', 'Geological cross-section A–A′', 'المقطع الجيولوجي ⁦A–A′⁩', '<button class="btn btn-line btn-xs" id="uSecCsv" type="button">CSV</button><button class="btn btn-line btn-xs" data-exp="uSec" data-nm="shandal-geological-cross-section" data-f="png" type="button">PNG</button><button class="btn btn-line btn-xs" data-exp="uSec" data-nm="shandal-geological-cross-section" data-f="jpg" type="button">JPG</button><button class="btn btn-line btn-xs" data-exp="uSec" data-nm="shandal-geological-cross-section" data-f="pdf" type="button">PDF</button>') }}
+      <div class="fig-b" style="overflow:auto"><svg class="chart" id="uSec" viewBox="0 0 1200 600" role="img" aria-label="Geological cross-section" style="min-width:680px"></svg></div>
+      <div class="fig-cap" id="uSecCap"></div>
+    {{ m.fig_close() }}</div>
     <div class="kpis" id="uKpis" hidden style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr))"></div>
     <div id="uEmpty" class="pn">{{ m.empty('layers-2', 'Pick a point', 'اختر نقطة', 'Click the map, search a place or enter coordinates to identify the geological units, their age, lithology, source map and the local succession.', 'انقر الخريطة أو ابحث عن مكان أو أدخل الإحداثيات للتعرف على الوحدات الجيولوجية وعمرها وصخاريتها والخريطة المصدر والتتابع المحلي.') }}</div>
     <div id="uOut" hidden style="display:grid;gap:18px">

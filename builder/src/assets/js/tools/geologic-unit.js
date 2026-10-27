@@ -254,7 +254,7 @@
   $('#uCsv').addEventListener('click', function () { if (!S0.units.length) return; SH.csv('shandal-geological-units.csv', [['lat', 'lon', 'place', 'elevation_m', 'no', 'unit', 'strat_name', 'scale', 'b_int', 't_int', 'b_age_ma', 't_age_ma', 'lithology', 'environment', 'description']].concat(S0.units.map(function (u, i) { return [S0.lat, S0.lon, placeTxt(S0.place), S0.elev, i + 1, u.name, u.strat, u.scale, u.b_int, u.t_int, u.b_age, u.t_age, u.lith, u.env, u.desc]; }))); });
   $('#uJson').addEventListener('click', function () { if (!isFinite(S0.lat)) return; var f = [{ type: 'Feature', geometry: { type: 'Point', coordinates: [S0.lon, S0.lat] }, properties: { place: placeTxt(S0.place), elevation_m: S0.elev, units: S0.units } }];
     Object.keys(polys).forEach(function (k) { if (polys[k]._f) f.push(Object.assign({}, polys[k]._f, { properties: Object.assign({ unit: S0.units[k].name }, polys[k]._f.properties || {}) })); }); SH.json('shandal-geological-units.geojson', { type: 'FeatureCollection', features: f }); });
-  document.addEventListener('click', function (e) { var b = e.target.closest('[data-exp]'); if (!b) return; if (!isFinite(S0.lat)) { SH.toast(t('Identify a point first.', 'حدد نقطة أولاً.'), 'warn'); return; } if (b.disabled) return; b.disabled = true;
+  document.addEventListener('click', function (e) { var b = e.target.closest('[data-exp]'); if (!b) return; if (!isFinite(S0.lat) && b.getAttribute('data-exp') !== 'uSec') { SH.toast(t('Identify a point first.', 'حدد نقطة أولاً.'), 'warn'); return; } if (b.disabled) return; b.disabled = true;
     (b.getAttribute('data-exp') === 'uMap' ? sheet().then(function (cv) { return SH.exportCanvas(cv, b.getAttribute('data-nm'), b.getAttribute('data-f')); }) : SH.exportFigure($('#' + b.getAttribute('data-exp')), b.getAttribute('data-nm'), b.getAttribute('data-f'))).catch(function () { SH.toast(t('The image could not be created. Wait for the map to finish loading and try again.', 'تعذر إنشاء الصورة. انتظر اكتمال تحميل الخريطة ثم أعد المحاولة.'), 'warn'); }).then(function () { b.disabled = false; }); });
   function mapCap() { $('#uMapCap').innerHTML = '<b>' + t('Input: ', 'المدخلات: ') + '</b>' + t('the selected point.', 'النقطة المختارة.') + ' <b>' + t('Output: ', 'المخرجات: ') + '</b>' + t('integrated geological map, the point with its place name, the unit boundary and the study area when requested. The downloaded map is a complete sheet: title, coordinate graticule, graphic scale and representative fraction, north arrow, legend of the units and the time-scale panel.', 'الخريطة الجيولوجية المدمجة، والنقطة مع اسم المكان، وحدود الوحدة ومنطقة الدراسة عند الطلب. والخريطة المنزّلة لوحة كاملة: العنوان، وشبكة الإحداثيات، ومقياس الرسم الخطي والنسبي، وسهم الشمال، ومفتاح الوحدات، ومخطط الزمن الجيولوجي.') + ' <b>' + t('Interpretation: ', 'التفسير: ') + '</b>' + t('colours distinguish the mapped units; the boundary shows the extent of the selected unit, and its precision is limited by the map scale given in the unit list.', 'تميّز الألوان الوحدات المرسومة، وتُظهر الحدود امتداد الوحدة المختارة، ودقتها محدودة بمقياس الخريطة المبين في قائمة الوحدات.'); }
   mapCap();
@@ -321,6 +321,7 @@
     var sym = function (draw, s) { draw(PX + 26, y + 12); txt(s, PX + 68, y + 19, 19, 500); y += 40; };
     y += 4; sym(function (X, Y) { x.fillStyle = '#C0392B'; x.beginPath(); x.arc(X, Y, 9, 0, 7); x.fill(); x.strokeStyle = '#fff'; x.lineWidth = 3; x.stroke(); }, 'Selected point');
     if (area) sym(function (X, Y) { x.strokeStyle = '#C0392B'; x.lineWidth = 3; x.setLineDash([10, 6]); x.strokeRect(X - 24, Y - 12, 48, 24); x.setLineDash([]); }, 'Study area');
+    if (SEC.line) sym(function (X, Y) { x.strokeStyle = INK; x.lineWidth = 3.5; x.setLineDash([12, 7]); x.beginPath(); x.moveTo(X - 24, Y); x.lineTo(X + 24, Y); x.stroke(); x.setLineDash([]); }, 'Cross-section line A–A′');
     if (polyLayer && polyLayer.getLayers().length) sym(function (X, Y) { x.fillStyle = 'rgba(192,57,43,.15)'; x.fillRect(X - 24, Y - 12, 48, 24); x.strokeStyle = '#C0392B'; x.lineWidth = 2.5; x.setLineDash([8, 5]); x.strokeRect(X - 24, Y - 12, 48, 24); x.setLineDash([]); }, 'Boundary of the selected unit');
     // time scale panel
     if (tsIm) { y += 10; x.strokeStyle = '#C9CED3'; x.lineWidth = 1; x.beginPath(); x.moveTo(PX, y); x.lineTo(SW - 40, y); x.stroke(); y += 36; txt('POSITION ON THE GEOLOGICAL TIME SCALE', PX, y, 20, 800); y += 14;
@@ -332,10 +333,114 @@
     txt('Shandal System · ' + new Date().toISOString().slice(0, 10) + (SH.val('geoName') ? ' · ' + SH.val('geoName') : ''), SW - 40, SH2 - 44, 17, 600, MUT, 'right');
     return cv;
   }
-  if (map) map.on('click', function (e) { if (drawing) return; query(e.latlng.lat, e.latlng.lng); });
+
+  /* ---------- geological cross-section A–A′: elevation profile (SRTM composite) coloured by the mapped units */
+  var SEC = { mode: 0, a: null, b: null, line: null, mk: [], prof: null, units: [], cls: '' };
+  function hav(a, b) { var R = 6371008.8, r = Math.PI / 180, dl = (b[0] - a[0]) * r, dn = (b[1] - a[1]) * r, h = Math.sin(dl / 2) * Math.sin(dl / 2) + Math.cos(a[0] * r) * Math.cos(b[0] * r) * Math.sin(dn / 2) * Math.sin(dn / 2); return 2 * R * Math.asin(Math.min(1, Math.sqrt(h))); }
+  function bearing(a, b) { var r = Math.PI / 180, y = Math.sin((b[1] - a[1]) * r) * Math.cos(b[0] * r), x = Math.cos(a[0] * r) * Math.sin(b[0] * r) - Math.sin(a[0] * r) * Math.cos(b[0] * r) * Math.cos((b[1] - a[1]) * r); return (Math.atan2(y, x) / r + 360) % 360; }
+  var CARD = ['N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE', 'S', 'SSW', 'SW', 'WSW', 'W', 'WNW', 'NW', 'NNW'], card = function (az) { return CARD[Math.round(az / 22.5) % 16]; };
+  function inRing(p, r) { var x = p[1], y = p[0], c = false; for (var i = 0, j = r.length - 1; i < r.length; j = i++) { var xi = r[i][0], yi = r[i][1], xj = r[j][0], yj = r[j][1]; if (((yi > y) !== (yj > y)) && (x < (xj - xi) * (y - yi) / (yj - yi) + xi)) c = !c; } return c; }
+  function inGeom(p, g) { if (!g) return false; var polys = g.type === 'Polygon' ? [g.coordinates] : g.type === 'MultiPolygon' ? g.coordinates : []; return polys.some(function (pl) { return inRing(p, pl[0]) && !pl.slice(1).some(function (h) { return inRing(p, h); }); }); }
+  function secClear() { if (SEC.line) map.removeLayer(SEC.line); SEC.mk.forEach(function (m) { map.removeLayer(m); }); SEC.line = null; SEC.mk = []; SEC.a = SEC.b = null; SEC.prof = null; $('#uSecWrap').hidden = true; $('#uSecX').hidden = true; }
+  function endMk(ll, s) { return L.marker(ll, { interactive: false, icon: L.divIcon({ className: '', html: '<div style="font:800 13px/1 Manrope,sans-serif;color:#fff;background:#1B232B;border:2px solid #fff;border-radius:6px;padding:3px 6px;box-shadow:0 1px 4px rgba(0,0,0,.4);direction:ltr">' + s + '</div>', iconSize: [30, 22], iconAnchor: [15, 26] }) }).addTo(map); }
+  $('#uSecDraw').addEventListener('click', function () { if (!map) return; secClear(); SEC.mode = 1; drawing = true; map.getContainer().style.cursor = 'crosshair'; $('#uSecHint').hidden = false; $('#uSecHint').textContent = t('Click the start of the section (A).', 'انقر بداية المقطع (A).'); });
+  $('#uSecX').addEventListener('click', secClear);
+  $('#uVe').addEventListener('change', function () { if (SEC.prof) drawSec(); });
+  function secClick(ll) {
+    if (SEC.mode === 1) { SEC.a = [ll.lat, ll.lng]; SEC.mk.push(endMk(ll, 'A')); SEC.mode = 2; $('#uSecHint').textContent = t('Click the end of the section (A′).', 'انقر نهاية المقطع (A′).'); return; }
+    SEC.b = [ll.lat, ll.lng]; SEC.mk.push(endMk(ll, 'A′')); SEC.mode = 0; map.getContainer().style.cursor = ''; setTimeout(function () { drawing = false; }, 300);
+    SEC.line = L.polyline([SEC.a, SEC.b], { color: '#1B232B', weight: 3, dashArray: '10 6', interactive: false }).addTo(map); $('#uSecX').hidden = false; buildSec();
+  }
+  function buildSec() {
+    var len = hav(SEC.a, SEC.b); if (len < 200) { SH.toast(t('The section is too short (minimum 200 m).', 'المقطع قصير جداً (الحد الأدنى 200 م).'), 'warn'); secClear(); $('#uSecHint').hidden = true; return; }
+    if (len > 400000) { SH.toast(t('The section is too long (maximum 400 km).', 'المقطع طويل جداً (الحد الأقصى 400 كم).'), 'warn'); secClear(); $('#uSecHint').hidden = true; return; }
+    var N = 400, pts = []; for (var i = 0; i <= N; i++) { var f = i / N; pts.push([SEC.a[0] + (SEC.b[0] - SEC.a[0]) * f, SEC.a[1] + (SEC.b[1] - SEC.a[1]) * f]); }
+    var dist = pts.map(function (p, i) { return i ? hav(SEC.a, p) : 0; });
+    $('#uSecWrap').hidden = false; SH.svgB('uSec').el.setAttribute('viewBox', '0 0 1200 160'); tx(SH.svgB('uSec'), 600, 84, 'Reading the elevation model and the geological map along the section…', { 'text-anchor': 'middle', fill: MUT, 'font-size': 14 });
+    $('#uSecHint').textContent = t('Building the section…', 'جارٍ بناء المقطع…');
+    var elev = SH.dem.points(pts, { res: Math.max(30, len / N) }).catch(function () { return null; });
+    // geology: 31 samples, choose one map scale, fetch the unit polygons, classify all 401 points, query the gaps
+    var NS = 30, samp = [], cand = {}, j = 0; for (i = 0; i <= NS; i++) samp.push(pts[Math.round(i * N / NS)]);
+    var getAt = function (p) { return JS(API + 'geologic_units/map?lat=' + p[0].toFixed(5) + '&lng=' + p[1].toFixed(5), 20000).then(function (r) { var d = data(r), refs = (r.success && r.success.refs) || {}; return (Array.isArray(d) ? d : []).map(function (u) { if (!u.ref && refs[u.source_id]) u.ref = { name: refs[u.source_id] }; var n = norm(u); n.cls = scaleClass(n); return n; }); }).catch(function () { return []; }); };
+    var res = new Array(samp.length), run = function () { if (j >= samp.length) return Promise.resolve(); var k0 = j; j += 6; return Promise.all(samp.slice(k0, k0 + 6).map(function (p, q) { return getAt(p).then(function (r) { res[k0 + q] = r; }); })).then(run); };
+    var geo = run().then(function () {
+      var cnt = {}; res.forEach(function (r) { var seen = {}; (r || []).forEach(function (u) { if (!seen[u.cls]) { cnt[u.cls] = (cnt[u.cls] || 0) + 1; seen[u.cls] = 1; } }); });
+      var cls = ['large', 'medium', 'small', 'tiny'].filter(function (c) { return (cnt[c] || 0) >= 0.6 * samp.length; })[0] || Object.keys(cnt).sort(function (a, b) { return cnt[b] - cnt[a]; })[0] || ''; SEC.cls = cls;
+      res.forEach(function (r) { (r || []).forEach(function (u) { if (u.cls === cls && u.map_id != null && !cand[u.map_id]) cand[u.map_id] = u; }); });
+      var ids = Object.keys(cand); return Promise.all(ids.map(function (id) { return JS(API + 'geologic_units/map?map_id=' + id + '&format=geojson_bare', 30000).then(function (g) { var f = (g.features || [])[0]; if (f) cand[id].geom = f.geometry; }).catch(function () {}); }))
+        .then(function () { var lab = function () { return pts.map(function (p) { for (var id in cand) if (cand[id].geom && inGeom(p, cand[id].geom)) return id; return null; }); }, cls0 = lab(), miss = [], k;
+          for (k = 0; k <= N; k += 8) if (cls0[k] == null) miss.push(k); miss = miss.slice(0, 12);
+          return Promise.all(miss.map(function (k) { return getAt(pts[k]).then(function (r) { r.filter(function (u) { return u.cls === cls; }).forEach(function (u) { if (u.map_id != null && !cand[u.map_id]) cand[u.map_id] = u; }); }); })).then(function () {
+            var nids = Object.keys(cand).filter(function (id) { return !cand[id].geom; }); return Promise.all(nids.map(function (id) { return JS(API + 'geologic_units/map?map_id=' + id + '&format=geojson_bare', 30000).then(function (g) { var f = (g.features || [])[0]; if (f) cand[id].geom = f.geometry; }).catch(function () {}); })).then(lab); }); }); });
+    Promise.all([elev, geo]).then(function (r) { if (!r[0]) throw new Error(t('The elevation model could not be read.', 'تعذرت قراءة نموذج الارتفاع.'));
+      var ids = r[1], order = [], segs = [], s0 = 0; for (var k = 1; k <= N + 1; k++) if (k === N + 1 || ids[k] !== ids[s0]) { segs.push({ id: ids[s0], a: s0, b: k - 1 }); s0 = k; }
+      segs.forEach(function (sg) { if (sg.id != null && order.indexOf(sg.id) < 0) order.push(sg.id); });
+      SEC.units = order.map(function (id) { return cand[id]; }); SEC.prof = { pts: pts, d: dist, z: r[0], id: ids, segs: segs, len: len, az: bearing(SEC.a, SEC.b) };
+      $('#uSecHint').hidden = true; drawSec(); })
+      .catch(function (e) { $('#uSecHint').textContent = e.message; SH.svgB('uSec'); });
+  }
+  function drawSec() {
+    var P = SEC.prof, S = SH.svgB('uSec'), defs = S.add('defs', {}), W = 1200, U = SEC.units, nL = U.length;
+    var zmin = Math.min.apply(null, P.z), zmax = Math.max.apply(null, P.z), rel = Math.max(1, zmax - zmin), X0 = 90, X1 = W - 40, PW = X1 - X0, top = 90;
+    var mpx = P.len / PW, ve = $('#uVe').value === 'auto' ? (function () { var v = (PW * 0.28) * mpx / rel; var c = [1, 2, 5, 10, 20, 50]; for (var q = c.length - 1; q >= 0; q--) if (c[q] <= v) return c[q]; return 1; })() : +$('#uVe').value;
+    var ph = Math.max(140, Math.min(420, rel * ve / mpx)), band = Math.max(36, ph * 0.22), zb = zmin - (band + 20) * mpx / ve, ztop = zmax + 30 * mpx / ve, H = (ztop - zb) * ve / mpx;
+    var Y = function (z) { return top + (ztop - z) * ve / mpx; }, Xd = function (d) { return X0 + d / P.len * PW; }, yb = Y(zb);
+    var legRows = Math.ceil(Math.max(1, nL) / 2), VH = yb + 120 + legRows * 30 + 40;
+    S.el.setAttribute('viewBox', '0 0 ' + W + ' ' + VH); var bgS = S.add('rect', { x: 0, y: 0, width: W, height: VH, fill: '#fff' });
+    var place = placeTxt(S0.placeEn || (AR ? null : S0.place), true);
+    tx(S, W / 2, 36, 'Geological cross-section A–A′' + (place ? ' — ' + place : ''), { 'font-size': 20, 'font-weight': 800, 'text-anchor': 'middle' });
+    tx(S, W / 2, 60, 'Length ' + SH.fmt(P.len / 1000, P.len < 10000 ? 2 : 1) + ' km · azimuth ' + ('00' + Math.round(P.az)).slice(-3) + '° (' + card(P.az) + ') · vertical exaggeration ×' + ve, { 'font-size': 13, fill: MUT, 'text-anchor': 'middle' });
+    // surface-geology band under the topography
+    var topo = P.d.map(function (d, i) { return [Xd(d), Y(P.z[i])]; }), bandAt = function (i) { return Y(P.z[i]) + band; };
+    var cut = Math.max(Y(zmin) + band, 0);
+    P.segs.forEach(function (sg) { var u = sg.id != null ? cand0(sg.id) : null, a = Math.max(0, sg.a - (sg.a ? 0.5 : 0)), b = Math.min(P.d.length - 1, sg.b + (sg.b < P.d.length - 1 ? 0.5 : 0)), pts = [], i;
+      for (i = sg.a; i <= sg.b; i++) pts.push(topo[i]); if (sg.b + 1 < topo.length) pts.push(topo[sg.b + 1]); var last = pts[pts.length - 1][0], first = pts[0][0];
+      var d = 'M' + pts.map(function (p) { return p[0].toFixed(1) + ' ' + p[1].toFixed(1); }).join('L') + 'L' + last.toFixed(1) + ' ' + yb + 'L' + first.toFixed(1) + ' ' + yb + 'Z';
+      var key = u ? lithKey(u.lith + ' ' + u.name) : '', col = u ? u.color : '#EEE';
+      S.path(d, { fill: col, stroke: 'none' }); if (key && ST.R[key]) { var id = 'sp' + sg.a; ST.pattern(S, defs, id, ST.R[key][3]); S.path(d, { fill: 'url(#' + id + ')', stroke: 'none', opacity: .7 }); }
+      if (!u) { var hid = 'shx'; if (!defs.querySelector('#shx')) { var pt = S.add('pattern', { id: hid, width: 8, height: 8, patternUnits: 'userSpaceOnUse' }, null, defs); S.add('path', { d: 'M0 8L8 0', stroke: '#999', 'stroke-width': 1 }, null, pt); } S.path(d, { fill: 'url(#shx)' }); } });
+    // fade the deep part: the band shows outcrop only
+    var gid = 'sfade'; var lg = S.add('linearGradient', { id: gid, x1: 0, y1: 0, x2: 0, y2: 1 }, null, defs); S.add('stop', { offset: '0', 'stop-color': '#fff', 'stop-opacity': 0 }, null, lg); S.add('stop', { offset: '1', 'stop-color': '#fff', 'stop-opacity': 1 }, null, lg);
+    var under = 'M' + topo.map(function (p) { return p[0].toFixed(1) + ' ' + (p[1] + band * 0.55).toFixed(1); }).join('L') + 'L' + X1 + ' ' + yb + 'L' + X0 + ' ' + yb + 'Z'; S.path(under, { fill: '#fff', opacity: .92 });
+    S.path('M' + topo.map(function (p) { return p[0].toFixed(1) + ' ' + (p[1] + band * 0.55).toFixed(1); }).join('L'), { fill: 'none', stroke: MUT, 'stroke-width': .8, 'stroke-dasharray': '4 4' });
+    // contacts (dip unknown, drawn vertical and dashed)
+    P.segs.forEach(function (sg, k) { if (!k) return; var x = topo[sg.a][0], y = topo[sg.a][1]; S.line(x, y, x, y + band * 0.55, { stroke: INK, 'stroke-width': 1.2, 'stroke-dasharray': '3 3' }); tx(S, x + 3, y + band * 0.55 + 12, '?', { 'font-size': 10, fill: MUT }); });
+    S.path('M' + topo.map(function (p) { return p[0].toFixed(1) + ' ' + p[1].toFixed(1); }).join('L'), { fill: 'none', stroke: INK, 'stroke-width': 2 });
+    // unit numbers above the profile (only where the outcrop is wide enough)
+    P.segs.forEach(function (sg) { if (sg.id == null) return; var x1 = topo[sg.a][0], x2 = topo[Math.min(sg.b + 1, topo.length - 1)][0]; if (x2 - x1 < 18) return; var mid = Math.round((sg.a + sg.b) / 2), n = SEC.units.indexOf(cand0(sg.id)) + 1, y = Math.min.apply(null, topo.slice(sg.a, sg.b + 1).map(function (p) { return p[1]; })) - 14;
+      S.add('rect', { x: (x1 + x2) / 2 - 10, y: y - 13, width: 20, height: 18, rx: 4, fill: cand0(sg.id).color, stroke: INK, 'stroke-width': .8 }); tx(S, (x1 + x2) / 2, y + 1, String(n), { 'font-size': 11, 'font-weight': 800, 'text-anchor': 'middle' }); });
+    // frame, axes, labels
+    S.add('rect', { x: X0, y: top, width: PW, height: yb - top, fill: 'none', stroke: INK, 'stroke-width': 1.2 });
+    var zs = SH.dem.niceInterval(ztop - zb, 6); for (var z = Math.ceil(zb / zs) * zs; z <= ztop; z += zs) { var yy = Y(z); S.line(X0 - 6, yy, X0, yy, { stroke: INK }); S.line(X1, yy, X1 + 6, yy, { stroke: INK }); tx(S, X0 - 9, yy + 4, SH.fmt(z, 0), { 'font-size': 11, 'text-anchor': 'end', fill: MUT }); }
+    var cx = 28, cy = (top + yb) / 2; tx(S, cx, cy, 'Elevation (m a.s.l.)', { 'font-size': 12, 'font-weight': 700, 'text-anchor': 'middle', transform: 'rotate(-90 ' + cx + ' ' + cy + ')' });
+    var ds = SH.dem.niceInterval(P.len / 1000, 8); for (var dk = 0; dk <= P.len / 1000 + 1e-9; dk += ds) { var xx = Xd(dk * 1000); S.line(xx, yb, xx, yb + 6, { stroke: INK }); tx(S, xx, yb + 20, SH.fmt(dk, ds < 1 ? 1 : 0), { 'font-size': 11, 'text-anchor': 'middle', fill: MUT }); }
+    tx(S, (X0 + X1) / 2, yb + 40, 'Distance along the section (km)', { 'font-size': 12, 'font-weight': 700, 'text-anchor': 'middle' });
+    tx(S, X0, top - 12, 'A', { 'font-size': 20, 'font-weight': 800 }); tx(S, X0 + 20, top - 12, '(' + card((P.az + 180) % 360) + ')', { 'font-size': 12, fill: MUT }); tx(S, X1, top - 12, 'A′', { 'font-size': 20, 'font-weight': 800, 'text-anchor': 'end' }); tx(S, X1 - 28, top - 12, '(' + card(P.az) + ')', { 'font-size': 12, fill: MUT, 'text-anchor': 'end' });
+    // graphic scale and direction rose
+    var sl = SH.dem.niceInterval(P.len, 5), spx = sl / mpx, sx = X1 - spx - 10, sy = yb + 66; for (var q = 0; q < 4; q++) S.add('rect', { x: sx + q * spx / 4, y: sy, width: spx / 4, height: 6, fill: q % 2 ? '#fff' : INK }); S.add('rect', { x: sx, y: sy, width: spx, height: 6, fill: 'none', stroke: INK, 'stroke-width': .8 });
+    tx(S, sx, sy - 5, '0', { 'font-size': 10.5, 'text-anchor': 'middle' }); tx(S, sx + spx, sy - 5, sl >= 1000 ? SH.fmt(sl / 1000, sl % 1000 ? 1 : 0) + ' km' : SH.fmt(sl, 0) + ' m', { 'font-size': 10.5, 'font-weight': 700, 'text-anchor': 'middle' }); tx(S, sx + spx, sy + 20, 'Horizontal scale', { 'font-size': 10, fill: MUT, 'text-anchor': 'end' });
+    var rx = X0 + 30, ry = yb + 80, r = 20; S.circle(rx, ry, r, { fill: '#fff', stroke: INK, 'stroke-width': .8 }); tx(S, rx, ry - r - 4, 'N', { 'font-size': 11, 'font-weight': 800, 'text-anchor': 'middle' });
+    var ar = P.az * Math.PI / 180; S.line(rx - Math.sin(ar) * r * .8, ry + Math.cos(ar) * r * .8, rx + Math.sin(ar) * r * .8, ry - Math.cos(ar) * r * .8, { stroke: '#C0392B', 'stroke-width': 2.2 }); S.circle(rx + Math.sin(ar) * r * .8, ry - Math.cos(ar) * r * .8, 3, { fill: '#C0392B' });
+    tx(S, rx + r + 10, ry - 2, 'Section direction A → A′', { 'font-size': 10.5, 'font-weight': 700 }); tx(S, rx + r + 10, ry + 12, ('00' + Math.round(P.az)).slice(-3) + '° (' + card(P.az) + ')', { 'font-size': 10.5, fill: MUT });
+    // legend
+    var ly = yb + 132; tx(S, X0, ly, 'LEGEND', { 'font-size': 12, 'font-weight': 800, 'letter-spacing': 1.2 });
+    U.forEach(function (u, i) { var x = X0 + (i % 2) * (PW / 2), y = ly + 24 + Math.floor(i / 2) * 30, key = lithKey(u.lith + ' ' + u.name); S.add('rect', { x: x, y: y - 11, width: 34, height: 20, fill: u.color, stroke: INK, 'stroke-width': .8 }); if (key && ST.R[key]) { var id = 'sl' + i; ST.pattern(S, defs, id, ST.R[key][3]); S.add('rect', { x: x, y: y - 11, width: 34, height: 20, fill: 'url(#' + id + ')', opacity: .7 }); }
+      tx(S, x + 17, y + 3, String(i + 1), { 'font-size': 10, 'font-weight': 800, 'text-anchor': 'middle', stroke: '#fff', 'stroke-width': 3, 'paint-order': 'stroke' });
+      var nm = u.name.length > 48 ? u.name.slice(0, 46) + '…' : u.name; tx(S, x + 44, y - 1, nm, { 'font-size': 11, 'font-weight': 700 }); tx(S, x + 44, y + 12, (isFinite(u.b_age) ? fmtMa(u.b_age) + '–' + fmtMa(u.t_age) + ' Ma' : '') + (u.lith ? ' · ' + (u.lith.length > 44 ? u.lith.slice(0, 42) + '…' : u.lith) : ''), { 'font-size': 9.5, fill: MUT }); });
+    var yL = ly + 24 + legRows * 30; S.line(X0, yL - 8, X0 + 34, yL - 8, { stroke: INK, 'stroke-width': 1.2, 'stroke-dasharray': '3 3' }); tx(S, X0 + 44, yL - 4, 'Contact (dip not known)', { 'font-size': 10.5 });
+    if (P.id.some(function (v) { return v == null; })) { S.add('rect', { x: X0 + PW / 2, y: yL - 18, width: 34, height: 18, fill: '#fff', stroke: INK, 'stroke-width': .8 }); var hp = S.add('rect', { x: X0 + PW / 2, y: yL - 18, width: 34, height: 18, fill: 'url(#shx)' }); tx(S, X0 + PW / 2 + 44, yL - 4, 'No mapped unit', { 'font-size': 10.5 }); }
+    S.el.setAttribute('viewBox', '0 0 ' + W + ' ' + (yL + 16)); bgS.setAttribute('height', yL + 16); S.add('rect', { x: 6, y: 6, width: W - 12, height: yL + 4, fill: 'none', stroke: INK, 'stroke-width': 1.2 });
+    var lst = U.map(function (u, i) { return (i + 1) + ' ' + SH.esc(u.name); }).join(AR ? '، ' : ', ');
+    $('#uSecCap').innerHTML = '<b>' + t('Input: ', 'المدخلات: ') + '</b>' + t('the section line A–A′ (', 'خط المقطع <bdi>A–A′</bdi> (') + '<bdi>' + SH.fmt(P.len / 1000, 2) + ' km, ' + ('00' + Math.round(P.az)).slice(-3) + '°</bdi>' + t('), elevations at 401 points from the SRTM composite elevation model, and the mapped units along the line (', ')، والارتفاعات عند 401 نقطة من نموذج الارتفاع SRTM المركّب، والوحدات المرسومة على امتداد الخط (') + (SCN[SEC.cls] ? SCN[SEC.cls][0] : '') + ').' +
+      '<br><b>' + t('Output: ', 'المخرجات: ') + '</b>' + t('topographic profile with vertical exaggeration ×', 'مقطع طبوغرافي بمبالغة رأسية ×') + ve + t('; the band beneath the surface is coloured by the unit that crops out at each position: ', '؛ والشريط تحت السطح ملوّن بالوحدة المكشوفة عند كل موضع: ') + (lst || '—') + '.' +
+      '<br><b>' + t('Interpretation: ', 'التفسير: ') + '</b>' + t('the profile shows the relief (', 'يبيّن المقطع التضرس (') + '<bdi>' + SH.fmt(zmin, 0) + '–' + SH.fmt(zmax, 0) + ' m</bdi>' + t(') and where each unit crops out along the line. Dips and thicknesses are not known from the map, so contacts are drawn vertical and dashed; a structural section requires field dip measurements.', ') ومواضع انكشاف كل وحدة على امتداد الخط. ولا تُعرف الميول والسماكات من الخريطة، لذا رُسمت الحدود رأسية متقطعة؛ ويتطلب المقطع التركيبي قياسات حقلية للميل.');
+  }
+  function cand0(id) { for (var i = 0; i < SEC.units.length; i++) if (String(SEC.units[i].map_id) === String(id)) return SEC.units[i]; return null; }
+  $('#uSecCsv').addEventListener('click', function () { var P = SEC.prof; if (!P) return; SH.csv('shandal-cross-section.csv', [['distance_m', 'lat', 'lon', 'elevation_m', 'unit', 'b_age_ma', 't_age_ma', 'lithology']].concat(P.pts.map(function (p, i) { var u = P.id[i] != null ? cand0(P.id[i]) : null; return [Math.round(P.d[i]), p[0].toFixed(6), p[1].toFixed(6), P.z[i].toFixed(1), u ? u.name : '', u ? u.b_age : '', u ? u.t_age : '', u ? u.lith : '']; }))); });
+  if (map) map.on('click', function (e) { if (SEC.mode) { secClick(e.latlng); return; } if (drawing) return; query(e.latlng.lat, e.latlng.lng); });
   $('#uGo').addEventListener('click', function () { var a = SH.num('uLat'), b = SH.num('uLon'); if (isNaN(a) || isNaN(b)) { SH.toast(t('Enter coordinates.', 'أدخل الإحداثيات.'), 'warn'); return; } if (map) map.setView([a, b], Math.max(map.getZoom(), 9)); query(a, b); });
   $('#uMe').addEventListener('click', function () { var bt = this; bt.disabled = true; SH.locate().then(function (p) { if (map) map.setView([p.lat, p.lon], 10); query(p.lat, p.lon); }).catch(function (e) { SH.toast(e.message, 'bad'); }).then(function () { bt.disabled = false; }); });
-  document.addEventListener('sh:beforereport', function (e) { if (!S0.units.length) { e.preventDefault(); SH.toast(t('Identify a point first.', 'حدد نقطة أولاً.'), 'warn'); } });
+  document.addEventListener('sh:beforereport', function (e) { if (!S0.units.length && !SEC.prof) { e.preventDefault(); SH.toast(t('Identify a point first.', 'حدد نقطة أولاً.'), 'warn'); } });
   var qs = new URLSearchParams(location.search), qa = parseFloat(qs.get('lat')), qb = parseFloat(qs.get('lon'));
   if (isFinite(qa) && isFinite(qb)) { $('#uLat').value = qa; $('#uLon').value = qb; }
   var a0 = SH.num('uLat'), b0 = SH.num('uLon'); if (!isNaN(a0) && !isNaN(b0) && SH.val('uLat') !== '') { if (map) map.setView([a0, b0], 9); query(a0, b0); }

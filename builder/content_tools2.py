@@ -147,7 +147,7 @@ NEW_TOOLS = [
 },
 # ================================================================ GEOLOGY (global data)
 {
- 'slug': 'geologic-unit', 'cat': 'geology', 'icon': 'layers-2', 'illus': 'geomap', 'libs': ['map', 'strat'], 'live': True,
+ 'slug': 'geologic-unit', 'cat': 'geology', 'icon': 'layers-2', 'illus': 'geomap', 'libs': ['map', 'strat', 'dem'], 'live': True,
  'name': L('Geological Unit Finder', 'مستكشف الوحدات الجيولوجية'),
  'tagline': L('Any point on Earth: rock unit, age, succession and sources.', 'أي نقطة على الأرض: الوحدة الصخرية وعمرها وتتابعها ومصادرها.'),
  'summary': L('Identifies the geological units mapped under any point on Earth from Macrostrat’s integrated global geological map, at every available map scale, with age, lithology, depositional setting and source map; places them on the international time scale, builds the local stratigraphic succession and writes a geological description and interpretation of the site.',
