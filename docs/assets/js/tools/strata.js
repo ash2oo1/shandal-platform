@@ -42,7 +42,7 @@
     s[6].forEach(function (g, j) { AGE['s' + i + '_' + j] = { per: s[0], ser: [s[1], s[2]], col: s[3], stg: [g[0], g[1]], top: g[2], base: g[3] }; }); });
   var lighten = function (hex, f) { var n = parseInt(hex.slice(1), 16), r = n >> 16 & 255, g = n >> 8 & 255, b = n & 255; return 'rgb(' + [r, g, b].map(function (c) { return Math.round(c + (255 - c) * f); }).join(',') + ')'; };
 
-  var units = SH.store.get(KEY, null), editIdx = -1;
+  var units = SH.store.get(KEY, null), editIdx = -1, colInfo = null;
   var hdr = SH.persist('strata2', ['geoName', 'cTitle', 'cLoc', 'cSrc', 'cScale', 'cProf', 'cTop', 'cAxis', 'cLang', 'cPer', 'cIcs']);
   if (!units) { // migrate the previous designer
     var old = SH.store.get('shandal_strata_beds', []), CM = { eros: 'erosive', unconf: 'uncon', uncert: 'covered', sharp: 'sharp', grad: 'grad' }, AM = { fossil: 'shell', xbed: 'xbed', ripple: 'ripple', nodule: 'nodule', bio: 'bioturb' };
@@ -139,14 +139,13 @@
     var need = units.map(function (u) { return on.desc ? Math.max(1, wrap(descOf(u, ar), dw).length) * 12 + 10 : 20; }), Hs, hs;
     if (sch) { var base = Math.max(900, units.length * 30); hs = units.map(function (u, i) { return Math.max(need[i], 22, base * u.th / total * 0.6); }); }
     else { Hs = SH.clamp(total * 6, 700, 1900); hs = units.map(function (u) { return u.th * Hs / total; }); }
-    var TOP = 132, HH = 46, y0 = TOP + HH, ys = [y0]; hs.forEach(function (h) { ys.push(ys[ys.length - 1] + h); }); var yb = ys[ys.length - 1];
+    var TOP = 70, HH = 46, y0 = TOP + HH, ys = [y0]; hs.forEach(function (h) { ys.push(ys[ys.length - 1] + h); }); var yb = ys[ys.length - 1];
     var used = { rock: {}, contact: {}, st: {}, pet: {} }; units.forEach(function (u) { if (u.hiatus) { used.hiatus = 1; return; } used.rock[u.rock] = 1; if (u.sec) used.rock[u.sec] = 1; used.contact[u.base || 'sharp'] = 1; (u.st || []).forEach(function (k) { if (ST.STRUCT[k]) used.st[k] = 1; }); (u.pet || []).forEach(function (p) { used.pet[p] = 1; }); });
     var leg = Object.keys(used.rock).length + Object.keys(used.contact).length + Object.keys(used.st).length + Object.keys(used.pet).length + (used.hiatus ? 1 : 0), legRows = Math.ceil(leg / 4);
-    var VH = yb + 70 + legRows * 26 + 60; S.el.setAttribute('viewBox', '0 0 ' + W + ' ' + VH); S.add('rect', { x: 0, y: 0, width: W, height: VH, fill: '#fff' });
+    var VH = yb + 70 + legRows * 26 + 24; S.el.setAttribute('viewBox', '0 0 ' + W + ' ' + VH); S.add('rect', { x: 0, y: 0, width: W, height: VH, fill: '#fff' });
     // title block
     tx(S, W / 2, 40, SH.val('cTitle') || tf('Stratigraphic column', 'العمود الطباقي'), { 'font-size': 20, 'font-weight': 800, 'text-anchor': 'middle' });
-    var sub = [SH.val('cLoc'), SH.val('cSrc')].filter(Boolean).join(' · '); if (sub) tx(S, W / 2, 64, sub, { 'font-size': 12.5, fill: MUT, 'text-anchor': 'middle' });
-    tx(S, W / 2, 86, (sch ? tf('Schematic vertical scale', 'مقياس رأسي تخطيطي') : tf('Vertical scale 1 : ', 'المقياس الرأسي 1 : ') + SH.fmt(Math.round(total * 1000 / ((yb - y0) * 0.26) / 10) * 10, 0) + tf(' (A4 width)', ' (بعرض A4)')) + ' · ' + tf('Total thickness ', 'السمك الكلي ') + SH.fmt(total, 1) + ' m', { 'font-size': 11, fill: MUT, 'text-anchor': 'middle' });
+    colInfo = { sch: sch, scale: sch ? 0 : Math.round(total * 1000 / ((yb - y0) * 0.26) / 10) * 10, total: total };
     // header
     S.add('rect', { x: X0, y: TOP, width: X1 - X0, height: HH, fill: '#F2F0EA', stroke: INK, 'stroke-width': 1.2 });
     C.forEach(function (c) { var lines = c.k === 'sys' || c.k === 'grp' ? [c.h] : wrap(c.h, Math.max(6, Math.floor(c.w / 7.2))); if (c.k === 'sys' || c.k === 'grp') { var cxh = c.x + c.w / 2, cyh = TOP + HH / 2; tx(S, cxh, cyh + 4, c.h, { 'font-size': 10, 'font-weight': 800, 'text-anchor': 'middle', transform: 'rotate(-90 ' + cxh + ' ' + cyh + ')' }); }
@@ -204,7 +203,6 @@
     var PN = { oil: tf('Oil reservoir', 'مكمن نفطي'), gas: tf('Gas reservoir', 'مكمن غازي'), src: tf('Source rock', 'صخرة مصدرية'), seal: tf('Seal rock', 'صخرة غطائية') };
     Object.keys(used.pet).forEach(function (k) { items.push([function (x, y) { petSym(S, k, x + 18, y); }, PN[k]]); });
     var cw = (X1 - X0) / 4; items.forEach(function (it, i) { var y2 = ly + 26 + Math.floor(i / 4) * 26, x2 = ar ? X1 - (i % 4) * cw - 36 : X0 + (i % 4) * cw; it[0](x2, y2); tx(S, ar ? x2 - 10 : x2 + 46, y2 + 4, it[1], { 'font-size': 10.5, 'text-anchor': ar ? 'end' : 'start' }); });
-    tx(S, ar ? X1 : X0, VH - 18, 'Shandal System · ' + new Date().toISOString().slice(0, 10) + (SH.val('geoName') ? ' · ' + SH.val('geoName') : ''), { 'font-size': 9.5, fill: MUT, 'text-anchor': ar ? 'end' : 'start' });
   }
   function HALO(a) { return Object.assign(a, { stroke: '#fff', 'stroke-width': 3.5, 'paint-order': 'stroke', 'stroke-linejoin': 'round' }); }
   function wavy(S, x1, x2, y, col, w) { var n = Math.max(4, Math.round((x2 - x1) / 12)), d = 'M' + x1 + ' ' + y, s = (x2 - x1) / n; for (var i = 0; i < n; i++) d += 'q' + s / 2 + ' ' + (i % 2 ? 4 : -4) + ' ' + s + ' 0'; S.path(d, { stroke: col, 'stroke-width': w, fill: 'none' }); }
@@ -218,7 +216,11 @@
     var dated = units.map(function (u) { return AGE[u.age]; }).filter(Boolean), young = dated.length ? dated.reduce(function (m, a) { return a.top < m.top ? a : m; }) : null, old = dated.length ? dated.reduce(function (m, a) { return a.base > m.base ? a : m; }) : null;
     var fmOrder = []; rows.slice().reverse().forEach(function (r) { var k = r.u.hiatus ? null : (r.u.fm || ''); if (k && fmOrder.indexOf(k) < 0) fmOrder.push(k); });
     var al = function (a) { return a ? (a.stg ? a.stg[AR ? 1 : 0] + ' (' + a.ser[AR ? 1 : 0] + ')' : a.ser[AR ? 1 : 0]) : ''; };
-    html += '<h3 style="margin:0 0 6px">' + t('1. General', 'أولاً: الإطار العام') + '</h3>' + P(t('The column comprises ', 'يتألف العمود من ') + b(units.filter(function (u) { return !u.hiatus; }).length) + t(' units with a total thickness of ', ' وحدة بسمك كلي ') + b('<bdi>' + SH.fmt(total, 1) + ' m</bdi>') + t(' between depths of ', ' بين العمقين ') + '<bdi>' + SH.fmt(top0, 0) + '</bdi>' + t(' and ', ' و') + '<bdi>' + SH.fmt(top0 + total, 0) + ' m</bdi>' + (old && young ? t(', spanning from the ', '، ويغطي المدى الزمني من ') + al(old) + t(' to the ', ' حتى ') + al(young) + ' (' + '<bdi>' + young.top + '–' + old.base + ' Ma</bdi>)' : '') + '.' + (fmOrder.length ? t(' In stratigraphic order, from oldest to youngest, the formations are: ', ' والتكوينات بحسب ترتيبها الطباقي من الأقدم إلى الأحدث: ') + fmOrder.join(AR ? '، ' : ', ') + '.' : ''));
+    var meta = [], mv = function (k, v) { if (v) meta.push('<b>' + k + ':</b> ' + SH.esc(v)); };
+    mv(t('Location or well', 'الموقع أو البئر'), SH.val('cLoc')); mv(t('Data source', 'مصدر البيانات'), SH.val('cSrc')); mv(t('Geologist', 'الجيولوجي'), SH.val('geoName'));
+    if (colInfo) meta.push('<b>' + t('Vertical scale', 'المقياس الرأسي') + ':</b> ' + (colInfo.sch ? t('schematic; unit heights are adjusted for legibility and are not proportional to thickness', 'تخطيطي؛ عُدّلت ارتفاعات الوحدات لتسهيل القراءة وهي غير متناسبة مع السمك') : '<bdi>1 : ' + SH.fmt(colInfo.scale, 0) + '</bdi>' + t(' at A4 page width', ' عند عرض صفحة A4')));
+    meta.push('<b>' + t('Chronostratigraphy', 'التقسيم الزمني الطباقي') + ':</b> ' + t('ICS International Chronostratigraphic Chart (2023)', 'المخطط الطباقي الزمني الدولي ICS (2023)'));
+    html += '<h3 style="margin:0 0 6px">' + t('1. General', 'أولاً: الإطار العام') + '</h3>' + (meta.length ? '<p style="margin:0 0 8px">' + meta.join(' · ') + '</p>' : '') + P(t('The column comprises ', 'يتألف العمود من ') + b(units.filter(function (u) { return !u.hiatus; }).length) + t(' units with a total thickness of ', ' وحدة بسمك كلي ') + b('<bdi>' + SH.fmt(total, 1) + ' m</bdi>') + t(' between depths of ', ' بين العمقين ') + '<bdi>' + SH.fmt(top0, 0) + '</bdi>' + t(' and ', ' و') + '<bdi>' + SH.fmt(top0 + total, 0) + ' m</bdi>' + (old && young ? t(', spanning from the ', '، ويغطي المدى الزمني من ') + al(old) + t(' to the ', ' حتى ') + al(young) + ' (' + '<bdi>' + young.top + '–' + old.base + ' Ma</bdi>)' : '') + '.' + (fmOrder.length ? t(' In stratigraphic order, from oldest to youngest, the formations are: ', ' والتكوينات بحسب ترتيبها الطباقي من الأقدم إلى الأحدث: ') + fmOrder.join(AR ? '، ' : ', ') + '.' : ''));
     // per formation (oldest first)
     html += '<h3 style="margin:14px 0 6px">' + t('2. Lithostratigraphic description', 'ثانياً: الوصف الصخري الطباقي') + '</h3>';
     var groups = []; rows.forEach(function (r) { var k = r.u.hiatus ? '§h' : (r.u.fm || '—'), g = groups[groups.length - 1]; if (g && g.k === k && k !== '§h') g.rows.push(r); else groups.push({ k: k, rows: [r] }); });
