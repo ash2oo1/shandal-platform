@@ -166,12 +166,12 @@
 
 <section class="section alt">
   <div class="wrap founder">
-    <div class="portrait photo"><picture><source srcset="{{ u('assets/img/founder.webp') }}" type="image/webp"><img src="{{ u('assets/img/founder.jpg') }}" alt="{{ tr(H.quote_by) }}" width="800" height="1000" loading="lazy" decoding="async"></picture></div>
+    <div class="portrait photo"><picture><source srcset="{{ u('assets/img/founder.webp') }}" type="image/webp"><img src="{{ u('assets/img/founder.jpg') }}" alt="{{ tr(H.quote_by) }}" width="720" height="900" loading="lazy" decoding="async"></picture></div>
     <div>
       <span class="kicker"><span class="dot"></span>{{ t('menu_about') }}</span>
-      <blockquote class="q" style="margin-top:18px">“{{ tr(H.quote) }}”</blockquote>
+      <blockquote class="q" style="margin-top:18px">{{ '«' if lang == 'ar' else '“' }}{{ tr(H.quote) }}{{ '»' if lang == 'ar' else '”' }}</blockquote>
       <div class="q-by"><div><b>{{ tr(H.quote_by) }}</b><span>{{ tr(H.quote_role) }}</span></div></div>
-      <a class="link" href="{{ u('about/') }}" style="margin-top:22px">{{ t('read_more') }} {{ icon('arrow-right', 'ico ico-sm flip') }}</a>
+      <a class="link" href="{{ u('about/') }}#founder" style="margin-top:22px">{{ t('read_more') }} {{ icon('arrow-right', 'ico ico-sm flip') }}</a>
     </div>
   </div>
 </section>

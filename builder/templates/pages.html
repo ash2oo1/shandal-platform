@@ -177,6 +177,17 @@
 
 {# ================================================================ ABOUT #}
 {% elif page == 'about' %}
+<section class="section" id="founder">
+  <div class="wrap founder" style="align-items:start">
+    <div class="portrait photo"><picture><source srcset="{{ u('assets/img/founder.webp') }}" type="image/webp"><img src="{{ u('assets/img/founder.jpg') }}" alt="{{ tr(A.founder_name) }}" width="720" height="900" decoding="async"></picture></div>
+    <div>
+      <span class="kicker"><span class="dot"></span>{{ tr(A.team_h) }}</span>
+      <h2 class="h2" style="margin-top:10px">{{ tr(A.word_h) }}</h2>
+      {% for p in A.word_p %}{% if loop.index == 3 %}<blockquote class="q" style="margin-top:20px;margin-bottom:6px;font-size:clamp(1.1rem,1.8vw,1.35rem);border-inline-start:3px solid var(--accent);padding-inline-start:16px">{{ tr(p) }}</blockquote>{% else %}<p class="lead" style="margin-top:{{ 18 if loop.first else 14 }}px">{{ tr(p) }}</p>{% endif %}{% endfor %}
+      <div class="q-by" style="margin-top:22px"><div><b>{{ tr(A.founder_name) }}</b><span>{{ tr(A.word_sign_role) }}</span></div></div>
+    </div>
+  </div>
+</section>
 <section class="section">
   <div class="wrap split" style="align-items:start">
     <div><h2 class="h2">{{ tr(A.mission_h) }}</h2></div>
@@ -191,19 +202,6 @@
       <div class="card"><span class="badge-ico">{{ icon('mountain') }}</span><h3>{{ tr(A.v2h) }}</h3><p>{{ tr(A.v2p) }}</p></div>
       <div class="card"><span class="badge-ico">{{ icon('earth') }}</span><h3>{{ tr(A.v3h) }}</h3><p>{{ tr(A.v3p) }}</p></div>
       <div class="card"><span class="badge-ico">{{ icon('lock') }}</span><h3>{{ tr(A.v4h) }}</h3><p>{{ tr(A.v4p) }}</p></div>
-    </div>
-  </div>
-</section>
-<section class="section" id="founder">
-  <div class="wrap founder" style="align-items:start">
-    <div class="portrait photo"><picture><source srcset="{{ u('assets/img/founder.webp') }}" type="image/webp"><img src="{{ u('assets/img/founder.jpg') }}" alt="{{ tr(A.founder_name) }}" width="800" height="1000" loading="lazy" decoding="async"></picture></div>
-    <div>
-      <span class="kicker"><span class="dot"></span>{{ tr(A.team_h) }}</span>
-      <h2 class="h2" style="margin-top:10px">{{ tr(A.founder_name) }}</h2>
-      <p style="color:var(--accent);font-weight:700;margin-top:8px">{{ tr(A.founder_role) }}</p>
-      <p class="lead" style="margin-top:16px">{{ tr(A.founder_bio) }}</p>
-      <p class="muted" style="margin-top:14px">{{ tr(A.founder_more) }}</p>
-      <div class="specs" style="margin-top:24px"><dl>{% for r in A.cv %}<div><dt class="num">{{ tr(r[0]) }}</dt><dd>{{ tr(r[1]) }}</dd></div>{% endfor %}</dl></div>
     </div>
   </div>
 </section>
