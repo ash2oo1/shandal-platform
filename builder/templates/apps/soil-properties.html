@@ -1,39 +1,70 @@
 {% extends "app_base.html" %}
 {% import "apps/_m.html" as m with context %}
+{% macro ly(k, en, ar, unit, on=False) %}<label class="chk" style="font-size:.84rem"><input type="checkbox" data-ly="{{ k }}"{% if on %} checked{% endif %}> <span><span dir="ltr">{{ en }}</span>{% if lang == 'ar' %}<br><span class="xsmall muted">{{ ar }}</span>{% endif %}{% if unit %} <bdi class="xsmall muted" dir="ltr">({{ unit }})</bdi>{% endif %}</span></label>{% endmacro %}
 {% block ws %}
 <div class="ws-wrap">
 <div class="ws wide-side">
   <aside class="ws-side">
-    {{ m.panel_open(1, 'Location', 'الموقع') }}
+    {{ m.panel_open(1, 'Project', 'بيانات المشروع') }}
+      {{ m.fld('geoName', 'Geologist', 'الجيولوجي', 'text', '', '', 'Printed at the foot of every downloaded image and on the report.', 'يُطبع أسفل كل صورة تُنزَّل وعلى التقرير.') }}
+      {{ m.fld('sTitle', 'Study title', 'عنوان الدراسة', 'text', '', '', '', '', m.L('e.g. Soil survey of the Abu Ghraib area', 'مثال: مسح ترب منطقة أبو غريب')) }}
+    {{ m.panel_close() }}
+    {{ m.panel_open(2, 'Location and study area', 'الموقع ومنطقة الدراسة') }}
       <div class="row2">
         {{ m.fld('sLat', 'Latitude', 'دائرة العرض', 'number', '33.10', '°', '', '', '', '0.0001') }}
         {{ m.fld('sLon', 'Longitude', 'خط الطول', 'number', '44.50', '°', '', '', '', '0.0001') }}
       </div>
       <div class="row2"><button class="btn btn-ink btn-sm" id="sGps" type="button">{{ icon('crosshair', 'ico ico-sm') }}{{ m.L('My location', 'موقعي') }}</button><span class="xsmall muted" style="align-self:center">{{ m.L('or click the map', 'أو انقر الخريطة') }}</span></div>
-      <div class="fig-b pad0" style="border-radius:12px;overflow:hidden;border:1px solid var(--line)"><div class="map" id="sMap" style="height:360px"></div></div>
+      <div class="row2"><button class="btn btn-line btn-sm" id="sArea" type="button">{{ icon('square-dashed', 'ico ico-sm') }}{{ m.L('Draw study area', 'حدد منطقة الدراسة') }}</button>{{ m.sel('sSpan', 'Default area around the point', 'المساحة الافتراضية حول النقطة', [('0.1', '≈ 11 × 11 km', '≈ 11 × 11 كم'), ('0.2', '≈ 22 × 22 km', '≈ 22 × 22 كم', true), ('0.5', '≈ 55 × 55 km', '≈ 55 × 55 كم'), ('1', '≈ 110 × 110 km', '≈ 110 × 110 كم')]) }}</div>
+      <p class="xsmall muted" id="sAreaInfo" style="margin:0"></p>
     {{ m.panel_close() }}
-    <button class="btn btn-gold btn-block" id="sRun" type="button">{{ icon('sprout', 'ico ico-sm') }}{{ m.L('Query SoilGrids', 'استعلم من SoilGrids') }}</button>
-    <p class="pn-note">{{ m.L('ISRIC SoilGrids 2.0 at 250 m. The service allows about five requests per minute.', 'ISRIC SoilGrids 2.0 بدقة 250 م. تسمح الخدمة بنحو خمسة طلبات في الدقيقة.') }}</p>
+    {{ m.panel_open(3, 'Purpose of the study', 'الغرض من الدراسة') }}
+      {{ m.sel('sPurpose', 'Purpose', 'الغرض', [('general', 'General soil characterisation', 'توصيف عام للتربة', true), ('agri', 'Agriculture and land evaluation', 'الزراعة وتقييم الأراضي'), ('eng', 'Engineering and foundations', 'الهندسة والأسس'), ('carbon', 'Soil carbon and climate', 'كربون التربة والمناخ'), ('water', 'Soil water and irrigation', 'ماء التربة والري'), ('custom', 'Custom selection', 'اختيار مخصص')], 'The purpose selects the maps that are most relevant; the selection can be changed below.', 'يختار الغرض الخرائط الأكثر صلة، ويمكن تعديل الاختيار أدناه.') }}
+      {{ m.sel('sDepth', 'Depth of the maps', 'عمق الخرائط', [('0-5cm', '0–5 cm', '0–5 سم', true), ('5-15cm', '5–15 cm', '5–15 سم'), ('15-30cm', '15–30 cm', '15–30 سم'), ('30-60cm', '30–60 cm', '30–60 سم'), ('60-100cm', '60–100 cm', '60–100 سم'), ('100-200cm', '100–200 cm', '100–200 سم')]) }}
+      <div class="fg"><span class="lb">{{ m.L('Maps to produce', 'الخرائط المطلوبة') }}</span>
+        <div id="sLayers" style="display:grid;gap:8px">
+          <details open><summary class="small" style="font-weight:800;cursor:pointer">{{ m.L('Derived properties', 'الخصائص المشتقة') }}</summary><div class="chks" style="display:grid;gap:6px;margin-top:6px">
+            {{ ly('ocd', 'Organic carbon density', 'كثافة الكربون العضوي', 'kg/m³') }}{{ ly('ocs', 'Organic carbon stock 0–30 cm', 'مخزون الكربون العضوي 0–30 سم', 'kg/m²') }}</div></details>
+          <details open><summary class="small" style="font-weight:800;cursor:pointer">{{ m.L('Physical properties', 'الخصائص الفيزيائية') }}</summary><div class="chks" style="display:grid;gap:6px;margin-top:6px">
+            {{ ly('clay', 'Clay content', 'محتوى الطين', '%', True) }}{{ ly('sand', 'Sand content', 'محتوى الرمل', '%') }}{{ ly('silt', 'Silt content', 'محتوى الغرين', '%') }}{{ ly('bdod', 'Bulk density of the fine earth', 'الكثافة الظاهرية للتربة الناعمة', 'g/cm³') }}{{ ly('cfvo', 'Coarse fragments', 'القطع الخشنة (حجمياً)', 'vol %') }}{{ ly('wv0010', 'Water content at −10 kPa', 'المحتوى الحجمي للماء عند −10 كيلوباسكال', 'vol %') }}{{ ly('wv0033', 'Water content at −33 kPa (field capacity)', 'المحتوى الحجمي للماء عند −33 كيلوباسكال (السعة الحقلية)', 'vol %') }}{{ ly('wv1500', 'Water content at −1500 kPa (wilting point)', 'المحتوى الحجمي للماء عند −1500 كيلوباسكال (نقطة الذبول الدائم)', 'vol %') }}</div></details>
+          <details open><summary class="small" style="font-weight:800;cursor:pointer">{{ m.L('Chemical properties', 'الخصائص الكيميائية') }}</summary><div class="chks" style="display:grid;gap:6px;margin-top:6px">
+            {{ ly('phh2o', 'Soil pH in water', 'درجة حموضة التربة في الماء', 'pH') }}{{ ly('soc', 'Soil organic carbon', 'الكربون العضوي في التربة', 'g/kg') }}{{ ly('nitrogen', 'Total nitrogen', 'النتروجين الكلي', 'g/kg') }}{{ ly('cec', 'Cation exchange capacity at pH 7', 'السعة التبادلية الكاتيونية عند pH 7', 'cmol(+)/kg') }}</div></details>
+          <details open><summary class="small" style="font-weight:800;cursor:pointer">{{ m.L('Soil classification', 'تصنيف التربة') }}</summary><div class="chks" style="display:grid;gap:6px;margin-top:6px">
+            {{ ly('wrb', 'WRB Reference Soil Groups (most probable)', 'المجموعات المرجعية للتربة وفق WRB (الأكثر احتمالاً)', '', True) }}</div></details>
+        </div></div>
+      <label class="chk"><input type="checkbox" id="sProf" checked> {{ m.L('Include measured soil profiles near the point', 'أضف مقاطع التربة المقيسة القريبة من النقطة') }}</label>
+    {{ m.panel_close() }}
+    <button class="btn btn-gold btn-block" id="sRun" type="button">{{ icon('file-chart-column', 'ico ico-sm') }}{{ m.L('Run soil analysis', 'إصدار تحليل التربة') }}</button>
   </aside>
   <div class="ws-main">
-    <div id="sEmpty" class="pn">{{ m.empty('sprout', 'Soil properties for any point on Earth', 'خصائص التربة لأي نقطة على الأرض', 'Texture, density, organic carbon, pH, cation exchange and coarse fragments at six depths to 2 m, with USDA texture and water-retention estimates.', 'القوام والكثافة والكربون العضوي ودرجة الحموضة والسعة التبادلية الكاتيونية والقطع الخشنة عند ست أعماق حتى 2 م، مع قوام USDA وتقديرات الاحتفاظ بالماء.') }}</div>
+    {{ m.fig_open('fs0', '', 'Location and study area', 'الموقع ومنطقة الدراسة', '<div class="seg" style="padding:2px"><select id="sPrev" aria-label="Map layer" style="height:30px;font-size:.8rem;padding:0 8px"></select></div>') }}
+      <div class="fig-b pad0" style="position:relative"><div class="map" id="sMap" style="height:600px"></div><div class="map-hint" id="sHint" hidden>{{ m.L('Drag a rectangle, or tap two opposite corners', 'اسحب مستطيلاً، أو انقر زاويتين متقابلتين') }}</div></div>
+      <div class="fig-cap" id="sMapCap">{{ m.L('Click the map to place the point. The selected layer is shown over the satellite image; red dots are measured soil profiles.', 'انقر الخريطة لتحديد النقطة. تظهر الطبقة المختارة فوق الصورة الفضائية، والنقاط الحمراء مقاطع تربة مقيسة.') }}</div>
+    {{ m.fig_close() }}
+    <div id="sEmpty" class="pn">{{ m.empty('sprout', 'Soil properties for any point on Earth', 'خصائص التربة لأي نقطة على الأرض', 'Choose the point, the study area and the purpose, then run the analysis: depth profiles to 2 m, soil classification, measured profiles nearby and the property maps of the study area.', 'اختر النقطة ومنطقة الدراسة والغرض، ثم أصدر التحليل: مقاطع عمقية حتى 2 م، وتصنيف التربة، والمقاطع المقيسة القريبة، وخرائط خصائص منطقة الدراسة.') }}</div>
     <div id="sOut" hidden style="display:grid;gap:18px">
       <div class="verdict info" id="sNear" hidden></div>
       <div class="kpis" id="sKpis"></div>
       <section class="pn"><div class="pn-h">{{ icon('book-open') }}<h2>{{ m.L('Scientific interpretation', 'التفسير العلمي') }}</h2></div><div class="pn-b" id="sInterp"></div></section>
-      {{ m.fig_open('fs1', '1', 'Particle-size profile with depth', 'مقطع حجم الحبيبات مع العمق') }}
-        <div class="fig-b"><div class="plot" id="sTex" style="height:420px"></div></div>
-        <div class="fig-cap">{{ m.L('Sand (2–0.05 mm), silt (0.05–0.002 mm) and clay (< 0.002 mm) at the six standard GlobalSoilMap depths. Hover a bar for the value and its 5–95 % prediction interval.', 'الرمل (2–0.05 ملم) والغرين (0.05–0.002 ملم) والطين (< 0.002 ملم) عند الأعماق القياسية الست لمشروع GlobalSoilMap. مرّر المؤشر فوق العمود لرؤية القيمة وفترة التنبؤ 5–95 %.') }}</div>
-      {{ m.fig_close() }}
-      {{ m.fig_open('fs2', '2', 'USDA texture triangle', 'مثلث القوام USDA', '<button class="btn btn-line btn-xs" data-svg="sTri">PNG</button>') }}
-        <div class="fig-b" style="max-width:760px;margin:0 auto"><svg class="chart" id="sTri" viewBox="0 0 520 440" role="img" aria-label="USDA texture triangle"></svg></div>
-        <div class="fig-cap">{{ m.L('Each dot is one depth interval plotted by its sand, silt and clay fractions on the USDA soil texture triangle (Soil Survey Staff, 2017).', 'كل نقطة تمثل فترة عمق واحدة موقّعة بنسب الرمل والغرين والطين على مثلث قوام التربة USDA (Soil Survey Staff، 2017).') }}</div>
-      {{ m.fig_close() }}
-      {{ m.fig_open('fs3', '3', 'Chemical and physical properties with depth (mean and 5–95 % range)', 'الخصائص الكيميائية والفيزيائية مع العمق (المتوسط ومدى 5–95 %)') }}
-        <div class="fig-b"><div class="plot" id="sProp" style="height:360px"></div></div>
-      {{ m.fig_close() }}
-      <section class="pn"><div class="pn-h">{{ icon('table') }}<h2>{{ m.L('Profile table', 'جدول المقطع') }}</h2><div class="sp no-print"><button class="btn btn-line btn-xs" id="sCsv">{{ icon('download', 'ico ico-sm') }}CSV</button></div></div><div class="pn-b flush tbl-wrap"><table class="tbl" id="sTbl"></table></div>
-        <div class="pn-b"><p class="xsmall muted" style="margin:0">{{ m.L('Water retention by Saxton & Rawls (2006) from sand, clay and organic matter (OM = 1.724 × SOC). Predicted values for screening; confirm with sampling and laboratory tests.', 'الاحتفاظ بالماء وفق Saxton & Rawls (2006) من الرمل والطين والمادة العضوية (OM = 1.724 × SOC). قيم متنبأة للفرز الأولي؛ أكدها بالنمذجة والفحوص المختبرية.') }}</p></div></section>
+      <div data-rp-page="f1">{{ m.fig_open('fs1', '1', 'Particle-size distribution with depth', 'توزيع حجم الحبيبات مع العمق', '<button class="btn btn-line btn-xs" data-px="sTex" data-f="png" type="button">PNG</button><button class="btn btn-line btn-xs" data-px="sTex" data-f="jpg" type="button">JPG</button><button class="btn btn-line btn-xs" data-px="sTex" data-f="pdf" type="button">PDF</button>') }}
+        <div class="fig-b"><div class="plot" id="sTex" style="height:440px"></div></div><div class="fig-cap" id="sTexCap"></div>
+      {{ m.fig_close() }}</div>
+      <div data-rp-page="f2">{{ m.fig_open('fs2', '2', 'USDA soil texture triangle', 'مثلث قوام التربة USDA', '<button class="btn btn-line btn-xs" data-sx="sTri" data-f="png" type="button">PNG</button><button class="btn btn-line btn-xs" data-sx="sTri" data-f="jpg" type="button">JPG</button><button class="btn btn-line btn-xs" data-sx="sTri" data-f="pdf" type="button">PDF</button>') }}
+        <div class="fig-b" style="overflow:auto"><svg class="chart" id="sTri" viewBox="0 0 980 600" role="img" aria-label="USDA texture triangle" style="min-width:620px"></svg></div><div class="fig-cap" id="sTriCap"></div>
+      {{ m.fig_close() }}</div>
+      <div data-rp-page="f3">{{ m.fig_open('fs3', '3', 'Soil properties with depth', 'خصائص التربة مع العمق', '<button class="btn btn-line btn-xs" data-px="sProp" data-f="png" type="button">PNG</button><button class="btn btn-line btn-xs" data-px="sProp" data-f="jpg" type="button">JPG</button><button class="btn btn-line btn-xs" data-px="sProp" data-f="pdf" type="button">PDF</button>') }}
+        <div class="fig-b" style="overflow:auto"><div class="plot" id="sProp" style="height:420px;min-width:760px"></div></div><div class="fig-cap" id="sPropCap"></div>
+      {{ m.fig_close() }}</div>
+      <div data-rp-page="f4">{{ m.fig_open('fs4', '4', 'WRB soil classification at the point', 'تصنيف التربة وفق WRB عند النقطة', '<button class="btn btn-line btn-xs" data-px="sWrb" data-f="png" type="button">PNG</button><button class="btn btn-line btn-xs" data-px="sWrb" data-f="jpg" type="button">JPG</button><button class="btn btn-line btn-xs" data-px="sWrb" data-f="pdf" type="button">PDF</button>') }}
+        <div class="fig-b"><div class="plot" id="sWrb" style="height:300px"></div></div><div class="fig-cap" id="sWrbCap"></div>
+      {{ m.fig_close() }}</div>
+      <div id="sProfWrap" hidden data-rp-page="f5">{{ m.fig_open('fs5', '5', 'Measured soil profiles near the point', 'مقاطع التربة المقيسة القريبة من النقطة', '<button class="btn btn-line btn-xs" data-px="sCmp" data-f="png" type="button">PNG</button><button class="btn btn-line btn-xs" data-px="sCmp" data-f="jpg" type="button">JPG</button><button class="btn btn-line btn-xs" data-px="sCmp" data-f="pdf" type="button">PDF</button><button class="btn btn-line btn-xs" id="sProfCsv" type="button">CSV</button>') }}
+        <div class="fig-b"><div class="plot" id="sCmp" style="height:400px"></div></div>
+        <div class="fig-b flush tbl-wrap"><table class="tbl" id="sProfTbl"></table></div>
+        <div class="fig-cap" id="sCmpCap"></div>
+      {{ m.fig_close() }}</div>
+      <div id="sMaps" style="display:grid;gap:18px"></div>
+      <section class="pn"><div class="pn-h">{{ icon('table') }}<h2>{{ m.L('Profile table', 'جدول المقطع') }}</h2><div class="sp no-print"><button class="btn btn-line btn-xs" id="sCsv" type="button">{{ icon('download', 'ico ico-sm') }}CSV</button></div></div><div class="pn-b flush tbl-wrap"><table class="tbl" id="sTbl"></table></div></section>
     </div>
   </div>
 </div>
