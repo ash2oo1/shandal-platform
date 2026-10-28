@@ -266,9 +266,10 @@
     S.add('rect', { x: 0, y: 0, width: W, height: VH, fill: '#fff' });
     var title = SH.val('sTitle').trim(); tx(W / 2, 32, (title ? title + ' — ' : '') + LY[k][0] + (isW || k === 'ocs' ? '' : ' (' + DL(last.depth) + ')'), { 'font-size': 18, 'font-weight': 800, 'text-anchor': 'middle' });
     // classes
+    var zeroOk = k === 'cfvo'; for (var i0 = 0; i0 < G.data.length; i0++) if (!isW && !zeroOk && G.data[i0] === 0) G.data[i0] = NaN; else if (isW && G.data[i0] === 255) G.data[i0] = NaN;
     var vals = []; for (var i = 0; i < G.data.length; i++) if (isFinite(G.data[i])) vals.push(isW ? G.data[i] : G.data[i] / div);
     var cls = [], cols = [], present = [];
-    if (isW) { var cnt = {}; vals.forEach(function (v) { cnt[v] = (cnt[v] || 0) + 1; }); present = Object.keys(cnt).map(Number).filter(function (v) { return WRB[v]; }).sort(function (a, c) { return cnt[c] - cnt[a]; }); last.maps[k].cnt = cnt; last.maps[k].n = vals.length; }
+    if (isW) { var cnt = {}; vals.forEach(function (v) { cnt[v] = (cnt[v] || 0) + 1; }); present = Object.keys(cnt).map(Number).filter(function (v) { return WRB[v] && cnt[v] / vals.length >= 0.005; }).sort(function (a, c) { return cnt[c] - cnt[a]; }); last.maps[k].cnt = cnt; last.maps[k].n = vals.length; }
     else if (vals.length) { var sv = vals.slice().sort(function (a, c) { return a - c; }), lo = sv[Math.floor(sv.length * .02)], hi = sv[Math.floor(sv.length * .98)]; if (hi - lo < 1e-9) { hi = lo + 1; } var st = niceStep(hi - lo, 7), b0 = Math.floor(lo / st) * st; cls = [b0]; while (cls[cls.length - 1] < hi - 1e-9) cls.push(+(cls[cls.length - 1] + st).toFixed(10)); var stops = RAMP[LY[k][3]]; for (i = 0; i < cls.length - 1; i++) cols.push(rampCol(stops, cls.length === 2 ? .5 : i / (cls.length - 2))); last.maps[k].stats = { mean: vals.reduce(function (a, v) { return a + v; }, 0) / vals.length, lo: sv[0], hi: sv[sv.length - 1], p10: sv[Math.floor(sv.length * .1)], p90: sv[Math.floor(sv.length * .9)], n: vals.length, st: st }; }
     // raster: crop the grid to the study area
     var cv = document.createElement('canvas'), gx0 = Math.max(0, Math.floor((b.w - G.x0) / G.dx)), gx1 = Math.min(G.W, Math.ceil((b.e - G.x0) / G.dx)), gy0 = Math.max(0, Math.floor((G.y0 - b.n) / G.dy)), gy1 = Math.min(G.H, Math.ceil((G.y0 - b.s) / G.dy)), w = Math.max(1, gx1 - gx0), h = Math.max(1, gy1 - gy0);
