@@ -58,8 +58,10 @@
   function preview() { if (!map) return; if (wms) { map.removeLayer(wms); wms = null; } var k = $('#sPrev').value; if (!prevBox) { prevBox = document.createElement('div'); prevBox.className = 'sh-wmsload'; prevBox.innerHTML = '<span class="sp"></span>' + t('Loading the soil layer…', 'جارٍ تحميل طبقة التربة…'); prevBox.hidden = true; $('#sMap').appendChild(prevBox); } prevBox.hidden = true; if (!k) return;
     // request only the study area (with a margin) in large tiles: the soil map server is slow
     var b = bounds(), m = Math.max(0.15, Math.max(b.n - b.s, b.e - b.w) * 0.6), lb = L.latLngBounds([b.s - m, b.w - m], [b.n + m, b.e + m]);
-    wms = L.tileLayer.wms('https://maps.isric.org/mapserv?map=/map/' + k + '.map', { layers: wmsName(k, $('#sDepth').value), format: 'image/png', transparent: true, version: '1.3.0', opacity: .72, tileSize: 512, bounds: lb, keepBuffer: 0, updateWhenIdle: true, attribution: 'Soil data © ISRIC SoilGrids (CC BY 4.0)', crossOrigin: true });
-    wms.on('loading', function () { prevBox.hidden = false; }); wms.on('load', function () { prevBox.hidden = true; }); wms.addTo(map); }
+    wms = L.tileLayer.wms('https://maps.isric.org/mapserv?map=/map/' + k + '.map', { layers: wmsName(k, $('#sDepth').value), format: 'image/png', transparent: true, version: '1.3.0', opacity: .72, bounds: lb, keepBuffer: 0, updateWhenIdle: true, attribution: 'Soil data © ISRIC SoilGrids (CC BY 4.0)', crossOrigin: true });
+    var nOk = 0, nErr = 0, setMsg = function (spin, txt) { prevBox.innerHTML = (spin ? '<span class="sp"></span>' : '') + txt; prevBox.hidden = false; };
+    wms.on('loading', function () { nOk = 0; nErr = 0; setMsg(true, t('Loading the soil layer…', 'جارٍ تحميل طبقة التربة…')); }); wms.on('tileload', function () { nOk++; }); wms.on('tileerror', function () { nErr++; });
+    wms.on('load', function () { if (nErr && !nOk) { setMsg(false, t('The international soil-map service is not responding at the moment; the preview will appear when it recovers.', 'خدمة خرائط التربة الدولية لا تستجيب حالياً؛ ستظهر المعاينة عند عودتها.')); setTimeout(function () { prevBox.hidden = true; }, 9000); } else prevBox.hidden = true; }); wms.addTo(map); }
   function previewSoon() { if (!wms) return; clearTimeout(prevTm); prevTm = setTimeout(preview, 500); }
   $('#sPrev').addEventListener('change', preview); $('#sDepth').addEventListener('change', preview); prevOpts(); areaInfo();
 
