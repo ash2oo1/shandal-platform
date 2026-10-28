@@ -252,12 +252,18 @@
     last.baseP = null; var jobs = L0.map(function (k, n) {
       var id = 'smap_' + k, box = document.createElement('div'); box.setAttribute('data-rp-page', 'm' + k);
       box.innerHTML = '<section class="fig" id="fm_' + k + '"><div class="fig-h"><span class="n">' + (6 + n) + '</span><h3>' + (AR_UI ? LY[k][1] : LY[k][0]) + (k === 'wrb' || k === 'ocs' ? '' : ' · <bdi>' + DL(d) + '</bdi>') + '</h3><div class="sp no-print">' + ['png', 'jpg', 'pdf'].map(function (f) { return '<button class="btn btn-line btn-xs" data-mx="' + k + '" data-f="' + f + '" type="button">' + f.toUpperCase() + '</button>'; }).join('') + '<button class="btn btn-line btn-xs" data-tif="' + k + '" type="button">GeoTIFF</button></div></div><div class="fig-b" style="overflow:auto"><svg class="chart" id="' + id + '" viewBox="0 0 1000 700" style="min-width:620px"></svg></div><div class="fig-cap" id="' + id + 'Cap"></div></section>';
-      host.appendChild(box); $('#' + id + 'Cap').textContent = t('Drawing the map…', 'جارٍ رسم الخريطة…');
-      return fetch(wcs(k, d, b)).then(function (r) { if (!r.ok) throw new Error('WCS ' + r.status); return r.arrayBuffer(); }).then(function (buf) { last.maps[k] = { buf: buf }; return tiff(buf.slice(0)); });
+      host.appendChild(box); $('#' + id + 'Cap').textContent = t('Waiting for the map data…', 'بانتظار بيانات الخريطة…');
+      return k;
     });
-    // downloads run in parallel; drawing runs one map at a time and yields to the page between maps
-    var chain = Promise.resolve();
-    jobs.forEach(function (j, n) { var k = L0[n]; chain = chain.then(function () { return j.then(function (G) { return new Promise(function (r) { setTimeout(r, 30); }).then(function () { last.maps[k].G = G; return drawMap(k, G); }); }).catch(function () { $('#smap_' + k + 'Cap').textContent = t('The map could not be produced for this layer.', 'تعذر إنتاج الخريطة لهذه الطبقة.'); }); }); });
+    // the map server is slow: two requests at a time, one retry, coarser grid for very large areas
+    var cells = Math.max((b.e - b.w), (b.n - b.s)) / 0.0020833, sf = cells > 640 ? Math.max(0.2, 640 / cells) : 1;
+    var get = function (k, tries) { var ac = new AbortController(), tm = setTimeout(function () { ac.abort(); }, 100000);
+      return fetch(wcs(k, d, b) + (sf < 1 ? '&SCALEFACTOR=' + sf.toFixed(3) : ''), { signal: ac.signal }).then(function (r) { clearTimeout(tm); if (!r.ok) throw new Error('WCS ' + r.status); return r.arrayBuffer(); })
+        .catch(function (e) { clearTimeout(tm); if (tries > 0) return new Promise(function (r) { setTimeout(r, 1500); }).then(function () { return get(k, tries - 1); }); throw e; }); };
+    var queue = jobs.slice(), worker = function () { var k = queue.shift(); if (!k) return Promise.resolve(); var cap = $('#smap_' + k + 'Cap'); cap.textContent = t('Downloading and drawing the map…', 'جارٍ تنزيل الخريطة ورسمها…');
+      return get(k, 1).then(function (buf) { last.maps[k] = { buf: buf }; return tiff(buf.slice(0)); }).then(function (G) { return new Promise(function (r) { setTimeout(r, 30); }).then(function () { last.maps[k].G = G; return drawMap(k, G); }); })
+        .catch(function () { cap.textContent = t('The map server did not respond for this layer. Run the analysis again later or choose a smaller study area.', 'لم يستجب خادم الخرائط لهذه الطبقة. أعد إصدار التحليل لاحقاً أو اختر منطقة دراسة أصغر.'); }).then(worker); };
+    var chain = Promise.all([worker(), worker()]);
     return chain;
   }
   var LOGO = null; function logo64() { return LOGO || (LOGO = fetch(SH.base + 'assets/img/emblem-64.png').then(function (r) { return r.blob(); }).then(function (bl) { return new Promise(function (res) { var fr = new FileReader(); fr.onload = function () { res(fr.result); }; fr.onerror = function () { res(null); }; fr.readAsDataURL(bl); }); }).catch(function () { return null; })); }
@@ -327,7 +333,7 @@
     S.path('M' + (LX + 15) + ' ' + (ly2 + 1) + 'l8 14h-16z', { fill: '#C0392B', stroke: '#fff', 'stroke-width': 1 }); tx(LX + 40, ly2 + 14, 'Selected point', { 'font-size': 12 }); ly2 += 24;
     if ((last.prof || []).length) { S.add('rect', { x: LX + 10, y: ly2 + 3, width: 10, height: 10, fill: '#fff', stroke: INK, 'stroke-width': 1.5 }); tx(LX + 40, ly2 + 14, 'Measured soil profile', { 'font-size': 12 }); ly2 += 24; }
     var crW = 262, crH = 30, crX = X0 + 8, crY = Y0 + PH - crH - 8; S.add('rect', { x: crX, y: crY, width: crW, height: crH, rx: 4, fill: '#fff', 'fill-opacity': .9, stroke: '#B08A3E', 'stroke-width': .8 }); var lg = S.add('image', { x: crX + 5, y: crY + 3, width: 24, height: 24 }); logo64().then(function (u) { if (u) lg.setAttribute('href', u); }); tx(crX + 35, crY + 14, '© Shandal Geological Field Survey System', { 'font-size': 10.5, 'font-weight': 800 }); tx(crX + 35, crY + 25, 'geologicalfieldsurvey.com', { 'font-size': 9, fill: MUT });
-    tx(LX, VH - 46, 'Geographic coordinates, WGS 84', { 'font-size': 11, fill: MUT }); tx(LX, VH - 30, 'SoilGrids 250 m, interpolated', { 'font-size': 11, fill: MUT });
+    tx(LX, VH - 46, 'Geographic coordinates, WGS 84', { 'font-size': 11, fill: MUT }); tx(LX, VH - 30, 'SoilGrids, ' + (Math.round(G.dy * 111320 / 50) * 50) + ' m grid, interpolated', { 'font-size': 11, fill: MUT });
     S.add('rect', { x: 6, y: 6, width: W - 12, height: VH - 12, fill: 'none', stroke: INK, 'stroke-width': 1.2 });
     // caption
     var cap = $('#smap_' + k + 'Cap'), msk = nodata / (cw * ch);
