@@ -121,8 +121,8 @@
       if (logo) x.drawImage(logo, pad, y0 + (h - ls) / 2, ls, ls);
       var tx0 = pad + (logo ? ls + pad * 0.7 : 0); x.fillStyle = '#1B232B'; x.textBaseline = 'middle'; x.textAlign = 'left';
       x.font = '800 ' + Math.round(h * 0.27) + 'px ' + F; x.fillText('© Shandal Geological Field Survey System', tx0, y0 + h * 0.4);
-      x.font = '500 ' + Math.round(h * 0.2) + 'px ' + F; x.fillStyle = '#55616B'; x.fillText('نظام شندل للمسح الميداني الجيولوجي · geologicalfieldsurvey.com', tx0, y0 + h * 0.72);
-      x.textAlign = 'right'; x.fillStyle = '#1B232B'; x.font = '700 ' + Math.round(h * 0.24) + 'px ' + F; if (geo) x.fillText('Geologist: ' + geo, W - pad, y0 + h * 0.4);
+      x.font = '500 ' + Math.round(h * 0.2) + 'px ' + F; x.fillStyle = '#55616B'; x.fillText('geologicalfieldsurvey.com', tx0, y0 + h * 0.72);
+      x.textAlign = 'right'; x.fillStyle = '#1B232B'; x.font = '700 ' + Math.round(h * 0.24) + 'px ' + F; if (geo) { var arUI = (d.documentElement.lang || '').indexOf('ar') === 0; if (arUI) x.direction = 'rtl'; x.fillText(arUI ? 'بوساطة: ' + geo : 'By ' + geo, W - pad, y0 + h * 0.4); x.direction = 'ltr'; }
       x.font = '500 ' + Math.round(h * 0.2) + 'px ' + F; x.fillStyle = '#55616B'; x.fillText(dt, W - pad, y0 + (geo ? h * 0.72 : h * 0.5));
       return out;
     });

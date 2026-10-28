@@ -278,7 +278,6 @@
       else prog.remove(); });
     return chain;
   }
-  var LOGO = null; function logo64() { return LOGO || (LOGO = fetch(SH.base + 'assets/img/emblem-64.png').then(function (r) { return r.blob(); }).then(function (bl) { return new Promise(function (res) { var fr = new FileReader(); fr.onload = function () { res(fr.result); }; fr.onerror = function () { res(null); }; fr.readAsDataURL(bl); }); }).catch(function () { return null; })); }
   function baseMap(b, cw, ch) {
     var key = [b.w, b.e, b.s, b.n, cw, ch].join(); if (last.baseP && last.baseKey === key) return last.baseP; last.baseKey = key;
     var z = Math.max(2, Math.min(16, Math.round(Math.log2(360 * cw / (256 * (b.e - b.w)))))), n = Math.pow(2, z), X = function (lo) { return (lo + 180) / 360 * n; }, Y = function (la) { var r = SH.rad(la); return (1 - Math.log(Math.tan(r) + 1 / Math.cos(r)) / Math.PI) / 2 * n; }, LA = function (yy) { return Math.atan(Math.sinh(Math.PI * (1 - 2 * yy / n))) * 180 / Math.PI; };
@@ -343,7 +342,6 @@
     ly2 += 6; S.add('rect', { x: LX, y: ly2, width: 30, height: 18, fill: '#EDEDEA', stroke: INK, 'stroke-width': .7 }); tx(LX + 40, ly2 + 10, 'No prediction: built-up land', { 'font-size': 12 }); tx(LX + 40, ly2 + 25, 'or water (base map shown)', { 'font-size': 12 }); ly2 += 36;
     S.path('M' + (LX + 15) + ' ' + (ly2 + 1) + 'l8 14h-16z', { fill: '#C0392B', stroke: '#fff', 'stroke-width': 1 }); tx(LX + 40, ly2 + 14, 'Selected point', { 'font-size': 12 }); ly2 += 24;
     if ((last.prof || []).length) { S.add('rect', { x: LX + 10, y: ly2 + 3, width: 10, height: 10, fill: '#fff', stroke: INK, 'stroke-width': 1.5 }); tx(LX + 40, ly2 + 14, 'Measured soil profile', { 'font-size': 12 }); ly2 += 24; }
-    var crW = 262, crH = 30, crX = X0 + 8, crY = Y0 + PH - crH - 8; S.add('rect', { x: crX, y: crY, width: crW, height: crH, rx: 4, fill: '#fff', 'fill-opacity': .9, stroke: '#B08A3E', 'stroke-width': .8 }); var lg = S.add('image', { x: crX + 5, y: crY + 3, width: 24, height: 24 }); logo64().then(function (u) { if (u) lg.setAttribute('href', u); }); tx(crX + 35, crY + 14, '© Shandal Geological Field Survey System', { 'font-size': 10.5, 'font-weight': 800 }); tx(crX + 35, crY + 25, 'geologicalfieldsurvey.com', { 'font-size': 9, fill: MUT });
     tx(LX, VH - 46, 'Geographic coordinates, WGS 84', { 'font-size': 11, fill: MUT }); tx(LX, VH - 30, 'SoilGrids, ' + (Math.round(G.dy * 111320 / 50) * 50) + ' m grid, interpolated', { 'font-size': 11, fill: MUT });
     S.add('rect', { x: 6, y: 6, width: W - 12, height: VH - 12, fill: 'none', stroke: INK, 'stroke-width': 1.2 });
     // caption
