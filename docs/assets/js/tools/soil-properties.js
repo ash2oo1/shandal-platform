@@ -292,7 +292,7 @@
     var asp = ((b.e - b.w) * kx) / (b.n - b.s), PW = asp >= 1 ? 640 : 640 * asp, PH = asp >= 1 ? 640 / asp : 640; if (PH > 640) { PW *= 640 / PH; PH = 640; }
     var X0 = 86, Y0 = 70, VH = Y0 + PH + 90, LX = X0 + Math.max(PW, 420) + 50; S.el.setAttribute('viewBox', '0 0 ' + W + ' ' + Math.max(VH, 560)); VH = Math.max(VH, 560);
     var tx = function (x, y, s, a) { return S.text(x, y, s, Object.assign({ fill: INK, 'font-size': 13, direction: 'ltr', 'font-family': PF }, a || {})); };
-    S.add('rect', { x: 0, y: 0, width: W, height: VH, fill: '#fff' });
+    var bgR = S.add('rect', { x: 0, y: 0, width: W, height: VH, fill: '#fff' });
     var title = SH.val('sTitle').trim(); tx(W / 2, 32, (title ? title + ' — ' : '') + LY[k][0] + (isW || k === 'ocs' ? '' : ' (' + DL(last.depth) + ')'), { 'font-size': 18, 'font-weight': 800, 'text-anchor': 'middle' });
     // values: zero fill and WRB no-data are not predicted
     var zeroOk = k === 'cfvo'; for (var i0 = 0; i0 < G.data.length; i0++) if (!isW && !zeroOk && G.data[i0] === 0) G.data[i0] = NaN; else if (isW && G.data[i0] === 255) G.data[i0] = NaN;
@@ -342,6 +342,7 @@
     ly2 += 6; S.add('rect', { x: LX, y: ly2, width: 30, height: 18, fill: '#EDEDEA', stroke: INK, 'stroke-width': .7 }); tx(LX + 40, ly2 + 10, 'No prediction', { 'font-size': 12 }); tx(LX + 40, ly2 + 25, '(built-up land or water)', { 'font-size': 12 }); ly2 += 36;
     S.path('M' + (LX + 15) + ' ' + (ly2 + 1) + 'l8 14h-16z', { fill: '#C0392B', stroke: '#fff', 'stroke-width': 1 }); tx(LX + 40, ly2 + 14, 'Selected point', { 'font-size': 12 }); ly2 += 24;
     if ((last.prof || []).length) { S.add('rect', { x: LX + 10, y: ly2 + 3, width: 10, height: 10, fill: '#fff', stroke: INK, 'stroke-width': 1.5 }); tx(LX + 40, ly2 + 14, 'Measured soil profile', { 'font-size': 12 }); ly2 += 24; }
+    if (ly2 + 78 > VH) { VH = ly2 + 78; S.el.setAttribute('viewBox', '0 0 ' + W + ' ' + VH); bgR.setAttribute('height', VH); }
     tx(LX, VH - 62, 'Geographic coordinates, WGS 84', { 'font-size': 11, fill: MUT }); tx(LX, VH - 46, 'SoilGrids, ' + (Math.round(G.dy * 111320 / 50) * 50) + ' m grid,', { 'font-size': 11, fill: MUT }); tx(LX, VH - 31, 'interpolated for display', { 'font-size': 11, fill: MUT });
     S.add('rect', { x: 6, y: 6, width: W - 12, height: VH - 12, fill: 'none', stroke: INK, 'stroke-width': 1.2 });
     // caption
