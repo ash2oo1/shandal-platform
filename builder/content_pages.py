@@ -7,7 +7,7 @@ def L(en, ar):
 WA = '9647814993629'
 EMAIL = 'alishandal12@gmail.com'
 FACEBOOK = 'https://www.facebook.com/Shandalsystem'
-YOUTUBE = 'https://www.youtube.com/@ash2oo1geo'
+YOUTUBE = 'https://www.youtube.com/@shandalsystem'
 INSTAGRAM = 'https://www.instagram.com/ash2oo1'
 FIELD_SYSTEM = 'https://geologicalfieldsurvey.com/'
 AI_ENDPOINT = 'https://shandal-ai-backend.shandal-geosystem.workers.dev'
