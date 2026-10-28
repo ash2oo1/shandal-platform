@@ -126,7 +126,7 @@
       if (note && map) alt = L.layerGroup([L.polyline([[lat, lon], [note.lat, note.lon]], { color: '#1F6FB2', weight: 2, dashArray: '5 4' }), L.circleMarker([note.lat, note.lon], { radius: 7, color: '#fff', weight: 2, fillColor: '#1F6FB2', fillOpacity: 1 }).bindTooltip(t('Nearest predicted soil pixel', 'أقرب خلية تربة متنبأ بها'))]).addTo(map);
       if (map) { if (profLayer) map.removeLayer(profLayer); profLayer = L.layerGroup(last.prof.map(function (p) { return L.circleMarker([p.lat, p.lon], { radius: 6, color: '#fff', weight: 1.5, fillColor: '#C0392B', fillOpacity: 1 }).bindTooltip(p.code + ' · ' + (p.wrb || p.usda || '') + (p.year ? ' · ' + p.year : '')); })).addTo(map); }
       render();
-      SH.busy(host, true, t('Drawing the maps of the study area…', 'جارٍ رسم خرائط منطقة الدراسة…'));
+      SH.busy(host, false);
       return maps();
     }).catch(function (e) { SH.toast(e.message, 'bad'); }).then(function () { btn.disabled = false; SH.busy(host, false); });
   }
@@ -252,12 +252,15 @@
     last.baseP = null; var jobs = L0.map(function (k, n) {
       var id = 'smap_' + k, box = document.createElement('div'); box.setAttribute('data-rp-page', 'm' + k);
       box.innerHTML = '<section class="fig" id="fm_' + k + '"><div class="fig-h"><span class="n">' + (6 + n) + '</span><h3>' + (AR_UI ? LY[k][1] : LY[k][0]) + (k === 'wrb' || k === 'ocs' ? '' : ' · <bdi>' + DL(d) + '</bdi>') + '</h3><div class="sp no-print">' + ['png', 'jpg', 'pdf'].map(function (f) { return '<button class="btn btn-line btn-xs" data-mx="' + k + '" data-f="' + f + '" type="button">' + f.toUpperCase() + '</button>'; }).join('') + '<button class="btn btn-line btn-xs" data-tif="' + k + '" type="button">GeoTIFF</button></div></div><div class="fig-b" style="overflow:auto"><svg class="chart" id="' + id + '" viewBox="0 0 1000 700" style="min-width:620px"></svg></div><div class="fig-cap" id="' + id + 'Cap"></div></section>';
-      host.appendChild(box);
-      return fetch(wcs(k, d, b)).then(function (r) { if (!r.ok) throw new Error('WCS ' + r.status); return r.arrayBuffer(); }).then(function (buf) { last.maps[k] = { buf: buf }; return tiff(buf.slice(0)); }).then(function (G) { last.maps[k].G = G; return drawMap(k, G); })
-        .catch(function () { $('#' + id + 'Cap').textContent = t('The map could not be produced for this layer.', 'تعذر إنتاج الخريطة لهذه الطبقة.'); });
+      host.appendChild(box); $('#' + id + 'Cap').textContent = t('Drawing the map…', 'جارٍ رسم الخريطة…');
+      return fetch(wcs(k, d, b)).then(function (r) { if (!r.ok) throw new Error('WCS ' + r.status); return r.arrayBuffer(); }).then(function (buf) { last.maps[k] = { buf: buf }; return tiff(buf.slice(0)); });
     });
-    return Promise.all(jobs);
+    // downloads run in parallel; drawing runs one map at a time and yields to the page between maps
+    var chain = Promise.resolve();
+    jobs.forEach(function (j, n) { var k = L0[n]; chain = chain.then(function () { return j.then(function (G) { return new Promise(function (r) { setTimeout(r, 30); }).then(function () { last.maps[k].G = G; return drawMap(k, G); }); }).catch(function () { $('#smap_' + k + 'Cap').textContent = t('The map could not be produced for this layer.', 'تعذر إنتاج الخريطة لهذه الطبقة.'); }); }); });
+    return chain;
   }
+  var LOGO = null; function logo64() { return LOGO || (LOGO = fetch(SH.base + 'assets/img/emblem-64.png').then(function (r) { return r.blob(); }).then(function (bl) { return new Promise(function (res) { var fr = new FileReader(); fr.onload = function () { res(fr.result); }; fr.onerror = function () { res(null); }; fr.readAsDataURL(bl); }); }).catch(function () { return null; })); }
   function baseMap(b, cw, ch) {
     var key = [b.w, b.e, b.s, b.n, cw, ch].join(); if (last.baseP && last.baseKey === key) return last.baseP; last.baseKey = key;
     var z = Math.max(2, Math.min(16, Math.round(Math.log2(360 * cw / (256 * (b.e - b.w)))))), n = Math.pow(2, z), X = function (lo) { return (lo + 180) / 360 * n; }, Y = function (la) { var r = SH.rad(la); return (1 - Math.log(Math.tan(r) + 1 / Math.cos(r)) / Math.PI) / 2 * n; }, LA = function (yy) { return Math.atan(Math.sinh(Math.PI * (1 - 2 * yy / n))) * 180 / Math.PI; };
@@ -283,21 +286,23 @@
     else if (vals.length) { var sv = vals.slice().sort(function (a, c) { return a - c; }); lo = sv[Math.floor(sv.length * .02)]; hi = sv[Math.floor(sv.length * .98)]; if (hi - lo < 1e-9) hi = lo + 1; st = niceStep(hi - lo, 5); last.maps[k].stats = { mean: vals.reduce(function (a, v) { return a + v; }, 0) / vals.length, lo: sv[0], hi: sv[sv.length - 1], p10: sv[Math.floor(sv.length * .1)], p90: sv[Math.floor(sv.length * .9)], n: vals.length }; }
     // continuous surface: light smoothing of the 250 m grid, then bilinear interpolation to the page resolution
     var Gs = G.data; if (!isW) { Gs = new Float64Array(G.W * G.H); for (y = 0; y < G.H; y++) for (x = 0; x < G.W; x++) { var c0 = G.data[y * G.W + x]; if (!isFinite(c0)) { Gs[y * G.W + x] = NaN; continue; } var sw = 0, sa = 0; for (var dy = -1; dy <= 1; dy++) for (var dx = -1; dx <= 1; dx++) { var yy = y + dy, xx = x + dx; if (yy < 0 || xx < 0 || yy >= G.H || xx >= G.W) continue; var q = G.data[yy * G.W + xx]; if (!isFinite(q)) continue; var wq = (dx ? 1 : 2) * (dy ? 1 : 2); sw += wq; sa += wq * q; } Gs[y * G.W + x] = sa / sw; } }
-    var SC = 2, cw = Math.round(PW * SC), ch = Math.round(PH * SC), cv = document.createElement('canvas'); cv.width = cw; cv.height = ch; var cx = cv.getContext('2d'), img = cx.createImageData(cw, ch), lut = [], stops = isW ? null : RAMP[LY[k][3]], nodata = 0;
+    var SC = 1.6, cw = Math.round(PW * SC), ch = Math.round(PH * SC), cv = document.createElement('canvas'); cv.width = cw; cv.height = ch; var cx = cv.getContext('2d'), img = cx.createImageData(cw, ch), D = img.data, lut = [], stops = isW ? null : RAMP[LY[k][3]], nodata = 0, GW = G.W, GH = G.H, inv = 1 / div;
     if (!isW) for (var li = 0; li < 256; li++) lut.push(rampCol(stops, li / 255));
-    var wc = WRB.map(function (e) { return e ? [parseInt(e[2].slice(1, 3), 16), parseInt(e[2].slice(3, 5), 16), parseInt(e[2].slice(5, 7), 16)] : null; });
-    for (var j = 0; j < ch; j++) { var la = b.n - (j + .5) / ch * (b.n - b.s), fy = (G.y0 - la) / G.dy - .5, y0i = Math.floor(fy), uy = fy - y0i;
-      for (var i = 0; i < cw; i++) { var lo3 = b.w + (i + .5) / cw * (b.e - b.w), fx = (lo3 - G.x0) / G.dx - .5, x0i = Math.floor(fx), ux = fx - x0i, o = (j * cw + i) * 4, wsum = 0, acc = 0, cl = {};
-        for (var n4 = 0; n4 < 4; n4++) { var xi = x0i + (n4 & 1), yi = y0i + (n4 >> 1); if (xi < 0 || yi < 0 || xi >= G.W || yi >= G.H) continue; var g = Gs[yi * G.W + xi]; if (!isFinite(g)) continue; var wt = ((n4 & 1) ? ux : 1 - ux) * ((n4 >> 1) ? uy : 1 - uy); wsum += wt; if (isW) cl[g] = (cl[g] || 0) + wt; else acc += wt * g; }
+    var wc = WRB.map(function (e) { return e ? [parseInt(e[2].slice(1, 3), 16), parseInt(e[2].slice(3, 5), 16), parseInt(e[2].slice(5, 7), 16)] : null; }), cv4 = [0, 0, 0, 0], cw4 = [0, 0, 0, 0], span = hi - lo;
+    var xs = new Float64Array(cw); for (var i = 0; i < cw; i++) xs[i] = (b.w + (i + .5) / cw * (b.e - b.w) - G.x0) / G.dx - .5;
+    for (var j = 0; j < ch; j++) { var fy = (G.y0 - (b.n - (j + .5) / ch * (b.n - b.s))) / G.dy - .5, y0i = Math.floor(fy), uy = fy - y0i;
+      for (i = 0; i < cw; i++) { var fx = xs[i], x0i = Math.floor(fx), ux = fx - x0i, o = (j * cw + i) * 4, wsum = 0, acc = 0, nc = 0;
+        for (var n4 = 0; n4 < 4; n4++) { var xi = x0i + (n4 & 1), yi = y0i + (n4 >> 1); if (xi < 0 || yi < 0 || xi >= GW || yi >= GH) continue; var g = Gs[yi * GW + xi]; if (g !== g) continue; var wt = ((n4 & 1) ? ux : 1 - ux) * ((n4 >> 1) ? uy : 1 - uy); wsum += wt;
+          if (isW) { var m2 = 0; while (m2 < nc && cv4[m2] !== g) m2++; if (m2 === nc) { cv4[nc] = g; cw4[nc] = 0; nc++; } cw4[m2] += wt; } else acc += wt * g; }
         if (wsum < .5) { nodata++; continue; }
         var c;
-        if (isW) { var best = -1, bw = -1; for (var kk in cl) if (cl[kk] > bw) { bw = cl[kk]; best = +kk; } c = wc[best] || [200, 200, 200]; }
-        else { var f = Math.max(0, Math.min(1, (acc / wsum / div - lo) / (hi - lo))); c = lut[Math.round(f * 255)]; }
-        img.data[o] = c[0]; img.data[o + 1] = c[1]; img.data[o + 2] = c[2]; img.data[o + 3] = 255; } }
+        if (isW) { var bi = 0; for (var q2 = 1; q2 < nc; q2++) if (cw4[q2] > cw4[bi]) bi = q2; c = wc[cv4[bi]] || [200, 200, 200]; }
+        else { var f = (acc / wsum * inv - lo) / span; c = lut[f <= 0 ? 0 : f >= 1 ? 255 : Math.round(f * 255)]; }
+        D[o] = c[0]; D[o + 1] = c[1]; D[o + 2] = c[2]; D[o + 3] = 255; } }
     cx.putImageData(img, 0, 0);
     var px = function (lo) { return X0 + (lo - b.w) / (b.e - b.w) * PW; }, py = function (la) { return Y0 + (b.n - la) / (b.n - b.s) * PH; };
-    var imgEl = S.add('image', { x: X0, y: Y0, width: PW, height: PH, href: cv.toDataURL('image/png'), preserveAspectRatio: 'none' });
-    var done = baseMap(b, cw, ch).then(function (B) { if (!B) return; var out = document.createElement('canvas'); out.width = cw; out.height = ch; var o2 = out.getContext('2d'); o2.drawImage(B.base, 0, 0); o2.globalAlpha = .74; o2.drawImage(cv, 0, 0); o2.globalAlpha = 1; o2.drawImage(B.ref, 0, 0); try { imgEl.setAttribute('href', out.toDataURL('image/png')); } catch (e) { } });
+    var imgEl = S.add('image', { x: X0, y: Y0, width: PW, height: PH, preserveAspectRatio: 'none' });
+    var done = baseMap(b, cw, ch).then(function (B) { if (!B) { imgEl.setAttribute('href', cv.toDataURL('image/png')); return; } var out = document.createElement('canvas'); out.width = cw; out.height = ch; var o2 = out.getContext('2d'); o2.drawImage(B.base, 0, 0); o2.globalAlpha = .74; o2.drawImage(cv, 0, 0); o2.globalAlpha = 1; o2.drawImage(B.ref, 0, 0); imgEl.setAttribute('href', out.toDataURL('image/jpeg', .9)); });
     // point and measured profiles
     (last.prof || []).forEach(function (p) { if (p.lat < b.s || p.lat > b.n || p.lon < b.w || p.lon > b.e) return; S.add('rect', { x: px(p.lon) - 4.5, y: py(p.lat) - 4.5, width: 9, height: 9, fill: '#fff', stroke: INK, 'stroke-width': 1.6 }); });
     var sx = px(last.lon), sy = py(last.lat); S.path('M' + sx + ' ' + (sy - 9) + 'L' + (sx + 8) + ' ' + (sy + 6) + 'L' + (sx - 8) + ' ' + (sy + 6) + 'Z', { fill: '#C0392B', stroke: '#fff', 'stroke-width': 1.5 });
@@ -306,7 +311,6 @@
     var gs = [1 / 60, 2 / 60, 5 / 60, 10 / 60, .25, .5, 1, 2], st2 = gs.filter(function (g) { return (b.e - b.w) / g <= 5; })[0] || 2;
     for (var lo2 = Math.ceil(b.w / st2) * st2; lo2 <= b.e + 1e-9; lo2 += st2) { var X = px(lo2); if (X < X0 + 3 || X > X0 + PW - 3) continue; S.line(X, Y0 - 6, X, Y0 + 6, { stroke: INK }); S.line(X, Y0 + PH - 6, X, Y0 + PH + 6, { stroke: INK }); tx(X, Y0 + PH + 24, dms(lo2, 'lon'), { 'font-size': 11.5, 'text-anchor': 'middle' }); }
     for (var la2 = Math.ceil(b.s / st2) * st2; la2 <= b.n + 1e-9; la2 += st2) { var Y = py(la2); if (Y < Y0 + 3 || Y > Y0 + PH - 3) continue; S.line(X0 - 6, Y, X0 + 6, Y, { stroke: INK }); S.line(X0 + PW - 6, Y, X0 + PW + 6, Y, { stroke: INK }); tx(X0 - 12, Y + 4, dms(la2, 'lat'), { 'font-size': 11.5, 'text-anchor': 'end' }); }
-    for (lo2 = Math.ceil(b.w / st2) * st2; lo2 <= b.e; lo2 += st2) for (la2 = Math.ceil(b.s / st2) * st2; la2 <= b.n; la2 += st2) { X = px(lo2); Y = py(la2); if (X < X0 + 12 || X > X0 + PW - 12 || Y < Y0 + 12 || Y > Y0 + PH - 12) continue; S.line(X - 6, Y, X + 6, Y, { stroke: INK, 'stroke-width': 1 }); S.line(X, Y - 6, X, Y + 6, { stroke: INK, 'stroke-width': 1 }); }
     // side panel: north arrow, scale, legend
     var ny = Y0 + 10; S.path('M' + (LX + 20) + ' ' + ny + 'l-11 34l11 -8z', { fill: INK }); S.path('M' + (LX + 20) + ' ' + ny + 'l11 34l-11 -8z', { fill: '#fff', stroke: INK, 'stroke-width': 1.2 }); tx(LX + 20, ny - 6, 'N', { 'font-size': 15, 'font-weight': 800, 'text-anchor': 'middle' });
     var kmPx = (b.e - b.w) * 111.32 * kx / PW, want = kmPx * 160, p10 = Math.pow(10, Math.floor(Math.log10(want))), m = want / p10, len = (m >= 5 ? 5 : m >= 2 ? 2 : 1) * p10, spx = len / kmPx, sx0 = Math.min(LX + 70, W - 48 - spx), sy0 = ny + 22;
@@ -322,6 +326,7 @@
     ly2 += 6; S.add('rect', { x: LX, y: ly2, width: 30, height: 18, fill: '#EDEDEA', stroke: INK, 'stroke-width': .7 }); tx(LX + 40, ly2 + 10, 'No prediction: built-up land', { 'font-size': 12 }); tx(LX + 40, ly2 + 25, 'or water (base map shown)', { 'font-size': 12 }); ly2 += 36;
     S.path('M' + (LX + 15) + ' ' + (ly2 + 1) + 'l8 14h-16z', { fill: '#C0392B', stroke: '#fff', 'stroke-width': 1 }); tx(LX + 40, ly2 + 14, 'Selected point', { 'font-size': 12 }); ly2 += 24;
     if ((last.prof || []).length) { S.add('rect', { x: LX + 10, y: ly2 + 3, width: 10, height: 10, fill: '#fff', stroke: INK, 'stroke-width': 1.5 }); tx(LX + 40, ly2 + 14, 'Measured soil profile', { 'font-size': 12 }); ly2 += 24; }
+    var crW = 262, crH = 30, crX = X0 + 8, crY = Y0 + PH - crH - 8; S.add('rect', { x: crX, y: crY, width: crW, height: crH, rx: 4, fill: '#fff', 'fill-opacity': .9, stroke: '#B08A3E', 'stroke-width': .8 }); var lg = S.add('image', { x: crX + 5, y: crY + 3, width: 24, height: 24 }); logo64().then(function (u) { if (u) lg.setAttribute('href', u); }); tx(crX + 35, crY + 14, '© Shandal Geological Field Survey System', { 'font-size': 10.5, 'font-weight': 800 }); tx(crX + 35, crY + 25, 'geologicalfieldsurvey.com', { 'font-size': 9, fill: MUT });
     tx(LX, VH - 46, 'Geographic coordinates, WGS 84', { 'font-size': 11, fill: MUT }); tx(LX, VH - 30, 'SoilGrids 250 m, interpolated', { 'font-size': 11, fill: MUT });
     S.add('rect', { x: 6, y: 6, width: W - 12, height: VH - 12, fill: 'none', stroke: INK, 'stroke-width': 1.2 });
     // caption

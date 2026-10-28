@@ -70,6 +70,7 @@
     clearInterval(l._tm); var le = l.querySelector('.le'); le.textContent = '';
     var ls = l.querySelector('.ls'), ST = [SH.t('Connecting to the international data service…', 'جارٍ الاتصال بخدمة البيانات الدولية…'), SH.t('Receiving and checking the data…', 'جارٍ استلام البيانات والتحقق منها…'), SH.t('Computing results and drawing the figures…', 'جارٍ حساب النتائج ورسم الأشكال…'), SH.t('Large requests take a little longer — thank you for waiting.', 'الطلبات الكبيرة تستغرق وقتاً أطول قليلاً — شكراً لانتظارك.')];
     if (on) { var t0 = Date.now(); ls.textContent = ST[0]; l._tm = setInterval(function () { var s = Math.round((Date.now() - t0) / 1000); ls.textContent = ST[s < 3 ? 0 : s < 7 ? 1 : s < 14 ? 2 : 3]; le.textContent = s >= 2 ? s + ' s' : ''; }, 1000); }
+    l.classList.toggle('tall', host.offsetHeight > w.innerHeight * 0.9);
     l.hidden = !on;
   };
 

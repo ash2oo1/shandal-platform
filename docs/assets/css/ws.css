@@ -185,7 +185,10 @@ html[lang=ar] .leaflet-container{font-family:var(--font-ar)!important}
 .empty-s .ei{width:56px;height:56px;border-radius:16px;display:grid;place-items:center;background:var(--accent-soft);color:var(--accent)}
 .empty-s h3{font-size:1rem;color:var(--text)}
 .empty-s p{font-size:.88rem;max-width:44ch}
-.loading{position:absolute;inset:0;display:grid;place-items:center;background:color-mix(in srgb,var(--surface) 70%,transparent);z-index:600;backdrop-filter:blur(2px)}
+.loading{position:absolute;inset:0;display:grid;place-items:center;background:color-mix(in srgb,var(--surface) 70%,transparent);z-index:55;backdrop-filter:blur(2px)}
+.loading.tall{align-items:start;padding-top:min(18vh,160px)}
+.loading.tall .ld-card{position:sticky;top:calc(var(--header-h) + 22vh)}
+.leaflet-container{isolation:isolate}
 .loading[hidden]{display:none}
 .ld-card{display:grid;justify-items:center;gap:8px;text-align:center;background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:22px 26px 18px;box-shadow:0 18px 50px rgba(0,0,0,.18);max-width:320px;margin:0 16px}
 .ld-em{position:relative;width:64px;height:64px;display:grid;place-items:center}
