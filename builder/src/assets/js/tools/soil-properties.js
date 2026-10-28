@@ -86,12 +86,12 @@
   }
 
   /* ---------- point queries */
+  /* the service answers in about 5–7 s per property, so the properties are requested in three parallel groups */
+  var GROUPS = [['clay', 'sand', 'silt', 'bdod', 'cfvo'], ['soc', 'phh2o', 'cec', 'nitrogen', 'ocd'], ['wv0010', 'wv0033', 'wv1500']];
   function query(lat, lon) {
-    var q = 'https://rest.isric.org/soilgrids/v2.0/properties/query?lon=' + lon.toFixed(5) + '&lat=' + lat.toFixed(5) + PROPS.map(function (p) { return '&property=' + p; }).join('') + DEPTHS.map(function (d) { return '&depth=' + d; }).join('') + '&value=mean&value=Q0.05&value=Q0.95';
-    return SH.getJSON(q, { timeout: 60000 }).then(function (j) {
-      var R = {}; (j.properties.layers || []).forEach(function (l) { var df = (l.unit_measure && l.unit_measure.d_factor) || DIV[l.name] || 1; R[l.name] = l.depths.map(function (d) { var v = d.values; return { label: d.label, top: d.range.top_depth, bot: d.range.bottom_depth, mean: v.mean == null ? NaN : v.mean / df, lo: v['Q0.05'] == null ? NaN : v['Q0.05'] / df, hi: v['Q0.95'] == null ? NaN : v['Q0.95'] / df }; }); });
-      return R;
-    });
+    return Promise.all(GROUPS.map(function (g) { var q = 'https://rest.isric.org/soilgrids/v2.0/properties/query?lon=' + lon.toFixed(5) + '&lat=' + lat.toFixed(5) + g.map(function (p) { return '&property=' + p; }).join('') + DEPTHS.map(function (d) { return '&depth=' + d; }).join('') + '&value=mean&value=Q0.05&value=Q0.95';
+      return SH.getJSON(q, { timeout: 150000 }).catch(function (e) { if (/429/.test(e.message)) throw new Error(t('The soil service allows about five requests per minute. Wait one minute and run the analysis again.', 'تسمح خدمة التربة بنحو خمسة طلبات في الدقيقة. انتظر دقيقة ثم أعد إصدار التحليل.')); throw e; }); }))
+    .then(function (js) { var R = {}; js.forEach(function (j) { (j.properties.layers || []).forEach(function (l) { var df = (l.unit_measure && l.unit_measure.d_factor) || DIV[l.name] || 1; R[l.name] = l.depths.map(function (d) { var v = d.values; return { label: d.label, top: d.range.top_depth, bot: d.range.bottom_depth, mean: v.mean == null ? NaN : v.mean / df, lo: v['Q0.05'] == null ? NaN : v['Q0.05'] / df, hi: v['Q0.95'] == null ? NaN : v['Q0.95'] / df }; }); }); }); return R; });
   }
   function classify(lat, lon) { return SH.getJSON('https://rest.isric.org/soilgrids/v2.0/classification/query?lon=' + lon.toFixed(5) + '&lat=' + lat.toFixed(5) + '&number_classes=5', { timeout: 60000 }).catch(function () { return null; }); }
   function profiles(lat, lon) {
@@ -107,7 +107,7 @@
   /* ---------- run */
   var DIRS = function (az) { var en = ['north', 'north-east', 'east', 'south-east', 'south', 'south-west', 'west', 'north-west'], ar = ['الشمال', 'الشمال الشرقي', 'الشرق', 'الجنوب الشرقي', 'الجنوب', 'الجنوب الغربي', 'الغرب', 'الشمال الغربي'], i = Math.round(az / 45) % 8; return t(en[i], ar[i]); };
   function run() {
-    var lat = SH.num('sLat'), lon = SH.num('sLon'), btn = $('#sRun'), host = $('.ws-main'); if (isNaN(lat) || isNaN(lon)) return; btn.disabled = true; SH.busy(host, true, t('Reading the soil profile…', 'جارٍ قراءة مقطع التربة…'));
+    var lat = SH.num('sLat'), lon = SH.num('sLon'), btn = $('#sRun'), host = $('.ws-main'); if (isNaN(lat) || isNaN(lon)) return; btn.disabled = true; SH.busy(host, true, t('Reading the soil profile at six depths (about 30–60 s)…', 'جارٍ قراءة مقطع التربة عند ست أعماق (نحو 30–60 ثانية)…'));
     if (alt && map) { map.removeLayer(alt); alt = null; }
     var empty = function (R) { return !R.clay || R.clay.every(function (d) { return isNaN(d.mean); }); }, note = null, qlat = lat, qlon = lon;
     query(lat, lon).then(function (R) {
