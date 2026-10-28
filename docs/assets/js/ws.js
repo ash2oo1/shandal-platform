@@ -303,7 +303,7 @@
     m._shBase = def; el._shMap = m;
     m.attributionControl.setPrefix('<a href="https://leafletjs.com">Leaflet</a>');
     L.control.scale({ metric: true, imperial: false }).addTo(m);
-    m._shLayers = L.control.layers(layers, opts.overlays || {}, { position: 'topleft', collapsed: true }).addTo(m);
+    if (!opts.noSwitch) m._shLayers = L.control.layers(layers, opts.overlays || {}, { position: 'topleft', collapsed: true }).addTo(m);
     if (opts.locate !== false) {
       var Loc = L.Control.extend({ options: { position: 'topleft' }, onAdd: function () {
         var b = L.DomUtil.create('div', 'leaflet-bar'); b.innerHTML = '<a href="#" role="button" title="' + SH.t('My location', 'موقعي') + '" style="display:grid;place-items:center"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/><circle cx="12" cy="12" r="8"/></svg></a>';
@@ -313,7 +313,7 @@
       new Loc().addTo(m);
     }
     d.addEventListener('themechange', function () {
-      if (m._shBase !== 'light' && m._shBase !== 'dark') return;
+      if (opts.fixedBase || (m._shBase !== 'light' && m._shBase !== 'dark')) return;
       var want = SH.isDark() ? 'dark' : 'light'; if (want === m._shBase) return;
       m.removeLayer(bm[m._shBase].layer); bm[want].layer.addTo(m); m._shBase = want;
     });

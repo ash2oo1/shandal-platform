@@ -6,7 +6,7 @@
   'use strict';
   var t = SH.t, $ = SH.$, L = window.L, P = window.Plotly, AR_UI = SH.lang === 'ar', INK = '#1B232B', MUT = '#55616B';
   var persist = SH.persist('soil2', ['geoName', 'sTitle', 'sLat', 'sLon', 'sSpan', 'sPurpose', 'sDepth', 'sProf']);
-  var map = SH.map('sMap', { zoom: 8, base: 'satellite', locate: false, center: [SH.num('sLat') || 33.1, SH.num('sLon') || 44.5] }), mk = null, last = null, area = null, drawer = null, wms = null, profLayer = null, alt = null;
+  var map = SH.map('sMap', { zoom: 8, base: 'light', bases: ['light'], noSwitch: true, fixedBase: true, locate: false, center: [SH.num('sLat') || 33.1, SH.num('sLon') || 44.5] }), mk = null, last = null, area = null, drawer = null, wms = null, profLayer = null, alt = null;
   var PROPS = ['clay', 'sand', 'silt', 'bdod', 'soc', 'phh2o', 'cec', 'cfvo', 'nitrogen', 'ocd', 'wv0010', 'wv0033', 'wv1500'], DEPTHS = ['0-5cm', '5-15cm', '15-30cm', '30-60cm', '60-100cm', '100-200cm'];
   var DIV = { clay: 10, sand: 10, silt: 10, bdod: 100, soc: 10, phh2o: 10, cec: 10, cfvo: 10, nitrogen: 100, ocd: 10, ocs: 10, wv0010: 10, wv0033: 10, wv1500: 10 };
   /* key: [English name, Arabic name, unit, colour ramp] */
@@ -52,7 +52,7 @@
   function sel() { return SH.$$('#sLayers [data-ly]').filter(function (i) { return i.checked; }).map(function (i) { return i.getAttribute('data-ly'); }); }
   $('#sPurpose').addEventListener('change', function () { var p = PRESET[this.value]; if (p) SH.$$('#sLayers [data-ly]').forEach(function (i) { i.checked = p.indexOf(i.getAttribute('data-ly')) > -1; }); prevOpts(); });
   $('#sLayers').addEventListener('change', function () { $('#sPurpose').value = 'custom'; prevOpts(); });
-  function prevOpts() { var s = $('#sPrev'), v = s.value; s.innerHTML = '<option value="">' + t('Satellite image only', 'الصورة الفضائية فقط') + '</option>' + Object.keys(LY).map(function (k) { return '<option value="' + k + '">' + LY[k][0] + '</option>'; }).join(''); s.value = v || (sel()[0] || ''); preview(); }
+  function prevOpts() { var s = $('#sPrev'), v = s.value; s.innerHTML = '<option value="">' + t('Base map only', 'خريطة الأساس فقط') + '</option>' + Object.keys(LY).map(function (k) { return '<option value="' + k + '">' + LY[k][0] + '</option>'; }).join(''); s.value = v || (sel()[0] || ''); preview(); }
   function wmsName(k, d) { return k === 'wrb' ? 'MostProbable' : k === 'ocs' ? 'ocs_0-30cm_mean' : k + '_' + d + '_mean'; }
   function preview() { if (!map) return; if (wms) { map.removeLayer(wms); wms = null; } var k = $('#sPrev').value; if (!k) return;
     wms = L.tileLayer.wms('https://maps.isric.org/mapserv?map=/map/' + k + '.map', { layers: wmsName(k, $('#sDepth').value), format: 'image/png', transparent: true, version: '1.3.0', opacity: .72, attribution: 'Soil data © ISRIC SoilGrids (CC BY 4.0)', crossOrigin: true }).addTo(map); }
@@ -157,7 +157,7 @@
     var lab = r.map(function (x) { return DL(x.label); });
     SH.plot('sTex', [['S', '#E9C46A', 'Sand (2–0.05 mm)', 'sand'], ['silt', '#A3B18A', 'Silt (0.05–0.002 mm)', 'silt'], ['C', '#BC6C25', 'Clay (< 0.002 mm)', 'clay']].map(function (k) { var vals = r.map(function (x) { return k[0] === 'silt' ? 100 - x.S - x.C : x[k[0]]; });
       return { type: 'bar', orientation: 'h', y: lab, x: vals, name: k[2], marker: { color: k[1], line: { color: '#fff', width: 1 } }, text: vals.map(function (v) { return Math.round(v) + '%'; }), textposition: 'inside', insidetextanchor: 'middle', textfont: { color: '#1B232B', size: 12 }, hovertemplate: '%{y}: %{x:.1f} %<extra>' + k[2] + '</extra>' }; }),
-      function () { return lay({ barmode: 'stack', bargap: .3, margin: { l: 96, r: 20, t: 46, b: 56 }, legend: { orientation: 'h', x: .5, xanchor: 'center', y: 1.13 }, yaxis: { autorange: 'reversed', title: { text: 'Depth (cm)', standoff: 14 }, automargin: true, ticksuffix: '  ' }, xaxis: { range: [0, 100], ticksuffix: ' %', title: { text: 'Mass fraction of the fine earth (< 2 mm)' } } }); }, { filename: 'shandal-particle-size' });
+      function () { return lay({ barmode: 'stack', bargap: .3, margin: { l: 96, r: 20, t: 46, b: 56 }, legend: { orientation: 'h', x: .5, xanchor: 'center', y: 1.13 }, yaxis: { autorange: 'reversed', automargin: true, ticksuffix: '  ' }, annotations: [{ xref: 'paper', yref: 'paper', x: 0, y: 1, xanchor: 'right', yanchor: 'bottom', xshift: -8, yshift: 4, showarrow: false, text: '<b>Depth</b>', font: { size: 13 } }], xaxis: { range: [0, 100], ticksuffix: ' %', title: { text: 'Mass fraction of the fine earth (< 2 mm)' } } }); }, { filename: 'shandal-particle-size' });
     var top = r[0], dc = r[5].C - top.C;
     $('#sTexCap').innerHTML = t('The profile is ', 'المقطع ') + '<b>' + nm(top.tex) + '</b>' + t(' at the surface', ' عند السطح') + (r[5].tex !== top.tex ? t(' and ', ' و') + '<b>' + nm(r[5].tex) + '</b>' + t(' at 1–2 m', ' عند 1–2 م') : t(' throughout', ' في كامل العمق')) + '. ' +
       (Math.abs(dc) < 5 ? t('Clay changes little with depth, which indicates a uniform parent material (typical of alluvial or aeolian deposits) and weak horizon development.', 'يتغير الطين قليلاً مع العمق، ما يدل على مادة أصل متجانسة (مثل الرسوبيات النهرية أو الريحية) وتطور ضعيف للآفاق.') : dc > 0 ? t('Clay increases with depth, consistent with clay illuviation into a Bt horizon or a finer underlying deposit.', 'يزداد الطين مع العمق، وهذا يتفق مع ترسيب طيني مغسول في أفق Bt أو مع رسوبيات أنعم في الأسفل.') : t('Clay decreases with depth, which points to a coarser underlying deposit or surface clay accumulation.', 'يتناقص الطين مع العمق، ما يشير إلى رسوبيات أخشن في الأسفل أو إلى تراكم طيني سطحي.'));
@@ -249,14 +249,23 @@
   function dms(v, ax) { var a = Math.abs(v), d = Math.floor(a + 1e-9), m = Math.round((a - d) * 60); if (m === 60) { d++; m = 0; } return d + '°' + (m < 10 ? '0' : '') + m + '′' + (ax === 'lat' ? (v >= 0 ? 'N' : 'S') : (v >= 0 ? 'E' : 'W')); }
   function maps() {
     var host = $('#sMaps'), L0 = last.layers, b = last.b, d = last.depth; host.innerHTML = ''; last.maps = {};
-    var jobs = L0.map(function (k, n) {
+    last.baseP = null; var jobs = L0.map(function (k, n) {
       var id = 'smap_' + k, box = document.createElement('div'); box.setAttribute('data-rp-page', 'm' + k);
       box.innerHTML = '<section class="fig" id="fm_' + k + '"><div class="fig-h"><span class="n">' + (6 + n) + '</span><h3>' + (AR_UI ? LY[k][1] : LY[k][0]) + (k === 'wrb' || k === 'ocs' ? '' : ' · <bdi>' + DL(d) + '</bdi>') + '</h3><div class="sp no-print">' + ['png', 'jpg', 'pdf'].map(function (f) { return '<button class="btn btn-line btn-xs" data-mx="' + k + '" data-f="' + f + '" type="button">' + f.toUpperCase() + '</button>'; }).join('') + '<button class="btn btn-line btn-xs" data-tif="' + k + '" type="button">GeoTIFF</button></div></div><div class="fig-b" style="overflow:auto"><svg class="chart" id="' + id + '" viewBox="0 0 1000 700" style="min-width:620px"></svg></div><div class="fig-cap" id="' + id + 'Cap"></div></section>';
       host.appendChild(box);
-      return fetch(wcs(k, d, b)).then(function (r) { if (!r.ok) throw new Error('WCS ' + r.status); return r.arrayBuffer(); }).then(function (buf) { last.maps[k] = { buf: buf }; return tiff(buf.slice(0)); }).then(function (G) { last.maps[k].G = G; drawMap(k, G); })
+      return fetch(wcs(k, d, b)).then(function (r) { if (!r.ok) throw new Error('WCS ' + r.status); return r.arrayBuffer(); }).then(function (buf) { last.maps[k] = { buf: buf }; return tiff(buf.slice(0)); }).then(function (G) { last.maps[k].G = G; return drawMap(k, G); })
         .catch(function () { $('#' + id + 'Cap').textContent = t('The map could not be produced for this layer.', 'تعذر إنتاج الخريطة لهذه الطبقة.'); });
     });
     return Promise.all(jobs);
+  }
+  function baseMap(b, cw, ch) {
+    var key = [b.w, b.e, b.s, b.n, cw, ch].join(); if (last.baseP && last.baseKey === key) return last.baseP; last.baseKey = key;
+    var z = Math.max(2, Math.min(16, Math.round(Math.log2(360 * cw / (256 * (b.e - b.w)))))), n = Math.pow(2, z), X = function (lo) { return (lo + 180) / 360 * n; }, Y = function (la) { var r = SH.rad(la); return (1 - Math.log(Math.tan(r) + 1 / Math.cos(r)) / Math.PI) / 2 * n; }, LA = function (yy) { return Math.atan(Math.sinh(Math.PI * (1 - 2 * yy / n))) * 180 / Math.PI; };
+    var x0 = Math.floor(X(b.w)), x1 = Math.floor(X(b.e)), y0 = Math.floor(Y(b.n)), y1 = Math.floor(Y(b.s)); if ((x1 - x0 + 1) * (y1 - y0 + 1) > 120) return (last.baseP = Promise.resolve(null));
+    var mk = function (svc) { var c = document.createElement('canvas'); c.width = cw; c.height = ch; var g = c.getContext('2d'), jobs = []; if (svc.indexOf('Base') > -1) { g.fillStyle = '#EDEDEA'; g.fillRect(0, 0, cw, ch); }
+      for (var tx0 = x0; tx0 <= x1; tx0++) for (var ty = y0; ty <= y1; ty++) (function (tx1, ty1) { jobs.push(new Promise(function (res) { var im = new Image(); im.crossOrigin = 'anonymous'; im.onload = function () { var l0 = tx1 / n * 360 - 180, l1 = (tx1 + 1) / n * 360 - 180, qx = function (l) { return (l - b.w) / (b.e - b.w) * cw; }, qy = function (a) { return (b.n - a) / (b.n - b.s) * ch; }; for (var r = 0; r < 16; r++) { var Y0p = qy(LA(ty1 + r / 16)), Y1p = qy(LA(ty1 + (r + 1) / 16)); g.drawImage(im, 0, r * 16, 256, 16, qx(l0), Y0p, qx(l1) - qx(l0), Y1p - Y0p + .5); } res(); }; im.onerror = function () { res(); }; im.src = 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/' + svc + '/MapServer/tile/' + z + '/' + ty1 + '/' + tx1; })); })(tx0, ty);
+      return Promise.all(jobs).then(function () { return c; }); };
+    return (last.baseP = Promise.all([mk('World_Light_Gray_Base'), mk('World_Light_Gray_Reference')]).then(function (a) { try { a[0].toDataURL(); } catch (e) { return null; } return { base: a[0], ref: a[1] }; }).catch(function () { return null; }));
   }
   function drawMap(k, G) {
     var S = SH.svgB('smap_' + k), W = 1000, b = last.b, isW = k === 'wrb', div = DIV[k] || 1, lat0 = (b.n + b.s) / 2, kx = Math.cos(SH.rad(lat0));
@@ -265,22 +274,30 @@
     var tx = function (x, y, s, a) { return S.text(x, y, s, Object.assign({ fill: INK, 'font-size': 13, direction: 'ltr', 'font-family': PF }, a || {})); };
     S.add('rect', { x: 0, y: 0, width: W, height: VH, fill: '#fff' });
     var title = SH.val('sTitle').trim(); tx(W / 2, 32, (title ? title + ' — ' : '') + LY[k][0] + (isW || k === 'ocs' ? '' : ' (' + DL(last.depth) + ')'), { 'font-size': 18, 'font-weight': 800, 'text-anchor': 'middle' });
-    // classes
+    // values: zero fill and WRB no-data are not predicted
     var zeroOk = k === 'cfvo'; for (var i0 = 0; i0 < G.data.length; i0++) if (!isW && !zeroOk && G.data[i0] === 0) G.data[i0] = NaN; else if (isW && G.data[i0] === 255) G.data[i0] = NaN;
-    var vals = []; for (var i = 0; i < G.data.length; i++) if (isFinite(G.data[i])) vals.push(isW ? G.data[i] : G.data[i] / div);
-    var cls = [], cols = [], present = [];
+    var gx0 = Math.max(0, Math.floor((b.w - G.x0) / G.dx)), gx1 = Math.min(G.W, Math.ceil((b.e - G.x0) / G.dx)), gy0 = Math.max(0, Math.floor((G.y0 - b.n) / G.dy)), gy1 = Math.min(G.H, Math.ceil((G.y0 - b.s) / G.dy));
+    var vals = []; for (var y = gy0; y < gy1; y++) for (var x = gx0; x < gx1; x++) { var v0 = G.data[y * G.W + x]; if (isFinite(v0)) vals.push(isW ? v0 : v0 / div); }
+    var present = [], lo, hi, st;
     if (isW) { var cnt = {}; vals.forEach(function (v) { cnt[v] = (cnt[v] || 0) + 1; }); present = Object.keys(cnt).map(Number).filter(function (v) { return WRB[v] && cnt[v] / vals.length >= 0.005; }).sort(function (a, c) { return cnt[c] - cnt[a]; }); last.maps[k].cnt = cnt; last.maps[k].n = vals.length; }
-    else if (vals.length) { var sv = vals.slice().sort(function (a, c) { return a - c; }), lo = sv[Math.floor(sv.length * .02)], hi = sv[Math.floor(sv.length * .98)]; if (hi - lo < 1e-9) { hi = lo + 1; } var st = niceStep(hi - lo, 7), b0 = Math.floor(lo / st) * st; cls = [b0]; while (cls[cls.length - 1] < hi - 1e-9) cls.push(+(cls[cls.length - 1] + st).toFixed(10)); var stops = RAMP[LY[k][3]]; for (i = 0; i < cls.length - 1; i++) cols.push(rampCol(stops, cls.length === 2 ? .5 : i / (cls.length - 2))); last.maps[k].stats = { mean: vals.reduce(function (a, v) { return a + v; }, 0) / vals.length, lo: sv[0], hi: sv[sv.length - 1], p10: sv[Math.floor(sv.length * .1)], p90: sv[Math.floor(sv.length * .9)], n: vals.length, st: st }; }
-    // raster: crop the grid to the study area
-    var cv = document.createElement('canvas'), gx0 = Math.max(0, Math.floor((b.w - G.x0) / G.dx)), gx1 = Math.min(G.W, Math.ceil((b.e - G.x0) / G.dx)), gy0 = Math.max(0, Math.floor((G.y0 - b.n) / G.dy)), gy1 = Math.min(G.H, Math.ceil((G.y0 - b.s) / G.dy)), w = Math.max(1, gx1 - gx0), h = Math.max(1, gy1 - gy0);
-    cv.width = w; cv.height = h; var cx = cv.getContext('2d'), img = cx.createImageData(w, h), nodata = 0;
-    for (var y = 0; y < h; y++) for (var x = 0; x < w; x++) { var v = G.data[(gy0 + y) * G.W + gx0 + x], o = (y * w + x) * 4, c;
-      if (!isFinite(v)) { c = [222, 222, 222]; nodata++; } else if (isW) { var e = WRB[v]; c = e ? [parseInt(e[2].slice(1, 3), 16), parseInt(e[2].slice(3, 5), 16), parseInt(e[2].slice(5, 7), 16)] : [200, 200, 200]; } else { var vv = v / div, j = Math.max(0, Math.min(cols.length - 1, Math.floor((vv - cls[0]) / (cls[1] - cls[0])))); c = cols[j]; }
-      img.data[o] = c[0]; img.data[o + 1] = c[1]; img.data[o + 2] = c[2]; img.data[o + 3] = 255; }
-    cx.putImageData(img, 0, 0); var ux = G.x0 + gx0 * G.dx, uy = G.y0 - gy0 * G.dy, ex = G.x0 + gx1 * G.dx, ey = G.y0 - gy1 * G.dy;
+    else if (vals.length) { var sv = vals.slice().sort(function (a, c) { return a - c; }); lo = sv[Math.floor(sv.length * .02)]; hi = sv[Math.floor(sv.length * .98)]; if (hi - lo < 1e-9) hi = lo + 1; st = niceStep(hi - lo, 5); last.maps[k].stats = { mean: vals.reduce(function (a, v) { return a + v; }, 0) / vals.length, lo: sv[0], hi: sv[sv.length - 1], p10: sv[Math.floor(sv.length * .1)], p90: sv[Math.floor(sv.length * .9)], n: vals.length }; }
+    // continuous surface: light smoothing of the 250 m grid, then bilinear interpolation to the page resolution
+    var Gs = G.data; if (!isW) { Gs = new Float64Array(G.W * G.H); for (y = 0; y < G.H; y++) for (x = 0; x < G.W; x++) { var c0 = G.data[y * G.W + x]; if (!isFinite(c0)) { Gs[y * G.W + x] = NaN; continue; } var sw = 0, sa = 0; for (var dy = -1; dy <= 1; dy++) for (var dx = -1; dx <= 1; dx++) { var yy = y + dy, xx = x + dx; if (yy < 0 || xx < 0 || yy >= G.H || xx >= G.W) continue; var q = G.data[yy * G.W + xx]; if (!isFinite(q)) continue; var wq = (dx ? 1 : 2) * (dy ? 1 : 2); sw += wq; sa += wq * q; } Gs[y * G.W + x] = sa / sw; } }
+    var SC = 2, cw = Math.round(PW * SC), ch = Math.round(PH * SC), cv = document.createElement('canvas'); cv.width = cw; cv.height = ch; var cx = cv.getContext('2d'), img = cx.createImageData(cw, ch), lut = [], stops = isW ? null : RAMP[LY[k][3]], nodata = 0;
+    if (!isW) for (var li = 0; li < 256; li++) lut.push(rampCol(stops, li / 255));
+    var wc = WRB.map(function (e) { return e ? [parseInt(e[2].slice(1, 3), 16), parseInt(e[2].slice(3, 5), 16), parseInt(e[2].slice(5, 7), 16)] : null; });
+    for (var j = 0; j < ch; j++) { var la = b.n - (j + .5) / ch * (b.n - b.s), fy = (G.y0 - la) / G.dy - .5, y0i = Math.floor(fy), uy = fy - y0i;
+      for (var i = 0; i < cw; i++) { var lo3 = b.w + (i + .5) / cw * (b.e - b.w), fx = (lo3 - G.x0) / G.dx - .5, x0i = Math.floor(fx), ux = fx - x0i, o = (j * cw + i) * 4, wsum = 0, acc = 0, cl = {};
+        for (var n4 = 0; n4 < 4; n4++) { var xi = x0i + (n4 & 1), yi = y0i + (n4 >> 1); if (xi < 0 || yi < 0 || xi >= G.W || yi >= G.H) continue; var g = Gs[yi * G.W + xi]; if (!isFinite(g)) continue; var wt = ((n4 & 1) ? ux : 1 - ux) * ((n4 >> 1) ? uy : 1 - uy); wsum += wt; if (isW) cl[g] = (cl[g] || 0) + wt; else acc += wt * g; }
+        if (wsum < .5) { nodata++; continue; }
+        var c;
+        if (isW) { var best = -1, bw = -1; for (var kk in cl) if (cl[kk] > bw) { bw = cl[kk]; best = +kk; } c = wc[best] || [200, 200, 200]; }
+        else { var f = Math.max(0, Math.min(1, (acc / wsum / div - lo) / (hi - lo))); c = lut[Math.round(f * 255)]; }
+        img.data[o] = c[0]; img.data[o + 1] = c[1]; img.data[o + 2] = c[2]; img.data[o + 3] = 255; } }
+    cx.putImageData(img, 0, 0);
     var px = function (lo) { return X0 + (lo - b.w) / (b.e - b.w) * PW; }, py = function (la) { return Y0 + (b.n - la) / (b.n - b.s) * PH; };
-    var cp = S.add('clipPath', { id: 'mc_' + k }, null, S.add('defs', {})); S.add('rect', { x: X0, y: Y0, width: PW, height: PH }, null, cp);
-    S.add('image', { x: px(ux), y: py(uy), width: px(ex) - px(ux), height: py(ey) - py(uy), href: cv.toDataURL('image/png'), preserveAspectRatio: 'none', style: 'image-rendering:pixelated', 'clip-path': 'url(#mc_' + k + ')' });
+    var imgEl = S.add('image', { x: X0, y: Y0, width: PW, height: PH, href: cv.toDataURL('image/png'), preserveAspectRatio: 'none' });
+    var done = baseMap(b, cw, ch).then(function (B) { if (!B) return; var out = document.createElement('canvas'); out.width = cw; out.height = ch; var o2 = out.getContext('2d'); o2.drawImage(B.base, 0, 0); o2.globalAlpha = .82; o2.drawImage(cv, 0, 0); o2.globalAlpha = 1; o2.drawImage(B.ref, 0, 0); try { imgEl.setAttribute('href', out.toDataURL('image/png')); } catch (e) { } });
     // point and measured profiles
     (last.prof || []).forEach(function (p) { if (p.lat < b.s || p.lat > b.n || p.lon < b.w || p.lon > b.e) return; S.add('rect', { x: px(p.lon) - 4.5, y: py(p.lat) - 4.5, width: 9, height: 9, fill: '#fff', stroke: INK, 'stroke-width': 1.6 }); });
     var sx = px(last.lon), sy = py(last.lat); S.path('M' + sx + ' ' + (sy - 9) + 'L' + (sx + 8) + ' ' + (sy + 6) + 'L' + (sx - 8) + ' ' + (sy + 6) + 'Z', { fill: '#C0392B', stroke: '#fff', 'stroke-width': 1.5 });
@@ -298,17 +315,21 @@
     var rf = kmPx * 1e5 / (0.0254 / 96 * 100 * 1000 / 1000) ; rf = kmPx * 1000 / 0.000264583; var rp = Math.pow(10, Math.floor(Math.log10(rf)) - 1); tx(sx0, sy0 + 26, '1 : ' + (Math.round(rf / rp) * rp).toLocaleString('en-US') + ' (96 dpi)', { 'font-size': 11, fill: MUT });
     var ly2 = ny + 86; tx(LX, ly2, 'LEGEND', { 'font-size': 13, 'font-weight': 800, 'letter-spacing': 1 }); tx(LX, ly2 + 20, isW ? 'Reference Soil Group' : LY[k][0] + ' (' + LY[k][2] + ')', { 'font-size': 11.5, fill: MUT }); ly2 += 36;
     if (isW) present.slice(0, 12).forEach(function (v) { S.add('rect', { x: LX, y: ly2, width: 30, height: 18, fill: WRB[v][2], stroke: INK, 'stroke-width': .7 }); tx(LX + 40, ly2 + 14, WRB[v][0] + '  ' + SH.fmt(100 * last.maps[k].cnt[v] / last.maps[k].n, 0) + ' %', { 'font-size': 12 }); ly2 += 24; });
-    else for (i = cols.length - 1; i >= 0; i--) { S.add('rect', { x: LX, y: ly2, width: 30, height: 18, fill: 'rgb(' + cols[i].join(',') + ')', stroke: INK, 'stroke-width': .7 }); var dd = Math.max(0, -Math.floor(Math.log10(cls[1] - cls[0]) + 1e-9)); if (Math.abs((cls[1] - cls[0]) * Math.pow(10, dd) - Math.round((cls[1] - cls[0]) * Math.pow(10, dd))) > 1e-9) dd++; tx(LX + 40, ly2 + 14, cls[i].toFixed(dd) + ' – ' + cls[i + 1].toFixed(dd), { 'font-size': 12 }); ly2 += 24; }
-    ly2 += 6; S.add('rect', { x: LX, y: ly2, width: 30, height: 18, fill: '#DEDEDE', stroke: INK, 'stroke-width': .7 }); tx(LX + 40, ly2 + 14, 'Not predicted (built-up, water)', { 'font-size': 12 }); ly2 += 26;
+    else if (stops) { var BH = 200, BW = 24, by = ly2 + 4, gid = 'mg_' + k, gr = S.add('linearGradient', { id: gid, x1: 0, y1: 1, x2: 0, y2: 0 }, null, S.add('defs', {})); stops.forEach(function (c2, q) { S.add('stop', { offset: q / (stops.length - 1), 'stop-color': c2, 'stop-opacity': .82 }, null, gr); });
+      S.add('rect', { x: LX, y: by, width: BW, height: BH, fill: 'url(#' + gid + ')', stroke: INK, 'stroke-width': .8 }); var dd = Math.max(0, -Math.floor(Math.log10(st) + 1e-9)); if (Math.abs(st * Math.pow(10, dd) - Math.round(st * Math.pow(10, dd))) > 1e-9) dd++;
+      for (var tv = Math.ceil(lo / st - 1e-9) * st; tv <= hi + 1e-9; tv += st) { var ty = by + BH - (tv - lo) / (hi - lo) * BH; S.line(LX + BW, ty, LX + BW + 6, ty, { stroke: INK }); tx(LX + BW + 11, ty + 4, tv.toFixed(dd), { 'font-size': 12 }); }
+      ly2 = by + BH + 18; }
+    ly2 += 6; S.add('rect', { x: LX, y: ly2, width: 30, height: 18, fill: '#EDEDEA', stroke: INK, 'stroke-width': .7 }); tx(LX + 40, ly2 + 10, 'No prediction: built-up land', { 'font-size': 12 }); tx(LX + 40, ly2 + 25, 'or water (base map shown)', { 'font-size': 12 }); ly2 += 36;
     S.path('M' + (LX + 15) + ' ' + (ly2 + 1) + 'l8 14h-16z', { fill: '#C0392B', stroke: '#fff', 'stroke-width': 1 }); tx(LX + 40, ly2 + 14, 'Selected point', { 'font-size': 12 }); ly2 += 24;
     if ((last.prof || []).length) { S.add('rect', { x: LX + 10, y: ly2 + 3, width: 10, height: 10, fill: '#fff', stroke: INK, 'stroke-width': 1.5 }); tx(LX + 40, ly2 + 14, 'Measured soil profile', { 'font-size': 12 }); ly2 += 24; }
-    tx(LX, VH - 46, 'Geographic coordinates, WGS 84', { 'font-size': 11, fill: MUT }); tx(LX, VH - 30, 'Grid 250 m', { 'font-size': 11, fill: MUT });
+    tx(LX, VH - 46, 'Geographic coordinates, WGS 84', { 'font-size': 11, fill: MUT }); tx(LX, VH - 30, 'SoilGrids 250 m, interpolated', { 'font-size': 11, fill: MUT });
     S.add('rect', { x: 6, y: 6, width: W - 12, height: VH - 12, fill: 'none', stroke: INK, 'stroke-width': 1.2 });
     // caption
-    var cap = $('#smap_' + k + 'Cap'), msk = nodata / (w * h);
+    var cap = $('#smap_' + k + 'Cap'), msk = nodata / (cw * ch);
     if (isW) { var tp = present.slice(0, 3).map(function (v) { return '<b dir="ltr">' + WRB[v][0] + '</b> (' + SH.fmt(100 * last.maps[k].cnt[v] / last.maps[k].n, 0) + ' %)'; }); cap.innerHTML = t('The study area is dominated by ', 'تسود منطقة الدراسة ') + tp.join(AR_UI ? '، ' : ', ') + '. ' + (present[0] != null && AR_UI ? WRB[present[0]][1] + '. ' : '') + t('Boundaries between groups are transitional at 250 m; the map shows the most probable group of each cell.', 'الحدود بين المجموعات انتقالية عند دقة 250 م، والخريطة تبين المجموعة الأكثر احتمالاً لكل خلية.'); }
-    else { var s = last.maps[k].stats, u = LY[k][2]; cap.innerHTML = t('Across the study area the ', 'في منطقة الدراسة يتراوح ') + (AR_UI ? LY[k][1] : LY[k][0].toLowerCase()) + t(' ranges from ', ' بين ') + '<bdi>' + fl(s.p10) + '</bdi>' + t(' to ', ' و') + '<bdi>' + fl(s.p90) + ' ' + u + '</bdi>' + t(' (10th–90th percentile), with a mean of ', ' (المئين العاشر إلى التسعين)، بمتوسط ') + '<bdi>' + fl(s.mean) + ' ' + u + '</bdi>' + '. ' + t('Classes are every ', 'الفئات كل ') + '<bdi>' + fl(s.st) + ' ' + u + '</bdi>.'; }
-    if (msk > 0.02) cap.innerHTML += ' ' + t('Grey cells (', 'الخلايا الرمادية (') + '<bdi>' + SH.fmt(msk * 100, 0) + ' %</bdi>' + t(' of the area) are built-up land or water, where soil is not predicted.', ' من المساحة) أراضٍ مبنية أو مياه لا يُتنبأ فيها بالتربة.');
+    else { var s = last.maps[k].stats, u = LY[k][2]; cap.innerHTML = t('Across the study area the ', 'في منطقة الدراسة يتراوح ') + (AR_UI ? LY[k][1] : LY[k][0].toLowerCase()) + t(' ranges from ', ' بين ') + '<bdi>' + fl(s.p10) + '</bdi>' + t(' to ', ' و') + '<bdi>' + fl(s.p90) + ' ' + u + '</bdi>' + t(' (10th–90th percentile), with a mean of ', ' (المئين العاشر إلى التسعين)، بمتوسط ') + '<bdi>' + fl(s.mean) + ' ' + u + '</bdi>' + '. ' + t('Colours change continuously across this range; lighter tones are low values and darker tones high values.', 'تتدرج الألوان تدرجاً مستمراً ضمن هذا المدى؛ الدرجات الفاتحة للقيم المنخفضة والداكنة للقيم المرتفعة.'); }
+    if (msk > 0.02) cap.innerHTML += ' ' + t('Uncoloured parts (', 'الأجزاء غير الملوّنة (') + '<bdi>' + SH.fmt(msk * 100, 0) + ' %</bdi>' + t(' of the area) are built-up land or water, where soil is not predicted; the base map is shown there.', ' من المساحة) أراضٍ مبنية أو مياه لا يُتنبأ فيها بالتربة، وتظهر فيها خريطة الأساس.');
+    return done;
   }
 
   /* ---------- exports */
