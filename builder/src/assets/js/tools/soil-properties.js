@@ -46,7 +46,7 @@
   $('#sGps').addEventListener('click', function () { var b = this; b.disabled = true; SH.locate().then(function (p) { site(p.lat, p.lon, true); }).catch(function (e) { SH.toast(e.message, 'bad'); }).then(function () { b.disabled = false; }); });
   ['sLat', 'sLon'].forEach(function (id) { $('#' + id).addEventListener('change', function () { var a = SH.num('sLat'), b = SH.num('sLon'); if (!isNaN(a) && !isNaN(b)) site(a, b, true); }); });
   function bounds() { if (area) { var b = area.getBounds(); return { s: b.getSouth(), n: b.getNorth(), w: b.getWest(), e: b.getEast() }; } var h = +$('#sSpan').value / 2, la = SH.num('sLat'), lo = SH.num('sLon'); return { s: la - h, n: la + h, w: lo - h / Math.cos(SH.rad(la)), e: lo + h / Math.cos(SH.rad(la)) }; }
-  function areaInfo() { var b = bounds(), km = function (d, lat) { return d * 111.32 * (lat == null ? 1 : Math.cos(SH.rad(lat))); }; $('#sAreaInfo').innerHTML = (area ? t('Study area drawn: ', 'منطقة الدراسة المرسومة: ') : t('Study area around the point: ', 'منطقة الدراسة حول النقطة: ')) + '<bdi>' + SH.fmt(km(b.e - b.w, (b.n + b.s) / 2), 0) + ' × ' + SH.fmt(km(b.n - b.s), 0) + ' km</bdi>'; }
+  function areaInfo() { previewSoon(); var b = bounds(), km = function (d, lat) { return d * 111.32 * (lat == null ? 1 : Math.cos(SH.rad(lat))); }; $('#sAreaInfo').innerHTML = (area ? t('Study area drawn: ', 'منطقة الدراسة المرسومة: ') : t('Study area around the point: ', 'منطقة الدراسة حول النقطة: ')) + '<bdi>' + SH.fmt(km(b.e - b.w, (b.n + b.s) / 2), 0) + ' × ' + SH.fmt(km(b.n - b.s), 0) + ' km</bdi>'; }
   $('#sSpan').addEventListener('change', areaInfo);
   $('#sArea').addEventListener('click', function () { if (!map) return; if (drawer) drawer.cancel(); drawing = true; drawer = SH.drawRect(map, function (bb, r) { if (r) map.removeLayer(r); if (area) map.removeLayer(area); var span = Math.max(bb.getNorth() - bb.getSouth(), bb.getEast() - bb.getWest()); if (span > 3) { SH.toast(t('The study area is limited to 3° (about 330 km).', 'منطقة الدراسة محدودة بـ 3° (نحو 330 كم).'), 'warn'); area = null; } else area = L.rectangle(bb, { color: '#C0392B', weight: 2.5, dashArray: '8 5', fill: false, interactive: false }).addTo(map); areaInfo(); setTimeout(function () { drawing = false; }, 300); }, $('#sHint')); });
   function sel() { return SH.$$('#sLayers [data-ly]').filter(function (i) { return i.checked; }).map(function (i) { return i.getAttribute('data-ly'); }); }
@@ -54,8 +54,13 @@
   $('#sLayers').addEventListener('change', function () { $('#sPurpose').value = 'custom'; prevOpts(); });
   function prevOpts() { var s = $('#sPrev'), v = s.value; s.innerHTML = '<option value="">' + t('Base map only', 'خريطة الأساس فقط') + '</option>' + Object.keys(LY).map(function (k) { return '<option value="' + k + '">' + LY[k][0] + '</option>'; }).join(''); s.value = v || (sel()[0] || ''); preview(); }
   function wmsName(k, d) { return k === 'wrb' ? 'MostProbable' : k === 'ocs' ? 'ocs_0-30cm_mean' : k + '_' + d + '_mean'; }
-  function preview() { if (!map) return; if (wms) { map.removeLayer(wms); wms = null; } var k = $('#sPrev').value; if (!k) return;
-    wms = L.tileLayer.wms('https://maps.isric.org/mapserv?map=/map/' + k + '.map', { layers: wmsName(k, $('#sDepth').value), format: 'image/png', transparent: true, version: '1.3.0', opacity: .72, attribution: 'Soil data © ISRIC SoilGrids (CC BY 4.0)', crossOrigin: true }).addTo(map); }
+  var prevTm = null, prevBox = null;
+  function preview() { if (!map) return; if (wms) { map.removeLayer(wms); wms = null; } var k = $('#sPrev').value; if (!prevBox) { prevBox = document.createElement('div'); prevBox.className = 'sh-wmsload'; prevBox.innerHTML = '<span class="sp"></span>' + t('Loading the soil layer…', 'جارٍ تحميل طبقة التربة…'); prevBox.hidden = true; $('#sMap').appendChild(prevBox); } prevBox.hidden = true; if (!k) return;
+    // request only the study area (with a margin) in large tiles: the soil map server is slow
+    var b = bounds(), m = Math.max(0.15, Math.max(b.n - b.s, b.e - b.w) * 0.6), lb = L.latLngBounds([b.s - m, b.w - m], [b.n + m, b.e + m]);
+    wms = L.tileLayer.wms('https://maps.isric.org/mapserv?map=/map/' + k + '.map', { layers: wmsName(k, $('#sDepth').value), format: 'image/png', transparent: true, version: '1.3.0', opacity: .72, tileSize: 512, bounds: lb, keepBuffer: 0, updateWhenIdle: true, attribution: 'Soil data © ISRIC SoilGrids (CC BY 4.0)', crossOrigin: true });
+    wms.on('loading', function () { prevBox.hidden = false; }); wms.on('load', function () { prevBox.hidden = true; }); wms.addTo(map); }
+  function previewSoon() { if (!wms) return; clearTimeout(prevTm); prevTm = setTimeout(preview, 500); }
   $('#sPrev').addEventListener('change', preview); $('#sDepth').addEventListener('change', preview); prevOpts(); areaInfo();
 
   /* ---------- GeoTIFF reader (8/16-bit integer, deflate, horizontal predictor) */
