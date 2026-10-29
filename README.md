@@ -1,6 +1,6 @@
 # Shandal Geological Field Survey System — website
 
-Bilingual (English / Arabic) platform with 27 field, data and laboratory tools for geology, engineering and the environment.
+Bilingual (English / Arabic) platform of field, data and laboratory tools for geology, engineering and the environment. The tool list and every count shown on the site come from `ORDER` in `builder/content_tools.py`; adding a tool there updates all pages on the next build.
 
 - `builder/` — static-site generator (Python 3 + Jinja2): page content (`content_*.py`), templates, scientific illustrations (`illus.py`), assets and tool scripts (`src/assets/js/tools/`).
 - `docs/` — the generated website, published with GitHub Pages.
