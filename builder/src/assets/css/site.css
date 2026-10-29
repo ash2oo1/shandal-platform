@@ -140,7 +140,13 @@ html[lang="ar"] .btn{font-weight:600}
 .hdr{display:flex;align-items:center;gap:28px;height:100%;position:relative}
 .nav>li.static{position:static}
 .mega-wide{inset-inline:20px;min-width:0}
-.mega-wide .mega-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:14px 18px}
+.mega-wide .mega-grid{display:block;column-count:4;column-gap:22px}
+.mega-wide .mega-col{break-inside:avoid;-webkit-column-break-inside:avoid;margin-bottom:12px}
+.mega-wide .mega-col h4{margin-bottom:2px}
+.mega-wide a.mi{padding:5px 10px;font-size:.86rem}
+.mega-wide{max-height:calc(100vh - var(--header-h) - 12px);overflow-y:auto;padding:18px 20px}
+.mega-wide .mega-foot{margin-top:6px}
+@media (max-width:1250px){.mega-wide .mega-grid{column-count:3}}
 .brand{display:flex;align-items:center;gap:12px;text-decoration:none;flex:none}
 .brand img{width:42px;height:42px}
 .brand .wm{display:flex;flex-direction:column;line-height:1.1}
