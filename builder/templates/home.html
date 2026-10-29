@@ -43,7 +43,7 @@
     <div class="disc-grid">
       {% for c in cats %}
       <a class="disc" href="{{ u('platform/') }}#{{ c }}">
-        <span class="count num">{{ tools|selectattr('cat','equalto',c)|list|length }} {{ tr(H.tools_count) }}</span>
+        <span class="count num">{{ tools|selectattr('cat','equalto',c)|list|length|ntools(lang) }}</span>
         <span class="badge-ico">{{ icon(cat_icons[c], 'ico ico-lg') }}</span>
         <h3>{{ t('cat_' + c) }}</h3>
         <p>{{ t('cat_' + c + '_d') }}</p>

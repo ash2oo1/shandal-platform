@@ -17,7 +17,7 @@ AI = {
 
 PLATFORM = {
  'title': L('Platform — {N} tools for geology, engineering and the environment', 'المنصة — {N} أداة للجيولوجيا والهندسة والبيئة'),
- 'h': L('Twenty-seven tools, from the outcrop to the lab', 'سبع وعشرون أداة، من المكشف إلى المختبر'),
+ 'h': L('{NWE} tools, from the outcrop to the lab', '{NWA} أداة، من المكشف إلى المختبر'),
  'p': L('Each tool has its own page: what you enter, what you get, the equations behind it and the standards it follows.', 'لكل أداة صفحتها: ما تدخله، وما تحصل عليه، والمعادلات خلفها، والمعايير التي تتبعها.'),
 }
 

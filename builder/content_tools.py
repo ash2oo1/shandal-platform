@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""The fifteen tools of the Shandal System. Text in English and Arabic."""
+"""Tools of the Shandal System. Text in English and Arabic. The order and count come from ORDER below."""
 
 
 def L(en, ar):

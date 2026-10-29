@@ -76,9 +76,41 @@ PAGE_DATA = {
  'pricing': CX.PRICING, 'contact': CX.CONTACT, 'verify': CX.VERIFY, 'account': CX.ACCOUNT,
 }
 
+_EN1 = ['', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve', 'thirteen', 'fourteen', 'fifteen', 'sixteen', 'seventeen', 'eighteen', 'nineteen']
+_EN10 = ['', '', 'twenty', 'thirty', 'forty', 'fifty', 'sixty', 'seventy', 'eighty', 'ninety']
+def en_words(n):
+    if n < 20: return _EN1[n]
+    return _EN10[n // 10] + ('-' + _EN1[n % 10] if n % 10 else '')
+_AR_U = ['', 'إحدى', None, 'ثلاث', 'أربع', 'خمس', 'ست', 'سبع', 'ثماني', 'تسع']   # forms used with a feminine noun (أداة)
+_AR_T = [None, None, ('عشرون', 'عشرين'), ('ثلاثون', 'ثلاثين'), ('أربعون', 'أربعين'), ('خمسون', 'خمسين'), ('ستون', 'ستين'), ('سبعون', 'سبعين'), ('ثمانون', 'ثمانين'), ('تسعون', 'تسعين')]
+def ar_words(n, gen=False):
+    """Arabic number words for a feminine counted noun (أداة); gen=True for the genitive (after a preposition)."""
+    if n == 1: return 'واحدة'
+    if n == 2: return 'اثنتين' if gen else 'اثنتان'
+    if n < 10: return _AR_U[n]
+    if n == 10: return 'عشر'
+    if n == 12: return ('اثنتي' if gen else 'اثنتا') + ' عشرة'
+    if n < 20: return _AR_U[n - 10] + ' عشرة'
+    t, u = _AR_T[n // 10][1 if gen else 0], n % 10
+    if not u: return t
+    uw = ('اثنتين' if gen else 'اثنتان') if u == 2 else _AR_U[u]
+    return uw + ' و' + t
+
+def ntools(n, lang):
+    """'n tools' with correct singular/dual/plural in both languages"""
+    if lang == 'en': return '%d tool%s' % (n, '' if n == 1 else 's')
+    if n == 1: return 'أداة واحدة'
+    if n == 2: return 'أداتان'
+    if 3 <= n <= 10: return '%d أدوات' % n
+    return '%d أداة' % n
+
 def _count(o, n):
-    """replace {N} with the live number of tools in every content string"""
-    if isinstance(o, str): return o.replace('{N}', str(n))
+    """replace {N} (digits) and the number words {NWE}/{nwe} (English), {NWA}/{NWAG} (Arabic nominative/genitive)
+    with the live number of tools in every content string, so no count is ever written by hand"""
+    if isinstance(o, str):
+        e = en_words(n)
+        return (o.replace('{NWE}', e[:1].upper() + e[1:]).replace('{nwe}', e).replace('{NWAG}', ar_words(n, True))
+                 .replace('{NWA}', ar_words(n)).replace('{N}', str(n)))
     if isinstance(o, dict):
         for k in o: o[k] = _count(o[k], n)
         return o
@@ -98,6 +130,7 @@ def build():
         shutil.rmtree(OUT)
     shutil.copytree(os.path.join(ROOT, 'src'), OUT)
     env = Environment(loader=FileSystemLoader(os.path.join(ROOT, 'templates')), autoescape=True, trim_blocks=True, lstrip_blocks=True)
+    env.filters['ntools'] = ntools
     bgc = bg_contours(); covl = cover_lines()
     count = 0
     for lang in ('en', 'ar'):
