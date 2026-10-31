@@ -320,9 +320,13 @@
     }).catch(function () { return null; });
   }
   var IMGC = {};
-  function photos(name, n) {
-    var key = name + '|' + (n || 12); if (IMGC[key]) return IMGC[key];
-    return (IMGC[key] = getJ('https://commons.wikimedia.org/w/api.php?action=query&generator=search&gsrnamespace=6&gsrlimit=' + (n || 12) + '&prop=imageinfo&iiprop=url|extmetadata|mime|size&iiurlwidth=640&format=json&origin=*&gsrsearch=' + encodeURIComponent(name + ' fossil')).then(function (j) {
+  function photos(name, n, strict) {
+    var key = name + '|' + (n || 12) + (strict ? 's' : ''); if (IMGC[key]) return IMGC[key];
+    var q = function (qs) { return photos0(qs, n); };
+    return (IMGC[key] = q('intitle:"' + name + '"').then(function (a) { return strict || a.length >= 3 ? a : q(name + ' fossil').then(function (b) { var seen = {}; return a.concat(b).filter(function (m) { if (seen[m.th]) return false; seen[m.th] = 1; return true; }).slice(0, n || 12); }); }));
+  }
+  function photos0(qs, n) {
+    return (getJ('https://commons.wikimedia.org/w/api.php?action=query&generator=search&gsrnamespace=6&gsrlimit=' + (n || 12) + '&prop=imageinfo&iiprop=url|extmetadata|mime|size&iiurlwidth=640&format=json&origin=*&gsrsearch=' + encodeURIComponent(qs)).then(function (j) {
       var p = j.query ? j.query.pages : {}; return Object.keys(p).map(function (k) { return p[k]; }).sort(function (a, b) { return a.index - b.index; }).map(function (x) { var ii = x.imageinfo && x.imageinfo[0]; if (!ii || !/jpeg|png/.test(ii.mime)) return null; var md = ii.extmetadata || {}, strip = function (s) { return String(s && s.value || '').replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim(); };
         return { th: ii.thumburl, big: ii.width > 1400 ? ii.thumburl.replace(/\/640px-/, '/1400px-') : ii.url, title: x.title.replace(/^File:/, '').replace(/\.[a-z]+$/i, '').replace(/_/g, ' '), by: strip(md.Artist).slice(0, 80), lic: strip(md.LicenseShortName) }; }).filter(Boolean);
     }).catch(function () { return []; }));
@@ -482,7 +486,7 @@
   }
   function galObserve() {
     if (GOBS || !('IntersectionObserver' in window)) return; var q = [], busy = 0;
-    var pump = function () { while (busy < 3 && q.length) { var el = q.shift(); busy++; (function (el) { photos(el.getAttribute('data-ph'), 3).then(function (a) { if (a[0]) { el.classList.remove('sil'); el.style.backgroundImage = 'url(\'' + a[0].th + '\')'; } }).catch(function () {}).then(function () { busy--; pump(); }); })(el); } };
+    var pump = function () { while (busy < 3 && q.length) { var el = q.shift(); busy++; (function (el) { photos(el.getAttribute('data-ph'), 3, true).then(function (a) { if (a[0]) { el.classList.remove('sil'); el.style.backgroundImage = 'url(\'' + a[0].th + '\')'; } }).catch(function () {}).then(function () { busy--; pump(); }); })(el); } };
     GOBS = new IntersectionObserver(function (es) { es.forEach(function (e) { if (e.isIntersecting && !e.target._q) { e.target._q = 1; q.push(e.target); GOBS.unobserve(e.target); } }); pump(); }, { rootMargin: '200px' });
     $$('#fGal [data-ph]').forEach(function (el) { GOBS.observe(el); });
   }
