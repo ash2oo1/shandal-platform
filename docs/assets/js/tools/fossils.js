@@ -323,7 +323,8 @@
   function photos(name, n, strict) {
     var key = name + '|' + (n || 12) + (strict ? 's' : ''); if (IMGC[key]) return IMGC[key];
     var q = function (qs) { return photos0(qs, n); };
-    return (IMGC[key] = q('intitle:"' + name + '"').then(function (a) { return strict || a.length >= 3 ? a : q(name + ' fossil').then(function (b) { var seen = {}; return a.concat(b).filter(function (m) { if (seen[m.th]) return false; seen[m.th] = 1; return true; }).slice(0, n || 12); }); }));
+    var merge = function (a, b) { var seen = {}; return a.concat(b).filter(function (m) { if (seen[m.th] || /\b(park|street|church|station|village|road|bridge|school|house)\b/i.test(m.title)) return false; seen[m.th] = 1; return true; }).slice(0, n || 12); };
+    return (IMGC[key] = q('intitle:"' + name + '" fossil').then(function (a) { a = merge(a, []); if (strict || a.length >= 4) return a; return q(name + ' fossil').then(function (b) { return merge(a, b); }); }));
   }
   function photos0(qs, n) {
     return (getJ('https://commons.wikimedia.org/w/api.php?action=query&generator=search&gsrnamespace=6&gsrlimit=' + (n || 12) + '&prop=imageinfo&iiprop=url|extmetadata|mime|size&iiurlwidth=640&format=json&origin=*&gsrsearch=' + encodeURIComponent(qs)).then(function (j) {
