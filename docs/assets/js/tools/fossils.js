@@ -147,7 +147,13 @@
       S = Object.keys(SITES).map(function (k) { return SITES[k]; });
       show('search'); draw();
       $('#fInfo').innerHTML = '<span><b>' + S.length + '</b> ' + t('sites', 'موقعاً') + ' · <b>' + SH.fmt(O.length, 0) + '</b> ' + t('fossil records', 'سجلاً أحفورياً') + (O.length >= 6000 ? ' · ' + t('limit reached; narrow the search', 'بلغ الحد؛ ضيّق البحث') : '') + '</span>';
-      if (!S.length) { SH.toast(t('No fossil sites match this search here. Try a wider area or remove a filter.', 'لا توجد مواقع أحفورية مطابقة هنا. وسّع المنطقة أو أزل أحد الفلاتر.'), 'warn'); $('#fRes').hidden = true; $('#fEmpty').hidden = false; return; }
+      if (!S.length) { var flt = [AREA.tax, AREA.int].filter(Boolean);
+        $('#fRes').hidden = true; $('#fEmpty').hidden = false; $('#fMapStat').hidden = true;
+        if (flt.length) { $('#fInfo').innerHTML = '<span>' + t('No fossil sites of ', 'لا توجد مواقع أحفورية لـ ') + '<b dir="ltr">' + E(flt.join(' · ')) + '</b>' + t(' in this area.', ' في هذه المنطقة.') + '</span> <button type="button" class="btn btn-gold btn-xs" id="fNoF">' + t('Remove the filters and search again', 'أزل الفلاتر وأعد البحث') + '</button>';
+          $('#fNoF').addEventListener('click', function () { $('#fTax').value = ''; $('#fInt').value = ''; $('#fTax').dispatchEvent(new Event('change')); $('#fInt').dispatchEvent(new Event('change')); syncChip(); search(L.latLngBounds([AREA.s, AREA.w], [AREA.n, AREA.e]), !!AREANAME); });
+          SH.toast(t('No sites match the active filters here: ', 'لا توجد مواقع تطابق الفلاتر المفعّلة هنا: ') + E(flt.join(' · ')), 'warn', 6000); }
+        else SH.toast(t('No published fossil sites in this area. Try a wider area.', 'لا توجد مواقع أحفورية منشورة في هذه المنطقة. جرّب منطقة أوسع.'), 'warn');
+        return; }
       $('#fEmpty').hidden = true; $('#fRes').hidden = false;
       var OUT = outs(); if (!OUT.length) OUT = ['ov'];
       $$('.fx-tabs [data-tab]').forEach(function (b) { b.hidden = OUT.indexOf(b.getAttribute('data-tab')) < 0; });
