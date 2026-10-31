@@ -37,6 +37,8 @@
     return clean(o.cls) || clean(o.phylum) || 'Unclassified';
   }
   function ginfo(k) { return G && G.groups.filter(function (x) { return x.k === k; })[0]; }
+  /* unique display names: two groups that share a translated name get their scientific name added */
+  function glabels(keys, en) { var nm = keys.map(function (k) { return gname(k, en); }), cnt = {}; nm.forEach(function (n) { cnt[n] = (cnt[n] || 0) + 1; }); return keys.map(function (k, i) { return cnt[nm[i]] > 1 && nm[i] !== k ? nm[i] + ' (' + k + ')' : nm[i]; }); }
   function gname(k, en) { var g = ginfo(k); if (g) return AR && !en ? g.ar : g.en; if (k === 'Unclassified') return en || !AR ? 'Unclassified' : 'غير مصنف'; return en ? k : tr(G ? G.cls : {}, k); }
   var GPAL = ['#C9A227', '#2F7F7C', '#B4552D', '#4B63B5', '#6C8F2E', '#9C4D9A', '#2A8FB8', '#8C6D4F', '#D06A8A', '#5E6B78'];
   function gcol(k, i) { var g = ginfo(k); return g ? g.c : GPAL[(i || 0) % GPAL.length]; }
@@ -115,6 +117,7 @@
     if (k === 'name') { $('#fTax').value = 'Hippurites'; syncChip(); SH.toast(t('Example: Hippurites, a Late Cretaceous rudist bivalve.', 'مثال: Hippurites، رخوي روديستي من الطباشيري المتأخر.')); }
     if (k === 'age') { $('#fInt').value = 'Cretaceous'; SH.toast(t('Example: the Cretaceous period (145–66 Ma).', 'مثال: العصر الطباشيري (145–66 مليون سنة).')); }
     if (k === 'area') runArea(AREAS[0]);
+    if (k === 'out') { $$('#fOuts input').forEach(function (i) { i.checked = true; }); $('#fOuts').dispatchEvent(new Event('change')); return; }
     $('#fTax').dispatchEvent(new Event('change'));
   });
   function demo() { $('#fTax').value = ''; $('#fInt').value = ''; syncChip(); runArea(AREAS[0]); window.scrollTo({ top: 0, behavior: 'smooth' }); }
@@ -146,8 +149,11 @@
       $('#fInfo').innerHTML = '<span><b>' + S.length + '</b> ' + t('sites', 'موقعاً') + ' · <b>' + SH.fmt(O.length, 0) + '</b> ' + t('fossil records', 'سجلاً أحفورياً') + (O.length >= 6000 ? ' · ' + t('limit reached; narrow the search', 'بلغ الحد؛ ضيّق البحث') : '') + '</span>';
       if (!S.length) { SH.toast(t('No fossil sites match this search here. Try a wider area or remove a filter.', 'لا توجد مواقع أحفورية مطابقة هنا. وسّع المنطقة أو أزل أحد الفلاتر.'), 'warn'); $('#fRes').hidden = true; $('#fEmpty').hidden = false; return; }
       $('#fEmpty').hidden = true; $('#fRes').hidden = false;
-      overview(); siteCards(); gallery(); table(); sheet();
-      tab(curTab);
+      var OUT = outs(); if (!OUT.length) OUT = ['ov'];
+      $$('.fx-tabs [data-tab]').forEach(function (b) { b.hidden = OUT.indexOf(b.getAttribute('data-tab')) < 0; });
+      if (OUT.indexOf('ov') > -1) overview(); else stats0();
+      if (OUT.indexOf('st') > -1) siteCards(); if (OUT.indexOf('gl') > -1) gallery(); if (OUT.indexOf('tb') > -1) table(); if (OUT.indexOf('ms') > -1) sheet();
+      tab(OUT.indexOf(curTab) > -1 ? curTab : OUT[0]);
     }).catch(function (e) { SH.toast(e.message, 'bad'); }).then(function () { SH.busy($('#fMap').parentElement, false); });
   }
 
@@ -164,10 +170,17 @@
     var ps = SH.ics.filter(function (p) { return used[p[0]]; });
     $('#fLeg').hidden = !ps.length; $('#fLeg').innerHTML = '<b style="font-size:.78rem">' + t('Age of the site', 'عمر الموقع') + '</b>' + ps.map(function (p) { return '<span><i style="background:' + p[4] + '"></i>' + pname(p) + ' <span class="muted ltr">' + ma(p[2]) + '–' + ma(p[3]) + '</span></span>'; }).join('') + '<span class="muted">' + t('Circle size = number of records', 'حجم الدائرة = عدد السجلات') + '</span>';
     var taxa = {}; O.forEach(function (o) { taxa[o.name] = 1; });
-    $('#fMapStat').hidden = !S.length; $('#fMapStat').innerHTML = '<span><b>' + S.length + '</b> ' + t('sites', 'موقعاً') + '</span><span><b>' + SH.fmt(O.length, 0) + '</b> ' + t('records', 'سجلاً') + '</span><span><b>' + Object.keys(taxa).length + '</b> ' + t('fossils', 'أحفورة') + '</span>';
+    $('#fMapStat').hidden = !S.length; $('#fMapBadges').innerHTML = '<span><b>' + S.length + '</b> ' + t('sites', 'موقعاً') + '</span><span><b>' + SH.fmt(O.length, 0) + '</b> ' + t('records', 'سجلاً') + '</span><span><b>' + Object.keys(taxa).length + '</b> ' + t('fossils', 'أحفورة') + '</span>';
+    var an = AREANAME ? (AR ? (AREAS.filter(function (a) { return a[0] === AREANAME; })[0] || [0, AREANAME])[1] : AREANAME) : t('The searched area', 'المنطقة المبحوثة');
+    $('#fMapTtl').innerHTML = '<b>' + t('Fossil sites map — ', 'خريطة المواقع الأحفورية — ') + E(an) + '</b>' + E([AREA && AREA.tax ? AREA.tax : t('all fossil groups', 'كل المجموعات الأحفورية'), AREA && AREA.int ? AREA.int : t('all ages', 'كل الأعمار')].join(' · ')) + '<br><span class="muted">' + t('Dashed frame: the searched area · colour: age of the site', 'الإطار المتقطع: منطقة البحث · اللون: عمر الموقع') + '</span>';
   }
   function highlight(c) { if (hl) map.removeLayer(hl); hl = L.circleMarker([c.lat, c.lng], { radius: 20, color: '#C9A227', weight: 3, fill: false, interactive: false }).addTo(map); }
 
+  /* ------------------------------------------------------------------ results chosen by the user */
+  function outs() { return $$('#fOuts input:checked').map(function (i) { return i.value; }); }
+  function stats0() { $('#nSt').textContent = S.length; $('#nTb').textContent = SH.fmt(O.length, 0); }
+  (function () { var k = 'shandal_fossil_outs'; try { var v = JSON.parse(localStorage.getItem(k) || 'null'); if (v && v.length) $$('#fOuts input').forEach(function (i) { i.checked = v.indexOf(i.value) > -1; }); } catch (e) {}
+    $('#fOuts').addEventListener('change', function () { try { localStorage.setItem(k, JSON.stringify(outs())); } catch (e) {} }); })();
   /* ------------------------------------------------------------------ results deck: tabs */
   var curTab = 'ov';
   function tab(k) { curTab = k; $$('.fx-tabs [data-tab]').forEach(function (b) { b.setAttribute('aria-selected', b.getAttribute('data-tab') === k ? 'true' : 'false'); }); $$('.fx-pane').forEach(function (p) { p.hidden = p.getAttribute('data-pane') !== k; }); if (window.Plotly && k === 'ov') $$('#fRes .js-plotly-plot').forEach(function (p) { try { window.Plotly.Plots.resize(p); } catch (e) {} }); if (k === 'gl') galObserve(); }
@@ -211,24 +224,24 @@
   function chPer(st, en) {
     var ord = SH.ics.filter(function (p) { return st.P[p[0]]; }).reverse(), gs = Object.keys(st.C).sort(function (a, b) { return st.C[b] - st.C[a]; }).slice(0, 6), cnt = {};
     O.forEach(function (o) { var p = per(o.max_ma, o.min_ma)[0], g = gs.indexOf(grp(o)) > -1 ? grp(o) : '_o'; cnt[g] = cnt[g] || {}; cnt[g][p] = (cnt[g][p] || 0) + 1; });
-    var xs = ord.map(function (p, i) { return i; }), data = gs.concat(cnt._o ? ['_o'] : []).map(function (g, i) { return { type: 'bar', name: g === '_o' ? L2('Other groups', 'مجموعات أخرى', en) : gname(g, en), x: xs, y: ord.map(function (p) { return (cnt[g] || {})[p[0]] || 0; }), marker: { color: g === '_o' ? '#9AA3AB' : gcol(g, i), line: { color: 'rgba(0,0,0,.35)', width: .5 } }, hovertemplate: '%{fullData.name}: %{y}<extra></extra>' }; });
-    var shapes = ord.map(function (p, i) { return { type: 'rect', xref: 'x', yref: 'paper', x0: i - .5, x1: i + .5, y0: -0.17, y1: -0.04, fillcolor: p[4], line: { color: '#333', width: .6 } }; }), ann = ord.map(function (p, i) { return { xref: 'x', yref: 'paper', x: i, y: -0.105, text: pname(p, en), showarrow: false, font: { size: 10, color: '#111' } }; });
+    var xs = ord.map(function (p, i) { return i; }), GL = glabels(gs, en), data = gs.concat(cnt._o ? ['_o'] : []).map(function (g, i) { return { type: 'bar', name: g === '_o' ? L2('Other groups', 'مجموعات أخرى', en) : GL[i], x: xs, y: ord.map(function (p) { return (cnt[g] || {})[p[0]] || 0; }), marker: { color: g === '_o' ? '#9AA3AB' : gcol(g, i), line: { color: 'rgba(0,0,0,.35)', width: .5 } }, hovertemplate: '%{fullData.name}: %{y}<extra></extra>' }; });
+    var fs = ord.length > 8 ? 9 : 10.5, shapes = ord.map(function (p, i) { return { type: 'rect', xref: 'x', yref: 'paper', x0: i - .5, x1: i + .5, y0: -0.13, y1: -0.02, fillcolor: p[4], line: { color: '#333', width: .6 } }; }), ann = ord.map(function (p, i) { return { xref: 'x', yref: 'paper', x: i, y: -0.075, yanchor: 'middle', xanchor: 'center', text: pname(p, en), showarrow: false, font: { size: fs, color: '#111' } }; });
     var top = ord.slice().sort(function (a, b) { return st.P[b[0]] - st.P[a[0]]; })[0];
-    return { data: data, layout: { barmode: 'stack', margin: { l: 50, r: 10, t: 10, b: 84 }, xaxis: { tickvals: [], showticklabels: false, range: [-.5, ord.length - .5], zeroline: false }, yaxis: { title: { text: L2('fossil records', 'السجلات الأحفورية', en) } }, shapes: shapes, annotations: ann.concat([{ xref: 'paper', yref: 'paper', x: .5, y: -0.25, text: L2('older  →  younger', 'الأقدم  ←  الأحدث', en), showarrow: false, font: { size: 10, color: '#777' } }]), legend: { orientation: 'h', y: 1.12, font: { size: 10 } }, bargap: .25 },
+    return { data: data, layout: { barmode: 'stack', margin: { l: 60, r: 10, t: 10, b: 150 }, xaxis: { tickvals: [], showticklabels: false, range: [-.5, ord.length - .5], zeroline: false }, yaxis: { title: { text: L2('number of fossil records', 'عدد السجلات الأحفورية', en) } }, shapes: shapes, annotations: ann.concat([{ xref: 'paper', yref: 'paper', x: .5, y: -0.17, yanchor: 'top', text: L2('geological period:  older  →  younger', 'العصر الجيولوجي:  الأقدم  ←  الأحدث', en), showarrow: false, font: { size: 10.5, color: '#888' } }]), legend: { orientation: 'h', x: .5, xanchor: 'center', y: -0.26, yanchor: 'top', font: { size: 10.5 }, title: { text: L2('Fossil group: ', 'المجموعة الأحفورية: ', en), font: { size: 10.5 } } }, bargap: .25 },
       cap: t('Bars stack the records of each period by fossil group; the coloured strip is the official ICS time scale. The ', 'تُكدّس الأعمدة سجلات كل عصر حسب المجموعة الأحفورية، والشريط الملوّن هو المقياس الزمني الرسمي للجنة الدولية للطباقية. ويبرز ') + '<b>' + (top ? pname(top) : '') + '</b>' + t(' stands out as the best documented interval of the area.', ' بوصفه الفترة الأفضل توثيقاً في المنطقة.') };
   }
   function chCls(st, en) {
     var top = Object.keys(st.C).sort(function (a, b) { return st.C[b] - st.C[a]; }).slice(0, 10), tot = O.length || 1;
-    var rv = top.slice().reverse();
+    var rv = top.slice().reverse(), LBL = glabels(rv, en);
     var mar = top.filter(function (k) { return /Foraminifera|Nummulitidae|Anthozoa|Scleractinia|Echinoidea|Bivalvia|Gastropoda|Cephalopoda|Ammonoidea|Brachiopoda|Bryozoa|Crinoidea|Ostracoda|Hippuritida|Trilobita|Chondrichthyes|Cnidaria|Echinodermata|Porifera/.test(k); }).length;
-    return { data: [{ type: 'bar', orientation: 'h', y: rv.map(function (k) { return gname(k, en); }), x: rv.map(function (k) { return st.C[k]; }), text: rv.map(function (k) { return pct(st.C[k], tot) + '%'; }), textposition: 'outside', cliponaxis: false, marker: { color: rv.map(function (k, i) { return gcol(k, top.length - 1 - i); }), line: { color: 'rgba(0,0,0,.3)', width: .5 } }, hovertemplate: '%{y}: %{x}<extra></extra>' }],
-      layout: { margin: { l: 140, r: 40, t: 10, b: 40 }, showlegend: false, xaxis: { title: { text: L2('fossil records', 'السجلات الأحفورية', en) } } },
+    return { data: [{ type: 'bar', orientation: 'h', y: LBL, x: rv.map(function (k) { return st.C[k]; }), text: rv.map(function (k) { return st.C[k] + ' (' + pct(st.C[k], tot) + '%)'; }), textposition: 'outside', cliponaxis: false, marker: { color: rv.map(function (k, i) { return gcol(k, top.length - 1 - i); }), line: { color: 'rgba(0,0,0,.3)', width: .5 } }, hovertemplate: '%{y}: %{x}<extra></extra>' }],
+      layout: { margin: { l: 140, r: 70, t: 10, b: 58 }, showlegend: false, xaxis: { title: { text: L2('number of fossil records (share of all records in brackets)', 'عدد السجلات الأحفورية (والنسبة من مجموع السجلات بين قوسين)', en) } } },
       cap: mar >= top.length / 2 ? t('Marine invertebrates and microfossils dominate the record, the signature of ancient seas over the area.', 'تهيمن اللافقاريات البحرية والأحافير الدقيقة على السجل، وهي بصمة البحار القديمة التي غمرت المنطقة.') : t('Land organisms make up a large part of the record, pointing to continental settings.', 'تشكّل كائنات اليابسة جزءاً كبيراً من السجل، ما يدل على بيئات قارية.') };
   }
   function chEnv(st, en) {
     var ek = G.envcat.filter(function (c) { return st.EC[c[0]] && c[0] !== 'none'; }).reverse();
-    return { data: [{ type: 'bar', orientation: 'h', y: ek.map(function (c) { return en || !AR ? c[1] : c[2]; }), x: ek.map(function (c) { return st.EC[c[0]]; }), marker: { color: ek.map(function (c) { return c[3]; }), line: { color: 'rgba(0,0,0,.3)', width: .5 } }, customdata: ek.map(function (c) { return en || !AR ? c[4] : c[5]; }), hovertemplate: '%{y}: %{x}<br>%{customdata}<extra></extra>' }],
-      layout: { margin: { l: 130, r: 16, t: 10, b: 40 }, showlegend: false, xaxis: { title: { text: L2('sites', 'المواقع', en) } } },
+    return { data: [{ type: 'bar', orientation: 'h', y: ek.map(function (c) { return en || !AR ? c[1] : c[2]; }), x: ek.map(function (c) { return st.EC[c[0]]; }), marker: { color: ek.map(function (c) { return c[3]; }), line: { color: 'rgba(0,0,0,.3)', width: .5 } }, customdata: ek.map(function (c) { return en || !AR ? c[4] : c[5]; }), text: ek.map(function (c) { return String(st.EC[c[0]]); }), textposition: 'outside', cliponaxis: false, hovertemplate: '%{y}: %{x}<br>%{customdata}<extra></extra>' }],
+      layout: { margin: { l: 130, r: 40, t: 10, b: 58 }, showlegend: false, xaxis: { title: { text: L2('number of fossil sites in each environment', 'عدد المواقع الأحفورية في كل بيئة', en) } } },
       cap: st.EC.none ? t(st.EC.none + ' sites have no recorded environment and are not shown. Hover a bar for what each environment means.', 'لا تُعرض ' + st.EC.none + ' مواقع ليست لها بيئة مسجلة. مرّر المؤشر على أي عمود لمعرفة معنى البيئة.') : t('Hover a bar for what each environment means.', 'مرّر المؤشر على أي عمود لمعرفة معنى البيئة.') };
   }
   function chDrift(en) {
@@ -237,7 +250,7 @@
     var data = ps.map(function (p) { var a = dr.filter(function (c) { return per(c.max_ma, c.min_ma)[0] === p[0]; }); return { type: 'scatter', mode: 'markers', name: pname(p, en), x: a.map(function (c) { return (c.max_ma + c.min_ma) / 2; }), y: a.map(function (c) { return +c.paleolat; }), text: a.map(function (c) { return c.collection_name; }), marker: { color: p[4], size: 9, line: { color: '#222', width: .6 } }, hovertemplate: '%{text}<br>%{x:.1f} Ma · %{y:.1f}°<extra></extra>' }; });
     var xmax = Math.max.apply(null, dr.map(function (c) { return c.max_ma; }).concat([10]));
     data.push({ type: 'scatter', mode: 'lines', x: [0, xmax * 1.05], y: [lat0, lat0], line: { color: '#C9A227', width: 2, dash: 'dash' }, name: L2('latitude today', 'خط العرض اليوم', en), hoverinfo: 'skip' });
-    return { data: data, layout: { margin: { l: 56, r: 14, t: 10, b: 46 }, xaxis: { autorange: 'reversed', title: { text: L2('age (million years ago)', 'العمر (مليون سنة مضت)', en) } }, yaxis: { title: { text: L2('palaeolatitude (°)', 'خط العرض القديم (°)', en) }, zeroline: true }, legend: { orientation: 'h', y: 1.14, font: { size: 10 } },
+    return { data: data, layout: { margin: { l: 60, r: 14, t: 10, b: 140 }, xaxis: { autorange: 'reversed', title: { text: L2('age of the site (million years ago)', 'عمر الموقع (مليون سنة مضت)', en) } }, yaxis: { title: { text: L2('palaeolatitude (degrees; + north, − south)', 'خط العرض القديم (درجة؛ + شمال، − جنوب)', en) }, zeroline: true }, legend: { orientation: 'h', x: .5, xanchor: 'center', y: -0.22, yanchor: 'top', font: { size: 10.5 }, title: { text: L2('Period: ', 'العصر: ', en), font: { size: 10.5 } } },
       shapes: [{ type: 'rect', xref: 'paper', x0: 0, x1: 1, yref: 'y', y0: -23.4, y1: 23.4, fillcolor: 'rgba(224,123,106,.08)', line: { width: 0 }, layer: 'below' }] },
       cap: dr.length ? t('Each point is a site placed at the latitude it occupied when its fossils lived (plate reconstruction). The shaded band is the tropics and the dashed line the latitude of the area today; points below the line show how far the area has since drifted north.', 'كل نقطة موقع وُضع عند خط العرض الذي كان فيه عندما عاشت أحافيره (إعادة بناء الصفائح). الشريط المظلل هو المنطقة المدارية والخط المتقطع خط عرض المنطقة اليوم؛ والنقاط تحت الخط تبين مقدار انجراف المنطقة نحو الشمال منذ ذلك الحين.') : t('No palaeolatitudes are available for these sites.', 'لا تتوفر خطوط عرض قديمة لهذه المواقع.') };
   }
@@ -246,10 +259,9 @@
     var lay = SH.plotLayout(JSON.parse(JSON.stringify(c.layout)));
     lay.paper_bgcolor = '#fff'; lay.plot_bgcolor = '#fff'; lay.font = { family: PF, color: INK, size: 13 };
     ['xaxis', 'yaxis'].forEach(function (a) { lay[a] = SH.merge(lay[a] || {}, { gridcolor: '#E3E3E3', linecolor: '#888', tickcolor: '#888', zerolinecolor: '#BBB', tickfont: { color: INK }, title: { font: { color: INK } } }); });
-    lay.legend = SH.merge(lay.legend || {}, { font: { color: INK } }); lay.margin = SH.merge(lay.margin || {}, { t: 70 }); if (id === 'fPer') lay.margin.b = 110;
-    if (lay.legend && lay.legend.y > 1) lay.legend.y = 1.06;
+    lay.legend = SH.merge(lay.legend || {}, { font: { color: INK } }); lay.margin = SH.merge(lay.margin || {}, { t: 70 });
     lay.title = { text: '<b>' + TT[id] + '</b>' + (AREANAME ? ' — ' + AREANAME : ''), x: .02, y: .97, font: { size: 17, color: INK } };
-    return window.Plotly.toImage({ data: c.data, layout: lay }, { format: 'png', width: 1200, height: 640, scale: 2 }).then(SH.loadImage).then(function (im) { var cv = document.createElement('canvas'); cv.width = im.width; cv.height = im.height; var x = cv.getContext('2d'); x.fillStyle = '#fff'; x.fillRect(0, 0, cv.width, cv.height); x.drawImage(im, 0, 0); return cv; });
+    return window.Plotly.toImage({ data: c.data, layout: lay }, { format: 'png', width: 1200, height: id === 'fPer' || id === 'fDrift' ? 760 : 640, scale: 2 }).then(SH.loadImage).then(function (im) { var cv = document.createElement('canvas'); cv.width = im.width; cv.height = im.height; var x = cv.getContext('2d'); x.fillStyle = '#fff'; x.fillRect(0, 0, cv.width, cv.height); x.drawImage(im, 0, 0); return cv; });
   }
 
   /* ------------------------------------------------------------------ site cards */
@@ -300,10 +312,10 @@
         fact(t('Environment', 'البيئة الترسيبية'), env ? E(tr(G.env, env)) : '') + fact(t('Geological age', 'العمر الجيولوجي'), E(ageTxt(c)) + ' · <span class="ltr">' + ma(c.max_ma) + '–' + ma(c.min_ma) + ' Ma</span>') +
         fact(t('Palaeolatitude', 'خط العرض القديم'), c.paleolat != null && c.paleolat !== '' ? '<span class="ltr">' + (+c.paleolat).toFixed(1) + '°, ' + (+c.paleolng).toFixed(1) + '°</span>' : '') +
         fact(t('Sampling scale', 'نطاق الجمع'), E(SCALE[c.geogscale] || c.geogscale)) + fact(t('Locality notes', 'وصف المكان'), E(c.geogcomments), true) + fact(t('Rock description', 'وصف الصخور'), E(c.lithdescript), true) + fact(t('Published in', 'المنشور العلمي'), '<span class="small" dir="ltr" style="display:block;text-align:start">' + E(c.primary_reference) + '</span>', true) + '</div>' +
-        '<div class="fx-card" style="margin-top:12px"><span class="lb">' + t('Site sheet: location map with north arrow and scale, rocks, age and fossils', 'لوحة الموقع: خريطة الموقع بسهم الشمال والمقياس، والصخور والعمر والأحافير') + '</span><div class="fx-dl">' + dlBtns('data-ss', c.collection_no) + '<a class="btn btn-ink btn-xs" href="' + gu + '">' + t('Geological unit here', 'الوحدة الجيولوجية هنا') + ' ' + FWD + '</a></div></div>' +
+        '<div class="fx-card" style="margin-top:12px"><span class="lb">' + t('Site map and description sheet', 'خريطة الموقع ولوحة وصفه') + '</span><p>' + t('A framed location map with coordinates, north arrow and scale, the rocks, age and environment of the site and its fossils, shown at full size under the main map.', 'خريطة موقع مؤطرة بالإحداثيات وسهم الشمال ومقياس الرسم، مع صخور الموقع وعمره وبيئته وأحافيره، تظهر بحجمها الكامل أسفل الخريطة الرئيسية.') + '</p><div class="fx-dl"><button type="button" class="btn btn-gold btn-xs" data-goss="' + c.collection_no + '">' + SH.icon('map') + t('Open the site map', 'افتح خريطة الموقع') + '</button><a class="btn btn-ink btn-xs" href="' + gu + '">' + t('Geological unit here', 'الوحدة الجيولوجية هنا') + ' ' + FWD + '</a></div></div>' +
         '<h3 class="fx-h" style="margin-top:16px">' + t('Fossils found here', 'الأحافير الموجودة هنا') + ' (' + c.taxa.length + ')</h3><p class="fx-cap" style="margin:4px 0 0">' + t('Tap a fossil for its description, photographs, age range and worldwide record.', 'انقر أي أحفورة لترى وصفها وصورها ومداها الزمني وانتشارها العالمي.') + '</p>' + (taxaH || '<p class="small muted">' + t('No individual fossils matched the current filters.', 'لا توجد أحافير مفردة تطابق الفلاتر الحالية.') + '</p>');
     }).join('');
-    $('#fSite').innerHTML = h; show('site');
+    $('#fSite').innerHTML = h; show('site'); siteFocus(arr[0]);
     $('#fBackS').addEventListener('click', function () { if (hl) { map.removeLayer(hl); hl = null; } show('search'); });
   }
 
@@ -670,9 +682,17 @@
     var rest = sitePoints().length - SITEKEY.length; if (rest > 0) { S2.text(40, ys + 24, rest + ' further sites are shown on the map without numbers; the complete list is in the data table.', { fill: MUT, 'font-size': 12, 'font-family': PF, direction: 'ltr' }); ys += 24; }
     var VH = ys + 36; svg.setAttribute('viewBox', '0 0 ' + W + ' ' + VH); bg.setAttribute('height', VH); S2.add('rect', { x: 8, y: 8, width: W - 16, height: VH - 16, fill: 'none', stroke: INK, 'stroke-width': 1.2 });
   }
-  function siteSheet(c) {
-    var host = document.createElement('div'); host.style.cssText = 'position:fixed;left:-20000px;top:0;width:1100px'; document.body.appendChild(host);
-    var svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg'); svg.setAttribute('viewBox', '0 0 1100 800'); svg.setAttribute('direction', 'ltr'); svg.style.cssText = 'width:1100px;direction:ltr'; host.appendChild(svg);
+  var SSC = null;
+  function siteFocus(c) {
+    var F0 = $('#fSFocus'), p = per(c.max_ma, c.min_ma); F0.hidden = false; $('#fDeck').hidden = false;
+    $('#fSName').textContent = c.collection_name; $('#fSSum').innerHTML = E([c.formation ? (AR ? 'تكوين ' + c.formation : c.formation + ' Formation') : '', pname(p) + ' (' + ma(c.max_ma) + '–' + ma(c.min_ma) + ' Ma)', c.cc ? country(c.cc) : '', c.taxa.length + ' ' + t('fossils', 'أحفورة')].filter(Boolean).join(' · '));
+    $('#fSiteCap').innerHTML = t('The star marks the site on a framed location map about 100 km across, with the other fossil sites of the search coloured by period. The sheet reads the published record of the site: formation, rocks, environment, age, palaeolatitude and the fossils found, grouped by kind.', 'تدل النجمة على الموقع في خريطة موقع مؤطرة يبلغ عرضها نحو 100 كم، مع المواقع الأحفورية الأخرى في البحث ملونة حسب العصر. وتقرأ اللوحة السجل المنشور للموقع: التكوين والصخور والبيئة والعمر وخط العرض القديم والأحافير الموجودة مجمّعة حسب نوعها.');
+    SSC = c; return siteSheet(c, $('#fSiteSheet'));
+  }
+  $('#fSClose').addEventListener('click', function () { $('#fSFocus').hidden = true; });
+  document.addEventListener('click', function (e) { var b = e.target.closest('[data-goss]'); if (!b) return; var c = SITES[b.getAttribute('data-goss')]; (SSC === c ? Promise.resolve() : siteFocus(c)).then(function () { $('#fSFocus').scrollIntoView({ behavior: 'smooth', block: 'start' }); }); });
+  function siteSheet(c, svg) {
+    svg.setAttribute('viewBox', '0 0 1100 800'); svg.setAttribute('direction', 'ltr'); svg.style.direction = 'ltr';
     var S2 = SH.svgB(svg), W = 1100, p = per(c.max_ma, c.min_ma), d = .45, b = { w: c.lng - d / Math.cos(SH.rad(c.lat)), e: c.lng + d / Math.cos(SH.rad(c.lat)), s: c.lat - d, n: c.lat + d }, f = fitBox(b), PW = 470, PH = PW / f.asp, X0 = 96, Y0 = 104;
     var bg = S2.add('rect', { x: 0, y: 0, width: W, height: 800, fill: '#fff' }), stripe = S2.add('rect', { x: 0, y: 0, width: 12, height: 800, fill: p[4] });
     S2.text(40, 48, c.collection_name, { fill: INK, 'font-size': 22, 'font-weight': 800, 'font-family': PF, direction: 'ltr' });
@@ -693,7 +713,7 @@
     siteGroups(c).forEach(function (k, gi) { var names = uniq(bygrp[k]), ln = wrapTxt(meas, names.join(', '), W - 310); fy += 8; S2.circle(48, fy + 10, 5.5, { fill: gcol(k, gi), stroke: '#111', 'stroke-width': .6 }); F.tx(62, fy + 14.5, gname(k, true) + ' (' + names.length + ')', { 'font-size': 12.5, 'font-weight': 700 }); ln.forEach(function (l, j) { F.tx(260, fy + 14.5 + j * 16, l, { 'font-size': 12, 'font-style': 'italic' }); }); fy += Math.max(1, ln.length) * 16 + 4; });
     var VH = fy + 40; svg.setAttribute('viewBox', '0 0 ' + W + ' ' + VH); bg.setAttribute('height', VH); stripe.setAttribute('height', VH);
     S2.add('rect', { x: 8, y: 8, width: W - 16, height: VH - 16, fill: 'none', stroke: INK, 'stroke-width': 1.2 });
-    return baseMap(b, Math.round(PW * 2.2), Math.round(PH * 2.2)).then(function (u) { if (u) imgEl.setAttribute('href', u); return { svg: svg, host: host }; });
+    return baseMap(b, Math.round(PW * 2.2), Math.round(PH * 2.2)).then(function (u) { if (u) imgEl.setAttribute('href', u); return svg; });
   }
 
   /* ------------------------------------------------------------------ downloads */
@@ -702,7 +722,7 @@
     return SH.exportFigure(c, name, fmt).then(function (r) { host.remove(); return r; }, function (er) { host.remove(); throw er; });
   }
   document.addEventListener('click', function (e) {
-    var b = e.target.closest('[data-pl],[data-sheet],[data-key],[data-ss],[data-wm],[data-wt]'); if (!b) return; var fmt = b.getAttribute('data-f') || b.getAttribute('data-sheet') || b.getAttribute('data-key'); busyBtn(b, true);
+    var b = e.target.closest('[data-pl],[data-sheet],[data-key],[data-ssv],[data-wm],[data-wt]'); if (!b) return; var fmt = b.getAttribute('data-f') || b.getAttribute('data-sheet') || b.getAttribute('data-key') || b.getAttribute('data-ssv'); busyBtn(b, true);
     var done = function () { busyBtn(b, false); }, fail = function () { SH.toast(t('The image could not be created.', 'تعذر إنشاء الصورة.'), 'warn'); };
     var p;
     if (b.hasAttribute('data-pl')) p = plotCanvas(b.getAttribute('data-pl')).then(function (cv) { return SH.exportCanvas(cv, 'shandal-' + b.getAttribute('data-pl') + '_' + stamp(), fmt); });
@@ -710,7 +730,7 @@
     else if (b.hasAttribute('data-key')) p = exportWide($('#fKey'), 'shandal-fossil-sites-key_' + stamp(), fmt, 1650);
     else if (b.hasAttribute('data-wm')) p = exportWide($('#fWMap'), 'shandal-worldwide-' + (cur.taxon ? cur.taxon.name.replace(/\s+/g, '_') : 'taxon'), fmt, 1800);
     else if (b.hasAttribute('data-wt')) p = exportWide($('#fWTime'), 'shandal-time-' + (cur.taxon ? cur.taxon.name.replace(/\s+/g, '_') : 'taxon'), fmt, 1600);
-    else { var c = SITES[b.getAttribute('data-ss')]; p = siteSheet(c).then(function (r) { r.host.remove(); return exportWide(r.svg, 'shandal-site-' + c.collection_no, fmt, 1650); }); }
+    else p = exportWide($('#fSiteSheet'), 'shandal-site-' + (SSC ? SSC.collection_no : 'site'), fmt, 1650);
     p.catch(fail).then(done);
   });
 

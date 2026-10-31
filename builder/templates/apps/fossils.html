@@ -21,6 +21,16 @@
 .fx-chip[aria-pressed=true]{background:var(--text);color:var(--bg);border-color:var(--text)}
 .fx-chip[aria-pressed=true] small{color:inherit;opacity:.7}
 .fx-areas{display:flex;flex-wrap:wrap;gap:6px}
+.fx-outs{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.fx-outs label{cursor:pointer;display:block}
+.fx-outs input{position:absolute;opacity:0;pointer-events:none}
+.fx-outs span{display:flex;align-items:center;gap:7px;padding:8px 10px;border:1px solid var(--line);border-radius:12px;font-size:.78rem;font-weight:700;line-height:1.35;color:var(--text-2);background:var(--surface);transition:all .15s}
+.fx-outs span .ico{width:15px;height:15px;flex:none}
+.fx-outs input:checked+span{border-color:var(--accent);color:var(--text);background:color-mix(in srgb,var(--accent) 12%,var(--surface));box-shadow:inset 0 0 0 1px var(--accent)}
+.fx-outs input:focus-visible+span{outline:2px solid var(--accent);outline-offset:2px}
+.wsm-map::after{content:"";position:absolute;inset:0;border:3px solid color-mix(in srgb,var(--accent) 70%,transparent);pointer-events:none;z-index:450}
+.fx-mapttl{background:color-mix(in srgb,var(--surface) 92%,transparent);backdrop-filter:blur(8px);border:1px solid var(--line);border-radius:12px;padding:7px 12px;box-shadow:0 6px 18px rgba(0,0,0,.14);font-size:.8rem;line-height:1.45;max-width:420px}
+.fx-mapttl b{display:block;font-size:.88rem}
 .fx-area{all:unset;cursor:pointer;font-size:.76rem;font-weight:650;padding:6px 10px;border-radius:999px;background:var(--surface-2);border:1px solid var(--line)}
 .fx-area:hover{border-color:var(--accent)}
 .fx-status{display:flex;gap:10px;align-items:center;font-size:.8rem;line-height:1.6;color:var(--text-2)}
@@ -65,8 +75,8 @@
 @media (min-width:901px){.wsm.fx-wide{grid-template-columns:minmax(360px,540px) minmax(0,1fr)}}
 .fx-leg{position:absolute;bottom:28px;inset-inline-start:12px;z-index:600;background:color-mix(in srgb,var(--surface) 88%,transparent);backdrop-filter:blur(8px);border:1px solid var(--line);border-radius:14px;padding:10px 12px;box-shadow:0 10px 28px rgba(0,0,0,.18);font-size:.74rem;display:grid;gap:4px;max-width:210px}
 .fx-leg i{display:inline-block;width:10px;height:10px;border-radius:50%;border:1px solid rgba(0,0,0,.5);margin-inline-end:6px;vertical-align:-1px}
-.fx-mapstat{position:absolute;top:12px;right:12px;left:auto;max-width:calc(100% - 80px);z-index:600;display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
-.fx-mapstat span{background:color-mix(in srgb,var(--surface) 88%,transparent);backdrop-filter:blur(8px);border:1px solid var(--line);border-radius:999px;padding:5px 11px;font-size:.76rem;font-weight:700;box-shadow:0 6px 18px rgba(0,0,0,.14)}
+.fx-mapstat{position:absolute;top:12px;right:12px;left:auto;max-width:calc(100% - 80px);flex-direction:column;align-items:flex-end;z-index:600;display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+#fMapBadges span{background:color-mix(in srgb,var(--surface) 88%,transparent);backdrop-filter:blur(8px);border:1px solid var(--line);border-radius:999px;padding:5px 11px;font-size:.76rem;font-weight:700;box-shadow:0 6px 18px rgba(0,0,0,.14)}
 .fx-mapstat b{color:var(--accent)}
 [data-v][hidden]{display:none!important}
 /* ---------- results deck under the map */
@@ -149,7 +159,7 @@
 .fx-lb .nv{position:absolute;top:50%;transform:translateY(-50%);width:44px;height:44px;border-radius:50%;border:0;background:rgba(255,255,255,.14);color:#fff;font-size:1.4rem;cursor:pointer}
 .fx-lb .nv.p{inset-inline-start:14px}.fx-lb .nv.n{inset-inline-end:14px}
 .fx-print .fx-pane[data-rp-extra]{display:grid!important}
-@media (max-width:900px){.fx-tabs{position:static}.fx-leg{font-size:.64rem;padding:6px 8px;gap:1px;max-width:150px;bottom:22px;inset-inline-start:8px}.fx-mapstat span{font-size:.68rem;padding:4px 8px}.fx-chips{grid-template-columns:1fr 1fr}.fx-facts{grid-template-columns:1fr}.fx-deck>.in{padding:0 12px 30px}}
+@media (max-width:900px){.fx-tabs{position:static}.fx-leg{font-size:.64rem;padding:6px 8px;gap:1px;max-width:150px;bottom:22px;inset-inline-start:8px}#fMapBadges span{font-size:.68rem;padding:4px 8px}.fx-chips{grid-template-columns:1fr 1fr}.fx-facts{grid-template-columns:1fr}.fx-deck>.in{padding:0 12px 30px}}
 </style>
 <div class="wsm">
   <aside class="wsm-side">
@@ -170,8 +180,19 @@
         <div class="fx-step"><h3>{{ icon('clock') }}{{ m.L('2 · Geological age', '2 · العمر الجيولوجي') }}</h3><button type="button" class="fx-try" data-try="age">{{ icon('wand-sparkles') }}{{ m.L('Try', 'تجربة') }}</button></div>
         <div class="fg"><select id="fInt" aria-label="Interval"></select></div>
       </div>
+      <div class="sec">
+        <div class="fx-step"><h3>{{ icon('layout-dashboard') }}{{ m.L('3 · Results to prepare', '3 · النتائج المطلوبة') }}</h3><button type="button" class="fx-try" data-try="out">{{ icon('wand-sparkles') }}{{ m.L('All', 'الكل') }}</button></div>
+        <div class="fx-outs" id="fOuts">
+          <label><input type="checkbox" value="ov" checked><span>{{ icon('layout-dashboard') }}{{ m.L('Overview and interpretation', 'القراءة العامة والتفسير') }}</span></label>
+          <label><input type="checkbox" value="st" checked><span>{{ icon('map-pin') }}{{ m.L('Site cards', 'بطاقات المواقع') }}</span></label>
+          <label><input type="checkbox" value="gl" checked><span>{{ icon('images') }}{{ m.L('Fossil gallery', 'معرض الأحافير') }}</span></label>
+          <label><input type="checkbox" value="tb" checked><span>{{ icon('table-2') }}{{ m.L('Data table', 'جدول البيانات') }}</span></label>
+          <label><input type="checkbox" value="ms" checked><span>{{ icon('map') }}{{ m.L('Map sheet and key table', 'لوحة الخريطة وجدول المفتاح') }}</span></label>
+        </div>
+        <p class="fx-cap">{{ m.L('Only the parts you tick are prepared and shown under the map after the search.', 'تُحضَّر الأجزاء المؤشَّر عليها فقط وتظهر أسفل الخريطة بعد البحث.') }}</p>
+      </div>
       <div class="sec" data-rp-skip>
-        <div class="fx-step"><h3>{{ icon('search') }}{{ m.L('3 · Search area', '3 · منطقة البحث') }}</h3><button type="button" class="fx-try" data-try="area">{{ icon('wand-sparkles') }}{{ m.L('Try', 'تجربة') }}</button></div>
+        <div class="fx-step"><h3>{{ icon('search') }}{{ m.L('4 · Search area', '4 · منطقة البحث') }}</h3><button type="button" class="fx-try" data-try="area">{{ icon('wand-sparkles') }}{{ m.L('Try', 'تجربة') }}</button></div>
         <div class="row2">
           <button class="btn btn-gold btn-sm" id="fView" type="button">{{ icon('scan', 'ico ico-sm') }}{{ m.L('Search map view', 'ابحث في العرض') }}</button>
           <button class="btn btn-ink btn-sm" id="fDraw" type="button">{{ icon('square-dashed', 'ico ico-sm') }}{{ m.L('Draw area', 'ارسم منطقة') }}</button>
@@ -185,12 +206,17 @@
     <!-- ============ TAXON VIEW ============ -->
     <div data-v="taxon" hidden><div class="sec" id="fTaxon"></div></div>
   </aside>
-  <div class="wsm-map"><div class="map" id="fMap"></div><div class="map-hint" id="fHint" hidden>{{ m.L('Drag a rectangle, or tap two corners', 'اسحب مستطيلاً أو انقر ركنين') }}</div><div class="fx-mapstat" id="fMapStat" hidden></div><div class="fx-leg" id="fLeg" hidden></div></div>
+  <div class="wsm-map"><div class="map" id="fMap"></div><div class="map-hint" id="fHint" hidden>{{ m.L('Drag a rectangle, or tap two corners', 'اسحب مستطيلاً أو انقر ركنين') }}</div><div class="fx-mapstat" id="fMapStat" hidden><div class="fx-mapttl" id="fMapTtl"></div><div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end" id="fMapBadges"></div></div><div class="fx-leg" id="fLeg" hidden></div></div>
 </div>
 
 <!-- ============ RESULTS DECK ============ -->
 <section class="fx-deck" id="fDeck">
   <div class="in">
+    <div class="fx-focus" id="fSFocus" hidden data-rp-extra>
+      <div class="fx-fhead"><div><span class="k">{{ m.L('Selected site', 'الموقع المختار') }}</span><h2 id="fSName"></h2><p class="fx-cap" id="fSSum"></p></div><button type="button" class="btn btn-line btn-xs no-print" id="fSClose">{{ icon('x', 'ico ico-sm') }}{{ m.L('Close', 'إغلاق') }}</button></div>
+      <div class="fx-panel"><div class="ph"><h3>{{ icon('map-pin') }}{{ m.L('Site map and description sheet', 'خريطة الموقع ولوحة وصفه') }}</h3><div class="fx-dl no-print"><button class="btn btn-line btn-xs" data-ssv="png" type="button">PNG</button><button class="btn btn-line btn-xs" data-ssv="jpg" type="button">JPG</button><button class="btn btn-line btn-xs" data-ssv="pdf" type="button">PDF</button></div></div>
+        <div class="fx-sheet"><svg id="fSiteSheet" viewBox="0 0 1100 800" direction="ltr"></svg></div><p class="fx-cap" id="fSiteCap"></p></div>
+    </div>
     <div class="fx-focus" id="fFocus" hidden data-rp-extra>
       <div class="fx-fhead"><div><span class="k">{{ m.L('Selected fossil', 'الأحفورة المختارة') }}</span><h2 id="fFName"></h2><p class="fx-cap" id="fFSum"></p></div><button type="button" class="btn btn-line btn-xs no-print" id="fFClose">{{ icon('x', 'ico ico-sm') }}{{ m.L('Close', 'إغلاق') }}</button></div>
       <div class="fx-panel"><div class="ph"><h3>{{ icon('globe') }}{{ m.L('Worldwide distribution map', 'خريطة الانتشار العالمي') }}</h3><div class="fx-dl no-print"><button class="btn btn-line btn-xs" data-wm="1" data-f="png" type="button">PNG</button><button class="btn btn-line btn-xs" data-wm="1" data-f="jpg" type="button">JPG</button><button class="btn btn-line btn-xs" data-wm="1" data-f="pdf" type="button">PDF</button><button class="btn btn-ink btn-xs" id="fWOn" type="button">{{ m.L('Show on the main map', 'اعرضها على الخريطة الرئيسية') }}</button></div></div>
@@ -217,10 +243,10 @@
         <div class="fx-kpis" id="fKpis"></div>
         <div class="fx-panel"><h3>{{ icon('sparkles') }}{{ m.L('Shandal reading of the region', 'قراءة نظام شندل للمنطقة') }}</h3><div class="fx-interp" id="fSum"></div></div>
         <div class="fx-grid2">
-          <div class="fx-panel"><div class="ph"><h3>{{ icon('clock') }}{{ m.L('Fossil record through geological time', 'السجل الأحفوري عبر الزمن الجيولوجي') }}</h3><div class="fx-dl no-print" data-dlplot="fPer"></div></div><div class="plot" id="fPer" style="height:300px"></div><p class="fx-cap" id="fPerCap"></p></div>
-          <div class="fx-panel"><div class="ph"><h3>{{ icon('shell') }}{{ m.L('Main fossil groups', 'المجموعات الأحفورية الرئيسية') }}</h3><div class="fx-dl no-print" data-dlplot="fCls"></div></div><div class="plot" id="fCls" style="height:300px"></div><p class="fx-cap" id="fClsCap"></p></div>
-          <div class="fx-panel"><div class="ph"><h3>{{ icon('layers') }}{{ m.L('Ancient depositional environments', 'البيئات الترسيبية القديمة') }}</h3><div class="fx-dl no-print" data-dlplot="fEnv"></div></div><div class="plot" id="fEnv" style="height:300px"></div><p class="fx-cap" id="fEnvCap"></p></div>
-          <div class="fx-panel"><div class="ph"><h3>{{ icon('globe') }}{{ m.L('Drift of the sites through time', 'انجراف المواقع عبر الزمن') }}</h3><div class="fx-dl no-print" data-dlplot="fDrift"></div></div><div class="plot" id="fDrift" style="height:300px"></div><p class="fx-cap" id="fDriftCap"></p></div>
+          <div class="fx-panel"><div class="ph"><h3>{{ icon('clock') }}{{ m.L('Fossil record through geological time', 'السجل الأحفوري عبر الزمن الجيولوجي') }}</h3><div class="fx-dl no-print" data-dlplot="fPer"></div></div><div class="plot" id="fPer" style="height:430px"></div><p class="fx-cap" id="fPerCap"></p></div>
+          <div class="fx-panel"><div class="ph"><h3>{{ icon('shell') }}{{ m.L('Main fossil groups', 'المجموعات الأحفورية الرئيسية') }}</h3><div class="fx-dl no-print" data-dlplot="fCls"></div></div><div class="plot" id="fCls" style="height:430px"></div><p class="fx-cap" id="fClsCap"></p></div>
+          <div class="fx-panel"><div class="ph"><h3>{{ icon('layers') }}{{ m.L('Ancient depositional environments', 'البيئات الترسيبية القديمة') }}</h3><div class="fx-dl no-print" data-dlplot="fEnv"></div></div><div class="plot" id="fEnv" style="height:430px"></div><p class="fx-cap" id="fEnvCap"></p></div>
+          <div class="fx-panel"><div class="ph"><h3>{{ icon('globe') }}{{ m.L('Drift of the sites through time', 'انجراف المواقع عبر الزمن') }}</h3><div class="fx-dl no-print" data-dlplot="fDrift"></div></div><div class="plot" id="fDrift" style="height:430px"></div><p class="fx-cap" id="fDriftCap"></p></div>
         </div>
       </div>
       <!-- sites -->
