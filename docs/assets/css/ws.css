@@ -4,7 +4,7 @@
 .ws-page{background:var(--bg-2)}
 .ws-bar{position:sticky;top:var(--header-h);z-index:60;background:color-mix(in srgb,var(--surface) 92%,transparent);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
 .ws-bar .wrap{display:flex;align-items:center;gap:14px;min-height:62px;max-width:1520px;flex-wrap:wrap;padding-block:8px}
-.ws-id{display:flex;align-items:center;gap:12px;min-width:0;flex:1}
+.ws-id{display:flex;align-items:center;gap:12px;min-width:0;flex:1 1 240px}
 .ws-id .ib{width:40px;height:40px;border-radius:11px;display:grid;place-items:center;background:var(--accent-soft);color:var(--accent);flex:none}
 .ws-id h1{font-size:1.08rem;letter-spacing:-.01em;line-height:1.2;margin:0}
 .ws-id small{display:block;color:var(--text-3);font-size:.76rem;font-weight:600}
@@ -167,9 +167,9 @@ html[lang=ar] .leaflet-container{font-family:var(--font-ar)!important}
 /* map-first layout */
 .wsm{position:relative;display:grid;grid-template-columns:minmax(300px,380px) minmax(0,1fr);height:calc(100vh - var(--header-h) - 63px);min-height:560px}
 .wsm-side{overflow:auto;border-inline-end:1px solid var(--line);background:var(--surface);display:grid;align-content:start;gap:0}
-.wsm-side>.sec{padding:16px;border-bottom:1px solid var(--line);display:grid;gap:12px}
-.wsm-side>.sec h3{font-size:.86rem;color:var(--text-2);margin:0;display:flex;align-items:center;gap:8px}
-.wsm-side>.sec h3 .ico{width:16px;height:16px;color:var(--accent)}
+.wsm-side>.sec,.wsm-side>[data-v]>.sec{padding:16px;border-bottom:1px solid var(--line);display:grid;gap:12px}
+.wsm-side>.sec h3,.wsm-side>[data-v]>.sec h3{font-size:.86rem;color:var(--text-2);margin:0;display:flex;align-items:center;gap:8px}
+.wsm-side>.sec h3 .ico,.wsm-side>[data-v]>.sec h3 .ico{width:16px;height:16px;color:var(--accent)}
 .wsm-map{position:relative;min-width:0}
 .wsm-map .map{height:100%}
 @media (max-width:900px){ .wsm{grid-template-columns:1fr;height:auto} .wsm-map{order:-1;height:62vh;min-height:380px} .wsm-side{border-inline-end:0;border-top:1px solid var(--line)} }

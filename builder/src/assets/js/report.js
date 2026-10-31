@@ -51,6 +51,7 @@
       return Promise.all(Array.prototype.map.call(m.querySelectorAll('.leaflet-overlay-pane svg'), function (sv) { var r = sv.getBoundingClientRect(), c = sv.cloneNode(true); c.setAttribute('width', r.width); c.setAttribute('height', r.height); c.setAttribute('xmlns', 'http://www.w3.org/2000/svg'); c.removeAttribute('style');
         return imgFromURL('data:image/svg+xml;charset=utf-8,' + encodeURIComponent(new XMLSerializer().serializeToString(c))).then(function (im) { x.drawImage(im, (r.left - R0.left) * k, (r.top - R0.top) * k, r.width * k, r.height * k); }).catch(function () {}); })).then(function () { return ov; });
     }).then(function (ov) {
+      Array.prototype.forEach.call(m.querySelectorAll('.leaflet-overlay-pane canvas'), function (c2) { try { var r = c2.getBoundingClientRect(); x.drawImage(c2, (r.left - R0.left) * k, (r.top - R0.top) * k, r.width * k, r.height * k); } catch (e) {} });
       if (ov && ov.width && ov.height) x.drawImage(ov, 0, 0, cv.width, cv.height);
       if (lm && w.L && !bare) try { mapDeco(x, k, W, H, lm, m); } catch (e) {}
       return { src: cv.toDataURL('image/jpeg', .92), w: W, h: H };
@@ -119,14 +120,15 @@
     } else {
       var mp = d.querySelector('.wsm-map .leaflet-container'); if (mp) out.push(mp.parentElement);
       var side = d.querySelector('.wsm-side');
-      if (side) side.querySelectorAll('.sec, [data-v]:not([hidden]) > .sec').forEach(function (s) { if (vis(s) && !s.querySelector('input:not([type=checkbox]), select, textarea') && s.textContent.trim().length > 20) out.push(s); });
+      if (side) side.querySelectorAll('.sec, [data-v]:not([hidden]) > .sec').forEach(function (s) { if (vis(s) && !s.hasAttribute('data-rp-skip') && !s.querySelector('input:not([type=checkbox]), select, textarea') && s.textContent.trim().length > 20) out.push(s); });
       if (side) Array.prototype.forEach.call(side.children, function (s) { if (vis(s) && !s.classList.contains('sec') && !s.matches('[data-v]') && s.children.length && !s.querySelector('input, select')) out.push(s); });
+      d.querySelectorAll('[data-rp-extra]').forEach(function (s) { if (vis(s)) out.push(s); });
     }
     return out.filter(function (e, i, a) { return a.indexOf(e) === i && !a.some(function (o) { return o !== e && o.contains(e); }); });
   }
 
   /* break a results container into page-sized atomic pieces (figures, KPI rows, verdicts, tables, paragraphs) */
-  var ATOM = '.fig, .kpis, .kpi, .verdict, .tbl-wrap, table, figure, img, .plot, p, h2, h3, h4, .fx-card, .note, .rp-fig, ul, ol, .pn-h';
+  var ATOM = '.fig, .kpis, .kpi, .fx-kpis, .fx-panel, .fx-hd, .fx-facts, .verdict, .tbl-wrap, table, figure, img, .plot, p, h2, h3, h4, .fx-card, .note, .rp-fig, ul, ol, .pn-h';
   function flatten(n) {
     if (n.matches && n.matches(ATOM)) return [n];
     var kids = Array.prototype.filter.call(n.children || [], function (k) { return k.textContent.trim() || k.querySelector('img'); });
