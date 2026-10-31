@@ -377,55 +377,93 @@
     });
   }
 
-  /* worldwide record: dotted world map + time distribution, both downloadable */
+  /* worldwide record: Equal Earth distribution map and time distribution, shown large in the deck under the map */
   function worldwide(nm) {
+    var F0 = $('#fFocus'); F0.hidden = true;
     SH.getJSON(PB + 'occs/list.json?vocab=pbdb&show=coords,paleoloc&limit=8000&base_name=' + encodeURIComponent(nm), { timeout: 45000 }).then(function (j) {
       var R = (j.records || []).map(function (r) { return { lat: +r.lat, lon: +r.lng, max: +r.max_ma, min: +r.min_ma, plat: r.paleolat === '' || r.paleolat == null ? null : +r.paleolat }; }).filter(function (r) { return isFinite(r.lat) && isFinite(r.lon); });
-      if (!$('#fWBox')) return;
+      if (!$('#fWBox') || !cur.taxon || cur.taxon.name !== nm) return;
       if (!R.length) { $('#fWBox').innerHTML = '<p class="small muted">' + t('No mapped occurrences are published for this name.', 'لا توجد ظهورات منشورة مرسومة لهذا الاسم.') + '</p>'; return; }
       var cc = {}; R.forEach(function (r) { cc[Math.round(r.lat) + ',' + Math.round(r.lon)] = 1; });
       var P = {}; R.forEach(function (r) { var p = per(r.max, r.min)[0]; P[p] = (P[p] || 0) + 1; }); var pk = Object.keys(P).sort(function (a, b) { return P[b] - P[a]; }), pP = SH.ics.filter(function (p) { return p[0] === pk[0]; })[0];
       var tro = R.filter(function (r) { return r.plat != null; }), inT = tro.filter(function (r) { return Math.abs(r.plat) <= 23.5; }).length;
-      $('#fWBox').innerHTML = '<p class="small" style="margin:6px 0;line-height:1.8">' + t('Known from ', 'عُرفت من ') + '<b>' + SH.fmt(R.length, 0) + '</b>' + t(' published occurrences in about ', ' ظهوراً منشوراً في نحو ') + '<b>' + Object.keys(cc).length + '</b>' + t(' one-degree cells worldwide, most of them from the ', ' خلية بمساحة درجة واحدة حول العالم، أغلبها من عصر ') + '<b>' + (pP ? pname(pP) : '') + '</b>' + (tro.length ? t('. When alive, ', '. وعند حياتها كانت ') + '<b>' + pct(inT, tro.length) + '%</b>' + t(' of them lay within the tropics.', ' منها ضمن المنطقة المدارية.') : '.') + '</p>' +
-        '<div class="fx-world zoom" data-zoom="fWMap"><svg id="fWMap" viewBox="0 0 1000 560" role="img" aria-label="world"></svg></div><div class="fx-dl" style="margin-top:8px"><span class="lbl">' + t('Distribution map', 'خريطة الانتشار') + '</span>' + dlBtns('data-wm', '1') + '<button type="button" class="btn btn-ink btn-xs" id="fWOn">' + t('Show on the main map', 'اعرضها على الخريطة الرئيسية') + '</button></div>' +
-        '<div class="fx-world zoom" data-zoom="fWTime" style="margin-top:12px;background:#fff"><svg id="fWTime" viewBox="0 0 1000 380" role="img" aria-label="time"></svg></div><div class="fx-dl" style="margin-top:8px"><span class="lbl">' + t('Time distribution', 'التوزيع الزمني') + '</span>' + dlBtns('data-wt', '1') + '</div>' +
-        '<p class="fx-cap" style="margin-top:6px">' + t('The map shows where the fossil has been found, coloured by geological period; the chart shows in which intervals it is most often found.', 'تبين الخريطة أماكن العثور على الأحفورة ملونة حسب العصر الجيولوجي، ويبين المخطط الفترات التي توجد فيها أكثر من غيرها.') + '</p>';
+      var sum = t('Known from ', 'عُرفت من ') + '<b>' + SH.fmt(R.length, 0) + '</b>' + t(' published occurrences in about ', ' ظهوراً منشوراً في نحو ') + '<b>' + Object.keys(cc).length + '</b>' + t(' one-degree cells worldwide, most of them from the ', ' خلية بمساحة درجة واحدة حول العالم، أغلبها من عصر ') + '<b>' + (pP ? pname(pP) : '') + '</b>' + (tro.length ? t('. When alive, ', '. وعند حياتها كانت ') + '<b>' + pct(inT, tro.length) + '%</b>' + t(' of them lay within the tropics.', ' منها ضمن المنطقة المدارية.') : '.');
+      $('#fWBox').innerHTML = '<p class="small" style="margin:6px 0;line-height:1.8">' + sum + '</p><button type="button" class="btn btn-gold btn-sm" id="fGoFocus">' + SH.icon('globe') + t('Open the distribution map and time chart', 'افتح خريطة الانتشار والمخطط الزمني') + '</button><p class="fx-cap" style="margin-top:8px">' + t('Both figures are shown at full size under the main map, with their downloads.', 'يظهر الشكلان بحجمهما الكامل أسفل الخريطة الرئيسية مع تنزيلاتهما.') + '</p>';
+      $('#fFName').innerHTML = '<i>' + E(nm) + '</i>'; $('#fFSum').innerHTML = sum; F0.hidden = false;
       worldSvg($('#fWMap'), nm, R); timeSvg($('#fWTime'), nm, R);
-      $('#fWOn').addEventListener('click', function () { clearWorld(); world = L.layerGroup().addTo(map); var seen = {};
-        R.forEach(function (r) { var k = r.lat.toFixed(1) + ',' + r.lon.toFixed(1); if (seen[k]) return; seen[k] = 1; L.circleMarker([r.lat, r.lon], { radius: 3.5, weight: .6, color: '#111', fillColor: per(r.max, r.min)[4], fillOpacity: .9, interactive: false }).addTo(world); });
-        map.fitBounds(L.latLngBounds(R.map(function (r) { return [r.lat, r.lon]; })).pad(.1), { maxZoom: 6 }); });
+      $('#fWCap').innerHTML = t('Each circle gathers the occurrences within one degree of latitude and longitude, coloured by the period in which most of them fall and sized by their number. The shaded belt is the present-day tropics.', 'تجمع كل دائرة الظهورات الواقعة ضمن درجة واحدة من العرض والطول، وتُلوَّن حسب العصر الذي يقع فيه أغلبها، ويتناسب حجمها مع عددها. والحزام المظلل هو المنطقة المدارية الحالية.');
+      $('#fWTCap').innerHTML = t('Occurrences counted in equal time intervals, coloured by period, above the official ICS time scale; the tallest bars mark the intervals in which the fossil is most often found.', 'الظهورات محسوبة في فترات زمنية متساوية وملونة حسب العصر فوق المقياس الزمني الرسمي للجنة الدولية للطباقية؛ وتدل الأعمدة الأعلى على الفترات التي توجد فيها الأحفورة أكثر من غيرها.');
+      cur.taxon.R = R;
+      $('#fGoFocus').addEventListener('click', function () { F0.scrollIntoView({ behavior: 'smooth', block: 'start' }); });
     }).catch(function () { if ($('#fWBox')) $('#fWBox').innerHTML = '<p class="small muted">' + t('The worldwide record could not be loaded now. Try again later.', 'تعذر تحميل الانتشار العالمي الآن. حاول لاحقاً.') + '</p>'; });
   }
+  $('#fWOn').addEventListener('click', function () { var R = cur.taxon && cur.taxon.R; if (!R) return; clearWorld(); world = L.layerGroup().addTo(map); var seen = {};
+    R.forEach(function (r) { var k = r.lat.toFixed(1) + ',' + r.lon.toFixed(1); if (seen[k]) return; seen[k] = 1; L.circleMarker([r.lat, r.lon], { radius: 3.5, weight: .6, color: '#111', fillColor: per(r.max, r.min)[4], fillOpacity: .9, interactive: false }).addTo(world); });
+    map.fitBounds(L.latLngBounds(R.map(function (r) { return [r.lat, r.lon]; })).pad(.1), { maxZoom: 6 }); var m = $('.wsm'); if (m) m.scrollIntoView({ behavior: 'smooth', block: 'start' }); });
+  $('#fFClose').addEventListener('click', function () { $('#fFocus').hidden = true; });
+  /* Equal Earth projection (Šavrič, Patterson & Jenny 2018) */
+  var EE = (function () { var A1 = 1.340264, A2 = -0.081106, A3 = 0.000893, A4 = 0.003796, M = Math.sqrt(3) / 2, D = Math.PI / 180;
+    return function (lon, lat) { var l = lon * D, th = Math.asin(M * Math.sin(lat * D)), t2 = th * th, t6 = t2 * t2 * t2; return [2 * Math.sqrt(3) * l * Math.cos(th) / (3 * (A1 + 3 * A2 * t2 + t6 * (7 * A3 + 9 * A4 * t2))), th * (A1 + A2 * t2 + t6 * (A3 + A4 * t2))]; }; })();
+  var COAST = null; function coast() { return COAST || (COAST = SH.getJSON(SH.base + 'assets/data/land-110m.json').catch(function () { return []; })); }
+  function northArrow(S2, x, y, s, col) {
+    s = s || 1; col = col || INK; var g = S2.g({ transform: 'translate(' + x + ' ' + y + ') scale(' + s + ')' });
+    S2.path('M0 0L-11 40L0 31Z', { fill: col }, g); S2.path('M0 0L11 40L0 31Z', { fill: '#fff', stroke: col, 'stroke-width': 1.3, 'stroke-linejoin': 'round' }, g);
+    S2.line(0, 31, 0, 48, { stroke: col, 'stroke-width': 1.3 }, g);
+    S2.text(0, -7, 'N', { fill: col, 'font-size': 16, 'font-weight': 800, 'text-anchor': 'middle', 'font-family': PF, direction: 'ltr' }, g);
+    return g;
+  }
   function worldSvg(svg, nm, R) {
-    var S2 = SH.svgB(svg), W = 1000, X0 = 30, Y0 = 70, MW = 760, MH = 380, px = function (lo) { return X0 + (lo + 180) / 360 * MW; }, py = function (la) { return Y0 + (90 - la) / 180 * MH; };
-    S2.add('rect', { x: 0, y: 0, width: W, height: 560, fill: '#0D1720' });
-    S2.text(X0, 36, 'Worldwide record of ', { fill: '#E9EEF2', 'font-size': 20, 'font-weight': 700, 'font-family': PF });
-    S2.add('text', { x: X0 + 196, y: 36, fill: '#F2C95B', 'font-size': 20, 'font-weight': 700, 'font-style': 'italic', 'font-family': PF }, nm);
-    S2.text(X0, 58, SH.fmt(R.length, 0) + ' published occurrences · present-day coordinates', { fill: '#9AA6B1', 'font-size': 13, 'font-family': PF });
-    // graticule
-    for (var lo = -180; lo <= 180; lo += 30) S2.line(px(lo), Y0, px(lo), Y0 + MH, { stroke: 'rgba(255,255,255,.07)' });
-    for (var la = -90; la <= 90; la += 30) S2.line(X0, py(la), X0 + MW, py(la), { stroke: la === 0 ? 'rgba(255,255,255,.18)' : 'rgba(255,255,255,.07)', 'stroke-dasharray': la === 0 ? '4 4' : null });
-    [23.44, -23.44].forEach(function (la) { S2.line(X0, py(la), X0 + MW, py(la), { stroke: 'rgba(224,123,106,.35)', 'stroke-dasharray': '2 5' }); });
-    if (LAND) { var dd = ''; for (var i = 0; i < LAND.length; i += 2) dd += 'M' + px(LAND[i + 1]).toFixed(1) + ' ' + py(LAND[i]).toFixed(1) + 'h1.6v1.6h-1.6z'; S2.path(dd, { fill: 'rgba(214,190,130,.55)' }); }
-    var cells = {}; R.forEach(function (r) { var k = Math.round(r.lat) + ',' + Math.round(r.lon); var c = cells[k] = cells[k] || { lat: Math.round(r.lat), lon: Math.round(r.lon), n: 0, P: {} }; c.n++; var p = per(r.max, r.min); c.P[p[0]] = (c.P[p[0]] || 0) + 1; c.col = c.col || p[4]; });
-    var used = {};
-    Object.keys(cells).map(function (k) { return cells[k]; }).sort(function (a, b) { return b.n - a.n; }).forEach(function (c) { var pk = Object.keys(c.P).sort(function (a, b) { return c.P[b] - c.P[a]; })[0], p = SH.ics.filter(function (q) { return q[0] === pk; })[0] || ['?', '?', 0, 0, '#ccc']; used[p[0]] = p;
-      S2.circle(px(c.lon), py(c.lat), Math.min(9, 2.6 + Math.sqrt(c.n) * .9), { fill: p[4], stroke: '#0D1720', 'stroke-width': .8, 'fill-opacity': .95 }); });
-    S2.add('rect', { x: X0, y: Y0, width: MW, height: MH, fill: 'none', stroke: 'rgba(255,255,255,.35)', 'stroke-width': 1 });
-    [[-120, '120°W'], [-60, '60°W'], [0, '0°'], [60, '60°E'], [120, '120°E']].forEach(function (q) { S2.text(px(q[0]), Y0 + MH + 18, q[1], { fill: '#9AA6B1', 'font-size': 11, 'text-anchor': 'middle', 'font-family': PF }); });
-    [[60, '60°N'], [30, '30°N'], [0, '0°'], [-30, '30°S'], [-60, '60°S']].forEach(function (q) { S2.text(X0 + MW + 8, py(q[0]) + 4, q[1], { fill: '#9AA6B1', 'font-size': 11, 'font-family': PF }); });
-    // north arrow
-    var NX = X0 + MW - 26, NY = Y0 + 16; S2.path('M' + NX + ' ' + NY + 'l-9 26l9 -6z', { fill: '#E9EEF2' }); S2.path('M' + NX + ' ' + NY + 'l9 26l-9 -6z', { fill: 'none', stroke: '#E9EEF2', 'stroke-width': 1 }); S2.text(NX, NY - 4, 'N', { fill: '#E9EEF2', 'font-size': 12, 'font-weight': 800, 'text-anchor': 'middle', 'font-family': PF });
-    // legend
-    var LX = X0 + MW + 58, ly = Y0 + 6; S2.text(LX, ly, 'LEGEND', { fill: '#E9EEF2', 'font-size': 13, 'font-weight': 800, 'letter-spacing': 1, 'font-family': PF }); ly += 20; S2.text(LX, ly, 'Main period of the cell', { fill: '#9AA6B1', 'font-size': 11, 'font-family': PF }); ly += 14;
-    SH.ics.filter(function (p) { return used[p[0]]; }).forEach(function (p) { S2.circle(LX + 7, ly + 6, 6, { fill: p[4], stroke: '#0D1720' }); S2.text(LX + 20, ly + 10, p[0], { fill: '#E9EEF2', 'font-size': 12, 'font-family': PF }); ly += 20; });
-    ly += 8; S2.text(LX, ly, 'Size = occurrences', { fill: '#9AA6B1', 'font-size': 11, 'font-family': PF }); ly += 14; S2.text(LX, ly, 'per 1° cell', { fill: '#9AA6B1', 'font-size': 11, 'font-family': PF }); ly += 8;
-    [1, 10, 50].forEach(function (n) { var r = Math.min(9, 2.6 + Math.sqrt(n) * .9); S2.circle(LX + 9, ly + 12, r, { fill: 'none', stroke: '#E9EEF2' }); S2.text(LX + 24, ly + 16, String(n), { fill: '#E9EEF2', 'font-size': 11, 'font-family': PF }); ly += 22; });
-    ly += 6; S2.line(LX, ly + 6, LX + 24, ly + 6, { stroke: 'rgba(224,123,106,.8)', 'stroke-dasharray': '2 5' }); S2.text(LX + 30, ly + 10, 'Tropics today', { fill: '#E9EEF2', 'font-size': 11, 'font-family': PF });
-    S2.text(X0, 540, 'Equirectangular projection, WGS 84. Geological ages after ICS (2023).', { fill: '#6F7C88', 'font-size': 11, 'font-family': PF });
+    var S2 = SH.svgB(svg), W = 1200, X0 = 70, MW = 1060, k = MW / (2 * 2.70663), MH = 2 * 1.31731 * k, Y0 = 108, cx = X0 + MW / 2, cy = Y0 + MH / 2;
+    svg.setAttribute('direction', 'ltr'); svg.style.direction = 'ltr';
+    var P = function (lon, lat) { var q = EE(lon, lat); return [cx + k * q[0], cy - k * q[1]]; };
+    var path = function (pts) { return pts.map(function (q, i) { var p = P(q[0], q[1]); return (i ? 'L' : 'M') + p[0].toFixed(1) + ' ' + p[1].toFixed(1); }).join(''); };
+    var bg = S2.add('rect', { x: 0, y: 0, width: W, height: 900, fill: '#fff' });
+    var tt = S2.add('text', { x: X0, y: 46, fill: INK, 'font-size': 24, 'font-weight': 800, 'font-family': PF, direction: 'ltr' }); S2.add('tspan', {}, 'Worldwide record of ', tt); S2.add('tspan', { 'font-style': 'italic', fill: '#8A6A1F' }, nm, tt);
+    S2.text(X0, 74, SH.fmt(R.length, 0) + ' published occurrences plotted at their present-day position', { fill: MUT, 'font-size': 14, 'font-family': PF, direction: 'ltr' });
+    // sphere outline, ocean and clip
+    var ol = []; for (var la = -90; la <= 90; la += 2) ol.push([-180, la]); for (la = 90; la >= -90; la -= 2) ol.push([180, la]);
+    var dfs = S2.add('defs', {}), cid = 'eeclip' + Math.round(Math.random() * 1e6), cp = S2.add('clipPath', { id: cid }, null, dfs); S2.path(path(ol) + 'Z', {}, cp);
+    S2.path(path(ol) + 'Z', { fill: '#E6EEF4' });
+    var gc = S2.g({ 'clip-path': 'url(#' + cid + ')' });
+    // tropics belt
+    var tb = []; for (var lo = -180; lo <= 180; lo += 4) tb.push([lo, 23.44]); for (lo = 180; lo >= -180; lo -= 4) tb.push([lo, -23.44]); S2.path(path(tb) + 'Z', { fill: 'rgba(224,123,106,.10)' }, gc);
+    var land = S2.g({}, gc), grat = S2.g({}, gc), dots = S2.g({}, gc);
+    for (lo = -150; lo <= 150; lo += 30) { var mer = []; for (la = -90; la <= 90; la += 3) mer.push([lo, la]); S2.path(path(mer), { fill: 'none', stroke: '#AFC0CD', 'stroke-width': .6, 'stroke-opacity': .8 }, grat); }
+    [-60, -30, 0, 30, 60].forEach(function (la2) { var par = []; for (var l2 = -180; l2 <= 180; l2 += 3) par.push([l2, la2]); S2.path(path(par), { fill: 'none', stroke: la2 ? '#AFC0CD' : '#7F95A6', 'stroke-width': la2 ? .6 : .9, 'stroke-dasharray': la2 ? null : '5 4' }, grat); });
+    [23.44, -23.44].forEach(function (la2) { var par = []; for (var l2 = -180; l2 <= 180; l2 += 3) par.push([l2, la2]); S2.path(path(par), { fill: 'none', stroke: '#D9826F', 'stroke-width': .8, 'stroke-dasharray': '2 4' }, grat); });
+    // occurrences, aggregated in 1° cells
+    var cells = {}; R.forEach(function (r) { var key = Math.round(r.lat) + ',' + Math.round(r.lon); var c = cells[key] = cells[key] || { lat: Math.round(r.lat), lon: Math.round(r.lon), n: 0, P: {} }; c.n++; var p = per(r.max, r.min); c.P[p[0]] = (c.P[p[0]] || 0) + 1; });
+    var used = {}, rad = function (n) { return Math.min(10, 3 + Math.sqrt(n) * 1.05); };
+    Object.keys(cells).map(function (q) { return cells[q]; }).sort(function (a, b) { return b.n - a.n; }).forEach(function (c) { var pk = Object.keys(c.P).sort(function (a, b) { return c.P[b] - c.P[a]; })[0], p = SH.ics.filter(function (q) { return q[0] === pk; })[0] || ['?', '?', 0, 0, '#ccc']; used[p[0]] = p; var xy = P(c.lon, c.lat);
+      S2.circle(xy[0], xy[1], rad(c.n), { fill: p[4], stroke: '#1B232B', 'stroke-width': .7, 'fill-opacity': .95 }, dots); });
+    S2.path(path(ol) + 'Z', { fill: 'none', stroke: '#5E7180', 'stroke-width': 1.4 });
+    // labels outside the sphere
+    [-60, -30, 0, 30, 60].forEach(function (la2) { var p = P(-180, la2); S2.text(p[0] - 8, p[1] + 4, la2 ? Math.abs(la2) + '°' + (la2 > 0 ? 'N' : 'S') : '0°', { fill: MUT, 'font-size': 12, 'text-anchor': 'end', 'font-family': PF, direction: 'ltr' }); var q = P(180, la2); S2.text(q[0] + 8, q[1] + 4, la2 ? Math.abs(la2) + '°' + (la2 > 0 ? 'N' : 'S') : '0°', { fill: MUT, 'font-size': 12, 'font-family': PF, direction: 'ltr' }); });
+    [-120, -60, 0, 60, 120].forEach(function (l2) { var p = P(l2, -90); S2.text(p[0], p[1] + 20, l2 ? Math.abs(l2) + '°' + (l2 > 0 ? 'E' : 'W') : '0°', { fill: MUT, 'font-size': 12, 'text-anchor': 'middle', 'font-family': PF, direction: 'ltr' }); });
+    northArrow(S2, X0 + MW - 24, Y0 + 14, 1);
+    // legend under the map
+    var ly = Y0 + MH + 58; S2.line(X0, ly - 22, X0 + MW, ly - 22, { stroke: '#D9D4C7' });
+    S2.text(X0, ly, 'LEGEND', { fill: INK, 'font-size': 15, 'font-weight': 800, 'letter-spacing': 1.2, 'font-family': PF, direction: 'ltr' }); ly += 26;
+    S2.text(X0, ly, 'Period in which most occurrences of the cell fall', { fill: MUT, 'font-size': 12.5, 'font-family': PF, direction: 'ltr' }); ly += 12;
+    var ps = SH.ics.filter(function (p) { return used[p[0]]; }).reverse(), colW = 265;
+    ps.forEach(function (p, i) { var x = X0 + (i % 4) * colW, y = ly + Math.floor(i / 4) * 26; S2.circle(x + 8, y + 12, 7.5, { fill: p[4], stroke: '#1B232B', 'stroke-width': .7 }); S2.text(x + 24, y + 16.5, p[0] + '  (' + ma(p[3]) + '–' + ma(p[2]) + ' Ma)', { fill: INK, 'font-size': 13, 'font-family': PF, direction: 'ltr' }); });
+    ly += Math.ceil(ps.length / 4) * 26 + 18;
+    S2.text(X0, ly, 'Occurrences per 1° cell', { fill: MUT, 'font-size': 12.5, 'font-family': PF, direction: 'ltr' });
+    var sx = X0 + 175; [1, 10, 50].forEach(function (n) { var r = rad(n); S2.circle(sx + r, ly - 4, r, { fill: '#fff', stroke: '#1B232B', 'stroke-width': .9 }); S2.text(sx + 2 * r + 7, ly + 1, String(n), { fill: INK, 'font-size': 13, 'font-family': PF, direction: 'ltr' }); sx += 2 * r + 40; });
+    var lx = X0 + 470; S2.add('rect', { x: lx, y: ly - 12, width: 30, height: 14, fill: 'rgba(224,123,106,.18)', stroke: '#D9826F', 'stroke-dasharray': '2 3' }); S2.text(lx + 38, ly + 1, 'Tropics today (23.44° N–S)', { fill: INK, 'font-size': 13, 'font-family': PF, direction: 'ltr' });
+    lx += 265; S2.line(lx, ly - 5, lx + 30, ly - 5, { stroke: '#7F95A6', 'stroke-width': 1, 'stroke-dasharray': '5 4' }); S2.text(lx + 38, ly + 1, 'Equator', { fill: INK, 'font-size': 13, 'font-family': PF, direction: 'ltr' });
+    ly += 34; S2.text(X0, ly, 'Equal Earth projection, WGS 84 · coastlines at 1:110 million · geological ages after the ICS chart (2023)', { fill: MUT, 'font-size': 11.5, 'font-family': PF, direction: 'ltr' });
+    var VH = ly + 30; svg.setAttribute('viewBox', '0 0 ' + W + ' ' + VH); bg.setAttribute('height', VH); S2.add('rect', { x: 8, y: 8, width: W - 16, height: VH - 16, fill: 'none', stroke: INK, 'stroke-width': 1.2 });
+    coast().then(function (rings) { rings.forEach(function (rg) {
+      // unwrap rings that cross the antimeridian; a ring that circles the pole (Antarctica) is closed along the pole line
+      var u = [], off = 0; rg.forEach(function (q, i) { if (i) { var dl = q[0] + off - u[i - 1][0]; if (dl > 180) off -= 360; else if (dl < -180) off += 360; } u.push([q[0] + off, q[1]]); });
+      var d0 = u[u.length - 1][0] - u[0][0], dd = path(u);
+      if (Math.abs(d0) > 180) { var pl = u[0][1] < 0 ? -90 : 90; dd += path([[u[u.length - 1][0], pl], [u[0][0], pl]]).replace(/^M/, 'L'); }
+      [0, -360, 360].forEach(function (sh) { var dsh = sh ? path(u.map(function (q) { return [q[0] + sh, q[1]]; })) : dd; S2.path(dsh + 'Z', { fill: '#EFE6D2', stroke: '#8E8068', 'stroke-width': .6, 'stroke-linejoin': 'round' }, land); });
+    }); });
   }
   function timeSvg(svg, nm, R) {
-    var S2 = SH.svgB(svg), W = 1000, X0 = 70, X1 = 970, Y0 = 70, Y1 = 290;
+    var S2 = SH.svgB(svg), W = 1000, X0 = 70, X1 = 970, Y0 = 70, Y1 = 290; svg.setAttribute('direction', 'ltr'); svg.style.direction = 'ltr';
     var mids = R.map(function (r) { return (r.max + r.min) / 2; }), tmax = Math.max.apply(null, R.map(function (r) { return r.max; })), tmin = Math.min.apply(null, R.map(function (r) { return r.min; }));
     var span = Math.max(5, tmax - tmin), lo = Math.max(0, tmin - span * .08), hi = tmax + span * .08, bw = span > 200 ? 10 : span > 80 ? 5 : span > 25 ? 2 : 1, nb = Math.ceil((hi - lo) / bw), bins = new Array(nb).fill(0);
     mids.forEach(function (m) { var i = Math.min(nb - 1, Math.floor((hi - m) / bw)); if (i >= 0) bins[i]++; });
@@ -563,96 +601,99 @@
     return Promise.all([mk('World_Light_Gray_Base'), mk('World_Light_Gray_Reference')]).then(function (a) { var o = document.createElement('canvas'); o.width = cw; o.height = ch; var x = o.getContext('2d'); x.drawImage(a[0], 0, 0); x.drawImage(a[1], 0, 0); try { return o.toDataURL('image/jpeg', .9); } catch (e) { return null; } }).catch(function () { return null; });
   }
   function dms(v, ax) { var a = Math.abs(v), d = Math.floor(a + 1e-9), m = Math.round((a - d) * 60); if (m === 60) { d++; m = 0; } return d + '°' + (m < 10 ? '0' : '') + m + '′' + (ax === 'lat' ? (v >= 0 ? 'N' : 'S') : (v >= 0 ? 'E' : 'W')); }
-  /* frame, graticule, north arrow and scale bar for a map panel; returns projection helpers */
-  function mapFrame(S2, b, X0, Y0, PW, PH, kx, nx, ny) {
-    var tx = function (x, y, s, a) { return S2.text(x, y, s, Object.assign({ fill: INK, 'font-size': 12, direction: 'ltr', 'font-family': PF }, a || {})); };
+  /* frame, graticule labels, north arrow and scale bar for a map panel. The north arrow and the scale bar sit
+     outside the frame so they never cover data; returns projection helpers and the bottom of what was drawn */
+  function mapFrame(S2, b, X0, Y0, PW, PH, kx, o) {
+    o = o || {}; var tx = function (x, y, s, a, par) { return S2.text(x, y, s, Object.assign({ fill: INK, 'font-size': 12, direction: 'ltr', 'font-family': PF }, a || {}), par); };
     S2.add('rect', { x: X0, y: Y0, width: PW, height: PH, fill: 'none', stroke: INK, 'stroke-width': 1.6 }); S2.add('rect', { x: X0 - 6, y: Y0 - 6, width: PW + 12, height: PH + 12, fill: 'none', stroke: INK, 'stroke-width': .8 });
     var px = function (lo) { return X0 + (lo - b.w) / (b.e - b.w) * PW; }, py = function (la) { return Y0 + (b.n - la) / (b.n - b.s) * PH; };
     var gs = [1 / 60, 2 / 60, 5 / 60, 10 / 60, .25, .5, 1, 2, 5, 10], st = gs.filter(function (g) { return (b.e - b.w) / g <= 6; })[0] || 10;
-    for (var lo = Math.ceil(b.w / st) * st; lo <= b.e + 1e-9; lo += st) { var X = px(lo); if (X < X0 + 3 || X > X0 + PW - 3) continue; S2.line(X, Y0 - 6, X, Y0 + 6, { stroke: INK }); S2.line(X, Y0 + PH - 6, X, Y0 + PH + 6, { stroke: INK }); tx(X, Y0 + PH + 22, dms(lo, 'lon'), { 'font-size': 11, 'text-anchor': 'middle' }); }
-    for (var la = Math.ceil(b.s / st) * st; la <= b.n + 1e-9; la += st) { var Y = py(la); if (Y < Y0 + 3 || Y > Y0 + PH - 3) continue; S2.line(X0 - 6, Y, X0 + 6, Y, { stroke: INK }); S2.line(X0 + PW - 6, Y, X0 + PW + 6, Y, { stroke: INK }); tx(X0 - 11, Y + 4, dms(la, 'lat'), { 'font-size': 11, 'text-anchor': 'end' }); }
-    // north arrow inside the frame (top right)
-    var NX = nx == null ? X0 + PW - 30 : nx, NY = ny == null ? Y0 + 20 : ny; S2.add('circle', { cx: NX, cy: NY + 17, r: 24, fill: 'rgba(255,255,255,.88)', stroke: INK, 'stroke-width': .6 });
-    S2.path('M' + NX + ' ' + (NY + 2) + 'l-9 28l9 -7z', { fill: INK }); S2.path('M' + NX + ' ' + (NY + 2) + 'l9 28l-9 -7z', { fill: '#fff', stroke: INK, 'stroke-width': 1 }); tx(NX, NY - 1, 'N', { 'font-size': 13, 'font-weight': 800, 'text-anchor': 'middle' });
-    // scale bar inside the frame (bottom left)
-    var kmPx = (b.e - b.w) * 111.32 * kx / PW, want = kmPx * Math.min(150, PW * .28), p10 = Math.pow(10, Math.floor(Math.log10(want))), m = want / p10, len = (m >= 5 ? 5 : m >= 2 ? 2 : 1) * p10, spx = len / kmPx, sx0 = X0 + 16, sy0 = Y0 + PH - 20;
-    S2.add('rect', { x: sx0 - 8, y: sy0 - 22, width: spx + 58, height: 36, fill: 'rgba(255,255,255,.88)', stroke: INK, 'stroke-width': .5 });
-    for (var i = 0; i < 4; i++) S2.add('rect', { x: sx0 + i * spx / 4, y: sy0, width: spx / 4, height: 6, fill: i % 2 ? '#fff' : INK }); S2.add('rect', { x: sx0, y: sy0, width: spx, height: 6, fill: 'none', stroke: INK, 'stroke-width': .8 });
-    var fl = function (v) { return v >= 1 ? SH.fmt(v, v % 1 ? 1 : 0) : SH.fmt(v, 2); }; tx(sx0, sy0 - 6, '0', { 'font-size': 10.5, 'text-anchor': 'middle' }); tx(sx0 + spx / 2, sy0 - 6, fl(len / 2), { 'font-size': 10.5, 'text-anchor': 'middle' }); tx(sx0 + spx, sy0 - 6, fl(len) + ' km', { 'font-size': 10.5, 'font-weight': 700, 'text-anchor': 'start' });
-    return { px: px, py: py, tx: tx };
+    for (var lo = Math.ceil(b.w / st) * st; lo <= b.e + 1e-9; lo += st) { var X = px(lo); if (X < X0 + 20 || X > X0 + PW - 20) continue; S2.line(X, Y0 - 6, X, Y0, { stroke: INK }); S2.line(X, Y0 + PH, X, Y0 + PH + 6, { stroke: INK }); tx(X, Y0 + PH + 24, dms(lo, 'lon'), { 'font-size': 11.5, 'text-anchor': 'middle' }); }
+    for (var la = Math.ceil(b.s / st) * st; la <= b.n + 1e-9; la += st) { var Y = py(la); if (Y < Y0 + 14 || Y > Y0 + PH - 14) continue; S2.line(X0 - 6, Y, X0, Y, { stroke: INK }); S2.line(X0 + PW, Y, X0 + PW + 6, Y, { stroke: INK }); tx(X0 - 12, Y + 4, dms(la, 'lat'), { 'font-size': 11.5, 'text-anchor': 'end' }); }
+    northArrow(S2, o.nx != null ? o.nx : X0 + PW + 34, o.ny != null ? o.ny : Y0 + 18, 1);
+    var kmPx = (b.e - b.w) * 111.32 * kx / PW, want = kmPx * Math.min(170, PW * .3), p10 = Math.pow(10, Math.floor(Math.log10(want))), m = want / p10, len = (m >= 5 ? 5 : m >= 2 ? 2 : 1) * p10, spx = len / kmPx, sx0 = o.sx != null ? o.sx : X0, sy0 = o.sy != null ? o.sy : Y0 + PH + 58;
+    for (var i = 0; i < 4; i++) S2.add('rect', { x: sx0 + i * spx / 4, y: sy0, width: spx / 4, height: 7, fill: i % 2 ? '#fff' : INK }); S2.add('rect', { x: sx0, y: sy0, width: spx, height: 7, fill: 'none', stroke: INK, 'stroke-width': .9 });
+    var fl = function (v) { return v >= 1 ? SH.fmt(v, v % 1 ? 1 : 0) : SH.fmt(v, 2); }; tx(sx0, sy0 - 7, '0', { 'font-size': 11, 'text-anchor': 'middle' }); tx(sx0 + spx / 2, sy0 - 7, fl(len / 2), { 'font-size': 11, 'text-anchor': 'middle' }); tx(sx0 + spx, sy0 - 7, fl(len), { 'font-size': 11, 'text-anchor': 'middle' }); tx(sx0 + spx + 10, sy0 + 7, 'km', { 'font-size': 11.5, 'font-weight': 700 });
+    return { px: px, py: py, tx: tx, bottom: sy0 + 12 };
   }
   function fitBox(b) { var lat0 = (b.n + b.s) / 2, kx = Math.cos(SH.rad(lat0)), asp = ((b.e - b.w) * kx) / (b.n - b.s); return { kx: kx, asp: asp }; }
-  var SITEKEY = [];
-  function sheet() {
-    var svg = $('#fSheet'), S2 = SH.svgB(svg), W = 1100, X0 = 80, Y0 = 92;
-    // area: the searched rectangle, tightened around the sites when they occupy a small part of it
-    var b = { w: AREA.w, e: AREA.e, s: AREA.s, n: AREA.n };
-    var lats = S.map(function (c) { return c.lat; }), lons = S.map(function (c) { return c.lng; });
-    if (S.length) { var bw = Math.max.apply(null, lons) - Math.min.apply(null, lons), bh = Math.max.apply(null, lats) - Math.min.apply(null, lats), m = Math.max(.15, Math.max(bw, bh) * .07); b = { w: Math.min.apply(null, lons) - m, e: Math.max.apply(null, lons) + m, s: Math.min.apply(null, lats) - m, n: Math.max.apply(null, lats) + m }; }
-    var f = fitBox(b), PW = 720, PH = PW / f.asp; if (PH > 640) { PH = 640; PW = PH * f.asp; } var LX = X0 + 720 + 40;
-    var title = 'Fossil sites' + (AREANAME ? ' — ' + AREANAME : ' of the study area'), sub = [AREA.tax ? 'Group / taxon: ' + AREA.tax : 'All fossil groups', AREA.int ? 'Age: ' + AREA.int : 'All ages', S.length + ' sites · ' + O.length + ' fossil records'].join('   ·   ');
-    S2.add('rect', { x: 0, y: 0, width: W, height: 800, fill: '#fff' });
-    S2.text(X0 - 40, 44, title, { fill: INK, 'font-size': 22, 'font-weight': 800, 'font-family': PF }); S2.text(X0 - 40, 68, sub, { fill: MUT, 'font-size': 12.5, 'font-family': PF });
-    var imgEl = S2.add('image', { x: X0, y: Y0, width: PW, height: PH, preserveAspectRatio: 'none' });
-    var ready = baseMap(b, Math.round(PW * 1.6), Math.round(PH * 1.6)).then(function (u) { if (u) imgEl.setAttribute('href', u); });
-    // sites
+  function clipFor(S2, x, y, w, h) { var dfs = S2.add('defs', {}), id = 'fxc' + Math.round(Math.random() * 1e7), cp = S2.add('clipPath', { id: id }, null, dfs); S2.add('rect', { x: x, y: y, width: w, height: h }, null, cp); return 'url(#' + id + ')'; }
+  var SITEKEY = [], NKEY = 30;
+  function sitePoints() {
     var g = {}; S.forEach(function (c) { var k = c.lat.toFixed(3) + ',' + c.lng.toFixed(3); (g[k] = g[k] || []).push(c); });
-    var pts = Object.keys(g).map(function (k) { var a = g[k], n = a.reduce(function (s, x) { return s + (x.taxa.length || +x.n_occs || 0); }, 0), old = a.slice().sort(function (x, y) { return y.max_ma - x.max_ma; })[0]; return { a: a, c: a[0], n: n, p: per(old.max_ma, old.min_ma) }; }).sort(function (x, y) { return y.n - x.n; });
-    var rad = function (n) { return Math.min(13, 4 + Math.sqrt(n) * 1.1); };
-    var gS = S2.g({}), F = mapFrame(S2, b, X0, Y0, PW, PH, f.kx);
+    return Object.keys(g).map(function (k) { var a = g[k], n = a.reduce(function (s, x) { return s + (x.taxa.length || +x.n_occs || 0); }, 0), old = a.slice().sort(function (x, y) { return y.max_ma - x.max_ma; })[0]; return { a: a, c: old, n: n, p: per(old.max_ma, old.min_ma) }; }).sort(function (x, y) { return y.n - x.n; });
+  }
+  function sheet() {
+    var svg = $('#fSheet'), S2 = SH.svgB(svg), W = 1100, X0 = 96, Y0 = 104; svg.setAttribute('direction', 'ltr'); svg.style.direction = 'ltr';
+    var b = { w: AREA.w, e: AREA.e, s: AREA.s, n: AREA.n }, lats = S.map(function (c) { return c.lat; }), lons = S.map(function (c) { return c.lng; });
+    if (S.length) { var bw = Math.max.apply(null, lons) - Math.min.apply(null, lons), bh = Math.max.apply(null, lats) - Math.min.apply(null, lats), m = Math.max(.15, Math.max(bw, bh) * .07); b = { w: Math.min.apply(null, lons) - m, e: Math.max.apply(null, lons) + m, s: Math.min.apply(null, lats) - m, n: Math.max.apply(null, lats) + m }; }
+    var f = fitBox(b), PW = 860, PH = PW / f.asp; if (PH > 760) { PH = 760; PW = PH * f.asp; } X0 = Math.max(96, (W - PW) / 2 - 10);
+    var title = 'Fossil sites' + (AREANAME ? ' — ' + AREANAME : ' of the study area'), sub = [AREA.tax ? 'Group / taxon: ' + AREA.tax : 'All fossil groups', AREA.int ? 'Age: ' + AREA.int : 'All ages', S.length + ' sites, ' + O.length + ' fossil records'].join('   ·   ');
+    var bg = S2.add('rect', { x: 0, y: 0, width: W, height: 900, fill: '#fff' });
+    S2.text(40, 48, title, { fill: INK, 'font-size': 24, 'font-weight': 800, 'font-family': PF, direction: 'ltr' }); S2.text(40, 74, sub, { fill: MUT, 'font-size': 13, 'font-family': PF, direction: 'ltr' });
+    var cl = clipFor(S2, X0, Y0, PW, PH), imgEl = S2.add('image', { x: X0, y: Y0, width: PW, height: PH, preserveAspectRatio: 'none', 'clip-path': cl });
+    var ready = baseMap(b, Math.round(PW * 2.2), Math.round(PH * 2.2)).then(function (u) { if (u) imgEl.setAttribute('href', u); });
+    var pts = sitePoints(), rad = function (n) { return Math.min(13, 4 + Math.sqrt(n) * 1.1); };
+    var gS = S2.g({ 'clip-path': cl }), F = mapFrame(S2, b, X0, Y0, PW, PH, f.kx);
     pts.slice().reverse().forEach(function (q) { S2.circle(F.px(q.c.lng), F.py(q.c.lat), rad(q.n), { fill: q.p[4], stroke: '#111', 'stroke-width': .9, 'fill-opacity': .95 }, gS); });
-    SITEKEY = pts.slice(0, 20); SITEKEY.forEach(function (q, i) { var x = F.px(q.c.lng) + rad(q.n) + 2, y = F.py(q.c.lat) - rad(q.n) + 2; S2.text(x, y, String(i + 1), { fill: INK, 'font-size': 11.5, 'font-weight': 800, stroke: '#fff', 'stroke-width': 3, 'paint-order': 'stroke', 'font-family': PF }, gS); });
-    // legend
-    var ly = Y0 + 4; F.tx(LX, ly + 8, 'LEGEND', { 'font-size': 14, 'font-weight': 800, 'letter-spacing': 1 }); ly += 30; F.tx(LX, ly, 'Age of the site (oldest bed)', { fill: MUT, 'font-size': 11.5 }); ly += 10;
-    var used = {}; pts.forEach(function (q) { used[q.p[0]] = 1; });
-    SH.ics.filter(function (p) { return used[p[0]]; }).reverse().forEach(function (p) { S2.circle(LX + 8, ly + 9, 7, { fill: p[4], stroke: '#111', 'stroke-width': .8 }); F.tx(LX + 22, ly + 13, p[0] + '  (' + ma(p[3]) + '–' + ma(p[2]) + ' Ma)', { 'font-size': 11.5 }); ly += 20; });
-    ly += 22; F.tx(LX, ly, 'Number of fossil records', { fill: MUT, 'font-size': 11.5 }); ly += 6;
-    [1, 10, 50].forEach(function (n) { var r = rad(n); S2.circle(LX + 13, ly + 14, r, { fill: '#fff', stroke: '#111', 'stroke-width': .9 }); F.tx(LX + 32, ly + 18, String(n), { 'font-size': 11.5 }); ly += 28; });
-    ly += 4; S2.add('text', { x: LX + 6, y: ly + 12, fill: INK, 'font-size': 11.5, 'font-weight': 800, stroke: '#fff', 'stroke-width': 3, 'paint-order': 'stroke', 'font-family': PF }, '7'); F.tx(LX + 32, ly + 12, 'Site number (see key)', { 'font-size': 11.5 }); ly += 26;
-    F.tx(LX, ly + 6, 'Geographic coordinates, WGS 84', { fill: MUT, 'font-size': 10.5 }); F.tx(LX, ly + 22, 'Ages after the ICS chart (2023)', { fill: MUT, 'font-size': 10.5 });
-    // key to numbered sites
-    var ky = Math.max(Y0 + PH + 50, ly + 40), cw = [34, 300, 170, 170, 180, 0]; F.tx(X0 - 40, ky, 'KEY TO THE NUMBERED SITES', { 'font-size': 13, 'font-weight': 800, 'letter-spacing': .8 }); ky += 12;
-    var heads = ['No.', 'Site', 'Formation', 'Rock type', 'Age', 'Main fossils'], xs = [X0 - 40]; cw.slice(0, 5).forEach(function (w, i) { xs.push(xs[i] + w); });
-    S2.add('rect', { x: X0 - 40, y: ky, width: W - 2 * (X0 - 40), height: 22, fill: INK }); heads.forEach(function (h, i) { F.tx(xs[i] + 6, ky + 15, h, { fill: '#fff', 'font-size': 11, 'font-weight': 700 }); }); ky += 22;
-    var clip = function (s, n) { s = String(s || '—'); return s.length > n ? s.slice(0, n - 1) + '…' : s; };
-    SITEKEY.forEach(function (q, i) { var c = q.c, gs = siteGroups(c).slice(0, 2).map(function (k) { return gname(k, true); }).join(', ');
-      if (i % 2) S2.add('rect', { x: X0 - 40, y: ky, width: W - 2 * (X0 - 40), height: 20, fill: '#F6F4EE' });
-      S2.circle(xs[0] + 10, ky + 10, 5, { fill: q.p[4], stroke: '#111', 'stroke-width': .6 }); F.tx(xs[0] + 20, ky + 14, String(i + 1), { 'font-size': 11, 'font-weight': 800 });
-      F.tx(xs[1] + 6, ky + 14, clip(c.collection_name, 46), { 'font-size': 11 }); F.tx(xs[2] + 6, ky + 14, clip(c.formation, 25), { 'font-size': 11 }); F.tx(xs[3] + 6, ky + 14, clip(lith(c, true), 25), { 'font-size': 11 });
-      F.tx(xs[4] + 6, ky + 14, clip(ageTxt(c), 27), { 'font-size': 11 }); F.tx(xs[5] + 6, ky + 14, clip(gs, 24), { 'font-size': 11 }); ky += 20; });
-    if (pts.length > 20) { F.tx(X0 - 40, ky + 16, (pts.length - 20) + ' further sites are drawn on the map without numbers; the complete list is in the data table.', { fill: MUT, 'font-size': 11 }); ky += 22; }
-    var VH = ky + 40; S2.el.setAttribute('viewBox', '0 0 ' + W + ' ' + VH); S2.el.firstChild.setAttribute('height', VH);
-    S2.add('rect', { x: 8, y: 8, width: W - 16, height: VH - 16, fill: 'none', stroke: INK, 'stroke-width': 1.2 });
+    SITEKEY = pts.slice(0, NKEY); SITEKEY.forEach(function (q, i) { var r = rad(q.n), x = F.px(q.c.lng) + r * .75 + 2, y = F.py(q.c.lat) - r * .75; S2.text(x, y, String(i + 1), { fill: INK, 'font-size': 12, 'font-weight': 800, stroke: '#fff', 'stroke-width': 3.2, 'paint-order': 'stroke', 'stroke-linejoin': 'round', 'font-family': PF, direction: 'ltr' }, gS); });
+    // legend under the map
+    var ly = F.bottom + 44; S2.line(40, ly - 24, W - 40, ly - 24, { stroke: '#D9D4C7' });
+    F.tx(40, ly, 'LEGEND', { 'font-size': 15, 'font-weight': 800, 'letter-spacing': 1.2 }); ly += 24; F.tx(40, ly, 'Age of the site (oldest fossil-bearing bed)', { fill: MUT, 'font-size': 12.5 }); ly += 10;
+    var used = {}; pts.forEach(function (q) { used[q.p[0]] = 1; }); var ps = SH.ics.filter(function (p) { return used[p[0]]; }).reverse();
+    ps.forEach(function (p, i) { var x = 40 + (i % 3) * 340, y = ly + Math.floor(i / 3) * 26; S2.circle(x + 9, y + 12, 8, { fill: p[4], stroke: '#111', 'stroke-width': .8 }); F.tx(x + 26, y + 16.5, p[0] + '  (' + ma(p[3]) + '–' + ma(p[2]) + ' Ma)', { 'font-size': 13 }); });
+    ly += Math.ceil(ps.length / 3) * 26 + 22; F.tx(40, ly, 'Number of fossil records at the site', { fill: MUT, 'font-size': 12.5 });
+    var sx = 300; [1, 10, 50].forEach(function (n) { var r = rad(n); S2.circle(sx + r, ly - 4, r, { fill: '#fff', stroke: '#111', 'stroke-width': .9 }); F.tx(sx + 2 * r + 8, ly + 1, String(n), { 'font-size': 13 }); sx += 2 * r + 46; });
+    S2.text(sx + 30, ly + 1, '12', { fill: INK, 'font-size': 13, 'font-weight': 800, stroke: '#fff', 'stroke-width': 3, 'paint-order': 'stroke', 'font-family': PF, direction: 'ltr' }); F.tx(sx + 56, ly + 1, 'Site number (see the key table)', { 'font-size': 13 });
+    ly += 32; F.tx(40, ly, 'Geographic coordinates, WGS 84 · geological ages after the ICS chart (2023)', { fill: MUT, 'font-size': 11.5 });
+    var VH = ly + 30; svg.setAttribute('viewBox', '0 0 ' + W + ' ' + VH); bg.setAttribute('height', VH); S2.add('rect', { x: 8, y: 8, width: W - 16, height: VH - 16, fill: 'none', stroke: INK, 'stroke-width': 1.2 });
+    keySheet();
     var top3 = SITEKEY.slice(0, 3).map(function (q) { return '<b>' + E(q.c.collection_name) + '</b>'; });
-    $('#fSheetCap').innerHTML = t('The map gathers the ', 'تجمع الخريطة ') + S.length + t(' fossil sites of the area, coloured by the age of their oldest bed and sized by the number of fossils recorded. The richest are ', ' موقعاً أحفورياً في المنطقة، ملوّنة حسب عمر أقدم طبقة فيها، وبحجم يتناسب مع عدد الأحافير المسجلة. وأغناها ') + top3.join(AR ? '، و' : ', ') + t('; the numbered sites are described in the key under the map.', '؛ والمواقع المرقّمة موصوفة في المفتاح أسفل الخريطة.');
+    $('#fSheetCap').innerHTML = t('The map gathers the ', 'تجمع الخريطة ') + S.length + t(' fossil sites of the area, coloured by the age of their oldest bed and sized by the number of fossils recorded. The richest are ', ' موقعاً أحفورياً في المنطقة، ملوّنة حسب عمر أقدم طبقة فيها، وبحجم يتناسب مع عدد الأحافير المسجلة. وأغناها ') + top3.join(AR ? '، و' : ', ') + t('. The numbered sites are described in the key table below, which downloads separately.', '. والمواقع المرقّمة موصوفة في جدول المفتاح أدناه، ويُنزَّل منفصلاً.');
     return ready;
+  }
+  function keySheet() {
+    var svg = $('#fKey'), S2 = SH.svgB(svg), W = 1100; svg.setAttribute('direction', 'ltr'); svg.style.direction = 'ltr';
+    var meas = document.createElement('canvas').getContext('2d'), fit = function (s, w, font) { meas.font = font || ('12px ' + PF); s = String(s == null || s === '' ? '—' : s); if (meas.measureText(s).width <= w) return s; while (s.length > 1 && meas.measureText(s + '…').width > w) s = s.slice(0, -1); return s.trim() + '…'; };
+    var bg = S2.add('rect', { x: 0, y: 0, width: W, height: 900, fill: '#fff' });
+    S2.text(40, 48, 'Key to the numbered fossil sites' + (AREANAME ? ' — ' + AREANAME : ''), { fill: INK, 'font-size': 22, 'font-weight': 800, 'font-family': PF, direction: 'ltr' });
+    S2.text(40, 72, 'Numbers refer to the map of the fossil sites; sites are ordered by the number of fossil records.', { fill: MUT, 'font-size': 12.5, 'font-family': PF, direction: 'ltr' });
+    var cols = [['No.', 44], ['Site', 270], ['Formation', 150], ['Rock type', 150], ['Age', 170], ['Records', 64], ['Main fossil groups', 172]], x0 = 40, ys = 96, xs = [x0]; cols.forEach(function (c, i) { xs.push(xs[i] + c[1]); });
+    S2.add('rect', { x: x0, y: ys, width: W - 80, height: 28, fill: INK }); cols.forEach(function (c, i) { S2.text(xs[i] + 8, ys + 19, c[0], { fill: '#fff', 'font-size': 12.5, 'font-weight': 700, 'font-family': PF, direction: 'ltr' }); }); ys += 28;
+    SITEKEY.forEach(function (q, i) { var c = q.c, gs = siteGroups(c).slice(0, 2).map(function (k) { return gname(k, true); }).join(', ');
+      if (i % 2) S2.add('rect', { x: x0, y: ys, width: W - 80, height: 26, fill: '#F6F4EE' });
+      S2.circle(xs[0] + 12, ys + 13, 6, { fill: q.p[4], stroke: '#111', 'stroke-width': .6 }); S2.text(xs[0] + 24, ys + 17.5, String(i + 1), { fill: INK, 'font-size': 12.5, 'font-weight': 800, 'font-family': PF, direction: 'ltr' });
+      var vals = [c.collection_name, c.formation, lith(c, true), ageTxt(c) + ' (' + q.p[0] + ')', String(q.n), gs];
+      vals.forEach(function (v, j) { S2.text(xs[j + 1] + 8, ys + 17.5, fit(v, cols[j + 1][1] - 14), { fill: INK, 'font-size': 12, 'font-family': PF, direction: 'ltr' }); });
+      ys += 26; });
+    S2.line(x0, ys, W - 40, ys, { stroke: INK, 'stroke-width': .8 });
+    var rest = sitePoints().length - SITEKEY.length; if (rest > 0) { S2.text(40, ys + 24, rest + ' further sites are shown on the map without numbers; the complete list is in the data table.', { fill: MUT, 'font-size': 12, 'font-family': PF, direction: 'ltr' }); ys += 24; }
+    var VH = ys + 36; svg.setAttribute('viewBox', '0 0 ' + W + ' ' + VH); bg.setAttribute('height', VH); S2.add('rect', { x: 8, y: 8, width: W - 16, height: VH - 16, fill: 'none', stroke: INK, 'stroke-width': 1.2 });
   }
   function siteSheet(c) {
     var host = document.createElement('div'); host.style.cssText = 'position:fixed;left:-20000px;top:0;width:1100px'; document.body.appendChild(host);
-    var svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg'); svg.setAttribute('viewBox', '0 0 1100 800'); svg.style.width = '1100px'; host.appendChild(svg);
-    var S2 = SH.svgB(svg), W = 1100, p = per(c.max_ma, c.min_ma), d = .45, b = { w: c.lng - d / Math.cos(SH.rad(c.lat)), e: c.lng + d / Math.cos(SH.rad(c.lat)), s: c.lat - d, n: c.lat + d }, f = fitBox(b), PW = 480, PH = PW / f.asp, X0 = 70, Y0 = 96;
-    S2.add('rect', { x: 0, y: 0, width: W, height: 800, fill: '#fff' }); S2.add('rect', { x: 0, y: 0, width: 12, height: 800, fill: p[4] });
-    S2.text(40, 44, c.collection_name, { fill: INK, 'font-size': 21, 'font-weight': 800, 'font-family': PF });
-    S2.text(40, 68, [c.formation ? c.formation + ' Formation' : '', p[0], ma(c.max_ma) + '–' + ma(c.min_ma) + ' Ma', c.cc ? country(c.cc, true) : ''].filter(Boolean).join('   ·   '), { fill: MUT, 'font-size': 13, 'font-family': PF });
-    var imgEl = S2.add('image', { x: X0, y: Y0, width: PW, height: PH, preserveAspectRatio: 'none' });
-    var gS = S2.g({}), F = mapFrame(S2, b, X0, Y0, PW, PH, f.kx);
-    // neighbouring sites, then the site as a star
+    var svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg'); svg.setAttribute('viewBox', '0 0 1100 800'); svg.setAttribute('direction', 'ltr'); svg.style.cssText = 'width:1100px;direction:ltr'; host.appendChild(svg);
+    var S2 = SH.svgB(svg), W = 1100, p = per(c.max_ma, c.min_ma), d = .45, b = { w: c.lng - d / Math.cos(SH.rad(c.lat)), e: c.lng + d / Math.cos(SH.rad(c.lat)), s: c.lat - d, n: c.lat + d }, f = fitBox(b), PW = 470, PH = PW / f.asp, X0 = 96, Y0 = 104;
+    var bg = S2.add('rect', { x: 0, y: 0, width: W, height: 800, fill: '#fff' }), stripe = S2.add('rect', { x: 0, y: 0, width: 12, height: 800, fill: p[4] });
+    S2.text(40, 48, c.collection_name, { fill: INK, 'font-size': 22, 'font-weight': 800, 'font-family': PF, direction: 'ltr' });
+    S2.text(40, 74, [c.formation ? c.formation + ' Formation' : '', p[0], ma(c.max_ma) + '–' + ma(c.min_ma) + ' Ma', c.cc ? country(c.cc, true) : ''].filter(Boolean).join('   ·   '), { fill: MUT, 'font-size': 13, 'font-family': PF, direction: 'ltr' });
+    var cl = clipFor(S2, X0, Y0, PW, PH), imgEl = S2.add('image', { x: X0, y: Y0, width: PW, height: PH, preserveAspectRatio: 'none', 'clip-path': cl });
+    var gS = S2.g({ 'clip-path': cl }), F = mapFrame(S2, b, X0, Y0, PW, PH, f.kx);
     S.forEach(function (o) { if (o === c || o.lat < b.s || o.lat > b.n || o.lng < b.w || o.lng > b.e) return; S2.circle(F.px(o.lng), F.py(o.lat), 4.5, { fill: per(o.max_ma, o.min_ma)[4], stroke: '#111', 'stroke-width': .7 }, gS); });
-    var sx = F.px(c.lng), sy = F.py(c.lat), star = ''; for (var i = 0; i < 10; i++) { var r = i % 2 ? 6 : 14, a = -Math.PI / 2 + i * Math.PI / 5; star += (i ? 'L' : 'M') + (sx + r * Math.cos(a)).toFixed(1) + ' ' + (sy + r * Math.sin(a)).toFixed(1); } S2.path(star + 'Z', { fill: '#C0392B', stroke: '#fff', 'stroke-width': 1.5 }, gS);
-    var ly = Y0 + PH + 46; S2.path('M' + (X0 + 8) + ' ' + (ly - 9) + 'l3 6h7l-6 4 2 7-6-4-6 4 2-7-6-4h7z', { fill: '#C0392B', stroke: '#fff' }); F.tx(X0 + 26, ly + 2, 'Fossil site', { 'font-size': 11.5 }); S2.circle(X0 + 128, ly - 2, 4.5, { fill: '#bbb', stroke: '#111' }); F.tx(X0 + 140, ly + 2, 'Other fossil sites (coloured by period)', { 'font-size': 11.5 });
-    // information block
-    var IX = X0 + PW + 50, iy = Y0 + 4, IW = W - IX - 40;
+    var star = function (sx, sy, R1, R2, par) { var s = ''; for (var i = 0; i < 10; i++) { var r = i % 2 ? R2 : R1, a = -Math.PI / 2 + i * Math.PI / 5; s += (i ? 'L' : 'M') + (sx + r * Math.cos(a)).toFixed(1) + ' ' + (sy + r * Math.sin(a)).toFixed(1); } return S2.path(s + 'Z', { fill: '#C0392B', stroke: '#fff', 'stroke-width': 1.5 }, par); };
+    star(F.px(c.lng), F.py(c.lat), 14, 6, gS);
+    var ly = F.bottom + 36; star(X0 + 8, ly - 4, 9, 4); F.tx(X0 + 24, ly + 1, 'Fossil site', { 'font-size': 12 }); S2.circle(X0 + 124, ly - 4, 4.5, { fill: '#bbb', stroke: '#111' }); F.tx(X0 + 136, ly + 1, 'Other fossil sites (coloured by period)', { 'font-size': 12 });
+    var IX = X0 + PW + 90, iy = Y0 - 4, IW = W - IX - 40;
     var rows = [['Coordinates', c.lat.toFixed(5) + '°, ' + c.lng.toFixed(5) + '°'], ['Country / region', [c.county, c.state, c.cc ? country(c.cc, true) : ''].filter(Boolean).join(', ')], ['Formation', c.formation], ['Group / member', [c.geological_group, c.member].filter(Boolean).join(' / ')], ['Rock type', lith(c, true)], ['Environment', c.environment], ['Geological age', ageTxt(c) + ' (' + ma(c.max_ma) + '–' + ma(c.min_ma) + ' Ma), ' + p[0]], ['Palaeolatitude', c.paleolat !== '' && c.paleolat != null ? (+c.paleolat).toFixed(1) + '° (plate reconstruction)' : ''], ['Sampling scale', c.geogscale], ['Published in', c.primary_reference]];
     var meas = document.createElement('canvas').getContext('2d'); meas.font = '12px ' + PF;
-    F.tx(IX, iy + 8, 'SITE DESCRIPTION', { 'font-size': 13, 'font-weight': 800, 'letter-spacing': .8 }); iy += 22;
-    rows.forEach(function (r) { if (!r[1]) return; var ln = wrapTxt(meas, String(r[1]), IW - 130); S2.line(IX, iy, IX + IW, iy, { stroke: '#E2DED3' }); F.tx(IX, iy + 16, r[0], { fill: MUT, 'font-size': 11, 'font-weight': 700 }); ln.slice(0, 5).forEach(function (l, k) { F.tx(IX + 130, iy + 16 + k * 16, l, { 'font-size': 12 }); }); iy += 10 + Math.min(5, ln.length) * 16; });
-    // fossils
-    var fy = Math.max(ly + 34, iy + 30); F.tx(40, fy, 'FOSSILS FOUND AT THIS SITE (' + c.taxa.length + ')', { 'font-size': 13, 'font-weight': 800, 'letter-spacing': .8 }); fy += 10;
+    F.tx(IX, iy + 8, 'SITE DESCRIPTION', { 'font-size': 13.5, 'font-weight': 800, 'letter-spacing': .8 }); iy += 22;
+    rows.forEach(function (r) { if (!r[1]) return; var ln = wrapTxt(meas, String(r[1]), IW - 124); S2.line(IX, iy, IX + IW, iy, { stroke: '#E2DED3' }); F.tx(IX, iy + 17, r[0], { fill: MUT, 'font-size': 11.5, 'font-weight': 700 }); ln.slice(0, 6).forEach(function (l, k) { F.tx(IX + 124, iy + 17 + k * 16, l, { 'font-size': 12 }); }); iy += 12 + Math.min(6, ln.length) * 16; });
+    var fy = Math.max(ly + 40, iy + 34); S2.line(40, fy - 22, W - 40, fy - 22, { stroke: '#D9D4C7' }); F.tx(40, fy, 'FOSSILS FOUND AT THIS SITE (' + c.taxa.length + ')', { 'font-size': 13.5, 'font-weight': 800, 'letter-spacing': .8 }); fy += 10;
     var bygrp = {}; c.taxa.forEach(function (o) { var k = grp(o); (bygrp[k] = bygrp[k] || []).push(o.name); }); meas.font = 'italic 12px ' + PF;
-    siteGroups(c).forEach(function (k, gi) { var names = uniq(bygrp[k]), ln = wrapTxt(meas, names.join(', '), W - 300); fy += 8; S2.circle(48, fy + 10, 5, { fill: gcol(k, gi), stroke: '#111', 'stroke-width': .6 }); F.tx(60, fy + 14, gname(k, true) + ' (' + names.length + ')', { 'font-size': 12, 'font-weight': 700 }); ln.forEach(function (l, j) { F.tx(250, fy + 14 + j * 16, l, { 'font-size': 12, 'font-style': 'italic' }); }); fy += Math.max(1, ln.length) * 16 + 4; });
-    var VH = fy + 40; svg.setAttribute('viewBox', '0 0 ' + W + ' ' + VH); svg.firstChild.setAttribute('height', VH); svg.childNodes[1].setAttribute('height', VH);
+    siteGroups(c).forEach(function (k, gi) { var names = uniq(bygrp[k]), ln = wrapTxt(meas, names.join(', '), W - 310); fy += 8; S2.circle(48, fy + 10, 5.5, { fill: gcol(k, gi), stroke: '#111', 'stroke-width': .6 }); F.tx(62, fy + 14.5, gname(k, true) + ' (' + names.length + ')', { 'font-size': 12.5, 'font-weight': 700 }); ln.forEach(function (l, j) { F.tx(260, fy + 14.5 + j * 16, l, { 'font-size': 12, 'font-style': 'italic' }); }); fy += Math.max(1, ln.length) * 16 + 4; });
+    var VH = fy + 40; svg.setAttribute('viewBox', '0 0 ' + W + ' ' + VH); bg.setAttribute('height', VH); stripe.setAttribute('height', VH);
     S2.add('rect', { x: 8, y: 8, width: W - 16, height: VH - 16, fill: 'none', stroke: INK, 'stroke-width': 1.2 });
-    return baseMap(b, Math.round(PW * 1.6), Math.round(PH * 1.6)).then(function (u) { if (u) imgEl.setAttribute('href', u); return { svg: svg, host: host }; });
+    return baseMap(b, Math.round(PW * 2.2), Math.round(PH * 2.2)).then(function (u) { if (u) imgEl.setAttribute('href', u); return { svg: svg, host: host }; });
   }
 
   /* ------------------------------------------------------------------ downloads */
@@ -661,18 +702,18 @@
     return SH.exportFigure(c, name, fmt).then(function (r) { host.remove(); return r; }, function (er) { host.remove(); throw er; });
   }
   document.addEventListener('click', function (e) {
-    var b = e.target.closest('[data-pl],[data-sheet],[data-ss],[data-wm],[data-wt]'); if (!b) return; var fmt = b.getAttribute('data-f') || b.getAttribute('data-sheet'); busyBtn(b, true);
+    var b = e.target.closest('[data-pl],[data-sheet],[data-key],[data-ss],[data-wm],[data-wt]'); if (!b) return; var fmt = b.getAttribute('data-f') || b.getAttribute('data-sheet') || b.getAttribute('data-key'); busyBtn(b, true);
     var done = function () { busyBtn(b, false); }, fail = function () { SH.toast(t('The image could not be created.', 'تعذر إنشاء الصورة.'), 'warn'); };
     var p;
     if (b.hasAttribute('data-pl')) p = plotCanvas(b.getAttribute('data-pl')).then(function (cv) { return SH.exportCanvas(cv, 'shandal-' + b.getAttribute('data-pl') + '_' + stamp(), fmt); });
     else if (b.hasAttribute('data-sheet')) p = exportWide($('#fSheet'), 'shandal-fossil-map_' + stamp(), fmt, 1650);
-    else if (b.hasAttribute('data-wm')) p = exportWide($('#fWMap'), 'shandal-worldwide-' + (cur.taxon ? cur.taxon.name.replace(/\s+/g, '_') : 'taxon'), fmt, 1600);
+    else if (b.hasAttribute('data-key')) p = exportWide($('#fKey'), 'shandal-fossil-sites-key_' + stamp(), fmt, 1650);
+    else if (b.hasAttribute('data-wm')) p = exportWide($('#fWMap'), 'shandal-worldwide-' + (cur.taxon ? cur.taxon.name.replace(/\s+/g, '_') : 'taxon'), fmt, 1800);
     else if (b.hasAttribute('data-wt')) p = exportWide($('#fWTime'), 'shandal-time-' + (cur.taxon ? cur.taxon.name.replace(/\s+/g, '_') : 'taxon'), fmt, 1600);
     else { var c = SITES[b.getAttribute('data-ss')]; p = siteSheet(c).then(function (r) { r.host.remove(); return exportWide(r.svg, 'shandal-site-' + c.collection_no, fmt, 1650); }); }
     p.catch(fail).then(done);
   });
 
-  document.addEventListener('click', function (e) { var z = e.target.closest('[data-zoom]'); if (!z) return; var sv = $('#' + z.getAttribute('data-zoom')); if (!sv) return; var c = sv.cloneNode(true); c.removeAttribute('id'); c.style.cssText = 'display:block;width:100%;height:auto;border-radius:12px'; SH.modal(cur.taxon ? cur.taxon.name : '', '<div id="fZoomBox" style="width:min(1100px,86vw)"></div>'); var bx = $('#fZoomBox'); if (bx) bx.appendChild(c); });
   /* ------------------------------------------------------------------ open a fossil card from anywhere */
   document.addEventListener('click', function (e) { var b = e.target.closest('[data-tx]'); if (!b || !G) return; var inSite = !!b.closest('#fSite'); taxon(b.getAttribute('data-tx'), inSite ? 'site' : 'search'); if (b.closest('#fDeck')) { var m = $('.wsm'); if (m) m.scrollIntoView({ behavior: 'smooth', block: 'start' }); } });
 

@@ -65,7 +65,7 @@
 @media (min-width:901px){.wsm.fx-wide{grid-template-columns:minmax(360px,540px) minmax(0,1fr)}}
 .fx-leg{position:absolute;bottom:28px;inset-inline-start:12px;z-index:600;background:color-mix(in srgb,var(--surface) 88%,transparent);backdrop-filter:blur(8px);border:1px solid var(--line);border-radius:14px;padding:10px 12px;box-shadow:0 10px 28px rgba(0,0,0,.18);font-size:.74rem;display:grid;gap:4px;max-width:210px}
 .fx-leg i{display:inline-block;width:10px;height:10px;border-radius:50%;border:1px solid rgba(0,0,0,.5);margin-inline-end:6px;vertical-align:-1px}
-.fx-mapstat{position:absolute;top:12px;inset-inline-end:12px;z-index:600;display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.fx-mapstat{position:absolute;top:12px;right:12px;left:auto;max-width:calc(100% - 80px);z-index:600;display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
 .fx-mapstat span{background:color-mix(in srgb,var(--surface) 88%,transparent);backdrop-filter:blur(8px);border:1px solid var(--line);border-radius:999px;padding:5px 11px;font-size:.76rem;font-weight:700;box-shadow:0 6px 18px rgba(0,0,0,.14)}
 .fx-mapstat b{color:var(--accent)}
 [data-v][hidden]{display:none!important}
@@ -130,6 +130,11 @@
 .fx-pager{display:flex;gap:8px;align-items:center;justify-content:center;font-size:.8rem}
 .fx-sheet{overflow:auto;border:1px solid var(--line);border-radius:14px;background:#fff}
 .fx-sheet svg{display:block;width:100%;min-width:760px;height:auto}
+.fx-focus{display:grid;gap:16px;padding-top:18px;padding-bottom:6px;border-bottom:1px solid var(--line);margin-bottom:6px}
+.fx-focus[hidden]{display:none}
+.fx-fhead{display:flex;justify-content:space-between;gap:12px;align-items:start}
+.fx-fhead .k{font-size:.74rem;font-weight:800;color:var(--accent)}
+.fx-fhead h2{margin:2px 0 6px;font-size:1.5rem}
 .fx-empty{border:1px dashed var(--line);border-radius:18px;padding:36px 20px;text-align:center;display:grid;gap:10px;justify-items:center;margin-top:18px}
 .fx-empty h3{margin:0}
 .fx-empty p{margin:0;max-width:640px;color:var(--text-2);font-size:.88rem;line-height:1.8}
@@ -186,6 +191,13 @@
 <!-- ============ RESULTS DECK ============ -->
 <section class="fx-deck" id="fDeck">
   <div class="in">
+    <div class="fx-focus" id="fFocus" hidden data-rp-extra>
+      <div class="fx-fhead"><div><span class="k">{{ m.L('Selected fossil', 'الأحفورة المختارة') }}</span><h2 id="fFName"></h2><p class="fx-cap" id="fFSum"></p></div><button type="button" class="btn btn-line btn-xs no-print" id="fFClose">{{ icon('x', 'ico ico-sm') }}{{ m.L('Close', 'إغلاق') }}</button></div>
+      <div class="fx-panel"><div class="ph"><h3>{{ icon('globe') }}{{ m.L('Worldwide distribution map', 'خريطة الانتشار العالمي') }}</h3><div class="fx-dl no-print"><button class="btn btn-line btn-xs" data-wm="1" data-f="png" type="button">PNG</button><button class="btn btn-line btn-xs" data-wm="1" data-f="jpg" type="button">JPG</button><button class="btn btn-line btn-xs" data-wm="1" data-f="pdf" type="button">PDF</button><button class="btn btn-ink btn-xs" id="fWOn" type="button">{{ m.L('Show on the main map', 'اعرضها على الخريطة الرئيسية') }}</button></div></div>
+        <div class="fx-sheet"><svg id="fWMap" viewBox="0 0 1200 800" direction="ltr"></svg></div><p class="fx-cap" id="fWCap"></p></div>
+      <div class="fx-panel"><div class="ph"><h3>{{ icon('clock') }}{{ m.L('Distribution through geological time', 'التوزيع عبر الزمن الجيولوجي') }}</h3><div class="fx-dl no-print"><button class="btn btn-line btn-xs" data-wt="1" data-f="png" type="button">PNG</button><button class="btn btn-line btn-xs" data-wt="1" data-f="jpg" type="button">JPG</button><button class="btn btn-line btn-xs" data-wt="1" data-f="pdf" type="button">PDF</button></div></div>
+        <div class="fx-sheet"><svg id="fWTime" viewBox="0 0 1000 380" direction="ltr"></svg></div><p class="fx-cap" id="fWTCap"></p></div>
+    </div>
     <div class="fx-empty" id="fEmpty">
       {{ icon('shell', 'ico ico-lg') }}
       <h3>{{ m.L('Results appear here', 'تظهر النتائج هنا') }}</h3>
@@ -230,8 +242,10 @@
       <!-- map sheet -->
       <div class="fx-pane" data-pane="ms" hidden data-rp-extra>
         <div class="fx-panel"><div class="ph"><h3>{{ icon('map') }}{{ m.L('Map of the fossil sites', 'خريطة المواقع الأحفورية') }}</h3><div class="fx-dl no-print"><button class="btn btn-line btn-xs" data-sheet="png" type="button">PNG</button><button class="btn btn-line btn-xs" data-sheet="jpg" type="button">JPG</button><button class="btn btn-line btn-xs" data-sheet="pdf" type="button">PDF</button></div></div>
-          <div class="fx-sheet"><svg id="fSheet" viewBox="0 0 1100 800"></svg></div>
+          <div class="fx-sheet"><svg id="fSheet" viewBox="0 0 1100 800" direction="ltr"></svg></div>
           <p class="fx-cap" id="fSheetCap"></p></div>
+        <div class="fx-panel"><div class="ph"><h3>{{ icon('table-2') }}{{ m.L('Key to the numbered sites', 'مفتاح المواقع المرقّمة') }}</h3><div class="fx-dl no-print"><button class="btn btn-line btn-xs" data-key="png" type="button">PNG</button><button class="btn btn-line btn-xs" data-key="jpg" type="button">JPG</button><button class="btn btn-line btn-xs" data-key="pdf" type="button">PDF</button></div></div>
+          <div class="fx-sheet"><svg id="fKey" viewBox="0 0 1100 600" direction="ltr"></svg></div></div>
       </div>
     </div>
   </div>
