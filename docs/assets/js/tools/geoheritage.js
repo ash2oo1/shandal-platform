@@ -240,7 +240,7 @@
     var a2 = SH.getJSON(CM + '?action=query&generator=geosearch&ggsnamespace=6&ggslimit=30&ggsradius=' + rad + '&ggscoord=' + p.lat + '%7C' + p.lon + ii, { timeout: 15000 }).then(parse).catch(function () { return []; });
     var a3 = nmq.length < 5 || /^(gara|salman|alus|makhul)$/i.test(nmq) ? Promise.resolve([]) : SH.getJSON(CM + '?action=query&generator=search&gsrnamespace=6&gsrlimit=16&gsrsearch=' + encodeURIComponent('intitle:"' + nmq + '" Iraq -soldier -soldiers -police -army -marines -minister -battalion -payment -ISS') + ii, { timeout: 15000 }).then(parse).catch(function () { return []; });
     Promise.all([a1, a2, a3]).then(function (r) { if (my !== tok) return; var seen = {}; GAL.forEach(function (x) { seen[x.src] = 1; });
-      r[0].concat(r[1], r[2]).forEach(function (x) { var k = x.th.split('/').slice(-2, -1)[0]; if (seen[k]) return; seen[k] = 1; if (GAL.length < 24) GAL.push(x); });
+      r[1].concat(r[0], r[2]).forEach(function (x) { var k = x.th.split('/').slice(-2, -1)[0]; if (seen[k]) return; seen[k] = 1; if (GAL.length < 24) GAL.push(x); });
       if (!GAL.length && p.photo) GAL.push({ th: photoURL(p, 500), src: photoURL(p, 1280), cap: p.en.name, by: '' });
       if (!p.photo && !p.loc) GAL.push({ th: satURL(p, 500), src: satURL(p, 1400), cap: t('Satellite image of ', 'صورة فضائية لـ') + nm(p), by: 'Esri World Imagery' });
       $('#hGalN').textContent = GAL.length ? GAL.length + t(' photographs', ' صورة') : '';
