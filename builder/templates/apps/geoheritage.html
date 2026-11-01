@@ -64,7 +64,7 @@
 .gh-nb em{font-style:normal;font-weight:800;color:var(--accent);font-size:.74rem;direction:ltr}
 .wsm-map{isolation:isolate}
 .wsm-map::after{content:"";position:absolute;inset:0;border:3px solid color-mix(in srgb,var(--accent) 70%,transparent);pointer-events:none;z-index:450}
-.gh-leg{position:absolute;bottom:28px;inset-inline-start:12px;z-index:600;background:color-mix(in srgb,var(--surface) 90%,transparent);backdrop-filter:blur(8px);border:1px solid var(--line);border-radius:14px;padding:9px 12px;box-shadow:0 10px 28px rgba(0,0,0,.16);display:grid;gap:3px;font-size:.74rem;font-weight:650}
+.gh-leg{position:absolute;bottom:52px;inset-inline-start:12px;z-index:600;background:color-mix(in srgb,var(--surface) 90%,transparent);backdrop-filter:blur(8px);border:1px solid var(--line);border-radius:14px;padding:9px 12px;box-shadow:0 10px 28px rgba(0,0,0,.16);display:grid;gap:3px;font-size:.74rem;font-weight:650}
 .gh-leg b{font-size:.76rem}
 .gh-leg i{display:inline-block;width:11px;height:11px;border-radius:50%;border:1.5px solid #fff;box-shadow:0 0 0 1px rgba(0,0,0,.35);margin-inline-end:6px;vertical-align:-1px}
 .gh-mapstat{position:absolute;top:12px;right:12px;z-index:600;display:flex;flex-direction:column;align-items:flex-end;gap:6px;max-width:calc(100% - 80px)}
@@ -94,6 +94,7 @@
 .gh-kpi span{display:block;font-size:.74rem;font-weight:750;color:var(--text-2)}
 .gh-kpi b{display:block;font-size:1.7rem;line-height:1.2;margin-top:4px;font-family:Manrope,sans-serif;direction:ltr;text-align:start}
 .gh-kpi small{display:block;font-size:.72rem;color:var(--text-3);margin-top:2px}
+.gh-grid1{display:grid;grid-template-columns:minmax(0,1fr);gap:16px}
 .gh-grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,460px),1fr));gap:16px}
 .gh-panel{border:1px solid var(--line);border-radius:18px;background:var(--surface);padding:16px;display:grid;gap:10px;min-width:0;align-content:start}
 .gh-panel .ph{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
@@ -165,6 +166,9 @@
 .gh-lbx .nv{position:absolute;top:50%;transform:translateY(-50%);width:44px;height:44px;border-radius:50%;border:0;background:rgba(255,255,255,.14);color:#fff;font-size:1.4rem;cursor:pointer}
 .gh-lbx .nv.p{inset-inline-start:14px}.gh-lbx .nv.n{inset-inline-end:14px}
 .gh-print .gh-pane[data-rp-extra]{display:grid!important}
+[dir=ltr] #hMap .leaflet-bottom.leaflet-right{margin-bottom:70px}
+#hMap .leaflet-control-scale{margin-bottom:4px}
+[data-mini][aria-pressed=true]{background:var(--text);color:var(--bg);border-color:var(--text)}
 @keyframes ghSpin{to{transform:rotate(360deg)}}
 @media (min-width:901px){.wsm.gh-wide{grid-template-columns:minmax(360px,520px) minmax(0,1fr)}}
 @media (max-width:900px){.gh-tabs{position:static}.gh-leg{font-size:.64rem;padding:6px 8px;bottom:22px;inset-inline-start:8px}.gh-mapstat span{font-size:.68rem;padding:4px 8px}.gh-mini{height:280px}.gh-fhead h2{font-size:1.2rem}}
@@ -212,12 +216,12 @@
       <div class="gh-fhead"><div><span class="k" id="hFK"></span><h2 id="hFName"></h2><p class="gh-cap" id="hFSum"></p></div><button type="button" class="btn btn-line btn-xs no-print" id="hFClose">{{ icon('x', 'ico ico-sm') }}{{ m.L('Close', 'إغلاق') }}</button></div>
       <div class="gh-grid2">
         <div class="gh-panel"><div class="ph"><h3>{{ icon('satellite') }}{{ m.L('Satellite view of the place', 'المنظر الفضائي للمكان') }}</h3><div class="gh-dl no-print"><button type="button" class="btn btn-line btn-xs" data-mini="sat" aria-pressed="true">{{ m.L('Satellite', 'فضائية') }}</button><button type="button" class="btn btn-line btn-xs" data-mini="geo" aria-pressed="false">{{ m.L('Geology', 'جيولوجيا') }}</button><button type="button" class="btn btn-line btn-xs" data-mini="topo" aria-pressed="false">{{ m.L('Terrain', 'تضاريس') }}</button></div></div>
-          <div class="gh-mini" id="hMini"></div><p class="gh-cap" id="hMiniCap"></p></div>
+          <div class="gh-mini" id="hMini"></div><div class="gh-dl no-print"><span class="lbl">{{ m.L('Download this view as a framed image', 'نزّل هذا المنظر صورةً مؤطرة') }}</span><button class="btn btn-line btn-xs" data-sat="png" type="button">PNG</button><button class="btn btn-line btn-xs" data-sat="jpg" type="button">JPG</button><button class="btn btn-line btn-xs" data-sat="pdf" type="button">PDF</button></div><p class="gh-cap" id="hMiniCap"></p></div>
         <div class="gh-panel"><div class="ph"><h3>{{ icon('images') }}{{ m.L('Photographs', 'الصور') }}</h3><span class="gh-cap" id="hGalN"></span></div><div class="gh-gal" id="hGal"></div><p class="gh-cap">{{ m.L('Open a photograph to enlarge it; the photographer is credited under each one.', 'افتح أي صورة لتكبيرها؛ ويُذكر المصوّر أسفل كل صورة.') }}</p></div>
       </div>
-      <div class="gh-grid2">
-        <div class="gh-panel"><div class="ph"><h3>{{ icon('cloud-sun') }}{{ m.L('Weather for the next days at the place', 'الطقس في الأيام القادمة في المكان') }}</h3><div class="gh-dl no-print" data-dlplot="hWx"></div></div><div class="plot" id="hWx" style="height:340px"></div><p class="gh-cap" id="hWxCap"></p></div>
-        <div class="gh-panel"><div class="ph"><h3>{{ icon('mountain') }}{{ m.L('Ground profile across the place', 'المقطع الأرضي عبر المكان') }}</h3><div class="gh-dl no-print" data-dlplot="hProf"></div></div><div class="plot" id="hProf" style="height:340px"></div><p class="gh-cap" id="hProfCap"></p></div>
+      <div class="gh-grid1">
+        <div class="gh-panel"><div class="ph"><h3>{{ icon('cloud-sun') }}{{ m.L('Weather for the next days at the place', 'الطقس في الأيام القادمة في المكان') }}</h3><div class="gh-dl no-print" data-dlplot="hWx"></div></div><div class="plot" id="hWx" style="height:480px"></div><p class="gh-cap" id="hWxCap"></p></div>
+        <div class="gh-panel"><div class="ph"><h3>{{ icon('mountain') }}{{ m.L('Ground profile across the place', 'المقطع الأرضي عبر المكان') }}</h3><div class="gh-dl no-print" data-dlplot="hProf"></div></div><div class="plot" id="hProf" style="height:540px"></div><p class="gh-cap" id="hProfCap"></p></div>
       </div>
       <div class="gh-panel"><div class="ph"><h3>{{ icon('map-pin') }}{{ m.L('Location map and description sheet', 'خريطة الموقع ولوحة الوصف') }}</h3><div class="gh-dl no-print"><button class="btn btn-line btn-xs" data-ps="png" type="button">PNG</button><button class="btn btn-line btn-xs" data-ps="jpg" type="button">JPG</button><button class="btn btn-line btn-xs" data-ps="pdf" type="button">PDF</button></div></div>
         <div class="gh-sheet"><svg id="hPSheet" viewBox="0 0 1100 800" direction="ltr"></svg></div><p class="gh-cap" id="hPSCap"></p></div>
@@ -232,11 +236,11 @@
     <div class="gh-pane" data-pane="ov" data-rp-extra>
       <div class="gh-kpis" id="hKpis"></div>
       <div class="gh-panel"><h3>{{ icon('sparkles') }}{{ m.L('Shandal reading of the selection', 'قراءة نظام شندل للاختيار') }}</h3><div class="gh-interp" id="hRead"></div></div>
-      <div class="gh-grid2">
+      <div class="gh-grid1">
         <div class="gh-panel"><div class="ph"><h3>{{ icon('map') }}{{ m.L('Places by governorate', 'الأماكن حسب المحافظة') }}</h3><div class="gh-dl no-print" data-dlplot="hGovC"></div></div><div class="plot" id="hGovC" style="height:520px"></div><p class="gh-cap" id="hGovCap"></p></div>
         <div class="gh-panel"><div class="ph"><h3>{{ icon('layers') }}{{ m.L('Places on the geological zones of Iraq', 'الأماكن على النطاقات الجيولوجية للعراق') }}</h3><div class="gh-dl no-print" data-dlplot="hZoneC"></div></div><div class="plot" id="hZoneC" style="height:520px"></div><p class="gh-cap" id="hZoneCap"></p></div>
         <div class="gh-panel"><div class="ph"><h3>{{ icon('mountain-snow') }}{{ m.L('Types of place', 'أنواع الأماكن') }}</h3><div class="gh-dl no-print" data-dlplot="hTypeC"></div></div><div class="plot" id="hTypeC" style="height:520px"></div><p class="gh-cap" id="hTypeCap"></p></div>
-        <div class="gh-panel"><div class="ph"><h3>{{ icon('compass') }}{{ m.L('From north to south', 'من الشمال إلى الجنوب') }}</h3><div class="gh-dl no-print" data-dlplot="hLatC"></div></div><div class="plot" id="hLatC" style="height:520px"></div><p class="gh-cap" id="hLatCap"></p></div>
+        <div class="gh-panel"><div class="ph"><h3>{{ icon('compass') }}{{ m.L('Where the places are in Iraq', 'أين تقع الأماكن في العراق') }}</h3><div class="gh-dl no-print" data-dlplot="hLatC"></div></div><div class="plot" id="hLatC" style="height:520px"></div><p class="gh-cap" id="hLatCap"></p></div>
       </div>
     </div>
     <div class="gh-pane" data-pane="pl" hidden>

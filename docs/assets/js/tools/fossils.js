@@ -85,6 +85,10 @@
     $('#fAreas').innerHTML = AREAS.map(function (a, i) { return '<button type="button" class="fx-area" data-area="' + i + '">' + E(AR ? a[1] : a[0]) + '</button>'; }).join('');
     var persist = SH.persist('fossils3', ['fTax', 'fInt']); $('#fTax').addEventListener('change', persist.save); $('#fInt').addEventListener('change', persist.save);
     syncChip();
+    /* opened from another Shandal tool with an area: #area=south,west,north,east&name=Place */
+    var hq = {}; (location.hash || '').slice(1).split('&').forEach(function (kv) { var i = kv.indexOf('='); if (i > 0) hq[kv.slice(0, i)] = decodeURIComponent(kv.slice(i + 1)); });
+    var ab = (hq.area || '').split(',').map(Number);
+    if (ab.length === 4 && ab.every(isFinite)) { $('#fTax').value = ''; $('#fInt').value = ''; persist.save(); syncChip(); var nm0 = hq.name || ''; runArea([nm0 ? t('Around ', 'حول ') + nm0 : '', '', ab]); try { history.replaceState(null, '', location.pathname + location.search); } catch (er) {} }
   }).catch(function (e) { SH.toast(e.message, 'bad'); });
 
   function syncChip() {
