@@ -346,11 +346,22 @@
 
   /* ---------------------------------------------------------------- fetch helpers */
   SH.v = (function () { var s = d.currentScript, m = s && /[?&]v=([^&]+)/.exec(s.src); return m ? m[1] : ''; })();
+  /* GET JSON with a time limit. A busy service (429, 502–504) or a dropped connection is retried twice after a short,
+     growing pause, and identical requests made at the same moment share one network call, so many users or many
+     panels never multiply the load on a data service. */
+  var INFLIGHT = {};
   SH.getJSON = function (url, opts) {
     if (SH.v && url.indexOf(SH.base + 'assets/') === 0 && url.indexOf('?') < 0) url += '?v=' + SH.v;
-    var ctl = new AbortController(), t = setTimeout(function () { ctl.abort(); }, (opts && opts.timeout) || 30000);
-    return fetch(url, Object.assign({ signal: ctl.signal }, opts || {})).then(function (r) { clearTimeout(t); if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
-      .catch(function (e) { clearTimeout(t); throw new Error(e.name === 'AbortError' ? SH.t('The data service took too long to answer. Try again.', 'استغرقت خدمة البيانات وقتاً طويلاً. حاول مجدداً.') : (/HTTP/.test(e.message) ? SH.t('The data service returned an error (', 'أعادت خدمة البيانات خطأ (') + e.message + ').' : SH.t('Could not reach the data service. Check your internet connection.', 'تعذر الوصول إلى خدمة البيانات. تحقق من اتصالك بالإنترنت.'))); });
+    var get = !opts || !opts.method || /^get$/i.test(opts.method), key = get ? url : null;
+    if (key && INFLIGHT[key]) return INFLIGHT[key];
+    var attempt = function (n) {
+      var ctl = new AbortController(), t = setTimeout(function () { ctl.abort(); }, (opts && opts.timeout) || 30000);
+      return fetch(url, Object.assign({}, opts || {}, { signal: ctl.signal })).then(function (r) { clearTimeout(t); if (!r.ok) { var er = new Error('HTTP ' + r.status); er.status = r.status; throw er; } return r.json(); })
+        .catch(function (e) { clearTimeout(t); var retry = get && n < 2 && e.name !== 'AbortError' && (!e.status || e.status === 429 || e.status >= 502); if (retry) return new Promise(function (res) { setTimeout(res, 900 * (n + 1) + Math.random() * 600); }).then(function () { return attempt(n + 1); }); throw e; });
+    };
+    var p = attempt(0).catch(function (e) { throw new Error(e.name === 'AbortError' ? SH.t('The data service took too long to answer. Try again.', 'استغرقت خدمة البيانات وقتاً طويلاً. حاول مجدداً.') : (/HTTP/.test(e.message) ? SH.t('The data service returned an error (', 'أعادت خدمة البيانات خطأ (') + e.message + ').' : SH.t('Could not reach the data service. Check your internet connection.', 'تعذر الوصول إلى خدمة البيانات. تحقق من اتصالك بالإنترنت.'))); });
+    if (key) { INFLIGHT[key] = p; p.then(function () { delete INFLIGHT[key]; }, function () { delete INFLIGHT[key]; }); }
+    return p;
   };
 
   /* ---------------------------------------------------------------- Copernicus DEM from the Planetary Computer
@@ -406,8 +417,12 @@
     return t;
   };
   SH.login = function (name, code) {
-    return fetch(SH.cfg.authUrl, { method: 'POST', body: JSON.stringify({ name: name, password: code, deviceToken: SH.deviceToken() }) })
-      .then(function (r) { return r.json(); })
+    /* the subscriber service can be slow to wake up: 25 s limit and one automatic second try */
+    var body = JSON.stringify({ name: name, password: code, deviceToken: SH.deviceToken() });
+    var post = function (n) { var ctl = new AbortController(), tm = setTimeout(function () { ctl.abort(); }, 25000);
+      return fetch(SH.cfg.authUrl, { method: 'POST', body: body, signal: ctl.signal }).then(function (r) { clearTimeout(tm); if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+        .catch(function (e) { clearTimeout(tm); if (n < 1) return new Promise(function (res) { setTimeout(res, 1500); }).then(function () { return post(n + 1); }); throw e; }); };
+    return post(0)
       .then(function (res) {
         if (res && res.success) { var s = { name: name, since: Date.now(), exp: Date.now() + SH.cfg.sessionHours * 3600e3 }; SH.store.set('shandal_session', s); return s; }
         throw new Error((res && res.message) || SH.t('The name or access code is not correct.', 'الاسم أو رمز الدخول غير صحيح.'));

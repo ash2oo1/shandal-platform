@@ -152,17 +152,20 @@ BOOKS = [
 ]
 
 PLANS = [
- {'key': 'monthly', 'name': L('Monthly', 'شهري'), 'price': '75,000', 'per': L('IQD per month', 'دينار عراقي شهرياً'),
+ {'key': 'launch', 'name': L('Launch offer — 100 days', 'عرض التحديث — 100 يوم'), 'price': '$30', 'per': L('US dollars for 100 days', 'دولاراً أمريكياً لمدة 100 يوم'),
+  'text': L('Celebrating the new release of the Shandal System: every tool for 100 days at a special price.', 'بمناسبة التحديث الجديد لنظام شندل: كل الأدوات لمدة 100 يوم بسعر خاص.'), 'best': True,
+  'tag': L('New-release offer', 'عرض التحديث')},
+ {'key': 'monthly', 'name': L('Monthly', 'شهري'), 'price': '$49', 'per': L('US dollars per month', 'دولاراً أمريكياً شهرياً'),
   'text': L('Every tool, renewable month by month.', 'كل الأدوات، يتجدد شهراً بشهر.'), 'best': False},
- {'key': 'annual', 'name': L('Annual', 'سنوي'), 'price': '500,000', 'per': L('IQD per year', 'دينار عراقي سنوياً'),
-  'text': L('Twelve months for less than the price of seven.', 'اثنا عشر شهراً بأقل من سعر سبعة.'), 'best': True},
+ {'key': 'annual', 'name': L('Annual', 'سنوي'), 'price': '$320', 'per': L('US dollars per year', 'دولاراً أمريكياً سنوياً'),
+  'text': L('Twelve months for less than the price of seven.', 'اثنا عشر شهراً بأقل من سعر سبعة.'), 'best': False},
 ]
 PLAN_FEATURES = [L('All {N} field, data and laboratory tools', 'جميع الأدوات الحقلية والبيانية والمختبرية ({N} أداة)'), L('PDF reports with QR verification', 'تقارير PDF مع رمز تحقق QR'),
                  L('Shandal AI assistant', 'مساعد شندل الذكي'), L('Arabic and English interface', 'واجهة عربية وإنجليزية'), L('Phone, tablet and desktop', 'الهاتف والجهاز اللوحي والحاسوب')]
 FAQ = [
  (L('Do I need to install anything?', 'هل أحتاج إلى تثبيت أي برنامج؟'), L('No. The system runs in the browser on your phone, tablet or computer. Location and motion sensors are used only when a tool asks for them.', 'لا. يعمل النظام في متصفح الهاتف أو الجهاز اللوحي أو الحاسوب، وتُستخدم حساسات الموقع والحركة فقط عندما تطلبها الأداة.')),
  (L('Does it work without internet in the field?', 'هل يعمل دون إنترنت في الحقل؟'), L('You need a connection to sign in and to load maps and satellite data. Calculations and report export continue to work once a tool is open.', 'تحتاج إلى اتصال لتسجيل الدخول وتحميل الخرائط والبيانات الفضائية، ثم تستمر الحسابات وتصدير التقارير بعد فتح الأداة.')),
- (L('How do I pay?', 'كيف أدفع؟'), L('By ZainCash or Mastercard. Contact us and we send the payment details and activate your account.', 'عبر زين كاش أو ماستركارد. تواصل معنا لنرسل لك تفاصيل الدفع ونفعّل حسابك.')),
+ (L('How do I pay?', 'كيف أدفع؟'), L('Prices are in US dollars. Inside Iraq pay the equivalent in Iraqi dinars by ZainCash; from abroad send a Western Union transfer. Send us the transfer number (MTCN) or a photo of the receipt and your account is activated within three hours.', 'الأسعار بالدولار الأمريكي. من داخل العراق ادفع ما يعادلها بالدينار العراقي عبر زين كاش، ومن خارج العراق أرسل حوالة ويسترن يونيون. أرسل لنا رقم الحوالة (MTCN) أو صورة الوصل ويُفعَّل حسابك خلال ثلاث ساعات.')),
  (L('Can a university or company subscribe for a team?', 'هل يمكن لجامعة أو شركة الاشتراك لفريق؟'), L('Yes. Institutional plans include several accounts and training. Send us the number of users.', 'نعم. تشمل خطط المؤسسات عدة حسابات وتدريباً. أرسل لنا عدد المستخدمين.')),
  (L('Can the results be used in official reports?', 'هل يمكن استخدام النتائج في التقارير الرسمية؟'), L('Yes, as supporting analysis. Final engineering decisions must be signed by a qualified, licensed professional.', 'نعم، كتحليل داعم. يجب أن يوقّع القرارات الهندسية النهائية مختص مؤهل ومرخّص.')),
 ]

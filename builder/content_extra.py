@@ -99,7 +99,7 @@ PRICING = {
  'inst_h': L('Universities, companies and government teams', 'الجامعات والشركات والفرق الحكومية'),
  'inst_p': L('Several accounts, onboarding and training for your team, with invoicing.', 'عدة حسابات وتهيئة وتدريب لفريقك، مع فواتير رسمية.'),
  'inst_cta': L('Talk to us', 'تحدث إلينا'),
- 'pay': L('Payment by ZainCash or Mastercard. Prices are in Iraqi dinar; international pricing is on the way.', 'الدفع عبر زين كاش أو ماستركارد. الأسعار بالدينار العراقي، والتسعير الدولي قادم.'),
+ 'pay': L('Prices are in US dollars. Inside Iraq you can pay the equivalent in Iraqi dinars by ZainCash; from abroad by Western Union. Activation within three hours of receiving the transfer details.', 'الأسعار بالدولار الأمريكي. من داخل العراق يمكنك الدفع بما يعادلها بالدينار العراقي عبر زين كاش، ومن خارج العراق عبر ويسترن يونيون. يُفعَّل الاشتراك خلال ثلاث ساعات من استلام تفاصيل الحوالة.'),
  'faq_h': L('Questions', 'أسئلة شائعة'), 'faq_p': L('Anything else, ask us on WhatsApp.', 'لأي سؤال آخر، راسلنا على واتساب.'),
 }
 

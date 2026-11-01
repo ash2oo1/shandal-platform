@@ -235,7 +235,7 @@
     <div class="plans">
       {% for p in plans %}
       <div class="plan {{ 'best' if p.best }}">
-        {% if p.best %}<span class="tag">{{ tr(X.best) }}</span>{% endif %}
+        {% if p.best %}<span class="tag">{{ tr(p.tag) if p.tag else tr(X.best) }}</span>{% endif %}
         <h3>{{ tr(p.name) }}</h3>
         <div><div class="price num">{{ p.price }}</div><div class="per">{{ tr(p.per) }}</div></div>
         <p class="muted small">{{ tr(p.text) }}</p>

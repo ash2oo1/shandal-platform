@@ -192,3 +192,6 @@
 })();
 /* sign-out buttons outside the header menu */
 document.addEventListener('click', function (e) { var b = e.target.closest && e.target.closest('[data-logout]'); if (!b || b.closest('.user-menu')) return; try { localStorage.removeItem('shandal_session'); } catch (x) {} location.reload(); });
+/* keep the heavy, unchanging files on the device after the first visit (see sw.js) */
+(function () { if (!('serviceWorker' in navigator) || location.protocol !== 'https:') return; var m = document.querySelector('meta[name="sh-base"]'), base = (m && m.content) || '/';
+  window.addEventListener('load', function () { try { navigator.serviceWorker.register(new URL(base + 'sw.js', location.href).href, { scope: new URL(base, location.href).pathname }).catch(function () {}); } catch (e) {} }); })();
