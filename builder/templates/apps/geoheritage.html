@@ -1,26 +1,275 @@
 {% extends "app_base.html" %}
 {% import "apps/_m.html" as m with context %}
 {% block ws %}
+<style>
+/* ---------- Geological and archaeological tourism of Iraq */
+.gh-intro{position:relative;overflow:hidden;padding:18px 16px 16px!important;background:radial-gradient(120% 140% at 100% 0,color-mix(in srgb,var(--accent) 22%,transparent),transparent 60%),var(--surface)}
+.gh-intro h2{margin:0;font-size:1.05rem;line-height:1.4}
+.gh-intro p{margin:0;font-size:.82rem;line-height:1.75;color:var(--text-2)}
+.gh-acts{display:flex;flex-wrap:wrap;gap:8px}
+.gh-step{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.gh-step h3{margin:0}
+.gh-try{all:unset;cursor:pointer;display:inline-flex;align-items:center;gap:5px;font-size:.74rem;font-weight:750;color:var(--accent);padding:4px 9px;border-radius:999px;border:1px dashed color-mix(in srgb,var(--accent) 55%,transparent);white-space:nowrap}
+.gh-try:hover{background:color-mix(in srgb,var(--accent) 10%,transparent)}
+.gh-try .ico{width:13px;height:13px}
+.gh-cats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+.gh-cat{all:unset;box-sizing:border-box;cursor:pointer;display:grid;grid-template-columns:30px 1fr;gap:9px;align-items:center;padding:8px 10px 8px 8px;border:1px solid var(--line);border-radius:12px;background:var(--surface);transition:border-color .15s,transform .15s}
+.gh-cat:hover{border-color:color-mix(in srgb,var(--accent) 60%,var(--line));transform:translateY(-1px)}
+.gh-cat i{width:30px;height:30px;border-radius:9px;display:grid;place-items:center;color:#fff}
+.gh-cat i .ico{width:16px;height:16px}
+.gh-cat b{display:block;font-size:.8rem;line-height:1.3}
+.gh-cat small{display:block;font-size:.68rem;color:var(--text-3)}
+.gh-cat[aria-pressed=false]{opacity:.5}
+.gh-cat[aria-pressed=false] i{filter:grayscale(1)}
+.gh-row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.gh-tog{display:flex;align-items:center;gap:8px;font-size:.8rem;font-weight:650;cursor:pointer}
+.gh-tog input{width:18px;height:18px;accent-color:var(--accent)}
+.gh-list{display:grid;gap:0}
+.gh-li{all:unset;box-sizing:border-box;cursor:pointer;display:grid;grid-template-columns:58px 1fr auto;gap:11px;padding:10px 16px;border-top:1px solid var(--line);align-items:center;width:100%}
+.gh-li:hover,.gh-li.on{background:color-mix(in srgb,var(--accent) 9%,transparent)}
+.gh-li .ph{width:58px;height:58px;border-radius:10px;background:var(--surface-2) center/cover no-repeat;display:grid;place-items:center}
+.gh-li .ph .ico{width:22px;height:22px;color:#fff}
+.gh-li b{display:block;font-size:.86rem;line-height:1.35}
+.gh-li small{display:block;font-size:.72rem;color:var(--text-3);line-height:1.5}
+.gh-li .d{font-size:.74rem;font-weight:800;color:var(--accent);white-space:nowrap;direction:ltr}
+.gh-more{all:unset;cursor:pointer;display:block;text-align:center;padding:12px;font-size:.8rem;font-weight:750;color:var(--accent);border-top:1px solid var(--line)}
+.gh-back{all:unset;cursor:pointer;display:inline-flex;align-items:center;gap:6px;font-size:.82rem;font-weight:700;color:var(--accent)}
+.gh-hero{position:relative;border-radius:16px;overflow:hidden;min-height:190px;background:linear-gradient(135deg,var(--c1,#3a4a58),var(--c2,#14202b)) center/cover no-repeat;color:#fff;display:flex;align-items:flex-end;cursor:zoom-in}
+.gh-hero::before{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 30%,rgba(0,0,0,.72))}
+.gh-hero .in{position:relative;padding:14px 14px 12px;display:grid;gap:6px;width:100%}
+.gh-hero h2{margin:0;font-size:1.15rem;line-height:1.35;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.5)}
+.gh-pills{display:flex;gap:5px;flex-wrap:wrap}
+.gh-pills span{font-size:.7rem;font-weight:750;padding:3px 9px;border-radius:999px;background:rgba(255,255,255,.2);backdrop-filter:blur(4px);color:#fff}
+.gh-pills span.u{background:#C9A227;color:#1b1406}
+.gh-txt{font-size:.88rem;line-height:1.85;margin:0}
+.gh-geo{border-inline-start:3px solid var(--accent);padding:2px 0 2px 10px;padding-inline-start:10px;font-size:.84rem;line-height:1.8;margin:0}
+.gh-lb{font-size:.72rem;font-weight:800;color:var(--accent);letter-spacing:.03em;display:flex;gap:6px;align-items:center}
+.gh-lb .ico{width:14px;height:14px}
+.gh-facts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+.gh-fact{border:1px solid var(--line);border-radius:12px;padding:9px 11px;background:var(--surface);min-width:0}
+.gh-fact.w{grid-column:1/-1}
+.gh-fact span{display:block;font-size:.68rem;font-weight:800;color:var(--text-3)}
+.gh-fact b{display:block;font-size:.83rem;line-height:1.5;font-weight:650;overflow-wrap:anywhere}
+.gh-fact b.ltr{direction:ltr;text-align:start}
+.gh-now{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.gh-now div{border-radius:12px;padding:9px 10px;background:var(--surface-2);text-align:center}
+.gh-now span{display:block;font-size:.66rem;font-weight:750;color:var(--text-3)}
+.gh-now b{display:block;font-size:.98rem;font-family:Manrope,sans-serif;direction:ltr}
+.gh-btns{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.gh-btns .btn{justify-content:center}
+.gh-near{display:grid;gap:6px}
+.gh-nb{all:unset;box-sizing:border-box;cursor:pointer;display:grid;grid-template-columns:10px 1fr auto;gap:9px;align-items:center;padding:8px 10px;border:1px solid var(--line);border-radius:10px;font-size:.8rem}
+.gh-nb:hover{border-color:var(--accent)}
+.gh-nb i{width:10px;height:10px;border-radius:50%}
+.gh-nb em{font-style:normal;font-weight:800;color:var(--accent);font-size:.74rem;direction:ltr}
+.wsm-map{isolation:isolate}
+.wsm-map::after{content:"";position:absolute;inset:0;border:3px solid color-mix(in srgb,var(--accent) 70%,transparent);pointer-events:none;z-index:450}
+.gh-leg{position:absolute;bottom:28px;inset-inline-start:12px;z-index:600;background:color-mix(in srgb,var(--surface) 90%,transparent);backdrop-filter:blur(8px);border:1px solid var(--line);border-radius:14px;padding:9px 12px;box-shadow:0 10px 28px rgba(0,0,0,.16);display:grid;gap:3px;font-size:.74rem;font-weight:650}
+.gh-leg b{font-size:.76rem}
+.gh-leg i{display:inline-block;width:11px;height:11px;border-radius:50%;border:1.5px solid #fff;box-shadow:0 0 0 1px rgba(0,0,0,.35);margin-inline-end:6px;vertical-align:-1px}
+.gh-mapstat{position:absolute;top:12px;right:12px;z-index:600;display:flex;flex-direction:column;align-items:flex-end;gap:6px;max-width:calc(100% - 80px)}
+.gh-mapstat span{background:color-mix(in srgb,var(--surface) 90%,transparent);backdrop-filter:blur(8px);border:1px solid var(--line);border-radius:999px;padding:5px 11px;font-size:.76rem;font-weight:700;box-shadow:0 6px 18px rgba(0,0,0,.14)}
+.gh-mapstat b{color:var(--accent)}
+.gh-geobtn{all:unset;cursor:pointer;background:color-mix(in srgb,var(--surface) 92%,transparent);backdrop-filter:blur(8px);border:1px solid var(--line);border-radius:999px;padding:6px 12px;font-size:.76rem;font-weight:750;box-shadow:0 6px 18px rgba(0,0,0,.14);display:inline-flex;gap:6px;align-items:center}
+.gh-geobtn[aria-pressed=true]{background:var(--text);color:var(--bg)}
+.gh-geobtn .ico{width:14px;height:14px}
+.gh-pin{width:30px;height:30px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:2px solid #fff;box-shadow:0 3px 10px rgba(0,0,0,.4);display:grid;place-items:center}
+.gh-pin svg{transform:rotate(45deg);width:15px;height:15px}
+.gh-pin.on{outline:3px solid #C9A227;outline-offset:2px}
+[data-v][hidden]{display:none!important}
+/* ---------- deck under the map */
+.gh-deck{border-top:1px solid var(--line);background:var(--bg)}
+.gh-deck>.in{max-width:1520px;margin:0 auto;padding:0 18px 40px}
+.gh-tabs{position:sticky;top:calc(var(--header-h,64px) + 62px);z-index:20;display:flex;gap:4px;overflow-x:auto;padding:12px 0;background:var(--bg);border-bottom:1px solid var(--line);scrollbar-width:none}
+.gh-tabs button{all:unset;cursor:pointer;display:inline-flex;align-items:center;gap:7px;padding:9px 14px;border-radius:999px;font-size:.84rem;font-weight:750;color:var(--text-2);white-space:nowrap}
+.gh-tabs button .ico{width:16px;height:16px}
+.gh-tabs button .n{font-size:.7rem;padding:1px 7px;border-radius:999px;background:var(--surface-2)}
+.gh-tabs button[aria-selected=true]{background:var(--text);color:var(--bg)}
+.gh-tabs button[aria-selected=true] .n{background:rgba(255,255,255,.2)}
+.gh-pane{padding-top:18px;display:grid;gap:16px}
+.gh-pane[hidden]{display:none}
+.gh-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.gh-kpi{border:1px solid var(--line);border-radius:16px;padding:14px 16px;background:linear-gradient(160deg,var(--surface),var(--surface-2));position:relative;overflow:hidden}
+.gh-kpi::after{content:"";position:absolute;inset-inline-end:-30px;top:-30px;width:90px;height:90px;border-radius:50%;background:color-mix(in srgb,var(--kc,var(--accent)) 18%,transparent)}
+.gh-kpi span{display:block;font-size:.74rem;font-weight:750;color:var(--text-2)}
+.gh-kpi b{display:block;font-size:1.7rem;line-height:1.2;margin-top:4px;font-family:Manrope,sans-serif;direction:ltr;text-align:start}
+.gh-kpi small{display:block;font-size:.72rem;color:var(--text-3);margin-top:2px}
+.gh-grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,460px),1fr));gap:16px}
+.gh-panel{border:1px solid var(--line);border-radius:18px;background:var(--surface);padding:16px;display:grid;gap:10px;min-width:0;align-content:start}
+.gh-panel .ph{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.gh-panel h3{margin:0;font-size:.95rem;display:flex;gap:8px;align-items:center}
+.gh-panel h3 .ico{width:17px;height:17px;color:var(--accent)}
+.gh-cap{font-size:.78rem;color:var(--text-2);margin:0;line-height:1.7}
+.gh-interp{font-size:.92rem;line-height:1.95;margin:0}
+.gh-dl{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.gh-dl .lbl{font-size:.74rem;font-weight:750;color:var(--text-2);margin-inline-end:4px}
+.gh-focus{display:grid;gap:16px;padding:18px 0 8px;border-bottom:1px solid var(--line);margin-bottom:6px}
+.gh-focus[hidden]{display:none}
+.gh-fhead{display:flex;justify-content:space-between;gap:12px;align-items:start}
+.gh-fhead .k{font-size:.74rem;font-weight:800;color:var(--accent)}
+.gh-fhead h2{margin:2px 0 6px;font-size:1.5rem}
+.gh-gal{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(46%,190px),1fr));gap:10px}
+.gh-gal button{all:unset;cursor:zoom-in;display:block;aspect-ratio:4/3;border-radius:12px;background:var(--surface-2) center/cover no-repeat;border:1px solid var(--line)}
+.gh-gal button:hover{outline:2px solid var(--accent);outline-offset:1px}
+.gh-mini{height:360px;border-radius:14px;overflow:hidden;border:1px solid var(--line)}
+.gh-sheet{overflow:auto;border:1px solid var(--line);border-radius:14px;background:#fff}
+.gh-sheet svg{display:block;width:100%;min-width:760px;height:auto}
+.gh-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,270px),1fr));gap:12px}
+.gh-card{all:unset;box-sizing:border-box;cursor:pointer;border:1px solid var(--line);border-radius:16px;background:var(--surface);overflow:hidden;display:grid;grid-template-rows:auto 1fr;transition:transform .15s,box-shadow .15s}
+.gh-card:hover{transform:translateY(-2px);box-shadow:0 12px 26px rgba(0,0,0,.12)}
+.gh-card .im{aspect-ratio:16/9;background:linear-gradient(135deg,var(--c1),var(--c2)) center/cover no-repeat;position:relative;display:grid;place-items:center}
+.gh-card .im .ico{width:34px;height:34px;color:rgba(255,255,255,.85)}
+.gh-card .im em{position:absolute;inset-inline-start:8px;top:8px;font-style:normal;font-size:.66rem;font-weight:800;padding:2px 8px;border-radius:999px;color:#fff}
+.gh-card .im u{position:absolute;inset-inline-end:8px;top:8px;text-decoration:none;font-size:.64rem;font-weight:800;padding:2px 8px;border-radius:999px;background:#C9A227;color:#1b1406}
+.gh-card .bd{padding:10px 14px 12px;display:grid;gap:4px;align-content:start}
+.gh-card .bd b{font-size:.9rem;line-height:1.4}
+.gh-card .bd small{font-size:.74rem;color:var(--text-3);line-height:1.55}
+.gh-bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between}
+.gh-bar input,.gh-bar select{padding:9px 12px;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--text);font:inherit;font-size:.84rem}
+.gh-bar input{max-width:300px;width:100%}
+.gh-tw{overflow:auto;border:1px solid var(--line);border-radius:14px;max-height:620px}
+.gh-tbl{width:100%;border-collapse:collapse;font-size:.78rem}
+.gh-tbl th{position:sticky;top:0;background:var(--surface-2);text-align:start;padding:9px 10px;font-weight:800;white-space:nowrap;cursor:pointer;border-bottom:1px solid var(--line);z-index:1}
+.gh-tbl th[data-dir=asc]::after{content:" ▲";font-size:.6rem}
+.gh-tbl th[data-dir=desc]::after{content:" ▼";font-size:.6rem}
+.gh-tbl td{padding:7px 10px;border-bottom:1px solid var(--line);vertical-align:top;white-space:nowrap;max-width:300px;overflow:hidden;text-overflow:ellipsis}
+.gh-tbl tr:hover td{background:var(--surface-2);cursor:pointer}
+.gh-tbl .sw{display:inline-block;width:9px;height:9px;border-radius:50%;margin-inline-end:6px}
+.gh-trip{display:grid;gap:8px}
+.gh-stop{display:grid;grid-template-columns:34px 1fr auto;gap:10px;align-items:center;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:var(--surface)}
+.gh-stop .n{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;color:#fff;font-weight:800;font-family:Manrope,sans-serif}
+.gh-stop b{display:block;font-size:.86rem}
+.gh-stop small{display:block;font-size:.74rem;color:var(--text-3)}
+.gh-stop .ac{display:flex;gap:4px}
+.gh-leg2{display:flex;justify-content:center;font-size:.72rem;color:var(--text-3);direction:ltr}
+.gh-empty{border:1px dashed var(--line);border-radius:18px;padding:30px 20px;text-align:center;display:grid;gap:10px;justify-items:center}
+.gh-empty p{margin:0;max-width:620px;color:var(--text-2);font-size:.86rem;line-height:1.8}
+/* navigation-app chooser and lightbox */
+.gh-modal{position:fixed;inset:0;z-index:12000;background:rgba(6,10,14,.6);display:grid;place-items:end center;padding:16px}
+.gh-modal[hidden]{display:none}
+.gh-sheetm{width:min(460px,100%);background:var(--surface);border-radius:22px;padding:18px;display:grid;gap:12px;box-shadow:0 30px 70px rgba(0,0,0,.4)}
+@media (min-width:700px){.gh-modal{place-items:center}}
+.gh-sheetm h3{margin:0;font-size:1.05rem}
+.gh-sheetm p{margin:0;font-size:.82rem;color:var(--text-2);line-height:1.6}
+.gh-app{all:unset;box-sizing:border-box;cursor:pointer;display:grid;grid-template-columns:44px 1fr auto;gap:12px;align-items:center;padding:11px 12px;border:1px solid var(--line);border-radius:14px}
+.gh-app:hover{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 7%,transparent)}
+.gh-app .lg{width:44px;height:44px;border-radius:12px;display:grid;place-items:center;color:#fff;font-weight:800;font-size:1.05rem;font-family:Manrope,sans-serif}
+.gh-app b{display:block;font-size:.92rem}
+.gh-app small{display:block;font-size:.74rem;color:var(--text-3)}
+.gh-lbx{position:fixed;inset:0;z-index:12000;background:rgba(6,10,14,.93);display:grid;grid-template-rows:1fr auto;padding:20px;gap:12px}
+.gh-lbx[hidden]{display:none}
+.gh-lbx .st{display:grid;place-items:center;min-height:0}
+.gh-lbx img{max-width:100%;max-height:calc(100vh - 150px);border-radius:12px;object-fit:contain}
+.gh-lbx .bar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;color:#e9eef2;font-size:.82rem;max-width:1100px;width:100%;margin:0 auto}
+.gh-lbx .x{all:unset;position:absolute;top:14px;inset-inline-end:14px;cursor:pointer;width:42px;height:42px;border-radius:50%;background:rgba(255,255,255,.14);display:grid;place-items:center;color:#fff}
+.gh-lbx .nv{position:absolute;top:50%;transform:translateY(-50%);width:44px;height:44px;border-radius:50%;border:0;background:rgba(255,255,255,.14);color:#fff;font-size:1.4rem;cursor:pointer}
+.gh-lbx .nv.p{inset-inline-start:14px}.gh-lbx .nv.n{inset-inline-end:14px}
+.gh-print .gh-pane[data-rp-extra]{display:grid!important}
+@keyframes ghSpin{to{transform:rotate(360deg)}}
+@media (min-width:901px){.wsm.gh-wide{grid-template-columns:minmax(360px,520px) minmax(0,1fr)}}
+@media (max-width:900px){.gh-tabs{position:static}.gh-leg{font-size:.64rem;padding:6px 8px;bottom:22px;inset-inline-start:8px}.gh-mapstat span{font-size:.68rem;padding:4px 8px}.gh-mini{height:280px}.gh-fhead h2{font-size:1.2rem}}
+</style>
 <div class="wsm">
   <aside class="wsm-side">
-    <div class="sec">
-      <div class="fg"><label for="hQ">{{ m.L('Search sites', 'ابحث في المواقع') }}</label><input id="hQ" type="search" placeholder="{{ m.L('Name, province or rock', 'الاسم أو المحافظة أو الصخر') }}"></div>
-      <div class="seg" id="hType" style="flex-wrap:wrap"><button type="button" data-v="all" aria-pressed="true">{{ m.L('All', 'الكل') }}</button><button type="button" data-v="cave" aria-pressed="false">{{ m.L('Caves', 'كهوف') }}</button><button type="button" data-v="mountain" aria-pressed="false">{{ m.L('Landforms', 'أشكال أرضية') }}</button><button type="button" data-v="river" aria-pressed="false">{{ m.L('Rivers', 'أنهار') }}</button><button type="button" data-v="heritage" aria-pressed="false">{{ m.L('Heritage', 'تراث') }}</button></div>
-      <div class="seg" id="hEra" style="flex-wrap:wrap"><button type="button" data-v="all" aria-pressed="true">{{ m.L('All eras', 'كل الحقب') }}</button><button type="button" data-v="Precambrian" aria-pressed="false">{{ m.L('Precambrian', 'ما قبل الكامبري') }}</button><button type="button" data-v="Mesozoic" aria-pressed="false">{{ m.L('Mesozoic', 'الميزوزوي') }}</button><button type="button" data-v="Cenozoic" aria-pressed="false">{{ m.L('Cenozoic', 'السينوزوي') }}</button></div>
-      <button class="btn btn-ink btn-sm" id="hMe" type="button">{{ icon('crosshair', 'ico ico-sm') }}{{ m.L('Sort by distance from me', 'رتّب حسب البعد عني') }}</button>
+    <!-- ============ BROWSE VIEW ============ -->
+    <div data-v="list">
+      <div class="sec gh-intro" data-rp-skip>
+        <h2>{{ m.L('Iraq’s natural, geological and archaeological places on one map', 'أماكن العراق الطبيعية والجيولوجية والأثرية على خريطة واحدة') }}</h2>
+        <p>{{ m.L('Waterfalls, gorges, caves, lakes, marshes, rivers and desert landforms beside the cities of Sumer, Babylon and Assyria, the shrines, the old quarters and the museums. Every place opens with its story, the rock beneath it, live conditions, photographs and the way to get there.', 'الشلالات والمضائق والكهوف والبحيرات والأهوار والأنهار وأشكال الصحراء، إلى جانب مدن سومر وبابل وآشور والمراقد والأحياء القديمة والمتاحف. يفتح كل مكان بقصته والصخر الذي تحته والظروف الحالية والصور وطريق الوصول إليه.') }}</p>
+        <div class="gh-acts"><button type="button" class="btn btn-gold btn-sm" id="hNear">{{ icon('crosshair', 'ico ico-sm') }}{{ m.L('Places near me', 'الأماكن القريبة مني') }}</button><button type="button" class="btn btn-line btn-sm" id="hRand">{{ icon('shuffle', 'ico ico-sm') }}{{ m.L('Surprise me', 'اقترح عليّ مكاناً') }}</button></div>
+      </div>
+      <div class="sec">
+        <div class="gh-step"><h3>{{ icon('layers') }}{{ m.L('1 · Kind of place', '1 · نوع المكان') }}</h3><button type="button" class="gh-try" data-try="cat">{{ icon('wand-sparkles') }}{{ m.L('Try', 'تجربة') }}</button></div>
+        <div class="gh-cats" id="hCats"></div>
+        <div class="fg"><label for="hType">{{ m.L('Place type', 'نوع المعلم') }}</label><select id="hType"></select></div>
+      </div>
+      <div class="sec">
+        <div class="gh-step"><h3>{{ icon('map') }}{{ m.L('2 · Where', '2 · أين') }}</h3><button type="button" class="gh-try" data-try="where">{{ icon('wand-sparkles') }}{{ m.L('Try', 'تجربة') }}</button></div>
+        <div class="gh-row"><div class="fg"><label for="hGov">{{ m.L('Governorate', 'المحافظة') }}</label><select id="hGov"></select></div><div class="fg"><label for="hZone">{{ m.L('Geological zone', 'النطاق الجيولوجي') }}</label><select id="hZone"></select></div></div>
+        <div class="fg"><div class="gh-step"><label for="hQ">{{ m.L('Search by name or word', 'ابحث بالاسم أو بكلمة') }}</label><button type="button" class="gh-try" data-try="q">{{ icon('wand-sparkles') }}{{ m.L('Try', 'تجربة') }}</button></div><input id="hQ" type="search" placeholder="{{ m.L('e.g. waterfall, ziggurat, limestone', 'مثلاً: شلال، زقورة، حجر جيري') }}"></div>
+        <label class="gh-tog"><input type="checkbox" id="hUn">{{ icon('award', 'ico ico-sm') }}{{ m.L('World Heritage sites only', 'مواقع التراث العالمي فقط') }}</label>
+      </div>
+      <div class="sec" data-rp-skip>
+        <div class="gh-step"><h3>{{ icon('crosshair') }}{{ m.L('3 · Distance from you', '3 · البعد عنك') }}</h3><button type="button" class="gh-try" data-try="near">{{ icon('wand-sparkles') }}{{ m.L('Try', 'تجربة') }}</button></div>
+        <div class="gh-row"><button type="button" class="btn btn-ink btn-sm" id="hMe">{{ icon('crosshair', 'ico ico-sm') }}{{ m.L('Locate me', 'حدّد موقعي') }}</button><div class="fg" style="margin:0"><select id="hRad" aria-label="radius"><option value="0">{{ m.L('Any distance', 'أي مسافة') }}</option><option value="25">25 km</option><option value="50">50 km</option><option value="100">100 km</option><option value="200">200 km</option></select></div></div>
+        <p class="gh-cap" id="hMeTxt">{{ m.L('After locating you, places are ordered from the nearest, with the distance and the direction to each.', 'بعد تحديد موقعك تُرتَّب الأماكن من الأقرب، مع المسافة والاتجاه إلى كل منها.') }}</p>
+      </div>
+      <div class="sec" style="padding:0;gap:0"><div class="gh-step" style="padding:12px 16px 8px"><h3 id="hCount"></h3><button type="button" class="gh-try" id="hReset">{{ icon('x') }}{{ m.L('Clear filters', 'مسح الفلاتر') }}</button></div><div class="gh-list" id="hList"></div></div>
     </div>
-    <div class="sec" style="padding:0;gap:0" id="hList"></div>
+    <!-- ============ PLACE VIEW ============ -->
+    <div data-v="place" hidden><div class="sec" id="hPlace"></div></div>
   </aside>
-  <div class="wsm-map">
-    <div class="map" id="hMap"></div>
-    <div id="hCard" hidden style="position:absolute;top:16px;inset-inline-end:16px;width:min(440px,calc(100% - 32px));max-height:calc(100% - 32px);overflow:auto;z-index:600;background:var(--surface);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow-3,0 20px 50px rgba(0,0,0,.25))"></div>
+  <div class="wsm-map"><div class="map" id="hMap"></div>
+    <div class="gh-mapstat"><span id="hMapStat"></span><button type="button" class="gh-geobtn" id="hGeoL" aria-pressed="false">{{ icon('layers') }}{{ m.L('Geology layer', 'طبقة الجيولوجيا') }}</button></div>
+    <div class="gh-leg" id="hLeg"></div>
   </div>
 </div>
-<div id="hLight" hidden style="position:fixed;inset:0;z-index:2000;background:rgba(5,10,16,.92);display:grid;place-items:center">
-  <button type="button" data-lb="x" aria-label="{{ m.L('Close', 'إغلاق') }}" style="position:absolute;top:16px;inset-inline-end:16px;width:44px;height:44px;border-radius:50%;border:0;background:rgba(255,255,255,.12);color:#fff;font-size:22px;cursor:pointer">✕</button>
-  <button type="button" data-lb="p" aria-label="{{ m.L('Previous', 'السابق') }}" style="position:absolute;inset-inline-start:16px;top:50%;width:48px;height:48px;border-radius:50%;border:0;background:rgba(255,255,255,.12);color:#fff;font-size:24px;cursor:pointer">‹</button>
-  <img id="hImg" alt="" style="max-width:92vw;max-height:84vh;border-radius:10px;box-shadow:0 20px 60px rgba(0,0,0,.5)">
-  <button type="button" data-lb="n" aria-label="{{ m.L('Next', 'التالي') }}" style="position:absolute;inset-inline-end:16px;top:50%;width:48px;height:48px;border-radius:50%;border:0;background:rgba(255,255,255,.12);color:#fff;font-size:24px;cursor:pointer">›</button>
-  <div id="hCap" style="position:absolute;bottom:18px;color:#fff;font-size:.9rem;opacity:.85"></div>
-</div>
+
+<!-- ============ DECK UNDER THE MAP ============ -->
+<section class="gh-deck" id="hDeck">
+  <div class="in">
+    <div class="gh-focus" id="hFocus" hidden data-rp-extra>
+      <div class="gh-fhead"><div><span class="k" id="hFK"></span><h2 id="hFName"></h2><p class="gh-cap" id="hFSum"></p></div><button type="button" class="btn btn-line btn-xs no-print" id="hFClose">{{ icon('x', 'ico ico-sm') }}{{ m.L('Close', 'إغلاق') }}</button></div>
+      <div class="gh-grid2">
+        <div class="gh-panel"><div class="ph"><h3>{{ icon('satellite') }}{{ m.L('Satellite view of the place', 'المنظر الفضائي للمكان') }}</h3><div class="gh-dl no-print"><button type="button" class="btn btn-line btn-xs" data-mini="sat" aria-pressed="true">{{ m.L('Satellite', 'فضائية') }}</button><button type="button" class="btn btn-line btn-xs" data-mini="geo" aria-pressed="false">{{ m.L('Geology', 'جيولوجيا') }}</button><button type="button" class="btn btn-line btn-xs" data-mini="topo" aria-pressed="false">{{ m.L('Terrain', 'تضاريس') }}</button></div></div>
+          <div class="gh-mini" id="hMini"></div><p class="gh-cap" id="hMiniCap"></p></div>
+        <div class="gh-panel"><div class="ph"><h3>{{ icon('images') }}{{ m.L('Photographs', 'الصور') }}</h3><span class="gh-cap" id="hGalN"></span></div><div class="gh-gal" id="hGal"></div><p class="gh-cap">{{ m.L('Open a photograph to enlarge it; the photographer is credited under each one.', 'افتح أي صورة لتكبيرها؛ ويُذكر المصوّر أسفل كل صورة.') }}</p></div>
+      </div>
+      <div class="gh-grid2">
+        <div class="gh-panel"><div class="ph"><h3>{{ icon('cloud-sun') }}{{ m.L('Weather for the next days at the place', 'الطقس في الأيام القادمة في المكان') }}</h3><div class="gh-dl no-print" data-dlplot="hWx"></div></div><div class="plot" id="hWx" style="height:340px"></div><p class="gh-cap" id="hWxCap"></p></div>
+        <div class="gh-panel"><div class="ph"><h3>{{ icon('mountain') }}{{ m.L('Ground profile across the place', 'المقطع الأرضي عبر المكان') }}</h3><div class="gh-dl no-print" data-dlplot="hProf"></div></div><div class="plot" id="hProf" style="height:340px"></div><p class="gh-cap" id="hProfCap"></p></div>
+      </div>
+      <div class="gh-panel"><div class="ph"><h3>{{ icon('map-pin') }}{{ m.L('Location map and description sheet', 'خريطة الموقع ولوحة الوصف') }}</h3><div class="gh-dl no-print"><button class="btn btn-line btn-xs" data-ps="png" type="button">PNG</button><button class="btn btn-line btn-xs" data-ps="jpg" type="button">JPG</button><button class="btn btn-line btn-xs" data-ps="pdf" type="button">PDF</button></div></div>
+        <div class="gh-sheet"><svg id="hPSheet" viewBox="0 0 1100 800" direction="ltr"></svg></div><p class="gh-cap" id="hPSCap"></p></div>
+    </div>
+    <div class="gh-tabs" role="tablist">
+      <button type="button" role="tab" data-tab="ov" aria-selected="true">{{ icon('layout-dashboard') }}{{ m.L('Overview', 'القراءة العامة') }}</button>
+      <button type="button" role="tab" data-tab="pl" aria-selected="false">{{ icon('images') }}{{ m.L('Places', 'الأماكن') }}<span class="n" id="nPl"></span></button>
+      <button type="button" role="tab" data-tab="tr" aria-selected="false">{{ icon('route') }}{{ m.L('My trip', 'رحلتي') }}<span class="n" id="nTr">0</span></button>
+      <button type="button" role="tab" data-tab="tb" aria-selected="false">{{ icon('table-2') }}{{ m.L('Data table', 'جدول البيانات') }}</button>
+      <button type="button" role="tab" data-tab="ms" aria-selected="false">{{ icon('map') }}{{ m.L('Map sheet', 'لوحة الخريطة') }}</button>
+    </div>
+    <div class="gh-pane" data-pane="ov" data-rp-extra>
+      <div class="gh-kpis" id="hKpis"></div>
+      <div class="gh-panel"><h3>{{ icon('sparkles') }}{{ m.L('Shandal reading of the selection', 'قراءة نظام شندل للاختيار') }}</h3><div class="gh-interp" id="hRead"></div></div>
+      <div class="gh-grid2">
+        <div class="gh-panel"><div class="ph"><h3>{{ icon('map') }}{{ m.L('Places by governorate', 'الأماكن حسب المحافظة') }}</h3><div class="gh-dl no-print" data-dlplot="hGovC"></div></div><div class="plot" id="hGovC" style="height:520px"></div><p class="gh-cap" id="hGovCap"></p></div>
+        <div class="gh-panel"><div class="ph"><h3>{{ icon('layers') }}{{ m.L('Places on the geological zones of Iraq', 'الأماكن على النطاقات الجيولوجية للعراق') }}</h3><div class="gh-dl no-print" data-dlplot="hZoneC"></div></div><div class="plot" id="hZoneC" style="height:520px"></div><p class="gh-cap" id="hZoneCap"></p></div>
+        <div class="gh-panel"><div class="ph"><h3>{{ icon('mountain-snow') }}{{ m.L('Types of place', 'أنواع الأماكن') }}</h3><div class="gh-dl no-print" data-dlplot="hTypeC"></div></div><div class="plot" id="hTypeC" style="height:520px"></div><p class="gh-cap" id="hTypeCap"></p></div>
+        <div class="gh-panel"><div class="ph"><h3>{{ icon('compass') }}{{ m.L('From north to south', 'من الشمال إلى الجنوب') }}</h3><div class="gh-dl no-print" data-dlplot="hLatC"></div></div><div class="plot" id="hLatC" style="height:520px"></div><p class="gh-cap" id="hLatCap"></p></div>
+      </div>
+    </div>
+    <div class="gh-pane" data-pane="pl" hidden>
+      <div class="gh-bar"><p class="gh-cap">{{ m.L('The places of the current selection. Open a card to read the place; the heart button adds it to your trip.', 'أماكن الاختيار الحالي. افتح أي بطاقة لقراءة المكان؛ ويضيفه زر الإضافة إلى رحلتك.') }}</p><select id="hSort" aria-label="sort"><option value="name">{{ m.L('By name', 'حسب الاسم') }}</option><option value="ns">{{ m.L('North to south', 'من الشمال إلى الجنوب') }}</option><option value="gov">{{ m.L('By governorate', 'حسب المحافظة') }}</option><option value="dist">{{ m.L('Nearest to me', 'الأقرب إليّ') }}</option></select></div>
+      <div class="gh-cards" id="hCards"></div>
+    </div>
+    <div class="gh-pane" data-pane="tr" hidden>
+      <div class="gh-panel"><div class="ph"><h3>{{ icon('route') }}{{ m.L('My trip', 'رحلتي') }}</h3><div class="gh-dl"><button type="button" class="btn btn-line btn-xs" id="hTOpt">{{ icon('sparkles', 'ico ico-sm') }}{{ m.L('Best order', 'أفضل ترتيب') }}</button><button type="button" class="btn btn-gold btn-xs" id="hTGo">{{ icon('navigation', 'ico ico-sm') }}{{ m.L('Navigate the whole trip', 'الملاحة للرحلة كاملة') }}</button><button type="button" class="btn btn-line btn-xs" id="hTClr">{{ icon('trash', 'ico ico-sm') }}{{ m.L('Clear', 'مسح') }}</button></div></div>
+        <div class="gh-kpis" id="hTK"></div>
+        <div class="gh-trip" id="hTrip"></div>
+        <p class="gh-cap">{{ m.L('Add places with the “Add to trip” button on any place. “Best order” arranges the stops into the shortest round from your position or from the first stop. Distances are straight-line; road distance is usually 20–40% longer.', 'أضف الأماكن بزر «أضف إلى الرحلة» في أي مكان. ويرتب زر «أفضل ترتيب» المحطات في أقصر جولة من موقعك أو من المحطة الأولى. المسافات خطوط مستقيمة؛ وتزيد مسافة الطريق عادةً بنسبة 20–40%.') }}</p>
+      </div>
+    </div>
+    <div class="gh-pane" data-pane="tb" hidden>
+      <div class="gh-bar"><input id="hTQ" type="search" placeholder="{{ m.L('Filter the table…', 'صفِّ الجدول…') }}" aria-label="Filter"><div class="gh-dl"><span class="lbl">{{ m.L('Download the table', 'تنزيل الجدول') }}</span><button type="button" class="btn btn-line btn-xs" data-tbl="xlsx">Excel</button><button type="button" class="btn btn-line btn-xs" data-tbl="csv">CSV</button><button type="button" class="btn btn-line btn-xs" data-tbl="geojson">GeoJSON</button><button type="button" class="btn btn-line btn-xs" data-tbl="kml">KML</button></div></div>
+      <div class="gh-tw"><table class="gh-tbl" id="hTbl"></table></div>
+    </div>
+    <div class="gh-pane" data-pane="ms" hidden data-rp-extra>
+      <div class="gh-panel"><div class="ph"><h3>{{ icon('map') }}{{ m.L('Map of the selected places', 'خريطة الأماكن المختارة') }}</h3><div class="gh-dl no-print"><button class="btn btn-line btn-xs" data-sheet="png" type="button">PNG</button><button class="btn btn-line btn-xs" data-sheet="jpg" type="button">JPG</button><button class="btn btn-line btn-xs" data-sheet="pdf" type="button">PDF</button></div></div>
+        <div class="gh-sheet"><svg id="hSheet" viewBox="0 0 1100 800" direction="ltr"></svg></div><p class="gh-cap" id="hSheetCap"></p></div>
+      <div class="gh-panel"><div class="ph"><h3>{{ icon('table-2') }}{{ m.L('Key to the numbered places', 'مفتاح الأماكن المرقّمة') }}</h3><div class="gh-dl no-print"><button class="btn btn-line btn-xs" data-key="png" type="button">PNG</button><button class="btn btn-line btn-xs" data-key="jpg" type="button">JPG</button><button class="btn btn-line btn-xs" data-key="pdf" type="button">PDF</button></div></div>
+        <div class="gh-sheet"><svg id="hKey" viewBox="0 0 1100 600" direction="ltr"></svg></div></div>
+    </div>
+  </div>
+</section>
+<div class="gh-modal" id="hNav" hidden role="dialog" aria-modal="true" aria-labelledby="hNavT"><div class="gh-sheetm">
+  <div class="gh-step"><h3 id="hNavT">{{ m.L('Open the route in', 'افتح الطريق في') }}</h3><button type="button" class="gh-try" id="hNavX">{{ icon('x') }}{{ m.L('Cancel', 'إلغاء') }}</button></div>
+  <p id="hNavTo"></p>
+  <button type="button" class="gh-app" data-app="google"><span class="lg" style="background:#1A73E8">G</span><span><b>Google Maps</b><small>{{ m.L('Driving route with live traffic; Android, iPhone and computer', 'طريق القيادة مع حركة المرور؛ أندرويد وآيفون والحاسوب') }}</small></span>{{ icon('navigation', 'ico ico-sm') }}</button>
+  <button type="button" class="gh-app" data-app="apple"><span class="lg" style="background:#111">{{ icon('map', 'ico ico-sm') }}</span><span><b>Apple Maps</b><small>{{ m.L('Best on iPhone, iPad and Mac', 'الأفضل على آيفون وآيباد وماك') }}</small></span>{{ icon('navigation', 'ico ico-sm') }}</button>
+  <button type="button" class="gh-app" data-app="waze"><span class="lg" style="background:#33CCFF;color:#062a36">W</span><span><b>Waze</b><small>{{ m.L('Turn-by-turn driving with road reports', 'قيادة خطوة بخطوة مع بلاغات الطريق') }}</small></span>{{ icon('navigation', 'ico ico-sm') }}</button>
+  <button type="button" class="gh-app" data-app="copy"><span class="lg" style="background:var(--accent)">{{ icon('copy', 'ico ico-sm') }}</span><span><b>{{ m.L('Copy the coordinates', 'انسخ الإحداثيات') }}</b><small id="hNavCo"></small></span></button>
+  <label class="gh-tog"><input type="checkbox" id="hNavRem">{{ m.L('Remember my choice on this device', 'تذكّر اختياري على هذا الجهاز') }}</label>
+</div></div>
+<div class="gh-lbx" id="hLb" hidden role="dialog" aria-modal="true"><button type="button" class="x" id="hLbX" aria-label="Close">{{ icon('x') }}</button><button type="button" class="nv p" id="hLbP" aria-label="Previous">‹</button><button type="button" class="nv n" id="hLbN" aria-label="Next">›</button><div class="st"><img id="hLbI" alt=""></div><div class="bar"><span id="hLbC"></span><span id="hLbK"></span></div></div>
 {% endblock %}

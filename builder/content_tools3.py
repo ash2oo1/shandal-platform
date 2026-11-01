@@ -138,8 +138,8 @@ OVERRIDES = {
  'exports': L('PDF report, PNG charts', 'تقرير PDF، مخططات PNG'),
 },
 'geoheritage': {
- 'summary': L('An interactive atlas of geosites and monuments with the formation, rock and tectonic setting beneath each, photo galleries, era and type filters, distance from you, live conditions and directions.',
-              'أطلس تفاعلي للمواقع الجيولوجية والمعالم مع التكوين والصخر والبيئة التكتونية تحت كل منها، ومعارض صور، وفلاتر الحقبة والنوع، والبعد عنك، والظروف الحالية والاتجاهات.'),
- 'exports': L('Shareable site links, directions', 'روابط مواقع قابلة للمشاركة، اتجاهات'),
+ 'summary': L('An atlas of 164 natural, geological, archaeological, religious and museum places in Iraq with the geology beneath each, surface rock, elevation, live weather, photographs, nearby places, a trip planner and directions in the navigation app you choose.',
+              'أطلس لـ164 مكاناً طبيعياً وجيولوجياً وأثرياً ودينياً ومتحفياً في العراق، مع الجيولوجيا تحت كل منها والصخر السطحي والارتفاع والطقس الحالي والصور والأماكن القريبة ومخطط للرحلات والاتجاهات في تطبيق الملاحة الذي تختاره.'),
+ 'exports': L('PDF report, place and map sheets, charts, Excel, CSV, GeoJSON, KML', 'تقرير PDF، لوحات المكان والخريطة، المخططات، Excel وCSV وGeoJSON وKML'),
 },
 }
