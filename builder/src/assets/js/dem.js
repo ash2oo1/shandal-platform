@@ -327,6 +327,9 @@
     if (idx > 1) row(function (x, yy) { S.line(x, yy, x + 30, yy, { stroke: CC[1], 'stroke-width': .6 * LW }); }, SH.t('Intermediate contour', 'خط كنتور ثانوي'));
     (opts.legend || []).forEach(function (e) { row(function (x, yy) { S.line(x, yy, x + 30, yy, { stroke: e.color, 'stroke-width': 2.5, 'stroke-dasharray': e.dash || null }); }, e.name); });
     if ((opts.points || []).length) row(function (x, yy) { S.circle(x + 15, yy, 3.2, { fill: '#111', stroke: '#fff', 'stroke-width': 1.2 }); }, opts.pointsName || SH.t('Measured point', 'نقطة مقاسة'));
+    }
+    if (opts.noContours && (opts.points || []).length) (opts.pointKinds || [{ color: '#111', name: opts.pointsName || SH.t('Measured point', 'نقطة مقاسة') }]).forEach(function (pk) { row(function (x, yy) { S.circle(x + 15, yy, 3.2, { fill: pk.color, stroke: '#fff', 'stroke-width': 1.2 }); }, pk.name); });
+    if (!opts.noContours) {
     if (opts.clipPoly) row(function (x, yy) { S.add('rect', { x: x + 4, y: yy - 6, width: 22, height: 12, fill: 'none', stroke: ink, 'stroke-dasharray': '3 2' }); }, SH.t('Interpolated only inside the data hull', 'الاستيفاء داخل غلاف البيانات فقط'));
     var unit = (opts.unit == null ? ' m' : opts.unit).trim();
     txt(L0, y + 4, SH.t('Contour interval', 'الفاصل الكنتوري'), { 'font-size': 10.5, fill: ink }, R0); S.text(SH.lang === 'ar' ? L0 : R0, y + 4, SH.fmt(step, step < 1 ? 2 : 0) + (unit ? ' ' + unit : ''), { 'font-size': 10.5, 'font-weight': 800, fill: ink, direction: 'ltr', 'text-anchor': SH.lang === 'ar' ? 'start' : 'end' }); y += 12;

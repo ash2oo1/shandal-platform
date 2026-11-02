@@ -494,7 +494,7 @@ ORDER = ['quarry-survey', 'structural-geotechnical', 'stereonet-lab', 'rockmass-
          'spectral-indices',
          'magnetic-lab', 'geothermal-lab',
          'seismic-evaluation', 'seismic-hazard', 'soil-properties', 'bearing-capacity', 'mohr-circle', 'atterberg-limits', 'grain-size', 'surface-3d',
-         'water-lab', 'hydro-alert',
+         'water-lab', 'hydro-alert', 'potential-zones',
          'air-quality',
          'env-monitoring',
          'hazards-monitor', 'volcanoes',
@@ -507,7 +507,7 @@ TOOLS = [_all[k] for k in ORDER]
 OPEN_DATA = {'air-quality', 'env-monitoring', 'hydro-alert'}
 # sections (2026-10): remote sensing, geophysics, water, atmosphere and climate are separate sections
 CAT_OF = {'geomorphology-contour': 'terrain', 'spectral-indices': 'remote', 'magnetic-lab': 'geophysics', 'geothermal-lab': 'geophysics',
-          'hydro-alert': 'water', 'air-quality': 'atmosphere', 'env-monitoring': 'climate'}
+          'hydro-alert': 'water', 'potential-zones': 'water', 'air-quality': 'atmosphere', 'env-monitoring': 'climate'}
 for _t in TOOLS:
     _t['cat'] = CAT_OF.get(_t['slug'], _t['cat'])
     _t.setdefault('libs', [])

@@ -1,0 +1,111 @@
+{% extends "app_base.html" %}
+{% import "apps/_m.html" as m with context %}
+{% block ws %}
+<style>
+.pz-card{border:1px solid var(--line);border-radius:12px;padding:12px 14px;background:var(--surface-2);display:grid;gap:8px;font-size:.84rem;line-height:1.75}
+.pz-card b.h{font-size:.92rem}
+.pz-note{border-inline-start:3px solid var(--accent);background:var(--surface-2);border-radius:8px;padding:8px 12px;font-size:.8rem;line-height:1.75}
+.pz-rec{display:grid;gap:6px}
+.pz-rec button{all:unset;box-sizing:border-box;cursor:pointer;display:grid;grid-template-columns:30px 1fr;gap:10px;align-items:center;padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:var(--surface);font-size:.84rem;line-height:1.5}
+.pz-rec button[aria-pressed=true]{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-soft)}
+.pz-rec button[disabled]{opacity:.55;cursor:not-allowed}
+.pz-rec button small{display:block;color:var(--text-2);font-size:.74rem}
+.pz-rec .ic{width:30px;height:30px;border-radius:8px;display:grid;place-items:center;background:var(--surface-2)}
+.pz-f{display:grid;gap:6px}
+.pz-f .row{display:grid;grid-template-columns:20px 1fr 88px 46px 18px;gap:8px;align-items:center;font-size:.8rem;padding:4px 0;border-bottom:1px dashed var(--line)}
+.pz-f .row:last-child{border-bottom:0}
+.pz-f .row input[type=range]{width:100%;margin:0}
+.pz-f .row .w{font-weight:800;direction:ltr;text-align:end;font-variant-numeric:tabular-nums}
+.pz-f .row .st{width:10px;height:10px;border-radius:50%;background:var(--line)}
+.pz-f .row .st[data-s=run]{background:#e0a32c;animation:pzb 1s infinite}
+.pz-f .row .st[data-s=ok]{background:#2e8b57}
+.pz-f .row .st[data-s=bad]{background:#c0392b}
+.pz-f .row .st[data-s=off]{background:transparent;border:1px solid var(--line)}
+@keyframes pzb{50%{opacity:.3}}
+.pz-cr{font-size:.78rem;display:flex;flex-wrap:wrap;gap:6px 14px;align-items:center}
+.pz-cls{display:grid;gap:4px}
+.pz-cls div{display:grid;grid-template-columns:16px 1fr auto auto;gap:10px;align-items:center;font-size:.8rem}
+.pz-cls i{width:16px;height:12px;border-radius:3px;border:1px solid rgba(0,0,0,.25)}
+.pz-cls .n{font-weight:800;direction:ltr;font-variant-numeric:tabular-nums}
+.pz-leg{position:absolute;bottom:30px;inset-inline-start:12px;z-index:600;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 12px;min-width:200px;max-width:270px;box-shadow:0 8px 24px rgba(0,0,0,.18);font-size:.78rem}
+.pz-leg .gr{height:12px;border-radius:4px;border:1px solid rgba(0,0,0,.2)}
+.pz-leg .sc{display:flex;justify-content:space-between;direction:ltr;font-size:.72rem;color:var(--text-2)}
+[dir=ltr] .pz-map .leaflet-bottom.leaflet-right{margin-bottom:70px}
+[dir=rtl] .pz-leg{bottom:58px}
+.pz-dl{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.pz-units{width:100%;border-collapse:collapse;font-size:.76rem}
+.pz-units th,.pz-units td{padding:4px 6px;border-bottom:1px solid var(--line);text-align:start;vertical-align:middle}
+.pz-units select{font-size:.76rem;padding:2px 4px;min-height:0}
+.pz-units i{display:inline-block;width:12px;height:12px;border-radius:3px;vertical-align:middle;border:1px solid rgba(0,0,0,.25)}
+.pz-tbl{width:100%;border-collapse:collapse;font-size:.78rem}
+.pz-tbl th,.pz-tbl td{padding:5px 6px;border-bottom:1px solid var(--line);text-align:start}
+.pz-tbl td.num,.pz-tbl th.num{direction:ltr;text-align:end;font-variant-numeric:tabular-nums;white-space:nowrap}
+.pz-pop{font-size:.76rem;line-height:1.55;min-width:230px}
+.pz-pop table{border-collapse:collapse;width:100%}
+.pz-pop td{padding:2px 4px;border-bottom:1px solid #eee}
+.pz-pop td.num{direction:ltr;text-align:end}
+@media (max-width:560px){.pz-f .row{grid-template-columns:18px 1fr 70px 40px 14px;gap:6px}.pz-leg{max-width:200px;min-width:160px}}
+</style>
+<div class="wsm">
+  <aside class="wsm-side">
+    <div class="sec">
+      <h3>{{ icon('target') }}{{ m.L('1 · What to look for', '1 · ماذا تبحث عنه') }}</h3>
+      <div class="pz-rec" id="pRec">
+        <button type="button" data-r="gw" aria-pressed="true"><span class="ic">{{ icon('droplets') }}</span><span><b>{{ m.L('Groundwater potential zones', 'مناطق احتمالية المياه الجوفية') }}</b><small>{{ m.L('Ten evidence layers combined by the analytic hierarchy process', 'عشر طبقات أدلة مدمجة بطريقة التحليل الهرمي') }}</small></span></button>
+        <button type="button" data-r="arch" aria-pressed="false" disabled><span class="ic">{{ icon('landmark') }}</span><span><b>{{ m.L('Archaeological site potential', 'احتمالية المواقع الأثرية') }}</b><small>{{ m.L('In preparation', 'قيد الإعداد') }}</small></span></button>
+        <button type="button" data-r="min" aria-pressed="false" disabled><span class="ic">{{ icon('gem') }}</span><span><b>{{ m.L('Mineral prospectivity', 'الاحتمالية المعدنية') }}</b><small>{{ m.L('In preparation', 'قيد الإعداد') }}</small></span></button>
+      </div>
+      <div class="pz-note">{{ m.L('The result ranks the ground inside your area from very low to very high potential. It does not give the depth, thickness or quality of water: those come from electrical soundings and wells.', 'تُرتّب النتيجة الأرض داخل منطقتك من احتمالية منخفضة جداً إلى عالية جداً. ولا تعطي عمق المياه أو سُمك الخزان أو نوعية المياه، فهذه تأتي من السبر الكهربائي والآبار.') }}</div>
+    </div>
+    <div class="sec">
+      <h3>{{ icon('square-dashed') }}{{ m.L('2 · Area of study', '2 · منطقة الدراسة') }}</h3>
+      <div class="row2"><button class="btn btn-ink btn-sm" id="pDraw" type="button">{{ m.L('Draw rectangle', 'ارسم مستطيلاً') }}</button><button class="btn btn-line btn-sm" id="pView" type="button">{{ m.L('Use map view', 'استخدم العرض') }}</button></div>
+      <p class="xsmall muted" id="pAoi" style="margin:0">{{ m.L('No area yet. Between 4 and 2500 km².', 'لم تُحدد منطقة بعد. بين 4 و2500 كم².') }}</p>
+      <div class="row2">
+        {{ m.sel('pYear', 'Dry season of', 'الموسم الجاف لعام', []) }}
+        {{ m.sel('pRes', 'Cell size', 'حجم الخلية', [('auto', 'Automatic', 'تلقائي', True), ('fine', 'Fine (slower)', 'دقيق (أبطأ)'), ('coarse', 'Coarse (faster)', 'خشن (أسرع)')]) }}
+      </div>
+    </div>
+    <div class="sec">
+      <h3>{{ icon('layers') }}{{ m.L('3 · Evidence layers and their importance', '3 · طبقات الأدلة وأهميتها') }}</h3>
+      <p class="xsmall muted" style="margin:0">{{ m.L('Give each layer an importance from 1 to 9. The weights come from the pairwise comparison matrix of the analytic hierarchy process, with its consistency ratio.', 'أعطِ كل طبقة أهمية من 1 إلى 9. تُحسب الأوزان من مصفوفة المقارنات الزوجية لطريقة التحليل الهرمي مع نسبة الاتساق.') }}</p>
+      <div class="pz-f" id="pF"></div>
+      <div class="pz-cr" id="pCR"></div>
+      <div class="row2"><button class="btn btn-line btn-xs" id="pDef" type="button">{{ m.L('Default importance', 'الأهمية الافتراضية') }}</button><label class="btn btn-line btn-xs" for="pLinF" style="cursor:pointer">{{ m.L('Your lineaments (GeoJSON)', 'خطوطك التركيبية (GeoJSON)') }}</label></div>
+      <input type="file" id="pLinF" accept=".geojson,.json,application/geo+json,application/json" hidden>
+      <p class="xsmall muted" id="pLinS" style="margin:0"></p>
+      {{ m.sel('pCls', 'Class breaks', 'حدود الفئات', [('jenks', 'Natural breaks (Jenks)', 'الفواصل الطبيعية (Jenks)', True), ('equal', 'Equal intervals', 'فترات متساوية'), ('quant', 'Equal areas (quantiles)', 'مساحات متساوية (مئينات)')]) }}
+      <button class="btn btn-gold" id="pRun" type="button">{{ icon('play', 'ico ico-sm') }}{{ m.L('Build the potential map', 'أنشئ خريطة الاحتمالية') }}</button>
+      <p class="xsmall muted" id="pProg" style="margin:0"></p>
+    </div>
+    <div class="sec">
+      <h3>{{ icon('chart-bar') }}{{ m.L('4 · Result', '4 · النتيجة') }}</h3>
+      {{ m.sel('pShow', 'Show on the map', 'اعرض على الخريطة', [('cls', 'Potential classes', 'فئات الاحتمالية', True)]) }}
+      <div class="fg"><label for="pOp">{{ m.L('Layer opacity', 'شفافية الطبقة') }}</label><input type="range" id="pOp" min="0.2" max="1" step="0.05" value="0.8"></div>
+      <div id="pOut" style="display:grid;gap:10px"><span class="xsmall muted">{{ m.L('Draw an area and build the map. Tap any point of the result to read every layer there.', 'ارسم منطقة وأنشئ الخريطة. انقر أي نقطة في النتيجة لقراءة كل طبقة فيها.') }}</span></div>
+    </div>
+    <div class="sec">
+      <h3>{{ icon('badge-check') }}{{ m.L('5 · Check against wells', '5 · التحقق بالآبار') }}</h3>
+      <p class="xsmall muted" style="margin:0">{{ m.L('Add known wells: a CSV with latitude, longitude and, if known, yield (L/s) or status (1 = productive, 0 = dry), or tap them on the map. The tool measures how well the map predicts them.', 'أضف آباراً معروفة: ملف CSV فيه خط العرض وخط الطول، ومع الإنتاجية (لتر/ثا) أو الحالة (1 = منتجة، 0 = جافة) إن وُجدت، أو انقرها على الخريطة. تقيس الأداة مدى تنبؤ الخريطة بها.') }}</p>
+      <div class="row2"><label class="btn btn-line btn-sm" for="pWF" style="cursor:pointer">{{ m.L('Load wells (CSV)', 'حمّل الآبار (CSV)') }}</label><button class="btn btn-line btn-sm" id="pWAdd" type="button" aria-pressed="false">{{ m.L('Tap wells on map', 'انقر الآبار على الخريطة') }}</button></div>
+      <input type="file" id="pWF" accept=".csv,.txt,text/csv" hidden>
+      <div class="row2"><button class="btn btn-line btn-xs" id="pWClr" type="button">{{ m.L('Clear wells', 'امسح الآبار') }}</button><button class="btn btn-ink btn-xs" id="pVal" type="button">{{ m.L('Validate', 'تحقّق') }}</button></div>
+      <p class="xsmall muted" id="pWS" style="margin:0"></p>
+      <div id="pValOut" style="display:grid;gap:10px"></div>
+    </div>
+    <div class="sec">
+      <h3>{{ icon('download') }}{{ m.L('6 · Downloads', '6 · التنزيلات') }}</h3>
+      <div class="pz-dl">
+        <button class="btn btn-gold btn-sm" id="pSheet" type="button">{{ m.L('Map sheet (PNG)', 'خريطة مُخرجة (PNG)') }}</button>
+        <button class="btn btn-line btn-sm" id="pAsc" type="button">{{ m.L('Index grid (ASCII)', 'شبكة المؤشر (ASCII)') }}</button>
+        <button class="btn btn-line btn-sm" id="pCsv" type="button">{{ m.L('Class areas (CSV)', 'مساحات الفئات (CSV)') }}</button>
+        <button class="btn btn-line btn-sm" id="pFac" type="button">{{ m.L('Layer sheets (PNG)', 'لوحات الطبقات (PNG)') }}</button>
+      </div>
+    </div>
+  </aside>
+  <div class="wsm-map pz-map"><div class="map" id="pMap"></div><div class="map-hint" id="pHint" hidden>{{ m.L('Drag a rectangle, or tap two corners', 'اسحب مستطيلاً أو انقر ركنين') }}</div>
+    <div id="pLeg" class="pz-leg" hidden></div>
+  </div>
+</div>
+<div hidden><svg id="pSheetSvg" viewBox="0 0 1120 800" xmlns="http://www.w3.org/2000/svg"></svg></div>
+{% endblock %}
