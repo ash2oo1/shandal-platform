@@ -50,19 +50,19 @@
   <aside class="wsm-side">
     <div class="sec">
       <h3>{{ icon('target') }}{{ m.L('1 · What to look for', '1 · ماذا تبحث عنه') }}</h3>
-      <div class="pz-rec" id="pRec">
-        <button type="button" data-r="gw" aria-pressed="true"><span class="ic">{{ icon('droplets') }}</span><span><b>{{ m.L('Groundwater potential zones', 'مناطق احتمالية المياه الجوفية') }}</b><small>{{ m.L('Ten evidence layers combined by the analytic hierarchy process', 'عشر طبقات أدلة مدمجة بطريقة التحليل الهرمي') }}</small></span></button>
-        <button type="button" data-r="arch" aria-pressed="false" disabled><span class="ic">{{ icon('landmark') }}</span><span><b>{{ m.L('Archaeological site potential', 'احتمالية المواقع الأثرية') }}</b><small>{{ m.L('In preparation', 'قيد الإعداد') }}</small></span></button>
-        <button type="button" data-r="min" aria-pressed="false" disabled><span class="ic">{{ icon('gem') }}</span><span><b>{{ m.L('Mineral prospectivity', 'الاحتمالية المعدنية') }}</b><small>{{ m.L('In preparation', 'قيد الإعداد') }}</small></span></button>
+      <div class="pz-rec" id="pRec" data-default="{{ {'archaeo-potential': 'arch', 'mineral-prospectivity': 'min'}.get(tool.slug, 'gw') }}">
+        <button type="button" data-r="gw" aria-pressed="false"><span class="ic">{{ icon('droplets') }}</span><span><b>{{ m.L('Groundwater potential zones', 'مناطق احتمالية المياه الجوفية') }}</b><small>{{ m.L('Ten evidence layers combined by the analytic hierarchy process', 'عشر طبقات أدلة مدمجة بطريقة التحليل الهرمي') }}</small></span></button>
+        <button type="button" data-r="arch" aria-pressed="false"><span class="ic">{{ icon('landmark') }}</span><span><b>{{ m.L('Archaeological site potential', 'احتمالية المواقع الأثرية') }}</b><small>{{ m.L('Mounds, water, landform and soil marks, generalised to protect sites', 'التلول والمياه وشكل الأرض وعلامات التربة، معمّمة لحماية المواقع') }}</small></span></button>
+        <button type="button" data-r="min" aria-pressed="false"><span class="ic">{{ icon('gem') }}</span><span><b>{{ m.L('Mineral prospectivity', 'الاحتمالية المعدنية') }}</b><small>{{ m.L('Alteration minerals, structures and host rock', 'معادن التغاير والتراكيب والصخر المضيف') }}</small></span></button>
       </div>
-      <div class="pz-note">{{ m.L('The result ranks the ground inside your area from very low to very high potential. It does not give the depth, thickness or quality of water: those come from electrical soundings and wells.', 'تُرتّب النتيجة الأرض داخل منطقتك من احتمالية منخفضة جداً إلى عالية جداً. ولا تعطي عمق المياه أو سُمك الخزان أو نوعية المياه، فهذه تأتي من السبر الكهربائي والآبار.') }}</div>
+      <div class="pz-note" id="pNote">{{ m.L('The result ranks the ground inside your area from very low to very high potential. It does not give the depth, thickness or quality of water: those come from electrical soundings and wells.', 'تُرتّب النتيجة الأرض داخل منطقتك من احتمالية منخفضة جداً إلى عالية جداً. ولا تعطي عمق المياه أو سُمك الخزان أو نوعية المياه، فهذه تأتي من السبر الكهربائي والآبار.') }}</div>
     </div>
     <div class="sec">
       <h3>{{ icon('square-dashed') }}{{ m.L('2 · Area of study', '2 · منطقة الدراسة') }}</h3>
       <div class="row2"><button class="btn btn-ink btn-sm" id="pDraw" type="button">{{ m.L('Draw rectangle', 'ارسم مستطيلاً') }}</button><button class="btn btn-line btn-sm" id="pView" type="button">{{ m.L('Use map view', 'استخدم العرض') }}</button></div>
       <p class="xsmall muted" id="pAoi" style="margin:0">{{ m.L('No area yet. Between 4 and 2500 km².', 'لم تُحدد منطقة بعد. بين 4 و2500 كم².') }}</p>
       <div class="row2">
-        {{ m.sel('pYear', 'Dry season of', 'الموسم الجاف لعام', []) }}
+        {{ m.sel('pYear', 'Imagery year', 'سنة الصور', []) }}
         {{ m.sel('pRes', 'Cell size', 'حجم الخلية', [('auto', 'Automatic', 'تلقائي', True), ('fine', 'Fine (slower)', 'دقيق (أبطأ)'), ('coarse', 'Coarse (faster)', 'خشن (أسرع)')]) }}
       </div>
     </div>
@@ -85,11 +85,12 @@
       <div id="pOut" style="display:grid;gap:10px"><span class="xsmall muted">{{ m.L('Draw an area and build the map. Tap any point of the result to read every layer there.', 'ارسم منطقة وأنشئ الخريطة. انقر أي نقطة في النتيجة لقراءة كل طبقة فيها.') }}</span></div>
     </div>
     <div class="sec">
-      <h3>{{ icon('badge-check') }}{{ m.L('5 · Check against wells', '5 · التحقق بالآبار') }}</h3>
-      <p class="xsmall muted" style="margin:0">{{ m.L('Add known wells: a CSV with latitude, longitude and, if known, yield (L/s) or status (1 = productive, 0 = dry), or tap them on the map. The tool measures how well the map predicts them.', 'أضف آباراً معروفة: ملف CSV فيه خط العرض وخط الطول، ومع الإنتاجية (لتر/ثا) أو الحالة (1 = منتجة، 0 = جافة) إن وُجدت، أو انقرها على الخريطة. تقيس الأداة مدى تنبؤ الخريطة بها.') }}</p>
-      <div class="row2"><label class="btn btn-line btn-sm" for="pWF" style="cursor:pointer">{{ m.L('Load wells (CSV)', 'حمّل الآبار (CSV)') }}</label><button class="btn btn-line btn-sm" id="pWAdd" type="button" aria-pressed="false">{{ m.L('Tap wells on map', 'انقر الآبار على الخريطة') }}</button></div>
+      <h3>{{ icon('badge-check') }}<span id="pVH">{{ m.L('5 · Check against wells', '5 · التحقق بالآبار') }}</span></h3>
+      <p class="xsmall muted" style="margin:0" id="pVP">{{ m.L('Add known wells: a CSV with latitude, longitude and, if known, yield (L/s) or status (1 = productive, 0 = dry), or tap them on the map. The tool measures how well the map predicts them.', 'أضف آباراً معروفة: ملف CSV فيه خط العرض وخط الطول، ومع الإنتاجية (لتر/ثا) أو الحالة (1 = منتجة، 0 = جافة) إن وُجدت، أو انقرها على الخريطة. تقيس الأداة مدى تنبؤ الخريطة بها.') }}</p>
+      <div class="row2"><label class="btn btn-line btn-sm" for="pWF" style="cursor:pointer" id="pWFL">{{ m.L('Load wells (CSV)', 'حمّل الآبار (CSV)') }}</label><button class="btn btn-line btn-sm" id="pWAdd" type="button" aria-pressed="false">{{ m.L('Tap wells on map', 'انقر الآبار على الخريطة') }}</button>
+      <button class="btn btn-line btn-sm" id="pOsm" type="button" hidden>{{ m.L('Load recorded sites in the area', 'حمّل المواقع المسجلة في المنطقة') }}</button></div>
       <input type="file" id="pWF" accept=".csv,.txt,text/csv" hidden>
-      <div class="row2"><button class="btn btn-line btn-xs" id="pWClr" type="button">{{ m.L('Clear wells', 'امسح الآبار') }}</button><button class="btn btn-ink btn-xs" id="pVal" type="button">{{ m.L('Validate', 'تحقّق') }}</button></div>
+      <div class="row2"><button class="btn btn-line btn-xs" id="pWClr" type="button">{{ m.L('Clear points', 'امسح النقاط') }}</button><button class="btn btn-ink btn-xs" id="pVal" type="button">{{ m.L('Validate', 'تحقّق') }}</button></div>
       <p class="xsmall muted" id="pWS" style="margin:0"></p>
       <div id="pValOut" style="display:grid;gap:10px"></div>
     </div>

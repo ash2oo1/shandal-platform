@@ -1,9 +1,13 @@
-/* Geo-potential mapper — one engine for probability (potential) maps built from evidence layers by the analytic hierarchy
-   process (Saaty 1980), with a recipe per question. Recipe 1: groundwater potential zones from ten layers on one regular
-   grid over the area: lithology, lineament density, slope, drainage density, mean annual rainfall, topographic wetness
-   index, land cover, and dry-season moisture, vegetation and land-surface temperature. Each layer is rated 1–5, the
-   weighted sum is classed into five zones, and the map can be checked against known wells (success-rate curve, ROC,
-   frequency ratio, Spearman correlation with yield). */
+/* Geo-potential mapper — one engine for potential (prospectivity) maps built from evidence layers by the analytic hierarchy
+   process (Saaty 1980), with a recipe per question, all on one regular grid over the area:
+   · groundwater — lithology, lineament density, slope, drainage density, rainfall, wetness index, land cover, dry-season
+     moisture, vegetation and surface temperature;
+   · archaeological sites — mound relief, distance to water, height above drainage, soil-brightness and crop-mark anomalies,
+     slope and land cover; generalised to about 1 km so that unrecorded sites are not exposed;
+   · minerals — clay–hydroxyl, iron-oxide and ferrous-silicate anomalies (vegetation, water and towns masked), host rock,
+     distance to lineaments and lineament density.
+   Each layer is rated 1–5, the weighted sum is classed into five zones, and the map is checked against known points
+   (success-rate curve, ROC, frequency ratio, Spearman correlation). */
 (function () {
   'use strict';
   var t = SH.t, $ = SH.$, L = window.L, AR = SH.lang === 'ar', D = SH.dem;
@@ -40,11 +44,64 @@
     { k: 'ndvi', n: C('Dry-season vegetation (NDVI)', 'نبات الموسم الجاف (NDVI)'), imp: 4, kind: 'q', dir: 1, u: '', dp: 2, d: C('Plants that stay green without rain draw on shallow water; irrigated fields give the same signal, so read it with land cover.', 'النبات الذي يبقى أخضر بلا مطر يعتمد على مياه ضحلة؛ والحقول المروية تعطي الإشارة نفسها، لذا يُقرأ مع الغطاء الأرضي.') },
     { k: 'lst', n: C('Dry-season surface temperature', 'حرارة السطح في الموسم الجاف'), imp: 4, kind: 'q', dir: -1, u: C('°C from scene median', '°م عن وسيط المشهد'), dp: 1, d: C('Moist ground is cooler by evaporation, so relatively cool ground in summer is rated higher. Each scene is read relative to its own median, so scenes of different days join without steps.', 'الأرض الرطبة أبرد بسبب التبخر، لذا تُقيّم الأرض الأبرد نسبياً في الصيف أعلى. يُقرأ كل مشهد نسبةً إلى وسيطه، فتلتحم مشاهد الأيام المختلفة بلا قفزات.') }
   ];
-  var F = GW, FK = {}; F.forEach(function (f) { FK[f.k] = f; });
+  var SRC = { lith: 'lith', lin: 'dem', slope: 'dem', dd: 'dem', rain: 'rain', twi: 'dem', lulc: 'lc', ndmi: 's2g', ndvi: 's2g', lst: 'lst' }; GW.forEach(function (f) { f.src = SRC[f.k]; });
+
+  /* ---------------------------------------------------------------- recipe: archaeological sites */
+  var LCA = { 10: 2, 20: 3, 30: 3, 40: 4, 50: 2, 60: 4, 70: 1, 80: 1, 90: 2, 95: 1, 100: 2 };
+  var ARCH = [
+    { k: 'mound', n: C('Mound (tell) relief', 'بروز التلول'), imp: 9, kind: 'abs', dir: 1, br: [0.5, 1.5, 3, 6], u: 'm', dp: 1, src: 'dem', d: C('Height of the ground above its surroundings within about 500 m. Settlement mounds (tells) rise 2–40 m above flat plains; in hilly ground the value is capped because ridges mimic mounds.', 'ارتفاع الأرض عن محيطها ضمن نحو 500 م. ترتفع التلول الأثرية 2–40 م فوق السهول المنبسطة، وفي الأرض التلالية تُحدّ القيمة لأن الحافات تشبه التلول.') },
+    { k: 'water', n: C('Distance to water', 'البعد عن المياه'), imp: 7, kind: 'abs', dir: -1, br: [500, 1500, 3000, 6000], u: 'm', dp: 0, src: 'dem', d: C('Distance to permanent water and to the main drainage lines. Ancient settlement clung to rivers and canals; old courses have shifted, so read it with the mound layer.', 'المسافة إلى المياه الدائمة وخطوط التصريف الرئيسة. ارتبط الاستيطان القديم بالأنهار والقنوات، وقد تغيرت المجاري القديمة، لذا يُقرأ مع طبقة التلول.') },
+    { k: 'hand', n: C('Height above nearest drainage', 'الارتفاع فوق أقرب مجرى'), imp: 7, kind: 'abs', br: [1, 10, 30, 60], rs: [3, 5, 4, 2, 1], u: 'm', dp: 1, src: 'dem', d: C('Ground 1–10 m above the nearest stream was close to water yet safe from ordinary floods: the levees and terraces favoured for settlement.', 'الأرض المرتفعة 1–10 م فوق أقرب مجرى قريبة من الماء وآمنة من الفيضانات الاعتيادية: الأكتاف والمصاطب المفضلة للاستيطان.') },
+    { k: 'bright', n: C('Soil-brightness anomaly', 'شذوذ سطوع التربة'), imp: 6, kind: 'z', dir: 1, u: 'σ', dp: 2, src: 's2a', d: C('Ancient occupation soils (anthrosols) of ash, burnt brick and salts are brighter in the shortwave infrared than the land around them in the dry season.', 'ترب الاستيطان القديم من الرماد والطابوق المحروق والأملاح أكثر سطوعاً في الأشعة تحت الحمراء القصيرة من الأرض المحيطة بها في الموسم الجاف.') },
+    { k: 'slope', n: C('Slope', 'الانحدار'), imp: 5, kind: 'abs', dir: -1, br: [1, 3, 6, 12], u: '°', dp: 1, src: 'dem', d: C('Settlements were built on nearly level ground.', 'بُنيت المستوطنات على أرض شبه مستوية.') },
+    { k: 'crop', n: C('Crop-mark anomaly', 'شذوذ علامات المحاصيل'), imp: 4, kind: 'z', dir: 1, u: 'σ', dp: 2, src: 's2a', d: C('In spring fields, crops grow weaker over buried walls and saline mound soils. The layer marks fields whose greenness falls below that of the fields around them; it is empty where nothing grows.', 'في حقول الربيع ينمو المحصول أضعف فوق الجدران المدفونة وترب التلول المالحة. تُبرز الطبقة الحقول التي يقل اخضرارها عن محيطها، وتكون فارغة حيث لا ينمو شيء.') },
+    { k: 'lulc', n: C('Land cover', 'الغطاء الأرضي'), imp: 3, kind: 'cat', src: 'lc', d: C('Open plains and fields keep sites visible and reachable; water, dense trees and towns hide them.', 'السهول المفتوحة والحقول تُبقي المواقع ظاهرة ويمكن بلوغها، أما المياه والأشجار الكثيفة والمدن فتخفيها.') }
+  ];
+
+  /* ---------------------------------------------------------------- recipe: minerals (alteration-related metallic deposits) */
+  var LITHM = { gabbro: 5, serpentinite: 5, basalt: 4, andesite: 4, rhyolite: 4, granite: 4, diorite: 4, breccia: 4, tuff: 3, schist: 3, gneiss: 3, quartzite: 3, marble: 3, phyllite: 3, chert: 3, phosphorite: 3, limestone: 3, dolomite: 3,
+    slate: 2, reef: 2, oolitic: 2, chalk: 2, conglomerate: 2, sandstone: 2, siltstone: 2, mudstone: 2, claystone: 2, shale: 2, marl: 1, gypsum: 1, anhydrite: 1, halite: 1, coal: 1, gravel: 1, sand: 1, silt: 1, clay: 1, quat: 1 };
+  var MIN = [
+    { k: 'clay', n: C('Clay–hydroxyl alteration (B11/B12)', 'تغاير الطين والهيدروكسيل (B11/B12)'), imp: 8, kind: 'z', dir: 1, u: '', dp: 3, src: 's2m', d: C('Al-OH and Mg-OH bonds in clays, sericite and alunite and the CO₃ of carbonates absorb near 2.2 µm (B12), raising the ratio over argillic and phyllic alteration. Rated by standard deviations above the area mean.', 'تمتص روابط Al-OH وMg-OH في الأطيان والسيريسايت والألونايت وCO₃ في الكربونات قرب 2.2 ميكرون (B12)، فترتفع النسبة فوق نطاقات التغاير الطيني والفيلي. تُقيّم بعدد الانحرافات المعيارية فوق متوسط المنطقة.') },
+    { k: 'iron', n: C('Iron-oxide anomaly (B4/B2)', 'شذوذ أكاسيد الحديد (B4/B2)'), imp: 7, kind: 'z', dir: 1, u: '', dp: 3, src: 's2m', d: C('Fe³⁺ in hematite, goethite and jarosite absorbs in the blue, so gossans and oxidised sulphide zones raise the ratio.', 'يمتص Fe³⁺ في الهيماتيت والجيوثايت والجاروسايت في الأزرق، فترفع القبعات الحديدية ونطاقات الكبريتيدات المؤكسدة النسبة.') },
+    { k: 'lith', n: C('Host rock', 'الصخر المضيف'), imp: 8, kind: 'cat', src: 'lith', d: C('Favourability of the rock for hydrothermal metallic deposits: ophiolites and mafic–ultramafic rocks, volcanic and intrusive rocks rate highest; evaporites and young cover lowest.', 'ملاءمة الصخر للرواسب المعدنية الحرمائية: الأفيوليتات والصخور القاعدية وفوق القاعدية والبركانية والمتداخلة أعلاها، والمتبخرات والغطاء الحديث أدناها.') },
+    { k: 'prox', n: C('Distance to lineaments', 'البعد عن الخطوط التركيبية'), imp: 7, kind: 'abs', dir: -1, br: [250, 500, 1000, 2000], u: 'm', dp: 0, src: 'dem', d: C('Faults and fractures carry the mineralising fluids, so ground close to them rates higher.', 'الفوالق والكسور تنقل المحاليل الممعدنة، لذا تُقيّم الأرض القريبة منها أعلى.') },
+    { k: 'lin', n: C('Lineament density', 'كثافة الخطوط التركيبية'), imp: 6, kind: 'q', dir: 1, u: 'km/km²', dp: 2, src: 'dem', d: C('Intersecting fracture sets make permeable zones where fluids focused.', 'تقاطع مجموعات الكسور يصنع نطاقات نفاذة تركّزت فيها المحاليل.') },
+    { k: 'ferr', n: C('Ferrous-silicate anomaly (B11/B8)', 'شذوذ السيليكات الحديدوزية (B11/B8)'), imp: 5, kind: 'z', dir: 1, u: '', dp: 3, src: 's2m', d: C('Fe²⁺ in chlorite, epidote, pyroxene and olivine absorbs near 1 µm; high over propylitic alteration and mafic rocks.', 'يمتص Fe²⁺ في الكلورايت والإبيدوت والبيروكسين والأوليفين قرب 1 ميكرون؛ ترتفع النسبة فوق التغاير البروبيليتي والصخور القاعدية.') }
+  ];
+
+  var PT = function (o) { return o; };
+  var REC = {
+    gw: { L: GW, pal: ['#b2182b', '#ef8a62', '#f6dc7d', '#67a9cf', '#2166ac'], title: C('Groundwater potential zones', 'مناطق احتمالية المياه الجوفية'), file: 'groundwater-potential', side: 220,
+      lith: function (k) { return LITH[k][0]; }, lc: function (v) { return LC[v][3]; },
+      note: C('The result ranks the ground inside your area from very low to very high potential. It does not give the depth, thickness or quality of water: those come from electrical soundings and wells.', 'تُرتّب النتيجة الأرض داخل منطقتك من احتمالية منخفضة جداً إلى عالية جداً. ولا تعطي عمق المياه أو سُمك الخزان أو نوعية المياه، فهذه تأتي من السبر الكهربائي والآبار.'),
+      end: C('Treat the zones as targets for electrical soundings and test wells, not as proven water.', 'تعامل مع هذه المناطق كأهداف للسبر الكهربائي والآبار الاختبارية، لا كمياه مؤكدة.'),
+      fig: C('Evidence layers rated 1–5 for groundwater potential', 'طبقات الأدلة مقيّمة من 1 إلى 5 لاحتمالية المياه الجوفية'),
+      pt: PT({ h: C('5 · Check against wells', '5 · التحقق بالآبار'), p: C('Add known wells: a CSV with latitude, longitude and, if known, yield (L/s) or status (1 = productive, 0 = dry), or tap them on the map. The tool measures how well the map predicts them.', 'أضف آباراً معروفة: ملف CSV فيه خط العرض وخط الطول، ومع الإنتاجية (لتر/ثا) أو الحالة (1 = منتجة، 0 = جافة) إن وُجدت، أو انقرها على الخريطة. تقيس الأداة مدى تنبؤ الخريطة بها.'),
+        load: C('Load wells (CSV)', 'حمّل الآبار (CSV)'), tap: C('Tap wells on map', 'انقر الآبار على الخريطة'), many: C(' wells', ' بئراً'), pos: C('Productive or unclassified well', 'بئر منتجة أو غير مصنفة'), neg: C('Dry well', 'بئر جافة'), negw: C('dry', 'جافة'), yu: 'L/s',
+        curve: C('Success-rate curve: the share of productive wells captured as the map is read from its highest to its lowest potential.', 'منحنى معدل النجاح: نسبة الآبار المنتجة التي تلتقطها الخريطة عند قراءتها من أعلى احتمالية إلى أدناها.'), roc: C('Productive against dry wells: ', 'الآبار المنتجة مقابل الجافة: '), yl: C('yield', 'الإنتاجية'), ax: C('Wells captured', 'الآبار الملتقطة'), ttl: C('Validation against ', 'التحقق مقابل ') }) },
+    arch: { L: ARCH, pal: ['#3b4a5a', '#8c96a0', '#e9d9a6', '#d9913a', '#9c2f12'], title: C('Archaeological site potential', 'احتمالية المواقع الأثرية'), file: 'archaeological-potential', side: 330, gen: 1000,
+      lc: function (v) { return LCA[v]; },
+      note: C('The map ranks where ancient settlement is likely, from mound relief, water, landform and soil and crop marks. It is generalised to cells of about 1 km so that unrecorded sites are not exposed. Under the Iraqi Antiquities and Heritage Law No. 55 of 2002, any survey or digging needs the permission of the State Board of Antiquities and Heritage.', 'ترتّب الخريطة الأماكن التي يُرجَّح فيها الاستيطان القديم من بروز التلول والمياه وشكل الأرض وعلامات التربة والمحاصيل. وهي معمّمة إلى خلايا بنحو 1 كم كي لا تُكشف المواقع غير المسجلة. وبموجب قانون الآثار والتراث العراقي رقم 55 لسنة 2002 يحتاج أي مسح أو حفر إلى إذن الهيئة العامة للآثار والتراث.'),
+      end: C('The zones are areas to survey with the antiquities authority, not discovered sites.', 'هذه المناطق أماكن للمسح بالتنسيق مع هيئة الآثار، وليست مواقع مكتشفة.'),
+      fig: C('Evidence layers rated 1–5 for archaeological site potential', 'طبقات الأدلة مقيّمة من 1 إلى 5 لاحتمالية المواقع الأثرية'),
+      pt: PT({ h: C('5 · Check against known sites', '5 · التحقق بالمواقع المعروفة'), p: C('Load the recorded sites in the area, add your own as a CSV (latitude, longitude, optional status: 1 = site, 0 = surveyed without finds), or tap them on the map. The tool measures how well the map predicts them.', 'حمّل المواقع المسجلة في المنطقة، أو أضف مواقعك بملف CSV (خط العرض، خط الطول، والحالة اختيارياً: 1 = موقع، 0 = مُسح بلا لُقى)، أو انقرها على الخريطة. تقيس الأداة مدى تنبؤ الخريطة بها.'),
+        load: C('Load sites (CSV)', 'حمّل المواقع (CSV)'), tap: C('Tap sites on map', 'انقر المواقع على الخريطة'), many: C(' sites', ' موقعاً'), pos: C('Known site', 'موقع معروف'), neg: C('Surveyed, no finds', 'مُسح بلا لُقى'), negw: C('no finds', 'بلا لُقى'), yu: '',
+        curve: C('Success-rate curve: the share of known sites captured as the map is read from its highest to its lowest potential.', 'منحنى معدل النجاح: نسبة المواقع المعروفة التي تلتقطها الخريطة عند قراءتها من أعلى احتمالية إلى أدناها.'), roc: C('Sites against surveyed empty ground: ', 'المواقع مقابل الأرض الممسوحة الخالية: '), yl: C('value', 'القيمة'), ax: C('Sites captured', 'المواقع الملتقطة'), ttl: C('Validation against ', 'التحقق مقابل ') }) },
+    min: { L: MIN, pal: ['#2b3a4a', '#6c7a89', '#f2d16b', '#e3742e', '#a3123a'], title: C('Mineral prospectivity', 'الاحتمالية المعدنية'), file: 'mineral-prospectivity', side: 260,
+      lith: function (k) { return LITHM[k]; },
+      note: C('The map ranks where alteration minerals, structures and favourable host rock coincide, as targets for sampling. Satellites cannot see gold or any metal itself: they see clay and iron minerals that sometimes accompany ore. Vegetation, water and towns are masked because they hide the rock.', 'ترتّب الخريطة الأماكن التي تجتمع فيها معادن التغاير والتراكيب والصخر المضيف الملائم، كأهداف لأخذ العينات. لا ترى الأقمار الصناعية الذهب ولا أي فلز بعينه، بل ترى معادن الطين والحديد التي ترافق الخام أحياناً. وتُحجب النباتات والمياه والمدن لأنها تغطي الصخر.'),
+      end: C('Treat the zones as targets for field mapping, rock and stream-sediment sampling and geochemistry, not as proven ore.', 'تعامل مع هذه المناطق كأهداف للتخريط الحقلي وأخذ عينات الصخور ورواسب المجاري والتحليل الجيوكيميائي، لا كخام مؤكد.'),
+      fig: C('Evidence layers rated 1–5 for mineral prospectivity', 'طبقات الأدلة مقيّمة من 1 إلى 5 للاحتمالية المعدنية'),
+      pt: PT({ h: C('5 · Check against known occurrences', '5 · التحقق بالتمعدنات المعروفة'), p: C('Add known mineral occurrences, mines or prospects: a CSV with latitude, longitude and, if known, grade or status (1 = mineralised, 0 = barren), or tap them on the map.', 'أضف تمعدنات أو مناجم أو مكامن معروفة: ملف CSV فيه خط العرض وخط الطول، ومع المحتوى أو الحالة (1 = متمعدن، 0 = عقيم) إن وُجدت، أو انقرها على الخريطة.'),
+        load: C('Load occurrences (CSV)', 'حمّل التمعدنات (CSV)'), tap: C('Tap occurrences on map', 'انقر التمعدنات على الخريطة'), many: C(' occurrences', ' تمعدناً'), pos: C('Mineral occurrence', 'تمعدن معروف'), neg: C('Barren sample', 'عينة عقيمة'), negw: C('barren', 'عقيمة'), yu: '',
+        curve: C('Success-rate curve: the share of known occurrences captured as the map is read from its highest to its lowest prospectivity.', 'منحنى معدل النجاح: نسبة التمعدنات المعروفة التي تلتقطها الخريطة عند قراءتها من أعلى احتمالية إلى أدناها.'), roc: C('Mineralised against barren points: ', 'النقاط المتمعدنة مقابل العقيمة: '), yl: C('grade', 'المحتوى'), ax: C('Occurrences captured', 'التمعدنات الملتقطة'), ttl: C('Validation against ', 'التحقق مقابل ') }) }
+  };
+  REC.gw.k = 'gw'; REC.arch.k = 'arch'; REC.min.k = 'min';
+  var RC = REC.gw, F = GW, FK = {};
 
   /* ---------------------------------------------------------------- state */
-  var aoi = SH.store.get('shandal_pz_aoi', null), aoiLay = null, drawer = null, G = null, ov = null, wells = SH.store.get('shandal_pz_wells', []), wLay = L ? L.layerGroup() : null, addMode = false, userLin = null, busy = false;
-  var saved = SH.store.get('shandal_pz_imp', {}); F.forEach(function (f) { f.on = saved[f.k] ? saved[f.k][0] !== false : true; f.w8 = saved[f.k] ? saved[f.k][1] : f.imp; });
+  var aoi = SH.store.get('shandal_pz_aoi', null), aoiLay = null, drawer = null, G = null, ov = null, wells = [], wLay = L ? L.layerGroup() : null, addMode = false, userLin = null, busy = false;
   if (map) wLay.addTo(map);
   /* Arabic: the assistant button sits bottom-left, so the scale bar moves to the bottom-right corner */
   if (map && AR) { var scl = map.getContainer().querySelector('.leaflet-control-scale'), br = map.getContainer().querySelector('.leaflet-bottom.leaflet-right'); if (scl && br) br.insertBefore(scl, br.firstChild); }
@@ -70,13 +127,28 @@
     if (act.length) { AH = ahp(act.map(function (f) { return f.w8; })); act.forEach(function (f, i) { f.w = AH.w[i]; }); } else AH = null;
     F.forEach(function (f) { var e = $('#pw_' + f.k); if (e) e.textContent = f.on && f.w ? SH.fmt(f.w * 100, 1) + '%' : '—'; });
     $('#pCR').innerHTML = AH ? '<span>λ<sub>max</sub> <b class="ltr">' + SH.fmt(AH.lam, 3) + '</b></span><span>CI <b class="ltr">' + SH.fmt(AH.CI, 3) + '</b></span><span>CR <b class="ltr" style="color:var(--' + (AH.CR < 0.1 ? 'ok' : 'warn') + ')">' + SH.fmt(AH.CR, 3) + '</b></span><span class="muted">' + (AH.CR < 0.1 ? t('consistent (CR < 0.10)', 'متسقة (CR < 0.10)') : t('inconsistent: soften the differences', 'غير متسقة: قلّل الفروق')) + '</span>' : '';
-    SH.store.set('shandal_pz_imp', F.reduce(function (o, f) { o[f.k] = [f.on, f.w8]; return o; }, {}));
+    SH.store.set(impKey(), F.reduce(function (o, f) { o[f.k] = [f.on, f.w8]; return o; }, {}));
   }
   function rows() {
     $('#pF').innerHTML = F.map(function (f) { return '<div class="row" title="' + SH.esc(f.d) + '"><input type="checkbox" id="pc_' + f.k + '" ' + (f.on ? 'checked' : '') + ' aria-label="' + SH.esc(f.n) + '"><label for="pc_' + f.k + '">' + SH.esc(f.n) + '</label><input type="range" min="1" max="9" step="1" value="' + f.w8 + '" id="pi_' + f.k + '" aria-label="' + SH.esc(f.n) + '"><span class="w" id="pw_' + f.k + '"></span><span class="st" id="ps_' + f.k + '" data-s="' + (f.st || 'off') + '"></span></div>'; }).join('');
     weights();
   }
-  rows();
+  var impKey = function () { return 'shandal_pz_imp' + (RC.k === 'gw' ? '' : '_' + RC.k); }, ptsKey = function () { return RC.k === 'gw' ? 'shandal_pz_wells' : 'shandal_pz_pts_' + RC.k; };
+  /* switch recipe: layers, importance, palette, texts and known points of that question; results are cleared */
+  function setRecipe(k) {
+    RC = REC[k] || REC.gw; F = RC.L; FK = {}; F.forEach(function (f) { FK[f.k] = f; });
+    var sv = SH.store.get(impKey(), {}); F.forEach(function (f) { f.on = sv[f.k] ? sv[f.k][0] !== false : true; f.w8 = sv[f.k] ? sv[f.k][1] : f.imp; f.st = 'off'; });
+    CLS.forEach(function (q, i) { q[0] = RC.pal[i]; });
+    SH.$$('#pRec [data-r]').forEach(function (b) { b.setAttribute('aria-pressed', b.getAttribute('data-r') === RC.k ? 'true' : 'false'); });
+    $('#pNote').textContent = RC.note; $('#pVH').textContent = RC.pt.h; $('#pVP').textContent = RC.pt.p; $('#pWFL').textContent = RC.pt.load; $('#pWAdd').textContent = RC.pt.tap; $('#pOsm').hidden = RC.k !== 'arch';
+    document.querySelector('label[for=pLinF]').hidden = RC.k === 'arch'; $('#pLinS').hidden = RC.k === 'arch';
+    G = null; if (ov && map) { map.removeLayer(ov); ov = null; } $('#pLeg').hidden = true; $('#pValOut').innerHTML = ''; $('#pProg').innerHTML = '';
+    $('#pShow').innerHTML = '<option value="cls">' + t('Potential classes', 'فئات الاحتمالية') + '</option>';
+    $('#pOut').innerHTML = '<span class="xsmall muted">' + t('Draw an area and build the map. Tap any point of the result to read every layer there.', 'ارسم منطقة وأنشئ الخريطة. انقر أي نقطة في النتيجة لقراءة كل طبقة فيها.') + '</span>';
+    wells = SH.store.get(ptsKey(), []); saveWells(); rows(); SH.store.set('shandal_pz_recipe', RC.k);
+    if (aoi) setAoi(aoi);
+  }
+  $('#pRec').addEventListener('click', function (e) { var b = e.target.closest('[data-r]'); if (!b || busy || b.getAttribute('data-r') === RC.k) return; setRecipe(b.getAttribute('data-r')); });
   $('#pF').addEventListener('input', function (e) { var id = e.target.id || ''; if (!/^p[ci]_/.test(id)) return; var f = FK[id.slice(3)]; if (id[1] === 'c') f.on = e.target.checked; else f.w8 = +e.target.value; weights(); if (G && G.done) { compose(); } });
   $('#pDef').addEventListener('click', function () { F.forEach(function (f) { f.on = true; f.w8 = f.imp; }); rows(); if (G && G.done) compose(); });
   function status(k, s) { var f = FK[k]; f.st = s; var e = $('#ps_' + k); if (e) e.setAttribute('data-s', s); }
@@ -84,7 +156,7 @@
   /* ---------------------------------------------------------------- area */
   function km(b) { var kx = 111.32 * Math.cos(SH.rad((b.n + b.s) / 2)); return { w: (b.e - b.w) * kx, h: (b.n - b.s) * 110.57 }; }
   function setAoi(b) { aoi = b; SH.store.set('shandal_pz_aoi', b); if (!map) return; if (aoiLay) map.removeLayer(aoiLay); aoiLay = L.rectangle([[b.s, b.w], [b.n, b.e]], { color: '#FFD60A', weight: 2, fill: false, dashArray: '6 4', interactive: false }).addTo(map);
-    var k = km(b), a = k.w * k.h; $('#pAoi').innerHTML = '<span class="ltr">' + SH.fmt(k.w, 1) + ' × ' + SH.fmt(k.h, 1) + ' km · ' + SH.fmt(a, 1) + ' km²</span>' + (a > 2500 ? ' · <span style="color:var(--bad)">' + t('too large: keep it under 2500 km²', 'كبيرة جداً: اجعلها أقل من 2500 كم²') + '</span>' : a < 4 ? ' · <span style="color:var(--bad)">' + t('too small: at least 4 km²', 'صغيرة جداً: 4 كم² على الأقل') + '</span>' : ''); }
+    var k = km(b), a = k.w * k.h; $('#pAoi').innerHTML = '<span class="ltr">' + SH.fmt(k.w, 1) + ' × ' + SH.fmt(k.h, 1) + ' km · ' + SH.fmt(a, 1) + ' km²</span>' + (a > 2500 ? ' · <span style="color:var(--bad)">' + t('too large: keep it under 2500 km²', 'كبيرة جداً: اجعلها أقل من 2500 كم²') + '</span>' : a < 4 ? ' · <span style="color:var(--bad)">' + t('too small: at least 4 km²', 'صغيرة جداً: 4 كم² على الأقل') + '</span>' : RC.k === 'arch' && a > 600 ? ' · <span style="color:var(--warn)">' + t('for mound detection keep it under 600 km²', 'لكشف التلول اجعلها أقل من 600 كم²') + '</span>' : ''); }
   if (aoi) { setAoi(aoi); if (map) map.fitBounds([[aoi.s, aoi.w], [aoi.n, aoi.e]]); }
   $('#pDraw').addEventListener('click', function () { if (!map) return; if (drawer) drawer.cancel(); drawer = SH.drawRect(map, function (bb, r) { if (r) map.removeLayer(r); setAoi({ n: bb.getNorth(), s: bb.getSouth(), w: bb.getWest(), e: bb.getEast() }); }, $('#pHint')); });
   $('#pView').addEventListener('click', function () { if (!map) return; var bb = map.getBounds().pad(-0.1); setAoi({ n: bb.getNorth(), s: bb.getSouth(), w: bb.getWest(), e: bb.getEast() }); });
@@ -138,6 +210,20 @@
       var off = function (s) { return function (x) { return x.properties['s2:processing_baseline'] >= '04.00' ? s.replace(/B(0[1-9]|1[0-2]|8A)/g, '(B$1-1000)') : s; }; };
       return mosaic(byDate(it), 'sentinel-2-l2a', function (x) { return 'expression=' + encodeURIComponent(off('(B08-B04)/(B08+B04);(B08-B11)/(B08+B11)')(x)) + '&asset_as_band=true'; }, 2, function (v) { return isFinite(v) && v >= -1 && v <= 1; }); });
   }
+  var off2 = function (s) { return function (x) { return x.properties['s2:processing_baseline'] >= '04.00' ? s.replace(/B(0[1-9]|1[0-2]|8A)/g, '(B$1-1000)') : s; }; };
+  function s2items(dt, lim) { var q = function (cl) { return search({ collections: ['sentinel-2-l2a'], bbox: BB(), datetime: dt, query: { 'eo:cloud_cover': { lt: cl } }, sortby: [{ field: 'eo:cloud_cover', direction: 'asc' }], limit: lim || 40 }); };
+    return q(5).then(function (it) { return it.length ? it : q(20); }).then(function (it) { if (!it.length) throw new Error('no scene'); return byDate(it); }); }
+  /* archaeology: dry-season shortwave brightness (B11) and spring greenness (NDVI) */
+  function getS2Arch() {
+    var y = +SH.val('pYear'), south = (G.b.n + G.b.s) / 2 < 0, spring = south ? y + '-09-01T00:00:00Z/' + y + '-10-31T23:59:59Z' : y + '-03-01T00:00:00Z/' + y + '-04-30T23:59:59Z', out = {};
+    return s2items(season()).then(function (it) { return mosaic(it, 'sentinel-2-l2a', function (x) { return 'expression=' + encodeURIComponent(off2('B11/10000')(x)) + '&asset_as_band=true'; }, 1, function (v) { return isFinite(v) && v > 0 && v < 1.5; }); })
+      .then(function (a) { out.b11 = a.arr[0]; out.d1 = a.used; return s2items(spring).then(function (it) { return mosaic(it, 'sentinel-2-l2a', function (x) { return 'expression=' + encodeURIComponent(off2('(B08-B04)/(B08+B04)')(x)) + '&asset_as_band=true'; }, 1, function (v) { return isFinite(v) && v >= -1 && v <= 1; }); }).then(function (b) { out.sndvi = b.arr[0]; out.d2 = b.used; }, function () {}); })
+      .then(function () { return out; });
+  }
+  /* minerals: SWIR and visible band ratios with NDVI for masking, dry season (least vegetation) */
+  function getS2Min() {
+    return s2items(season()).then(function (it) { return mosaic(it, 'sentinel-2-l2a', function (x) { return 'expression=' + encodeURIComponent(off2('B11/B12;B04/B02;B11/B08;(B08-B04)/(B08+B04)')(x)) + '&asset_as_band=true'; }, 4, function (v, q) { return isFinite(v) && (q === 3 ? v >= -1 && v <= 1 : v > 0 && v < 10); }); });
+  }
   function getLst() {
     var q = function (cl) { return search({ collections: ['landsat-c2-l2'], bbox: BB(), datetime: season(), query: { 'eo:cloud_cover': { lt: cl }, platform: { in: ['landsat-8', 'landsat-9'] } }, sortby: [{ field: 'eo:cloud_cover', direction: 'asc' }], limit: 30 }); };
     return q(10).then(function (it) { return it.length ? it : q(30); }).then(function (it) { if (!it.length) throw new Error('no scene');
@@ -168,7 +254,7 @@
         d.sort(function (a, b) { return (ORD[a.scale] != null ? ORD[a.scale] : 9) - (ORD[b.scale] != null ? ORD[b.scale] : 9); }); var u = d[0]; if (!u) return;
         var id = String(u.map_id || u.name); if (!units[id]) { var txt = [u.lith, (u.liths || []).map(function (l) { return l.lith || l.name; }).join(' '), u.name, u.strat_name, u.descrip].join(' '), lk = lithKey([u.lith, u.name, u.strat_name, u.descrip].join(' ')), age = [u.b_int_name, u.t_int_name].filter(Boolean);
           if (!lk && /quaternary|holocene|pleistocene/i.test(age.join(' ') + ' ' + txt) && !/pliocene|miocene/i.test(u.b_int_name || '')) lk = 'quat';
-          units[id] = { id: id, name: u.name || u.strat_name || '—', lith: u.lith || '', age: age.filter(function (v, x, a) { return a.indexOf(v) === x; }).join(' – '), color: u.color || '#cccccc', lk: lk, r: lk ? LITH[lk][0] : 3, rated: !!lk, n: 0 }; }
+          units[id] = { id: id, name: u.name || u.strat_name || '—', lith: u.lith || '', age: age.filter(function (v, x, a) { return a.indexOf(v) === x; }).join(' – '), color: u.color || '#cccccc', lk: lk, r: lk && RC.lith && RC.lith(lk) ? RC.lith(lk) : 3, rated: !!(lk && RC.lith && RC.lith(lk)), n: 0 }; }
         units[id].n++; p.u = id; }).catch(function () {}); };
     var run = function () { if (q >= pts.length) return Promise.resolve(); var b = pts.slice(q, q + 5); q += 5; return Promise.all(b.map(one)).then(run); };
     return run().then(function () {
@@ -216,7 +302,15 @@
       if (la / lb < 9) continue; /* axis ratio ≥ 3 */ var len = 4 * Math.sqrt(la); segs++; comp.forEach(function (u) { LIN[u] = len / comp.length; }); }
     if (userLin) { LIN.fill(0); rasterLines(userLin, LIN); }
     var R1 = SH.clamp(Math.round(1000 / G.cell), 2, 14), R2 = SH.clamp(Math.round(1500 / G.cell), 3, 18);
-    return { slope: S, dd: density(LEN, R1), twi: TW, lin: density(LIN, R2), fill: Fz, acc: acc, chan: LEN, linRaw: LIN, segs: segs, R1: R1, R2: R2 };
+    /* height above the nearest stream (contributing area ≥ 5 km²), followed down the D8 network from the outlets upward */
+    var amax = 0; for (c = 0; c < n; c++) if (acc[c] > amax) amax = acc[c]; var hthr = Math.min(Math.max(5e6, 50 * cellA), 0.25 * amax * cellA), /* small or flat areas: the largest streams present */ ref = new Float64Array(n), HAND = new Float32Array(n), MAJ = new Uint8Array(n);
+    for (k = n - 1; k >= 0; k--) { c = ord[k]; var isS = acc[c] * cellA >= hthr; if (acc[c] * cellA >= Math.max(25e6, 100 * cellA)) MAJ[c] = 1; ref[c] = isS || dn[c] < 0 ? Fz[c] : ref[dn[c]]; HAND[c] = Math.max(0, Fz[c] - ref[c]); }
+    if (!Array.prototype.some.call(MAJ, Boolean)) for (c = 0; c < n; c++) if (acc[c] * cellA >= hthr) MAJ[c] = 1; /* no large river in the area: use the streams */
+    /* mound relief: height above the mean ground within about 500 m, capped in hilly ground where ridges mimic mounds */
+    var rM = SH.clamp(Math.round(450 / G.cell), 2, 10), ZM = boxMean(Z, rM), SM2 = boxMean(S, rM), MOUND = new Float32Array(n);
+    for (c = 0; c < n; c++) { var an = Z[c] - ZM[c]; MOUND[c] = SM2[c] > 4 ? Math.min(an, 1) : an; }
+    var LM = new Uint8Array(n); for (c = 0; c < n; c++) if (LIN[c] > 0) LM[c] = 1;
+    return { slope: S, dd: density(LEN, R1), twi: TW, lin: density(LIN, R2), fill: Fz, acc: acc, chan: LEN, linRaw: LIN, segs: segs, R1: R1, R2: R2, hand: HAND, mound: MOUND, major: MAJ, prox: dist(LM) };
   }
   /* length per cell summed in a square window → km per km² */
   function density(LEN, R) {
@@ -224,6 +318,29 @@
     for (j = 0; j < ny; j++) { var row = 0; for (i = 0; i < nx; i++) { row += LEN[j * nx + i]; I[(j + 1) * (nx + 1) + i + 1] = I[j * (nx + 1) + i + 1] + row; } }
     for (j = 0; j < ny; j++) for (i = 0; i < nx; i++) { var i0 = Math.max(0, i - R), i1 = Math.min(nx, i + R + 1), j0 = Math.max(0, j - R), j1 = Math.min(ny, j + R + 1), s = I[j1 * (nx + 1) + i1] - I[j0 * (nx + 1) + i1] - I[j1 * (nx + 1) + i0] + I[j0 * (nx + 1) + i0];
       out[j * nx + i] = (s / 1000) / ((i1 - i0) * (j1 - j0) * G.dx * G.dy / 1e6); }
+    return out;
+  }
+  /* mean in a square window of radius R cells, ignoring missing cells */
+  function boxMean(A, R) {
+    var nx = G.nx, ny = G.ny, I = new Float64Array((nx + 1) * (ny + 1)), N = new Float64Array((nx + 1) * (ny + 1)), out = new Float32Array(G.n), i, j;
+    for (j = 0; j < ny; j++) { var rs = 0, rn = 0; for (i = 0; i < nx; i++) { var v = A[j * nx + i]; if (isFinite(v)) { rs += v; rn++; } I[(j + 1) * (nx + 1) + i + 1] = I[j * (nx + 1) + i + 1] + rs; N[(j + 1) * (nx + 1) + i + 1] = N[j * (nx + 1) + i + 1] + rn; } }
+    for (j = 0; j < ny; j++) for (i = 0; i < nx; i++) { var i0 = Math.max(0, i - R), i1 = Math.min(nx, i + R + 1), j0 = Math.max(0, j - R), j1 = Math.min(ny, j + R + 1), q = function (M) { return M[j1 * (nx + 1) + i1] - M[j0 * (nx + 1) + i1] - M[j1 * (nx + 1) + i0] + M[j0 * (nx + 1) + i0]; }, cn = q(N);
+      out[j * nx + i] = cn ? q(I) / cn : NaN; }
+    return out;
+  }
+  /* Euclidean-like distance (two-pass chamfer with the true cell sizes) from the cells where mask is set; NaN when none */
+  function dist(mask) {
+    var nx = G.nx, ny = G.ny, d = new Float32Array(G.n), INF = 1e12, dx = G.dx, dy = G.dy, dg = Math.hypot(dx, dy), i, j, c, v, any = false;
+    for (c = 0; c < G.n; c++) { d[c] = mask[c] ? 0 : INF; if (mask[c]) any = true; } if (!any) return d.fill(NaN);
+    for (j = 0; j < ny; j++) for (i = 0; i < nx; i++) { c = j * nx + i; v = d[c]; if (i > 0) v = Math.min(v, d[c - 1] + dx); if (j > 0) { v = Math.min(v, d[c - nx] + dy); if (i > 0) v = Math.min(v, d[c - nx - 1] + dg); if (i < nx - 1) v = Math.min(v, d[c - nx + 1] + dg); } d[c] = v; }
+    for (j = ny - 1; j >= 0; j--) for (i = nx - 1; i >= 0; i--) { c = j * nx + i; v = d[c]; if (i < nx - 1) v = Math.min(v, d[c + 1] + dx); if (j < ny - 1) { v = Math.min(v, d[c + nx] + dy); if (i < nx - 1) v = Math.min(v, d[c + nx + 1] + dg); if (i > 0) v = Math.min(v, d[c + nx - 1] + dg); } d[c] = v; }
+    return d;
+  }
+  /* block mean over k × k cells, written back to every cell of the block (generalisation) */
+  function block(A, k) {
+    if (k <= 1) return A; var out = new Float32Array(G.n).fill(NaN);
+    for (var bj = 0; bj < G.ny; bj += k) for (var bi = 0; bi < G.nx; bi += k) { var s2 = 0, n2 = 0, i, j; for (j = bj; j < Math.min(G.ny, bj + k); j++) for (i = bi; i < Math.min(G.nx, bi + k); i++) { var v = A[j * G.nx + i]; if (isFinite(v)) { s2 += v; n2++; } }
+      if (n2 < k * k / 4) continue; var m = s2 / n2; for (j = bj; j < Math.min(G.ny, bj + k); j++) for (i = bi; i < Math.min(G.nx, bi + k); i++) out[j * G.nx + i] = m; }
     return out;
   }
   function rasterLines(gj, LIN) {
@@ -238,10 +355,11 @@
   function pct(arr, ps) { var v = []; for (var c = 0; c < arr.length; c++) if (isFinite(arr[c])) v.push(arr[c]); v.sort(function (a, b) { return a - b; }); return ps.map(function (p) { return v.length ? v[Math.min(v.length - 1, Math.floor(p * v.length))] : NaN; }); }
   function rate(f) {
     var raw = G.raw[f.k], R = new Float32Array(G.n).fill(NaN), c; if (!raw) return null;
-    if (f.k === 'lulc') { for (c = 0; c < G.n; c++) if (LC[raw[c]]) R[c] = LC[raw[c]][3]; return R; }
+    if (f.k === 'lulc') { for (c = 0; c < G.n; c++) if (LC[raw[c]]) R[c] = RC.lc(raw[c]); return R; }
     if (f.k === 'lith') { for (c = 0; c < G.n; c++) { var u = G.units[raw[c]]; if (u) R[c] = u.r; } return R; }
-    var br = f.br; if (f.kind === 'q') { var q = pct(raw, [0.02, 0.2, 0.4, 0.6, 0.8, 0.98]); f.qb = q.slice(1, 5); f.rng = [q[0], q[5]]; br = (q[5] - q[0]) > 1e-6 ? f.qb : null; }
-    for (c = 0; c < G.n; c++) { var v = raw[c]; if (!isFinite(v)) continue; if (!br) { R[c] = 3; continue; } var x = 0; while (x < 4 && v >= br[x]) x++; R[c] = f.dir > 0 ? x + 1 : 5 - x; }
+    var br = f.br; if (f.kind === 'z') { var sm = 0, sn = 0, ss = 0; for (c = 0; c < G.n; c++) if (isFinite(raw[c])) { sm += raw[c]; sn++; } sm /= sn || 1; for (c = 0; c < G.n; c++) if (isFinite(raw[c])) ss += Math.pow(raw[c] - sm, 2); var sd = Math.sqrt(ss / (sn || 1)); f.zs = [sm, sd]; br = sd > 1e-9 ? [0, 0.5, 1, 2].map(function (z) { return sm + z * sd; }) : null; }
+    if (f.kind === 'q') { var q = pct(raw, [0.02, 0.2, 0.4, 0.6, 0.8, 0.98]); f.qb = q.slice(1, 5); f.rng = [q[0], q[5]]; br = (q[5] - q[0]) > 1e-6 ? f.qb : null; }
+    for (c = 0; c < G.n; c++) { var v = raw[c]; if (!isFinite(v)) continue; if (!br) { R[c] = 3; continue; } var x = 0; while (x < 4 && v >= br[x]) x++; R[c] = f.rs ? f.rs[x] : f.dir > 0 ? x + 1 : 5 - x; }
     return R;
   }
   function jenks(data, k) {
@@ -266,7 +384,7 @@
     for (c = 0; c < G.n; c++) { var s = 0, w = 0; act.forEach(function (f) { var r = G.rate[f.k][c]; if (isFinite(r)) { s += f.w * r; w += f.w; } }); if (w >= 0.5 * tot) IDX[c] = s / w; }
     /* 3 × 3 mean of the index: removes single-cell speckle so the zones read as mappable units */
     var SM = new Float32Array(G.n).fill(NaN); for (c = 0; c < G.n; c++) { if (!isFinite(IDX[c])) continue; var ci = c % G.nx, cj = (c - ci) / G.nx, sm = 0, sn = 0; for (var dj = -1; dj <= 1; dj++) for (var di = -1; di <= 1; di++) { var ii = ci + di, jj = cj + dj; if (ii < 0 || jj < 0 || ii >= G.nx || jj >= G.ny) continue; var vv = IDX[jj * G.nx + ii]; if (isFinite(vv)) { sm += vv; sn++; } } SM[c] = sm / sn; }
-    IDX = SM;
+    IDX = RC.gen ? block(IDX, G.gen) : SM;
     var br = breaks(IDX), CL = new Int8Array(G.n).fill(-1); if (!br) { SH.toast(t('Too few cells with data.', 'الخلايا التي فيها بيانات قليلة جداً.'), 'bad'); return; }
     for (c = 0; c < G.n; c++) { if (!isFinite(IDX[c])) continue; var x = 0; while (x < 4 && IDX[c] >= br[x]) x++; CL[c] = x; }
     G.idx = IDX; G.cls = CL; G.br = br; G.act = act; G.done = true; showOpts(); draw(); results(); if (wells.length) validate(true);
@@ -274,7 +392,7 @@
 
   /* ---------------------------------------------------------------- build */
   function grid(b) {
-    var k = km(b), area = k.w * k.h, side = { fine: 300, coarse: 140 }[SH.val('pRes')] || 220, cell = Math.max(30, Math.sqrt(area * 1e6) / side);
+    var k = km(b), area = k.w * k.h, side = { fine: Math.round(RC.side * 1.35), coarse: Math.round(RC.side * 0.64) }[SH.val('pRes')] || RC.side, cell = Math.max(30, Math.sqrt(area * 1e6) / side);
     var nx = Math.max(20, Math.round(k.w * 1000 / cell)), ny = Math.max(20, Math.round(k.h * 1000 / cell)), m = D.metersPerDeg((b.n + b.s) / 2), dlon = (b.e - b.w) / nx, dlat = (b.n - b.s) / ny;
     return { b: b, nx: nx, ny: ny, n: nx * ny, dlon: dlon, dlat: dlat, dx: dlon * m.x, dy: dlat * m.y, cell: Math.sqrt(dlon * m.x * dlat * m.y), area: area, lat: function (j) { return b.n - (j + 0.5) * dlat; }, lon: function (i) { return b.w + (i + 0.5) * dlon; }, raw: {}, rate: {} };
   }
@@ -284,23 +402,42 @@
     var k = km(aoi), a = k.w * k.h; if (a > 2500 || a < 4) { SH.toast(t('Keep the area between 4 and 2500 km².', 'اجعل المساحة بين 4 و2500 كم².'), 'warn'); return; }
     if (!SH.pro()) { SH.needPro(); return; }
     persist.save(); busy = true; $('#pRun').disabled = true; G = grid(aoi); F.forEach(function (f) { status(f.k, f.on ? 'run' : 'off'); }); weights();
-    var host = $('.wsm-map'), done = 0, total = 6, step = function (k2, ok) { done++; prog(t('Layers ready: ', 'الطبقات الجاهزة: ') + '<b class="ltr">' + done + ' / ' + total + '</b>'); return ok; };
+    var need = {}; F.forEach(function (f) { need[f.src] = 1; }); if (RC.k !== 'gw') need.lc = 1;
+    var host = $('.wsm-map'), done = 0, total = Object.keys(need).length, step = function () { done++; prog(t('Data sources ready: ', 'مصادر البيانات الجاهزة: ') + '<b class="ltr">' + done + ' / ' + total + '</b>'); };
     SH.busy(host, true, t('Reading the evidence layers for your area…', 'جارٍ قراءة طبقات الأدلة لمنطقتك…')); prog(t('Starting…', 'جارٍ البدء…'));
-    var set = function (ks, fn) { return fn().then(function (v) { ks.forEach(function (kk) { status(kk, 'ok'); }); step(ks[0], 1); return v; }, function () { ks.forEach(function (kk) { status(kk, 'bad'); }); step(ks[0], 0); return null; }); };
+    var lay = function (src) { return F.filter(function (f) { return f.src === src; }).map(function (f) { return f.k; }); };
+    var set = function (src, fn) { if (!need[src]) return Promise.resolve(null); return fn().then(function (v) { lay(src).forEach(function (kk) { status(kk, 'ok'); }); step(); return v; }, function () { lay(src).forEach(function (kk) { status(kk, 'bad'); }); step(); return null; }); };
+    var dates = function (it) { return (it || []).map(function (i) { return i.properties.datetime.slice(0, 10); }); };
     /* the imagery service is called one request at a time; the geology and climate services in parallel */
-    var pc = set(['slope', 'dd', 'twi', 'lin'], function () { return getDem().then(function (Z) { G.z = Z; return terrain(Z); }); })
-      .then(function (T) { if (T) { G.T = T; ['slope', 'dd', 'twi', 'lin'].forEach(function (kk) { G.raw[kk] = T[kk]; }); }
-        return set(['ndvi', 'ndmi'], getS2); })
-      .then(function (s) { if (s) { G.raw.ndvi = s.arr[0]; G.raw.ndmi = s.arr[1]; G.s2 = s.used.map(function (i) { return i.properties.datetime.slice(0, 10); }); } return set(['lst'], getLst); })
-      .then(function (s) { if (s) { G.raw.lst = s.arr[0]; G.ls = s.used.map(function (i) { return i.properties.datetime.slice(0, 10); }); } return set(['lulc'], getLc); })
-      .then(function (s) { if (s) G.raw.lulc = s.arr[0]; });
-    var rn = set(['rain'], getRain).then(function (R) { if (R) G.raw.rain = R; });
-    var lt = set(['lith'], getLith).then(function (U) { if (U) G.raw.lith = U; });
+    var pc = set('dem', function () { return getDem().then(function (Z) { G.z = Z; return terrain(Z); }); })
+      .then(function (T) { if (T) { G.T = T; ['slope', 'dd', 'twi', 'lin', 'hand', 'mound', 'prox'].forEach(function (kk) { if (FK[kk]) G.raw[kk] = T[kk]; }); } return set('s2g', getS2); })
+      .then(function (s2) { if (s2) { G.raw.ndvi = s2.arr[0]; G.raw.ndmi = s2.arr[1]; G.s2 = dates(s2.used); } return set('s2a', getS2Arch); })
+      .then(function (s2) { if (s2) { G.a = s2; G.s2 = dates(s2.d1); G.s2b = dates(s2.d2); } return set('s2m', getS2Min); })
+      .then(function (s2) { if (s2) { G.m = s2.arr; G.s2 = dates(s2.used); } return set('lst', getLst); })
+      .then(function (s2) { if (s2) { G.raw.lst = s2.arr[0]; G.ls = dates(s2.used); } return set('lc', getLc); })
+      .then(function (s2) { if (s2) G.raw.lulc = s2.arr[0]; });
+    var rn = set('rain', getRain).then(function (r) { if (r) G.raw.rain = r; });
+    var lt = set('lith', getLith).then(function (U) { if (U) G.raw.lith = U; });
     Promise.all([pc, rn, lt]).then(function () {
-      F.forEach(function (f) { G.rate[f.k] = G.raw[f.k] ? rate(f) : null; if (!G.raw[f.k] && f.on) status(f.k, 'bad'); });
+      post();
+      F.forEach(function (f) { var rr = G.raw[f.k] ? rate(f) : null; if (rr && !Array.prototype.some.call(rr, isFinite)) rr = null; G.rate[f.k] = rr; if (!rr && f.on) status(f.k, 'bad'); });
       var bad = F.filter(function (f) { return f.on && f.st === 'bad'; }); prog(bad.length ? '<span style="color:var(--warn)">' + t('Not available for this area, left out: ', 'غير متاحة لهذه المنطقة واستُبعدت: ') + bad.map(function (f) { return f.n; }).join(t(', ', '، ')) + '</span>' : t('All layers ready.', 'كل الطبقات جاهزة.'));
       compose(); if (map) map.fitBounds([[G.b.s, G.b.w], [G.b.n, G.b.e]]); if (window.innerWidth < 900) $('#pMap').scrollIntoView({ behavior: 'smooth', block: 'start' });
     }).catch(function (e) { SH.toast(e.message, 'bad'); }).then(function () { busy = false; $('#pRun').disabled = false; SH.busy(host, false); });
+  }
+  /* layers that combine sources, masks, and generalisation for archaeology */
+  function post() {
+    var c, LCw = G.raw.lulc;
+    if (RC.k === 'arch') {
+      if (G.T) { var wm = new Uint8Array(G.n); for (c = 0; c < G.n; c++) if (G.T.major[c] || (LCw && (LCw[c] === 80 || LCw[c] === 90))) wm[c] = 1; G.raw.water = dist(wm); if (!isFinite(G.raw.water[0]) && !Array.prototype.some.call(wm, Boolean)) { G.raw.water = null; } }
+      if (G.a && G.a.b11) { var rB = SH.clamp(Math.round(600 / G.cell), 3, 12), BM = boxMean(G.a.b11, rB), BR = new Float32Array(G.n); for (c = 0; c < G.n; c++) BR[c] = G.a.b11[c] - BM[c]; G.raw.bright = BR; }
+      if (G.a && G.a.sndvi) { var NM = boxMean(G.a.sndvi, SH.clamp(Math.round(600 / G.cell), 3, 12)), CR2 = new Float32Array(G.n).fill(NaN), nC = 0; for (c = 0; c < G.n; c++) if (isFinite(G.a.sndvi[c]) && NM[c] >= 0.2) { CR2[c] = NM[c] - G.a.sndvi[c]; nC++; } G.raw.crop = nC > G.n * 0.02 ? CR2 : null; }
+      G.gen = Math.max(1, Math.round(RC.gen / G.cell)); ['mound', 'bright', 'crop'].forEach(function (k) { if (G.raw[k]) G.raw[k] = block(G.raw[k], G.gen); });
+    }
+    if (RC.k === 'min' && G.m) {
+      var masked = 0, ok = 0; for (c = 0; c < G.n; c++) { if (!isFinite(G.m[0][c])) continue; var lc = LCw ? LCw[c] : 60; if (G.m[3][c] > 0.25 || lc === 10 || lc === 40 || lc === 50 || lc === 80 || lc === 90 || lc === 95) { G.m[0][c] = G.m[1][c] = G.m[2][c] = NaN; masked++; } else ok++; }
+      G.masked = masked / ((masked + ok) || 1); if (ok > 50) { G.raw.clay = G.m[0]; G.raw.iron = G.m[1]; G.raw.ferr = G.m[2]; }
+    }
   }
   $('#pRun').addEventListener('click', run);
   $('#pCls').addEventListener('change', function () { persist.save(); if (G && G.done) compose(); });
@@ -319,13 +456,13 @@
     var cv = document.createElement('canvas'); cv.width = G.nx; cv.height = G.ny; var x = cv.getContext('2d'), im = x.createImageData(G.nx, G.ny), d = im.data, c, col, leg;
     var put = function (c, rgb, a) { d[c * 4] = rgb[0]; d[c * 4 + 1] = rgb[1]; d[c * 4 + 2] = rgb[2]; d[c * 4 + 3] = a == null ? 255 : a; };
     var CR = CLS.map(function (q) { return hex(q[0]); });
-    if (view === 'cls') { for (c = 0; c < G.n; c++) if (G.cls[c] >= 0) put(c, CR[G.cls[c]]); leg = { title: t('Groundwater potential', 'احتمالية المياه الجوفية'), sw: CLS.map(function (q) { return [q[0], AR ? q[2] : q[1]]; }) }; }
+    if (view === 'cls') { for (c = 0; c < G.n; c++) if (G.cls[c] >= 0) put(c, CR[G.cls[c]]); leg = { title: RC.title, sw: CLS.map(function (q) { return [q[0], AR ? q[2] : q[1]]; }) }; }
     else if (view === 'idx' || view[0] === 'v' && FK[view.slice(2)].kind !== 'cat') {
       var arr = view === 'idx' ? G.idx : G.raw[view.slice(2)], q = view === 'idx' ? [1, 5] : pct(arr, [0.02, 0.98]), f = FK[view.slice(2)], inv = view !== 'idx' && f && f.dir < 0;
       for (c = 0; c < G.n; c++) if (isFinite(arr[c])) put(c, ramp((arr[c] - q[0]) / ((q[1] - q[0]) || 1)));
       leg = { title: view === 'idx' ? t('Potential index', 'مؤشر الاحتمالية') : f.n + (f.u ? ' (' + f.u + ')' : ''), grad: [q[0], q[1]], dp: view === 'idx' ? 1 : f.dp, note: inv ? t('Lower values rate higher.', 'القيم الأدنى تُقيّم أعلى.') : '' }; }
     else if (view[0] === 'r') { var R = G.rate[view.slice(2)]; for (c = 0; c < G.n; c++) if (isFinite(R[c])) put(c, CR[Math.round(R[c]) - 1]); leg = { title: FK[view.slice(2)].n + ' · ' + t('rating', 'التقييم'), sw: CLS.map(function (q, i) { return [q[0], (i + 1) + ' · ' + (AR ? q[2] : q[1])]; }) }; }
-    else if (view === 'v:lulc') { var seen = {}; for (c = 0; c < G.n; c++) { var v = G.raw.lulc[c]; if (LC[v]) { put(c, hex(LC[v][0])); seen[v] = (seen[v] || 0) + 1; } } leg = { title: FK.lulc.n, sw: Object.keys(seen).sort(function (a, b) { return seen[b] - seen[a]; }).map(function (v) { return [LC[v][0], (AR ? LC[v][2] : LC[v][1]) + ' · ' + LC[v][3]]; }) }; }
+    else if (view === 'v:lulc') { var seen = {}; for (c = 0; c < G.n; c++) { var v = G.raw.lulc[c]; if (LC[v]) { put(c, hex(LC[v][0])); seen[v] = (seen[v] || 0) + 1; } } leg = { title: FK.lulc.n, sw: Object.keys(seen).sort(function (a, b) { return seen[b] - seen[a]; }).map(function (v) { return [LC[v][0], (AR ? LC[v][2] : LC[v][1]) + ' · ' + RC.lc(v)]; }) }; }
     else if (view === 'v:lith') { var su = {}; for (c = 0; c < G.n; c++) { var u = G.units[G.raw.lith[c]]; if (u) { put(c, hex(u.color)); su[G.raw.lith[c]] = 1; } } leg = { title: FK.lith.n, sw: Object.keys(su).map(function (i) { var u = G.units[i]; return [u.color, u.name + ' · ' + u.r]; }) }; }
     x.putImageData(im, 0, 0); return { url: cv.toDataURL('image/png'), leg: leg };
   }
@@ -358,13 +495,14 @@
     var top = drv.filter(function (x) { return x.d > 0.15; }).slice(0, 3);
     var txt = t('High and very high potential cover ', 'تغطي الاحتمالية العالية والعالية جداً ') + '<b class="ltr">' + SH.fmt(hi, 1) + ' %</b>' + t(' of the area (', ' من المنطقة (') + '<span class="ltr">' + SH.fmt(hk, 1) + ' km²</span>). ' +
       (top.length ? t('The layers that set them apart most are ', 'وأكثر الطبقات تمييزاً لها: ') + top.map(function (x) { return '<b>' + SH.esc(x.f.n) + '</b>'; }).join(t(', ', '، ')) + t('; each rates clearly higher there than in the rest of the area. ', '؛ إذ يرتفع تقييم كل منها فيها بوضوح عن بقية المنطقة. ') : '') +
-      t('Treat the zones as targets for electrical soundings and test wells, not as proven water.', 'تعامل مع هذه المناطق كأهداف للسبر الكهربائي والآبار الاختبارية، لا كمياه مؤكدة.');
+      RC.end + (RC.k === 'arch' ? ' ' + t('Cells are generalised to about ', 'الخلايا معمّمة إلى نحو ') + '<span class="ltr">' + SH.fmt(G.gen * G.cell / 1000, 1) + ' km</span>' + t(' to protect unrecorded sites.', ' لحماية المواقع غير المسجلة.') + (G.cell > 90 ? ' <span style="color:var(--warn)">' + t('Cells are coarser than 90 m, so small mounds blur; a smaller area gives finer cells.', 'الخلايا أخشن من 90 م فتضيع التلول الصغيرة؛ المساحة الأصغر تعطي خلايا أدق.') + '</span>' : '') : '') +
+      (RC.k === 'min' && G.masked != null ? ' ' + t('Vegetation, fields, water and towns hide ', 'تحجب النباتات والحقول والمياه والمدن ') + '<b class="ltr">' + SH.fmt(G.masked * 100, 0) + ' %</b>' + t(' of the area from the spectral layers; only the structural and rock layers rate it.', ' من المنطقة عن الطبقات الطيفية، فلا تقيّمها هناك إلا طبقتا التراكيب والصخر.') : '');
     var u = G.units ? G.units.slice().sort(function (a, b) { return b.n - a.n; }) : [];
-    var neutral = u.length && u.every(function (x) { return x.r === 3; }) && FK.lith.on;
+    var neutral = u.length && FK.lith && FK.lith.on && u.every(function (x) { return !x.rated; });
     var lithTbl = u.length ? '<details' + (u.some(function (x) { return !x.rated; }) ? ' open' : '') + '><summary class="small" style="cursor:pointer;font-weight:700">' + t('Rock units and their ratings', 'الوحدات الصخرية وتقييمها') + '</summary><p class="xsmall muted" style="margin:6px 0">' + t('Read from the geological map at ', 'قُرئت من الخريطة الجيولوجية عند ') + G.lithPts + t(' points; boundaries are approximate at that spacing. A unit whose rock type is not stated is rated 3; set it from your knowledge of the area.', ' نقطة، والحدود تقريبية بقدر تباعدها. الوحدة التي لم يُذكر نوع صخرها تُقيّم 3؛ عدّل تقييمها من معرفتك بالمنطقة.') + '</p><table class="pz-units"><tbody>' +
       u.map(function (x) { var ix = G.units.indexOf(x); return '<tr><td><i style="background:' + x.color + '"></i></td><td>' + SH.esc(x.name) + (x.age ? '<br><span class="muted">' + SH.esc(x.age) + '</span>' : '') + (x.lk ? '<br><span class="muted">' + SH.esc(AR ? LITH[x.lk][2] : LITH[x.lk][1]) + '</span>' : '') + '</td><td><select data-u="' + ix + '" aria-label="' + t('Rating', 'التقييم') + '">' + [1, 2, 3, 4, 5].map(function (r) { return '<option' + (r === x.r ? ' selected' : '') + '>' + r + '</option>'; }).join('') + '</select></td></tr>'; }).join('') + '</tbody></table></details>' : '';
-    var srcs = [G.s2 && G.s2.length ? t('Optical scenes: ', 'المشاهد البصرية: ') + uniq(G.s2).join(t(', ', '، ')) : '', G.ls && G.ls.length ? t('Thermal scenes: ', 'المشاهد الحرارية: ') + uniq(G.ls).join(t(', ', '، ')) : '', G.rainYears ? t('Rainfall years: ', 'سنوات الأمطار: ') + G.rainYears : '', G.T ? t('Automatic lineaments: ', 'خطوط تركيبية آلية: ') + (userLin ? t('replaced by your file', 'استُبدلت بملفك') : G.T.segs) : ''].filter(Boolean);
-    $('#pOut').innerHTML = '<div class="pz-card"><b class="h">' + t('Groundwater potential zones', 'مناطق احتمالية المياه الجوفية') + '</b><span>' + txt + '</span><div class="pz-cls">' +
+    var srcs = [G.s2 && G.s2.length ? t('Optical scenes: ', 'المشاهد البصرية: ') + uniq(G.s2).join(t(', ', '، ')) : '', G.s2b && G.s2b.length ? t('Spring scenes: ', 'مشاهد الربيع: ') + uniq(G.s2b).join(t(', ', '، ')) : '', G.ls && G.ls.length ? t('Thermal scenes: ', 'المشاهد الحرارية: ') + uniq(G.ls).join(t(', ', '، ')) : '', G.rainYears ? t('Rainfall years: ', 'سنوات الأمطار: ') + G.rainYears : '', G.T && (FK.lin || FK.prox) ? t('Automatic lineaments: ', 'خطوط تركيبية آلية: ') + (userLin ? t('replaced by your file', 'استُبدلت بملفك') : G.T.segs) : ''].filter(Boolean);
+    $('#pOut').innerHTML = '<div class="pz-card"><b class="h">' + RC.title + '</b><span>' + txt + '</span><div class="pz-cls">' +
       A.map(function (a, i) { return '<div><i style="background:' + CLS[i][0] + '"></i><span>' + (AR ? CLS[i][2] : CLS[i][1]) + '</span><span class="n">' + SH.fmt(a.km2, 1) + ' km²</span><span class="n">' + SH.fmt(a.p, 1) + ' %</span></div>'; }).join('') + '</div><div class="plot" id="pCh" style="height:200px"></div>' +
       '<table class="pz-tbl"><thead><tr><th>' + t('Layer', 'الطبقة') + '</th><th class="num">' + t('Weight', 'الوزن') + '</th><th class="num">' + t('Mean rating in high zones', 'متوسط التقييم في المناطق العالية') + '</th></tr></thead><tbody>' +
       drv.slice().sort(function (a, b) { return b.f.w - a.f.w; }).map(function (x) { return '<tr><td>' + SH.esc(x.f.n) + '</td><td class="num">' + SH.fmt(x.f.w * 100, 1) + ' %</td><td class="num">' + SH.fmt(x.m, 2) + '</td></tr>'; }).join('') + '</tbody></table>' + lithTbl +
@@ -376,9 +514,8 @@
   $('#pOut').addEventListener('change', function (e) { var s = e.target.closest('[data-u]'); if (!s) return; var u = G.units[+s.getAttribute('data-u')]; u.r = +s.value; u.rated = true; G.rate.lith = rate(FK.lith); compose(); });
 
   /* ---------------------------------------------------------------- wells and validation */
-  function saveWells() { SH.store.set('shandal_pz_wells', wells); drawWells(); $('#pWS').textContent = wells.length ? wells.length + t(' wells loaded.', ' بئراً محمّلة.') : ''; }
-  function drawWells() { if (!wLay) return; wLay.clearLayers(); wells.forEach(function (w) { L.circleMarker([w.lat, w.lon], { radius: 5, color: '#fff', weight: 1.5, fillColor: w.st === 0 ? '#c0392b' : '#111', fillOpacity: 1 }).bindTooltip((w.name ? SH.esc(w.name) + ' · ' : '') + (w.y != null ? SH.fmt(w.y, 1) + ' L/s' : '') + (w.st === 0 ? ' ' + t('dry', 'جافة') : '')).addTo(wLay); }); }
-  saveWells();
+  function saveWells() { SH.store.set(ptsKey(), wells); drawWells(); $('#pWS').textContent = wells.length ? wells.length + RC.pt.many + t(' loaded.', ' محمّلة.') : ''; }
+  function drawWells() { if (!wLay) return; wLay.clearLayers(); wells.forEach(function (w) { L.circleMarker([w.lat, w.lon], { radius: 5, color: '#fff', weight: 1.5, fillColor: w.st === 0 ? '#c0392b' : '#111', fillOpacity: 1 }).bindTooltip((w.name ? SH.esc(w.name) + ' · ' : '') + (w.y != null ? SH.fmt(w.y, 1) + (RC.pt.yu ? ' ' + RC.pt.yu : '') : '') + (w.st === 0 ? ' ' + RC.pt.negw : '')).addTo(wLay); }); }
   $('#pWAdd').addEventListener('click', function () { addMode = !addMode; this.setAttribute('aria-pressed', addMode); this.classList.toggle('btn-ink', addMode); if (map) map.getContainer().style.cursor = addMode ? 'crosshair' : ''; if (addMode) SH.toast(t('Tap each well on the map, then tap the button again.', 'انقر كل بئر على الخريطة ثم انقر الزر مرة أخرى.'), 'info'); });
   $('#pWClr').addEventListener('click', function () { wells = []; saveWells(); $('#pValOut').innerHTML = ''; });
   $('#pWF').addEventListener('change', function () { var f = this.files[0]; if (!f) return; f.text().then(function (s) {
@@ -388,8 +525,8 @@
     if (cLa < 0 || cLo < 0) throw new Error(); var add = [];
     L2.slice(hasH ? 1 : 0).forEach(function (l) { var r = sp(l), la = parseFloat(r[cLa]), lo = parseFloat(r[cLo]); if (!isFinite(la) || !isFinite(lo) || Math.abs(la) > 90 || Math.abs(lo) > 180) return;
       var w = { lat: la, lon: lo }; if (cY >= 0 && isFinite(parseFloat(r[cY]))) w.y = parseFloat(r[cY]); if (cS >= 0 && r[cS] !== '' && r[cS] != null) w.st = /^(0|dry|no|false|جاف|جافة|لا)$/i.test(r[cS]) ? 0 : 1; if (cN >= 0) w.name = r[cN]; add.push(w); });
-    if (!add.length) throw new Error(); wells = wells.concat(add); saveWells(); SH.toast(add.length + t(' wells added.', ' بئراً أُضيفت.'), 'ok'); if (G && G.done) validate();
-  }).catch(function () { SH.toast(t('Could not read wells: use columns lat, lon and optionally yield or status.', 'تعذرت قراءة الآبار: استخدم أعمدة lat وlon ومعها yield أو status اختيارياً.'), 'bad'); }); this.value = ''; });
+    if (!add.length) throw new Error(); wells = wells.concat(add); saveWells(); SH.toast(add.length + RC.pt.many + t(' added.', ' أُضيفت.'), 'ok'); if (G && G.done) validate();
+  }).catch(function () { SH.toast(t('Could not read the file: use columns lat, lon and optionally a value or status.', 'تعذرت قراءة الملف: استخدم أعمدة lat وlon ومعها قيمة أو حالة اختيارياً.'), 'bad'); }); this.value = ''; });
   function auc(pos, neg) { if (!pos.length || !neg.length) return NaN; var s = 0; pos.forEach(function (p) { var lt = 0, eq = 0; for (var k = 0; k < neg.length; k++) { if (neg[k] < p) lt++; else if (neg[k] === p) eq++; } s += (lt + eq / 2) / neg.length; }); return s / pos.length; }
   function rankv(a) { var o = a.map(function (v, i) { return [v, i]; }).sort(function (x, y) { return x[0] - y[0]; }), r = new Array(a.length); for (var i = 0; i < o.length;) { var j = i; while (j + 1 < o.length && o[j + 1][0] === o[i][0]) j++; for (var k = i; k <= j; k++) r[o[k][1]] = (i + j) / 2 + 1; i = j + 1; } return r; }
   function spear(x, y) { var rx = rankv(x), ry = rankv(y), n = x.length, mx = (n + 1) / 2, sxy = 0, sxx = 0, syy = 0; for (var i = 0; i < n; i++) { sxy += (rx[i] - mx) * (ry[i] - mx); sxx += Math.pow(rx[i] - mx, 2); syy += Math.pow(ry[i] - mx, 2); } return sxy / Math.sqrt(sxx * syy); }
@@ -397,33 +534,40 @@
   function validate(quiet) {
     if (!G || !G.done) { if (!quiet) SH.toast(t('Build the map first.', 'أنشئ الخريطة أولاً.'), 'warn'); return; }
     var W = wells.map(function (w) { var c = cellAt(w.lat, w.lon); return c >= 0 && isFinite(G.idx[c]) ? { w: w, v: G.idx[c], k: G.cls[c] } : null; }).filter(Boolean), o = $('#pValOut');
-    if (W.length < 3) { o.innerHTML = '<span class="xsmall muted">' + t('At least three wells inside the mapped area are needed.', 'تلزم ثلاث آبار على الأقل داخل المنطقة المرسومة.') + '</span>'; return; }
+    if (W.length < 3) { o.innerHTML = '<span class="xsmall muted">' + t('At least three points inside the mapped area are needed.', 'تلزم ثلاث نقاط على الأقل داخل المنطقة المرسومة.') + '</span>'; return; }
     var prod = W.filter(function (x) { return x.w.st !== 0; }), dry = W.filter(function (x) { return x.w.st === 0; }), cells = []; for (var c = 0; c < G.n; c++) if (isFinite(G.idx[c])) cells.push(G.idx[c]);
     cells.sort(function (a, b) { return b - a; });
     var sAuc = auc(prod.map(function (x) { return x.v; }), cells), curve = { x: [0], y: [0] }, pv = prod.map(function (x) { return x.v; }).sort(function (a, b) { return b - a; });
     for (var q = 1; q <= 50; q++) { var thr = cells[Math.min(cells.length - 1, Math.floor(cells.length * q / 50) - 1)], nw = pv.filter(function (v) { return v >= thr; }).length; curve.x.push(q * 2); curve.y.push(100 * nw / (pv.length || 1)); }
     var A = areas(), fr = A.map(function (a, i) { var n = prod.filter(function (x) { return x.k === i; }).length, pw = 100 * n / (prod.length || 1); return { n: n, pw: pw, fr: a.p ? pw / a.p : NaN }; });
     var roc = prod.length >= 3 && dry.length >= 3 ? auc(prod.map(function (x) { return x.v; }), dry.map(function (x) { return x.v; })) : NaN, yl = W.filter(function (x) { return x.w.y != null; }), rho = yl.length >= 5 ? spear(yl.map(function (x) { return x.v; }), yl.map(function (x) { return x.w.y; })) : NaN;
-    o.innerHTML = '<div class="pz-card"><b class="h">' + t('Validation against ', 'التحقق مقابل ') + W.length + t(' wells', ' بئراً') + '</b><span>' + t('Success-rate curve: the share of productive wells captured as the map is read from its highest to its lowest potential. Area under the curve ', 'منحنى معدل النجاح: نسبة الآبار المنتجة التي تلتقطها الخريطة عند قراءتها من أعلى احتمالية إلى أدناها. المساحة تحت المنحنى ') + '<b class="ltr">AUC = ' + SH.fmt(sAuc, 3) + '</b> (' + grade(sAuc) + ').' +
-      (isFinite(roc) ? ' ' + t('Productive against dry wells: ', 'الآبار المنتجة مقابل الجافة: ') + '<b class="ltr">ROC AUC = ' + SH.fmt(roc, 3) + '</b> (' + grade(roc) + ').' : '') + (isFinite(rho) ? ' ' + t('Spearman correlation of the index with yield: ', 'ارتباط سبيرمان بين المؤشر والإنتاجية: ') + '<b class="ltr">ρ = ' + SH.fmt(rho, 2) + '</b> (' + yl.length + t(' wells).', ' بئراً).') : '') + '</span>' +
-      '<div class="plot" id="pRoc" style="height:240px"></div><table class="pz-tbl"><thead><tr><th>' + t('Class', 'الفئة') + '</th><th class="num">' + t('Area %', 'المساحة %') + '</th><th class="num">' + t('Wells', 'الآبار') + '</th><th class="num">' + t('Frequency ratio', 'نسبة التكرار') + '</th></tr></thead><tbody>' +
-      fr.map(function (r, i) { return '<tr><td><i style="display:inline-block;width:10px;height:10px;border-radius:2px;background:' + CLS[i][0] + '"></i> ' + (AR ? CLS[i][2] : CLS[i][1]) + '</td><td class="num">' + SH.fmt(A[i].p, 1) + '</td><td class="num">' + r.n + '</td><td class="num"><b>' + (isFinite(r.fr) ? SH.fmt(r.fr, 2) : '—') + '</b></td></tr>'; }).join('') + '</tbody></table><span class="xsmall muted">' + t('A frequency ratio above 1 means the class holds more wells than its share of the area. A good map shows ratios rising from very low to very high.', 'نسبة التكرار الأعلى من 1 تعني أن الفئة تحوي آباراً أكثر من نصيبها من المساحة. الخريطة الجيدة تُظهر نسباً تتصاعد من المنخفضة جداً إلى العالية جداً.') + '</span></div>';
+    o.innerHTML = '<div class="pz-card"><b class="h">' + RC.pt.ttl + W.length + RC.pt.many + '</b><span>' + RC.pt.curve + t(' Area under the curve ', ' المساحة تحت المنحنى ') + '<b class="ltr">AUC = ' + SH.fmt(sAuc, 3) + '</b> (' + grade(sAuc) + ').' +
+      (isFinite(roc) ? ' ' + RC.pt.roc + '<b class="ltr">ROC AUC = ' + SH.fmt(roc, 3) + '</b> (' + grade(roc) + ').' : '') + (isFinite(rho) ? ' ' + t('Spearman correlation of the index with ', 'ارتباط سبيرمان بين المؤشر و') + RC.pt.yl + ': <b class="ltr">ρ = ' + SH.fmt(rho, 2) + '</b> (' + yl.length + RC.pt.many + ').' : '') + '</span>' +
+      '<div class="plot" id="pRoc" style="height:240px"></div><table class="pz-tbl"><thead><tr><th>' + t('Class', 'الفئة') + '</th><th class="num">' + t('Area %', 'المساحة %') + '</th><th class="num">' + t('Points', 'النقاط') + '</th><th class="num">' + t('Frequency ratio', 'نسبة التكرار') + '</th></tr></thead><tbody>' +
+      fr.map(function (r, i) { return '<tr><td><i style="display:inline-block;width:10px;height:10px;border-radius:2px;background:' + CLS[i][0] + '"></i> ' + (AR ? CLS[i][2] : CLS[i][1]) + '</td><td class="num">' + SH.fmt(A[i].p, 1) + '</td><td class="num">' + r.n + '</td><td class="num"><b>' + (isFinite(r.fr) ? SH.fmt(r.fr, 2) : '—') + '</b></td></tr>'; }).join('') + '</tbody></table><span class="xsmall muted">' + t('A frequency ratio above 1 means the class holds more points than its share of the area. A good map shows ratios rising from very low to very high.', 'نسبة التكرار الأعلى من 1 تعني أن الفئة تحوي آباراً أكثر من نصيبها من المساحة. الخريطة الجيدة تُظهر نسباً تتصاعد من المنخفضة جداً إلى العالية جداً.') + '</span></div>';
     var pal = SH.palette();
     SH.plot('pRoc', [{ x: [0, 100], y: [0, 100], mode: 'lines', line: { color: '#999', dash: 'dash', width: 1 }, hoverinfo: 'skip', name: t('Random', 'عشوائي') }, { x: curve.x, y: curve.y, mode: 'lines', line: { color: pal.accent, width: 2.5, shape: 'spline' }, fill: 'tonexty', fillcolor: SH.alpha(pal.accent, .12), name: 'AUC ' + SH.fmt(sAuc, 2), hovertemplate: '%{x:.0f}% → %{y:.0f}%<extra></extra>' }],
-      function () { return SH.plotLayout({ margin: { l: 66, r: 10, t: 10, b: 44 }, showlegend: false, xaxis: { range: [0, 100], ticksuffix: '%', title: { text: t('Area, from highest potential', 'المساحة من أعلى احتمالية'), font: { size: 11 }, standoff: 8 } }, yaxis: { range: [0, 101], ticksuffix: '%', title: { text: t('Wells captured', 'الآبار الملتقطة'), font: { size: 11 }, standoff: 10 } } }); }, { displayModeBar: false });
+      function () { return SH.plotLayout({ margin: { l: 66, r: 10, t: 10, b: 44 }, showlegend: false, xaxis: { range: [0, 100], ticksuffix: '%', title: { text: t('Area, from highest potential', 'المساحة من أعلى احتمالية'), font: { size: 11 }, standoff: 8 } }, yaxis: { range: [0, 101], ticksuffix: '%', title: { text: RC.pt.ax, font: { size: 11 }, standoff: 10 } } }); }, { displayModeBar: false });
   }
   $('#pVal').addEventListener('click', function () { validate(); });
+  /* archaeology: sites already recorded on open map data inside the area */
+  $('#pOsm').addEventListener('click', function () { if (!aoi) { SH.toast(t('Draw the area first.', 'ارسم المنطقة أولاً.'), 'warn'); return; } var b = this; b.disabled = true;
+    var bb = [aoi.s, aoi.w, aoi.n, aoi.e].map(function (v) { return v.toFixed(5); }).join(','), q = '[out:json][timeout:25];(node["historic"="archaeological_site"](' + bb + ');way["historic"="archaeological_site"](' + bb + ');relation["historic"="archaeological_site"](' + bb + '););out center 800;';
+    SH.getJSON('https://overpass-api.de/api/interpreter?data=' + encodeURIComponent(q), { timeout: 40000 }).then(function (j) { var add = (j.elements || []).map(function (e) { var la = e.lat != null ? e.lat : e.center && e.center.lat, lo = e.lon != null ? e.lon : e.center && e.center.lon; return isFinite(la) && isFinite(lo) ? { lat: la, lon: lo, name: (e.tags && (e.tags['name:' + SH.lang] || e.tags.name)) || '' } : null; }).filter(Boolean);
+      var key = function (w) { return w.lat.toFixed(4) + ',' + w.lon.toFixed(4); }, have = {}; wells.forEach(function (w) { have[key(w)] = 1; }); add = add.filter(function (w) { return !have[key(w)]; });
+      wells = wells.concat(add); saveWells(); SH.toast(add.length ? add.length + RC.pt.many + t(' recorded in the area added.', ' مسجلة في المنطقة أُضيفت.') : t('No recorded sites in this area.', 'لا توجد مواقع مسجلة في هذه المنطقة.'), add.length ? 'ok' : 'info'); if (add.length && G && G.done) validate(true);
+    }).catch(function (e) { SH.toast(e.message, 'bad'); }).then(function () { b.disabled = false; }); });
 
   /* ---------------------------------------------------------------- downloads */
   function need() { if (!G || !G.done) { SH.toast(t('Build the map first.', 'أنشئ الخريطة أولاً.'), 'warn'); return false; } return true; }
-  var fname = function (x) { return 'Shandal-groundwater-potential-' + new Date().toISOString().slice(0, 10) + x; };
+  var fname = function (x) { return 'Shandal-' + RC.file + '-' + new Date().toISOString().slice(0, 10) + x; };
   $('#pSheet').addEventListener('click', function () { if (!need() || !D) return; var view = SH.val('pShow') || 'cls', P = paint(view), A = areas(), svg = $('#pSheetSvg');
     /* upscale the grid image with nearest-neighbour so cells stay sharp in the sheet */
     var im = new Image(); im.onload = function () { var k = Math.max(1, Math.floor(1400 / Math.max(G.nx, G.ny))), cv = document.createElement('canvas'); cv.width = G.nx * k; cv.height = G.ny * k; var x = cv.getContext('2d'); x.imageSmoothingEnabled = false; x.drawImage(im, 0, 0, cv.width, cv.height);
       var sw = view === 'cls' ? CLS.map(function (q, i) { return { color: q[0], name: (AR ? q[2] : q[1]) + ' · ' + SH.ltr(SH.fmt(A[i].p, 1) + '%') }; }) : P.leg.sw ? P.leg.sw.slice(0, 9).map(function (s) { return { color: s[0], name: s[1] }; }) : [];
-      D.svgMap(svg, { b: G.b, min: 0, max: 1 }, [], { crs: 'geo', fill: false, image: cv.toDataURL('image/png'), noContours: true, grid: true, title: view === 'cls' ? t('Groundwater potential zones', 'مناطق احتمالية المياه الجوفية') : P.leg.title,
-        subtitle: t('Analytic hierarchy process · ', 'التحليل الهرمي · ') + G.act.length + t(' layers · cell ', ' طبقات · الخلية ') + SH.fmt(G.cell, 0) + ' m · CR ' + SH.fmt(AH ? AH.CR : 0, 3), legendTitle: P.leg.title, swatches: sw, gradient: P.leg.grad ? { colors: VIR, min: P.leg.grad[0], max: P.leg.grad[1] } : null,
-        points: wells.filter(function (w) { return cellAt(w.lat, w.lon) >= 0; }).map(function (w) { return { x: w.lon, y: w.lat, color: w.st === 0 ? '#c0392b' : '#111' }; }), pointsName: t('Well', 'بئر'), pointKinds: [{ color: '#111', name: t('Productive or unclassified well', 'بئر منتجة أو غير مصنفة') }].concat(wells.some(function (w) { return w.st === 0 && cellAt(w.lat, w.lon) >= 0; }) ? [{ color: '#c0392b', name: t('Dry well', 'بئر جافة') }] : []),
+      D.svgMap(svg, { b: G.b, min: 0, max: 1 }, [], { crs: 'geo', fill: false, image: cv.toDataURL('image/png'), noContours: true, grid: true, title: view === 'cls' ? RC.title : P.leg.title,
+        subtitle: t('Analytic hierarchy process · ', 'التحليل الهرمي · ') + G.act.length + t(' layers · cell ', ' طبقات · الخلية ') + SH.fmt(G.cell * (RC.gen ? G.gen : 1), 0) + ' m · CR ' + SH.fmt(AH ? AH.CR : 0, 3), legendTitle: P.leg.title, swatches: sw, gradient: P.leg.grad ? { colors: VIR, min: P.leg.grad[0], max: P.leg.grad[1] } : null,
+        points: wells.filter(function (w) { return cellAt(w.lat, w.lon) >= 0; }).map(function (w) { return { x: w.lon, y: w.lat, color: w.st === 0 ? '#c0392b' : '#111' }; }), pointsName: RC.pt.pos, pointKinds: [{ color: '#111', name: RC.pt.pos }].concat(wells.some(function (w) { return w.st === 0 && cellAt(w.lat, w.lon) >= 0; }) ? [{ color: '#c0392b', name: RC.pt.neg }] : []),
         source: t('Satellite imagery, elevation model, geological map, land cover and climate reanalysis, combined in the Shandal System.', 'صور فضائية ونموذج ارتفاع رقمي وخريطة جيولوجية وغطاء أرضي وإعادة تحليل مناخي، مدموجة في نظام شندل.'), credit: 'Shandal System' });
       SH.svgPng(svg, fname('.png'), 2); }; im.src = P.url; });
   $('#pAsc').addEventListener('click', function () { if (!need()) return; var s = 'ncols ' + G.nx + '\nnrows ' + G.ny + '\nxllcorner ' + G.b.w.toFixed(8) + '\nyllcorner ' + G.b.s.toFixed(8) + '\ndx ' + G.dlon.toFixed(10) + '\ndy ' + G.dlat.toFixed(10) + '\nNODATA_value -9999\n', r = [];
@@ -437,7 +581,7 @@
   $('#pFac').addEventListener('click', function () { if (!need()) return; var fs = F.filter(function (f) { return G.rate[f.k]; }), cols = 4, rowsN = Math.ceil((fs.length + 1) / cols), pw = 300, M = 40, ph = Math.round(pw * (G.ny * G.dy) / (G.nx * G.dx)); if (ph > 380) { var sc0 = 380 / ph; ph = 380; pw = Math.round(pw * sc0); }
     var W = M * 2 + cols * pw + (cols - 1) * 24, H = 110 + rowsN * (ph + 46) + 90, cv = document.createElement('canvas'); cv.width = W; cv.height = H; var x = cv.getContext('2d'), FN = '"IBM Plex Sans Arabic", Manrope, Arial, sans-serif';
     x.fillStyle = '#fff'; x.fillRect(0, 0, W, H); x.strokeStyle = '#1B232B'; x.lineWidth = 1.5; x.strokeRect(10, 10, W - 20, H - 20); x.fillStyle = '#1B232B'; x.font = '800 24px ' + FN; x.textAlign = AR ? 'right' : 'left'; x.direction = AR ? 'rtl' : 'ltr';
-    x.fillText(t('Evidence layers rated 1–5 for groundwater potential', 'طبقات الأدلة مقيّمة من 1 إلى 5 لاحتمالية المياه الجوفية'), AR ? W - M : M, 52); x.font = '500 14px ' + FN; x.fillStyle = '#55616B'; x.fillText(t('Weights from the analytic hierarchy process are shown under each layer.', 'أوزان التحليل الهرمي مبينة تحت كل طبقة.'), AR ? W - M : M, 78);
+    x.fillText(RC.fig, AR ? W - M : M, 52); x.font = '500 14px ' + FN; x.fillStyle = '#55616B'; x.fillText(t('Weights from the analytic hierarchy process are shown under each layer.', 'أوزان التحليل الهرمي مبينة تحت كل طبقة.'), AR ? W - M : M, 78);
     var items = fs.map(function (f) { return { v: 'r:' + f.k, n: f.n + ' · ' + SH.fmt(f.w * 100, 1) + '%' }; }).concat([{ v: 'cls', n: t('Result: potential classes', 'النتيجة: فئات الاحتمالية') }]), jobs = items.map(function (it) { return new Promise(function (res) { var im = new Image(); im.onload = function () { res(im); }; im.src = paint(it.v).url; }); });
     Promise.all(jobs).then(function (ims) { ims.forEach(function (im, k) { var ci = k % cols, ri = Math.floor(k / cols), px = AR ? W - M - (ci + 1) * pw - ci * 24 : M + ci * (pw + 24), py = 104 + ri * (ph + 46);
         x.imageSmoothingEnabled = false; x.fillStyle = '#f3f3f3'; x.fillRect(px, py, pw, ph); x.drawImage(im, px, py, pw, ph); x.strokeStyle = '#1B232B'; x.lineWidth = 1; x.strokeRect(px, py, pw, ph);
@@ -450,5 +594,6 @@
       for (var q = 0; q < 4; q++) { x.fillStyle = q % 2 ? '#fff' : '#1B232B'; x.fillRect(bx0 + q * bw / 4, ly - 4, bw / 4, 7); } x.strokeRect(bx0, ly - 4, bw, 7); x.fillStyle = '#1B232B'; x.font = '600 12px ' + FN; x.fillText('0', bx0, ly + 20); x.fillText(lenM >= 1000 ? SH.fmt(lenM / 1000, 0) + ' km' : SH.fmt(lenM, 0) + ' m', bx0 + bw, ly + 20);
       SH.canvasPng(cv, fname('-layers.png')); }); });
 
+  setRecipe($('#pRec').getAttribute('data-default') || 'gw');
   document.addEventListener('sh:beforereport', function (e) { if (!G || !G.done) { e.preventDefault(); SH.toast(t('Build the map first.', 'أنشئ الخريطة أولاً.'), 'warn'); } });
 })();
