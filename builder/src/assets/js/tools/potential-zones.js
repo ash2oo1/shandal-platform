@@ -357,7 +357,7 @@
     var drv = G.act.map(function (f) { var s1 = 0, n1 = 0, s0 = 0, n0 = 0, R = G.rate[f.k]; for (var c = 0; c < G.n; c++) { if (!isFinite(R[c]) || G.cls[c] < 0) continue; s0 += R[c]; n0++; if (G.cls[c] >= 3) { s1 += R[c]; n1++; } } return { f: f, d: n1 && n0 ? s1 / n1 - s0 / n0 : 0, m: n1 ? s1 / n1 : NaN }; }).sort(function (a, b) { return b.d * b.f.w - a.d * a.f.w; });
     var top = drv.filter(function (x) { return x.d > 0.15; }).slice(0, 3);
     var txt = t('High and very high potential cover ', 'تغطي الاحتمالية العالية والعالية جداً ') + '<b class="ltr">' + SH.fmt(hi, 1) + ' %</b>' + t(' of the area (', ' من المنطقة (') + '<span class="ltr">' + SH.fmt(hk, 1) + ' km²</span>). ' +
-      (top.length ? t('They are set apart mainly by ', 'وتتميز أساساً بـ') + top.map(function (x) { return '<b>' + SH.esc(x.f.n) + '</b>'; }).join(t(', ', '، ')) + t(', which rate clearly higher there than in the rest of the area. ', '، التي يرتفع تقييمها فيها بوضوح عن بقية المنطقة. ') : '') +
+      (top.length ? t('The layers that set them apart most are ', 'وأكثر الطبقات تمييزاً لها: ') + top.map(function (x) { return '<b>' + SH.esc(x.f.n) + '</b>'; }).join(t(', ', '، ')) + t('; each rates clearly higher there than in the rest of the area. ', '؛ إذ يرتفع تقييم كل منها فيها بوضوح عن بقية المنطقة. ') : '') +
       t('Treat the zones as targets for electrical soundings and test wells, not as proven water.', 'تعامل مع هذه المناطق كأهداف للسبر الكهربائي والآبار الاختبارية، لا كمياه مؤكدة.');
     var u = G.units ? G.units.slice().sort(function (a, b) { return b.n - a.n; }) : [];
     var neutral = u.length && u.every(function (x) { return x.r === 3; }) && FK.lith.on;
