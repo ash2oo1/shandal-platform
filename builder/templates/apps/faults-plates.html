@@ -1,0 +1,80 @@
+{% extends "app_base.html" %}
+{% import "apps/_m.html" as m with context %}
+{% block ws %}
+<style>
+.fp-card{border:1px solid var(--line);border-radius:12px;padding:12px 14px;background:var(--surface-2);display:grid;gap:8px;font-size:.84rem;line-height:1.75}
+.fp-card b.h{font-size:.92rem}
+.fp-chk{display:grid;gap:6px;font-size:.84rem}
+.fp-chk label{display:flex;gap:8px;align-items:center;cursor:pointer}
+.fp-types{display:flex;flex-wrap:wrap;gap:6px}
+.fp-types button{all:unset;box-sizing:border-box;cursor:pointer;display:inline-flex;align-items:center;gap:6px;padding:5px 9px;border:1px solid var(--line);border-radius:999px;font-size:.76rem;background:var(--surface)}
+.fp-types button[aria-pressed=false]{opacity:.45}
+.fp-types i,.fp-leg i{display:inline-block;width:18px;height:4px;border-radius:2px}
+.fp-hits{display:grid;gap:4px;max-height:260px;overflow:auto}
+.fp-hits button{all:unset;box-sizing:border-box;cursor:pointer;display:grid;grid-template-columns:18px 1fr auto;gap:8px;align-items:center;padding:6px 8px;border:1px solid var(--line);border-radius:8px;background:var(--surface);font-size:.78rem;line-height:1.45}
+.fp-hits button:hover{border-color:var(--accent)}
+.fp-hits small{color:var(--text-2)}
+.fp-leg{position:absolute;bottom:30px;inset-inline-start:12px;z-index:600;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 12px;max-width:270px;box-shadow:0 8px 24px rgba(0,0,0,.18);font-size:.74rem;line-height:1.5;max-height:60%;overflow:auto}
+.fp-leg .r{display:grid;grid-template-columns:22px 1fr;gap:6px;align-items:center}
+.fp-leg b{display:block;margin:4px 0 2px;font-size:.76rem}
+[dir=rtl] .fp-leg{bottom:58px}
+[dir=ltr] .fp-map .leaflet-bottom.leaflet-right{margin-bottom:70px}
+.fp-tbl{width:100%;border-collapse:collapse;font-size:.78rem}
+.fp-tbl th,.fp-tbl td{padding:5px 6px;border-bottom:1px solid var(--line);text-align:start;vertical-align:top}
+.fp-tbl td.num,.fp-tbl th.num{text-align:end;white-space:nowrap}
+.fp-pop{font-size:.78rem;line-height:1.6;min-width:240px;max-width:320px}
+.fp-pop .ar{font-size:.95rem;font-weight:800}
+.fp-pop .en{color:#555;direction:ltr;text-align:left}
+.fp-pop table{border-collapse:collapse;width:100%;margin-top:4px}
+.fp-pop td{padding:2px 4px;border-bottom:1px solid #eee;vertical-align:top}
+.fp-pop td.v{font-weight:700}
+.fp-rose svg{width:100%;height:auto;display:block}
+.fp-dl{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.fp-arrow{pointer-events:none}
+</style>
+<div class="wsm">
+  <aside class="wsm-side">
+    <div class="sec">
+      <h3>{{ icon('layers') }}{{ m.L('1 · Layers', '1 · الطبقات') }}</h3>
+      <div class="fp-chk">
+        <label><input type="checkbox" id="fLF" checked> {{ m.L('Active faults of the world', 'الفوالق النشطة في العالم') }}</label>
+        <label><input type="checkbox" id="fLB" checked> {{ m.L('Plate boundaries by type', 'حدود الصفائح حسب النوع') }}</label>
+        <label><input type="checkbox" id="fLP" checked> {{ m.L('Plate names', 'أسماء الصفائح') }}</label>
+        <label><input type="checkbox" id="fLO"> {{ m.L('Diffuse deformation zones (orogens)', 'نطاقات التشوه المنتشر (الأحزمة الجبلية)') }}</label>
+        <label id="fLIw" hidden><input type="checkbox" id="fLI" checked> {{ m.L('Faults of Iraq (Shandal compilation)', 'فوالق العراق (تجميع نظام شندل)') }}</label>
+      </div>
+      {{ m.sel('fColor', 'Colour faults by', 'لوّن الفوالق حسب', [('type', 'Type of movement', 'نوع الحركة', True), ('rate', 'Slip rate', 'معدل الانزلاق')]) }}
+      <p class="xsmall muted" id="fStat" style="margin:0">{{ m.L('Loading the atlas…', 'جارٍ تحميل الأطلس…') }}</p>
+    </div>
+    <div class="sec">
+      <h3>{{ icon('search') }}{{ m.L('2 · Find a fault', '2 · ابحث عن فالق') }}</h3>
+      <div class="fg"><input id="fQ" type="search" placeholder="{{ m.L('Name in Arabic or English, e.g. Anatolian, سان أندرياس', 'الاسم بالعربية أو الإنجليزية، مثل الأناضول أو San Andreas') }}" aria-label="{{ m.L('Fault name', 'اسم الفالق') }}"></div>
+      <div class="fp-types" id="fTypes"></div>
+      <div class="fg"><label for="fRate">{{ m.L('Minimum slip rate', 'أدنى معدل انزلاق') }} <b class="ltr" id="fRateV">0 mm/yr</b></label><input type="range" id="fRate" min="0" max="20" step="0.5" value="0"></div>
+      <div class="fp-hits" id="fHits"></div>
+    </div>
+    <div class="sec">
+      <h3>{{ icon('move') }}{{ m.L('3 · Plate motion at a point', '3 · حركة الصفيحة عند نقطة') }}</h3>
+      <p class="xsmall muted" style="margin:0">{{ m.L('Tap the map anywhere away from a line: the tool names the plate and gives its velocity there, and the faults within 50 km.', 'انقر الخريطة في أي مكان بعيداً عن الخطوط: تسمّي الأداة الصفيحة وتعطي سرعتها هناك، والفوالق ضمن 50 كم.') }}</p>
+      {{ m.sel('fRef', 'Velocity relative to', 'السرعة نسبةً إلى', [('nnr', 'Whole lithosphere (no net rotation)', 'الغلاف الصخري كله (بلا دوران صافٍ)', True)]) }}
+      <div id="fPt"></div>
+    </div>
+    <div class="sec">
+      <h3>{{ icon('square-dashed') }}{{ m.L('4 · Analyse an area', '4 · حلّل منطقة') }}</h3>
+      <div class="row2"><button class="btn btn-ink btn-sm" id="fDraw" type="button">{{ m.L('Draw rectangle', 'ارسم مستطيلاً') }}</button><button class="btn btn-line btn-sm" id="fView" type="button">{{ m.L('Use map view', 'استخدم العرض') }}</button></div>
+      <div id="fArea" style="display:grid;gap:10px"><span class="xsmall muted">{{ m.L('Counts by type, total length, slip rates and a rose diagram of fault directions inside the area.', 'الأعداد حسب النوع والطول الكلي ومعدلات الانزلاق ومخطط وردة لاتجاهات الفوالق داخل المنطقة.') }}</span></div>
+      <div class="fp-dl">
+        <button class="btn btn-gold btn-sm" id="fSheet" type="button">{{ m.L('Map sheet (PNG)', 'خريطة مُخرجة (PNG)') }}</button>
+        <button class="btn btn-line btn-sm" id="fRoseDl" type="button">{{ m.L('Rose diagram (PNG)', 'مخطط الوردة (PNG)') }}</button>
+        <button class="btn btn-line btn-sm" id="fGj" type="button">GeoJSON</button>
+        <button class="btn btn-line btn-sm" id="fKml" type="button">KML</button>
+        <button class="btn btn-line btn-sm" id="fCsv" type="button">CSV</button>
+      </div>
+    </div>
+  </aside>
+  <div class="wsm-map fp-map"><div class="map" id="fMap"></div><div class="map-hint" id="fHint" hidden>{{ m.L('Drag a rectangle, or tap two corners', 'اسحب مستطيلاً أو انقر ركنين') }}</div>
+    <div id="fLeg" class="fp-leg"></div>
+  </div>
+</div>
+<div hidden><svg id="fSheetSvg" viewBox="0 0 1120 800" xmlns="http://www.w3.org/2000/svg"></svg></div>
+{% endblock %}

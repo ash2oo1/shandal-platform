@@ -328,6 +328,7 @@
     (opts.legend || []).forEach(function (e) { row(function (x, yy) { S.line(x, yy, x + 30, yy, { stroke: e.color, 'stroke-width': 2.5, 'stroke-dasharray': e.dash || null }); }, e.name); });
     if ((opts.points || []).length) row(function (x, yy) { S.circle(x + 15, yy, 3.2, { fill: '#111', stroke: '#fff', 'stroke-width': 1.2 }); }, opts.pointsName || SH.t('Measured point', 'نقطة مقاسة'));
     }
+    if (opts.noContours) (opts.legend || []).forEach(function (e) { row(function (x, yy) { S.line(x, yy, x + 30, yy, { stroke: e.color, 'stroke-width': e.width || 2.5, 'stroke-dasharray': e.dash || null }); }, e.name); });
     if (opts.noContours && (opts.points || []).length) (opts.pointKinds || [{ color: '#111', name: opts.pointsName || SH.t('Measured point', 'نقطة مقاسة') }]).forEach(function (pk) { row(function (x, yy) { S.circle(x + 15, yy, 3.2, { fill: pk.color, stroke: '#fff', 'stroke-width': 1.2 }); }, pk.name); });
     if (!opts.noContours) {
     if (opts.clipPoly) row(function (x, yy) { S.add('rect', { x: x + 4, y: yy - 6, width: 22, height: 12, fill: 'none', stroke: ink, 'stroke-dasharray': '3 2' }); }, SH.t('Interpolated only inside the data hull', 'الاستيفاء داخل غلاف البيانات فقط'));
