@@ -51,7 +51,7 @@
   var ARCH = [
     { k: 'mound', n: C('Mound (tell) relief', 'بروز التلول'), imp: 9, kind: 'abs', dir: 1, br: [0.5, 1.5, 3, 6], u: 'm', dp: 1, src: 'dem', d: C('Height of the ground above its surroundings within about 500 m. Settlement mounds (tells) rise 2–40 m above flat plains; in hilly ground the value is capped because ridges mimic mounds.', 'ارتفاع الأرض عن محيطها ضمن نحو 500 م. ترتفع التلول الأثرية 2–40 م فوق السهول المنبسطة، وفي الأرض التلالية تُحدّ القيمة لأن الحافات تشبه التلول.') },
     { k: 'water', n: C('Distance to water', 'البعد عن المياه'), imp: 7, kind: 'abs', dir: -1, br: [500, 1500, 3000, 6000], u: 'm', dp: 0, src: 'dem', d: C('Distance to permanent water and to the main drainage lines. Ancient settlement clung to rivers and canals; old courses have shifted, so read it with the mound layer.', 'المسافة إلى المياه الدائمة وخطوط التصريف الرئيسة. ارتبط الاستيطان القديم بالأنهار والقنوات، وقد تغيرت المجاري القديمة، لذا يُقرأ مع طبقة التلول.') },
-    { k: 'hand', n: C('Height above nearest drainage', 'الارتفاع فوق أقرب مجرى'), imp: 7, kind: 'abs', br: [1, 10, 30, 60], rs: [3, 5, 4, 2, 1], u: 'm', dp: 1, src: 'dem', d: C('Ground 1–10 m above the nearest stream was close to water yet safe from ordinary floods: the levees and terraces favoured for settlement.', 'الأرض المرتفعة 1–10 م فوق أقرب مجرى قريبة من الماء وآمنة من الفيضانات الاعتيادية: الأكتاف والمصاطب المفضلة للاستيطان.') },
+    { k: 'hand', n: C('Height above nearest drainage', 'الارتفاع فوق أقرب مجرى'), imp: 7, kind: 'abs', br: [1, 10, 30, 60], rs: [3, 5, 4, 2, 1], u: 'm', dp: 1, src: 'dem', d: C('Height of the ground above the nearest stream or water body. Ground 1–10 m above it was close to water yet safe from ordinary floods: the levees and terraces favoured for settlement.', 'ارتفاع الأرض فوق أقرب مجرى أو مسطح مائي. الأرض المرتفعة 1–10 م فوقه قريبة من الماء وآمنة من الفيضانات الاعتيادية: الأكتاف والمصاطب المفضلة للاستيطان.') },
     { k: 'bright', n: C('Soil-brightness anomaly', 'شذوذ سطوع التربة'), imp: 6, kind: 'z', dir: 1, u: 'σ', dp: 2, src: 's2a', d: C('Ancient occupation soils (anthrosols) of ash, burnt brick and salts are brighter in the shortwave infrared than the land around them in the dry season.', 'ترب الاستيطان القديم من الرماد والطابوق المحروق والأملاح أكثر سطوعاً في الأشعة تحت الحمراء القصيرة من الأرض المحيطة بها في الموسم الجاف.') },
     { k: 'slope', n: C('Slope', 'الانحدار'), imp: 5, kind: 'abs', dir: -1, br: [1, 3, 6, 12], u: '°', dp: 1, src: 'dem', d: C('Settlements were built on nearly level ground.', 'بُنيت المستوطنات على أرض شبه مستوية.') },
     { k: 'crop', n: C('Crop-mark anomaly', 'شذوذ علامات المحاصيل'), imp: 4, kind: 'z', dir: 1, u: 'σ', dp: 2, src: 's2a', d: C('In spring fields, crops grow weaker over buried walls and saline mound soils. The layer marks fields whose greenness falls below that of the fields around them; it is empty where nothing grows.', 'في حقول الربيع ينمو المحصول أضعف فوق الجدران المدفونة وترب التلول المالحة. تُبرز الطبقة الحقول التي يقل اخضرارها عن محيطها، وتكون فارغة حيث لا ينمو شيء.') },
@@ -202,7 +202,9 @@
   function getDem() {
     var pad = Math.max(G.dlon, G.dlat) * 2, b = { n: G.b.n + pad, s: G.b.s - pad, e: G.b.e + pad, w: G.b.w - pad };
     var fill = function (f) { var Z = new Float32Array(G.n); for (var j = 0; j < G.ny; j++) for (var i = 0; i < G.nx; i++) Z[j * G.nx + i] = f(G.lat(j), G.lon(i)); return Z; };
-    return SH.pc.dem(b, 'cop-dem-glo-30', null, 1400).then(fill).catch(function () { return D.terrarium(b, G.cell).then(fill); });
+    /* the imagery service often answers 503 when busy: try the 30 m model up to four times before the terrain-tile fallback */
+    var tryCop = function (n) { return SH.pc.dem(b, 'cop-dem-glo-30', null, 1400).catch(function (e) { if (n >= 3) throw e; return sleep(1500 * (n + 1) + Math.random() * 800).then(function () { return tryCop(n + 1); }); }); };
+    return tryCop(0).then(function (f) { G.demSrc = 'cop30'; return fill(f); }).catch(function () { G.demSrc = 'srtm'; return D.terrarium(b, G.cell).then(fill); });
   }
   function getS2() {
     var q = function (cl) { return search({ collections: ['sentinel-2-l2a'], bbox: BB(), datetime: season(), query: { 'eo:cloud_cover': { lt: cl } }, sortby: [{ field: 'eo:cloud_cover', direction: 'asc' }], limit: 40 }); };
@@ -292,7 +294,7 @@
     var AN = new Float32Array(n), sgn = new Int8Array(n);
     for (c = 0; c < n; c++) { var tr = HXX[c] + HYY[c], df = Math.sqrt(Math.pow(HXX[c] - HYY[c], 2) + 4 * HXY[c] * HXY[c]), l1 = (tr + df) / 2, l2 = (tr - df) / 2, big = Math.abs(l1) > Math.abs(l2) ? l1 : l2, sm = Math.abs(l1) > Math.abs(l2) ? l2 : l1; AN[c] = Math.abs(big) - Math.abs(sm); sgn[c] = big > 0 ? 1 : -1; }
     var sorted = Array.prototype.slice.call(AN).sort(function (a, b) { return a - b; }), p88 = sorted[Math.floor(n * 0.88)], abs = 1.2 / (dx * dy), th = Math.max(p88, abs), M = new Uint8Array(n);
-    for (c = 0; c < n; c++) if (AN[c] > th && S[c] > 0.4) M[c] = 1;
+    for (c = 0; c < n; c++) { var ci0 = c % nx, cj0 = (c - ci0) / nx; if (AN[c] > th && S[c] > 0.4 && ci0 > 1 && cj0 > 1 && ci0 < nx - 2 && cj0 < ny - 2) M[c] = 1; } /* the border cells have one-sided curvature: left out */
     var LIN = new Float32Array(n), lab = new Int32Array(n).fill(-1), stack = [], segs = 0;
     for (c = 0; c < n; c++) { if (!M[c] || lab[c] >= 0) continue; var comp = [], sx = 0, sy = 0; stack.push(c); lab[c] = c;
       while (stack.length) { var u = stack.pop(), ui = u % nx, uj = (u - ui) / nx; comp.push(u); sx += ui; sy += uj; for (k = 0; k < 8; k++) { var vi = ui + DI[k], vj = uj + DJ[k]; if (vi < 0 || vj < 0 || vi >= nx || vj >= ny) continue; var v = vj * nx + vi; if (M[v] && lab[v] < 0 && sgn[v] === sgn[c]) { lab[v] = c; stack.push(v); } } }
@@ -302,15 +304,13 @@
       if (la / lb < 9) continue; /* axis ratio ≥ 3 */ var len = 4 * Math.sqrt(la); segs++; comp.forEach(function (u) { LIN[u] = len / comp.length; }); }
     if (userLin) { LIN.fill(0); rasterLines(userLin, LIN); }
     var R1 = SH.clamp(Math.round(1000 / G.cell), 2, 14), R2 = SH.clamp(Math.round(1500 / G.cell), 3, 18);
-    /* height above the nearest stream (contributing area ≥ 5 km²), followed down the D8 network from the outlets upward */
-    var amax = 0; for (c = 0; c < n; c++) if (acc[c] > amax) amax = acc[c]; var hthr = Math.min(Math.max(5e6, 50 * cellA), 0.25 * amax * cellA), /* small or flat areas: the largest streams present */ ref = new Float64Array(n), HAND = new Float32Array(n), MAJ = new Uint8Array(n);
-    for (k = n - 1; k >= 0; k--) { c = ord[k]; var isS = acc[c] * cellA >= hthr; if (acc[c] * cellA >= Math.max(25e6, 100 * cellA)) MAJ[c] = 1; ref[c] = isS || dn[c] < 0 ? Fz[c] : ref[dn[c]]; HAND[c] = Math.max(0, Fz[c] - ref[c]); }
-    if (!Array.prototype.some.call(MAJ, Boolean)) for (c = 0; c < n; c++) if (acc[c] * cellA >= hthr) MAJ[c] = 1; /* no large river in the area: use the streams */
+    /* rivers and large wadis: a real contributing area of at least 25 km² (on flat plains there may be none: water then comes from the land-cover map) */
+    var STR = new Uint8Array(n); for (c = 0; c < n; c++) if (acc[c] * cellA >= Math.max(25e6, 100 * cellA)) STR[c] = 1;
     /* mound relief: height above the mean ground within about 500 m, capped in hilly ground where ridges mimic mounds */
     var rM = SH.clamp(Math.round(450 / G.cell), 2, 10), ZM = boxMean(Z, rM), SM2 = boxMean(S, rM), MOUND = new Float32Array(n);
     for (c = 0; c < n; c++) { var an = Z[c] - ZM[c]; MOUND[c] = SM2[c] > 4 ? Math.min(an, 1) : an; }
     var LM = new Uint8Array(n); for (c = 0; c < n; c++) if (LIN[c] > 0) LM[c] = 1;
-    return { slope: S, dd: density(LEN, R1), twi: TW, lin: density(LIN, R2), fill: Fz, acc: acc, chan: LEN, linRaw: LIN, segs: segs, R1: R1, R2: R2, hand: HAND, mound: MOUND, major: MAJ, prox: dist(LM) };
+    return { slope: S, dd: density(LEN, R1), twi: TW, lin: density(LIN, R2), fill: Fz, acc: acc, chan: LEN, linRaw: LIN, segs: segs, R1: R1, R2: R2, streams: STR, mound: MOUND, prox: dist(LM) };
   }
   /* length per cell summed in a square window → km per km² */
   function density(LEN, R) {
@@ -329,18 +329,19 @@
     return out;
   }
   /* Euclidean-like distance (two-pass chamfer with the true cell sizes) from the cells where mask is set; NaN when none */
-  function dist(mask) {
-    var nx = G.nx, ny = G.ny, d = new Float32Array(G.n), INF = 1e12, dx = G.dx, dy = G.dy, dg = Math.hypot(dx, dy), i, j, c, v, any = false;
-    for (c = 0; c < G.n; c++) { d[c] = mask[c] ? 0 : INF; if (mask[c]) any = true; } if (!any) return d.fill(NaN);
-    for (j = 0; j < ny; j++) for (i = 0; i < nx; i++) { c = j * nx + i; v = d[c]; if (i > 0) v = Math.min(v, d[c - 1] + dx); if (j > 0) { v = Math.min(v, d[c - nx] + dy); if (i > 0) v = Math.min(v, d[c - nx - 1] + dg); if (i < nx - 1) v = Math.min(v, d[c - nx + 1] + dg); } d[c] = v; }
-    for (j = ny - 1; j >= 0; j--) for (i = nx - 1; i >= 0; i--) { c = j * nx + i; v = d[c]; if (i < nx - 1) v = Math.min(v, d[c + 1] + dx); if (j < ny - 1) { v = Math.min(v, d[c + nx] + dy); if (i < nx - 1) v = Math.min(v, d[c + nx + 1] + dg); if (i > 0) v = Math.min(v, d[c + nx - 1] + dg); } d[c] = v; }
-    return d;
+  function dist(mask, near) {
+    var nx = G.nx, ny = G.ny, d = new Float32Array(G.n), at = new Int32Array(G.n), INF = 1e12, dx = G.dx, dy = G.dy, dg = Math.hypot(dx, dy), i, j, c, v, any = false;
+    for (c = 0; c < G.n; c++) { d[c] = mask[c] ? 0 : INF; at[c] = c; if (mask[c]) any = true; } if (!any) return near ? { d: d.fill(NaN), at: at } : d.fill(NaN);
+    var up = function (c, o, w) { if (d[o] + w < d[c]) { d[c] = d[o] + w; at[c] = at[o]; } };
+    for (j = 0; j < ny; j++) for (i = 0; i < nx; i++) { c = j * nx + i; if (i > 0) up(c, c - 1, dx); if (j > 0) { up(c, c - nx, dy); if (i > 0) up(c, c - nx - 1, dg); if (i < nx - 1) up(c, c - nx + 1, dg); } }
+    for (j = ny - 1; j >= 0; j--) for (i = nx - 1; i >= 0; i--) { c = j * nx + i; if (i < nx - 1) up(c, c + 1, dx); if (j < ny - 1) { up(c, c + nx, dy); if (i < nx - 1) up(c, c + nx + 1, dg); if (i > 0) up(c, c + nx - 1, dg); } }
+    return near ? { d: d, at: at } : d;
   }
   /* block mean over k × k cells, written back to every cell of the block (generalisation) */
-  function block(A, k) {
+  function block(A, k, mx) {
     if (k <= 1) return A; var out = new Float32Array(G.n).fill(NaN);
-    for (var bj = 0; bj < G.ny; bj += k) for (var bi = 0; bi < G.nx; bi += k) { var s2 = 0, n2 = 0, i, j; for (j = bj; j < Math.min(G.ny, bj + k); j++) for (i = bi; i < Math.min(G.nx, bi + k); i++) { var v = A[j * G.nx + i]; if (isFinite(v)) { s2 += v; n2++; } }
-      if (n2 < k * k / 4) continue; var m = s2 / n2; for (j = bj; j < Math.min(G.ny, bj + k); j++) for (i = bi; i < Math.min(G.nx, bi + k); i++) out[j * G.nx + i] = m; }
+    for (var bj = 0; bj < G.ny; bj += k) for (var bi = 0; bi < G.nx; bi += k) { var s2 = 0, n2 = 0, i, j; for (j = bj; j < Math.min(G.ny, bj + k); j++) for (i = bi; i < Math.min(G.nx, bi + k); i++) { var v = A[j * G.nx + i]; if (isFinite(v)) { s2 = mx ? (n2 ? Math.max(s2, v) : v) : s2 + v; n2++; } }
+      if (n2 < k * k / 4) continue; var m = mx ? s2 : s2 / n2; for (j = bj; j < Math.min(G.ny, bj + k); j++) for (i = bi; i < Math.min(G.nx, bi + k); i++) out[j * G.nx + i] = m; }
     return out;
   }
   function rasterLines(gj, LIN) {
@@ -410,7 +411,7 @@
     var dates = function (it) { return (it || []).map(function (i) { return i.properties.datetime.slice(0, 10); }); };
     /* the imagery service is called one request at a time; the geology and climate services in parallel */
     var pc = set('dem', function () { return getDem().then(function (Z) { G.z = Z; return terrain(Z); }); })
-      .then(function (T) { if (T) { G.T = T; ['slope', 'dd', 'twi', 'lin', 'hand', 'mound', 'prox'].forEach(function (kk) { if (FK[kk]) G.raw[kk] = T[kk]; }); } return set('s2g', getS2); })
+      .then(function (T) { if (T) { G.T = T; ['slope', 'dd', 'twi', 'lin', 'mound', 'prox'].forEach(function (kk) { if (FK[kk]) G.raw[kk] = T[kk]; }); } return set('s2g', getS2); })
       .then(function (s2) { if (s2) { G.raw.ndvi = s2.arr[0]; G.raw.ndmi = s2.arr[1]; G.s2 = dates(s2.used); } return set('s2a', getS2Arch); })
       .then(function (s2) { if (s2) { G.a = s2; G.s2 = dates(s2.d1); G.s2b = dates(s2.d2); } return set('s2m', getS2Min); })
       .then(function (s2) { if (s2) { G.m = s2.arr; G.s2 = dates(s2.used); } return set('lst', getLst); })
@@ -429,10 +430,12 @@
   function post() {
     var c, LCw = G.raw.lulc;
     if (RC.k === 'arch') {
-      if (G.T) { var wm = new Uint8Array(G.n); for (c = 0; c < G.n; c++) if (G.T.major[c] || (LCw && (LCw[c] === 80 || LCw[c] === 90))) wm[c] = 1; G.raw.water = dist(wm); if (!isFinite(G.raw.water[0]) && !Array.prototype.some.call(wm, Boolean)) { G.raw.water = null; } }
+      /* drainage = mapped water and wetland plus streams draining ≥ 5 km²; distance to it, and height above the nearest drainage cell */
+      if (G.T) { var wm = new Uint8Array(G.n), any = false; for (c = 0; c < G.n; c++) if (G.T.streams[c] || (LCw && (LCw[c] === 80 || LCw[c] === 90))) { wm[c] = 1; any = true; }
+        if (any) { var NR = dist(wm, true); G.raw.water = NR.d; var H = new Float32Array(G.n), ZS = boxMean(G.z, 1); for (c = 0; c < G.n; c++) H[c] = Math.max(0, ZS[c] - G.z[NR.at[c]]); G.raw.hand = H; } else { G.raw.water = null; G.raw.hand = null; } }
       if (G.a && G.a.b11) { var rB = SH.clamp(Math.round(600 / G.cell), 3, 12), BM = boxMean(G.a.b11, rB), BR = new Float32Array(G.n); for (c = 0; c < G.n; c++) BR[c] = G.a.b11[c] - BM[c]; G.raw.bright = BR; }
       if (G.a && G.a.sndvi) { var NM = boxMean(G.a.sndvi, SH.clamp(Math.round(600 / G.cell), 3, 12)), CR2 = new Float32Array(G.n).fill(NaN), nC = 0; for (c = 0; c < G.n; c++) if (isFinite(G.a.sndvi[c]) && NM[c] >= 0.2) { CR2[c] = NM[c] - G.a.sndvi[c]; nC++; } G.raw.crop = nC > G.n * 0.02 ? CR2 : null; }
-      G.gen = Math.max(1, Math.round(RC.gen / G.cell)); ['mound', 'bright', 'crop'].forEach(function (k) { if (G.raw[k]) G.raw[k] = block(G.raw[k], G.gen); });
+      G.gen = Math.max(1, Math.round(RC.gen / G.cell)); ['mound', 'bright', 'crop'].forEach(function (k) { if (G.raw[k]) G.raw[k] = block(boxMean(G.raw[k], 1), G.gen, true); }); /* the strongest smoothed signal in each block, so a 300 m mound is not averaged away */
     }
     if (RC.k === 'min' && G.m) {
       var masked = 0, ok = 0; for (c = 0; c < G.n; c++) { if (!isFinite(G.m[0][c])) continue; var lc = LCw ? LCw[c] : 60; if (G.m[3][c] > 0.25 || lc === 10 || lc === 40 || lc === 50 || lc === 80 || lc === 90 || lc === 95) { G.m[0][c] = G.m[1][c] = G.m[2][c] = NaN; masked++; } else ok++; }
@@ -582,14 +585,15 @@
     var W = M * 2 + cols * pw + (cols - 1) * 24, H = 110 + rowsN * (ph + 46) + 90, cv = document.createElement('canvas'); cv.width = W; cv.height = H; var x = cv.getContext('2d'), FN = '"IBM Plex Sans Arabic", Manrope, Arial, sans-serif';
     x.fillStyle = '#fff'; x.fillRect(0, 0, W, H); x.strokeStyle = '#1B232B'; x.lineWidth = 1.5; x.strokeRect(10, 10, W - 20, H - 20); x.fillStyle = '#1B232B'; x.font = '800 24px ' + FN; x.textAlign = AR ? 'right' : 'left'; x.direction = AR ? 'rtl' : 'ltr';
     x.fillText(RC.fig, AR ? W - M : M, 52); x.font = '500 14px ' + FN; x.fillStyle = '#55616B'; x.fillText(t('Weights from the analytic hierarchy process are shown under each layer.', 'أوزان التحليل الهرمي مبينة تحت كل طبقة.'), AR ? W - M : M, 78);
-    var items = fs.map(function (f) { return { v: 'r:' + f.k, n: f.n + ' · ' + SH.fmt(f.w * 100, 1) + '%' }; }).concat([{ v: 'cls', n: t('Result: potential classes', 'النتيجة: فئات الاحتمالية') }]), jobs = items.map(function (it) { return new Promise(function (res) { var im = new Image(); im.onload = function () { res(im); }; im.src = paint(it.v).url; }); });
+    var items = fs.map(function (f) { return { v: 'r:' + f.k, n: f.n + ' · \u2066' + SH.fmt(f.w * 100, 1) + '%\u2069' }; }).concat([{ v: 'cls', n: t('Result: potential classes', 'النتيجة: فئات الاحتمالية') }]), jobs = items.map(function (it) { return new Promise(function (res) { var im = new Image(); im.onload = function () { res(im); }; im.src = paint(it.v).url; }); });
     Promise.all(jobs).then(function (ims) { ims.forEach(function (im, k) { var ci = k % cols, ri = Math.floor(k / cols), px = AR ? W - M - (ci + 1) * pw - ci * 24 : M + ci * (pw + 24), py = 104 + ri * (ph + 46);
         x.imageSmoothingEnabled = false; x.fillStyle = '#f3f3f3'; x.fillRect(px, py, pw, ph); x.drawImage(im, px, py, pw, ph); x.strokeStyle = '#1B232B'; x.lineWidth = 1; x.strokeRect(px, py, pw, ph);
         x.fillStyle = '#1B232B'; x.font = (k === items.length - 1 ? '800' : '600') + ' 14px ' + FN; x.textAlign = 'center'; x.fillText(items[k].n, px + pw / 2, py + ph + 22); });
       /* legend, north arrow and scale bar along the foot */
       var ly = H - 62; x.textAlign = AR ? 'right' : 'left'; x.font = '700 13px ' + FN; var lx = AR ? W - M : M, sx = 0;
       CLS.forEach(function (q, i) { var lab = (i + 1) + ' ' + (AR ? q[2] : q[1]), wq = x.measureText(lab).width + 34, bx = AR ? lx - sx - 18 : lx + sx; x.fillStyle = q[0]; x.fillRect(bx, ly - 12, 18, 14); x.strokeStyle = '#333'; x.strokeRect(bx, ly - 12, 18, 14); x.fillStyle = '#1B232B'; x.fillText(lab, AR ? bx - 6 : bx + 24, ly); sx += wq; });
-      var nxp = AR ? M + 20 : W - M - 20; x.beginPath(); x.moveTo(nxp, ly - 34); x.lineTo(nxp - 10, ly + 6); x.lineTo(nxp, ly - 2); x.closePath(); x.fillStyle = '#1B232B'; x.fill(); x.beginPath(); x.moveTo(nxp, ly - 34); x.lineTo(nxp + 10, ly + 6); x.lineTo(nxp, ly - 2); x.closePath(); x.fillStyle = '#fff'; x.fill(); x.stroke(); x.fillStyle = '#1B232B'; x.font = '800 13px ' + FN; x.textAlign = 'center'; x.fillText('N', nxp, ly - 38);
+      (function () { var lab = t('No data or masked', 'لا بيانات أو محجوب'), wq = x.measureText(lab).width + 34, bx = AR ? lx - sx - 18 : lx + sx; x.fillStyle = '#f3f3f3'; x.fillRect(bx, ly - 12, 18, 14); x.strokeStyle = '#333'; x.strokeRect(bx, ly - 12, 18, 14); x.fillStyle = '#1B232B'; x.fillText(lab, AR ? bx - 6 : bx + 24, ly); })();
+      var nxp = AR ? M + 20 : W - M - 20; x.beginPath(); x.moveTo(nxp, ly - 34); x.lineTo(nxp - 10, ly + 6); x.lineTo(nxp, ly - 2); x.closePath(); x.fillStyle = '#1B232B'; x.fill(); x.beginPath(); x.moveTo(nxp, ly - 34); x.lineTo(nxp + 10, ly + 6); x.lineTo(nxp, ly - 2); x.closePath(); x.fillStyle = '#fff'; x.fill(); x.stroke(); x.direction = 'ltr'; x.fillStyle = '#1B232B'; x.font = '800 13px ' + FN; x.textAlign = 'center'; x.fillText('N', nxp, ly - 38);
       var mpp = G.nx * G.dx / pw, want = mpp * 110, p10 = Math.pow(10, Math.floor(Math.log10(want))), nn = want / p10, lenM = (nn >= 5 ? 5 : nn >= 2 ? 2 : 1) * p10, bw = lenM / mpp, bx0 = AR ? M + 60 : W - M - 60 - bw;
       for (var q = 0; q < 4; q++) { x.fillStyle = q % 2 ? '#fff' : '#1B232B'; x.fillRect(bx0 + q * bw / 4, ly - 4, bw / 4, 7); } x.strokeRect(bx0, ly - 4, bw, 7); x.fillStyle = '#1B232B'; x.font = '600 12px ' + FN; x.fillText('0', bx0, ly + 20); x.fillText(lenM >= 1000 ? SH.fmt(lenM / 1000, 0) + ' km' : SH.fmt(lenM, 0) + ' m', bx0 + bw, ly + 20);
       SH.canvasPng(cv, fname('-layers.png')); }); });
