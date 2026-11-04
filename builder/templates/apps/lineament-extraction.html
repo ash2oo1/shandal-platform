@@ -1,0 +1,79 @@
+{% extends "app_base.html" %}
+{% import "apps/_m.html" as m with context %}
+{% block ws %}
+<style>
+.ln-card{border:1px solid var(--line);border-radius:12px;padding:12px 14px;background:var(--surface-2);display:grid;gap:8px;font-size:.84rem;line-height:1.75}
+.ln-card b.h{font-size:.92rem}
+.ln-note{border-inline-start:3px solid var(--accent);background:var(--surface-2);border-radius:8px;padding:8px 12px;font-size:.8rem;line-height:1.75}
+.ln-chk{display:grid;gap:6px;font-size:.84rem}
+.ln-chk label{display:flex;gap:8px;align-items:center;cursor:pointer}
+.ln-tbl{width:100%;border-collapse:collapse;font-size:.78rem}
+.ln-tbl th,.ln-tbl td{padding:5px 6px;border-bottom:1px solid var(--line);text-align:start}
+.ln-tbl td.num,.ln-tbl th.num{text-align:end;white-space:nowrap}
+.ln-leg{position:absolute;bottom:30px;inset-inline-start:12px;z-index:600;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 12px;max-width:250px;box-shadow:0 8px 24px rgba(0,0,0,.18);font-size:.75rem;line-height:1.55}
+.ln-leg .r{display:grid;grid-template-columns:22px 1fr;gap:6px;align-items:center}
+.ln-leg i{display:inline-block;width:18px;height:4px;border-radius:2px}
+.ln-leg .gr{height:10px;border-radius:3px;border:1px solid rgba(0,0,0,.2);margin-top:3px}
+.ln-leg .sc{display:flex;justify-content:space-between;direction:ltr;font-size:.7rem;color:var(--text-2)}
+[dir=rtl] .ln-leg{bottom:58px}
+[dir=ltr] .ln-map .leaflet-bottom.leaflet-right{margin-bottom:70px}
+.ln-rose svg{width:100%;height:auto;display:block}
+.ln-dl{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.ln-pop{font-size:.78rem;line-height:1.6;min-width:200px}
+.ln-pop table{border-collapse:collapse;width:100%}
+.ln-pop td{padding:2px 4px;border-bottom:1px solid #eee}
+#nDrawL[aria-pressed=true]{background:var(--accent);color:#fff;border-color:var(--accent)}
+</style>
+<div class="wsm">
+  <aside class="wsm-side">
+    <div class="sec">
+      <h3>{{ icon('square-dashed') }}{{ m.L('1 · Area of study', '1 · منطقة الدراسة') }}</h3>
+      <div class="row2"><button class="btn btn-ink btn-sm" id="nDraw" type="button">{{ m.L('Draw rectangle', 'ارسم مستطيلاً') }}</button><button class="btn btn-line btn-sm" id="nView" type="button">{{ m.L('Use map view', 'استخدم العرض') }}</button></div>
+      <p class="xsmall muted" id="nAoi" style="margin:0">{{ m.L('No area yet. Between 1 and 3000 km².', 'لم تُحدد منطقة بعد. بين 1 و3000 كم².') }}</p>
+      <div class="row2">
+        {{ m.sel('nRes', 'Cell size', 'حجم الخلية', [('auto', 'Automatic', 'تلقائي', True), ('fine', 'Fine (slower)', 'دقيق (أبطأ)'), ('coarse', 'Coarse (regional)', 'خشن (إقليمي)')]) }}
+        {{ m.sel('nSens', 'Sensitivity', 'الحساسية', [('low', 'Low: clear features only', 'منخفضة: الواضحة فقط'), ('mid', 'Medium', 'متوسطة', True), ('high', 'High: more, fainter lines', 'عالية: خطوط أكثر وأضعف')]) }}
+      </div>
+      <div class="row2">
+        {{ m.fld('nMin', 'Minimum length', 'أقل طول', 'number', '500', 'm', '', '', '', '50') }}
+        {{ m.sel('nKind', 'Keep', 'احتفظ بـ', [('all', 'Valleys and ridges', 'الوديان والحافات', True), ('valley', 'Linear valleys only', 'الوديان الخطية فقط'), ('ridge', 'Ridges and scarps only', 'الحافات والجروف فقط')]) }}
+      </div>
+      <button class="btn btn-gold" id="nRun" type="button">{{ icon('play', 'ico ico-sm') }}{{ m.L('Extract lineaments', 'استخرج الخطيات') }}</button>
+      <p class="xsmall muted" id="nProg" style="margin:0"></p>
+      <div class="ln-note">{{ m.L('Lineaments are straight or gently curved features of the land surface: linear valleys, ridges and scarps. Many follow faults, fractures or bedding, but some are made by drainage, roads or field edges. Treat them as candidates and check them on imagery and in the field.', 'الخطيات معالم مستقيمة أو قليلة الانحناء على سطح الأرض: وديان خطية وحافات وجروف. كثير منها يتبع الفوالق أو الكسور أو التطبق، لكن بعضها تصنعه شبكات التصريف أو الطرق أو حدود الحقول. تعامل معها كمرشحات وتحقق منها على الصور وفي الحقل.') }}</div>
+    </div>
+    <div class="sec">
+      <h3>{{ icon('pencil') }}{{ m.L('2 · Edit and add', '2 · عدّل وأضف') }}</h3>
+      <div class="row2"><button class="btn btn-line btn-sm" id="nDrawL" type="button" aria-pressed="false">{{ m.L('Draw a lineament', 'ارسم خطية') }}</button><label class="btn btn-line btn-sm" for="nFile" style="cursor:pointer">{{ m.L('Load lines (GeoJSON)', 'حمّل خطوطاً (GeoJSON)') }}</label></div>
+      <input type="file" id="nFile" accept=".geojson,.json,application/geo+json,application/json" hidden>
+      <p class="xsmall muted" style="margin:0">{{ m.L('Drawing: tap the points of the line and double-tap (or tap the button again) to finish. Tap any lineament to see it or delete it.', 'الرسم: انقر نقاط الخط ثم انقر مرتين (أو انقر الزر مجدداً) للإنهاء. انقر أي خطية لعرضها أو حذفها.') }}</p>
+      <div class="ln-chk">
+        <label><input type="checkbox" id="nShowA" checked> {{ m.L('Automatic lineaments', 'الخطيات الآلية') }}</label>
+        <label><input type="checkbox" id="nShowM" checked> {{ m.L('Your lineaments', 'خطياتك') }}</label>
+        <label><input type="checkbox" id="nShowF"> {{ m.L('Active faults of the world atlas', 'الفوالق النشطة من الأطلس العالمي') }}</label>
+      </div>
+      {{ m.sel('nBg', 'Background', 'الخلفية', [('shade', 'Multi-directional hillshade', 'ظلال تضاريس متعددة الاتجاهات', True), ('density', 'Lineament density', 'كثافة الخطيات'), ('none', 'Basemap only', 'الخريطة الأساسية فقط')]) }}
+      <div class="fg"><label for="nOp">{{ m.L('Background opacity', 'شفافية الخلفية') }}</label><input type="range" id="nOp" min="0.2" max="1" step="0.05" value="0.75"></div>
+    </div>
+    <div class="sec">
+      <h3>{{ icon('chart-bar') }}{{ m.L('3 · Directions and statistics', '3 · الاتجاهات والإحصاءات') }}</h3>
+      <div id="nOut" style="display:grid;gap:10px"><span class="xsmall muted">{{ m.L('Extract or draw lineaments to see their number, lengths, density and rose diagram.', 'استخرج الخطيات أو ارسمها لترى عددها وأطوالها وكثافتها ومخطط الوردة.') }}</span></div>
+    </div>
+    <div class="sec">
+      <h3>{{ icon('download') }}{{ m.L('4 · Downloads', '4 · التنزيلات') }}</h3>
+      <div class="ln-dl">
+        <button class="btn btn-gold btn-sm" id="nSheet" type="button">{{ m.L('Map sheet (PNG)', 'خريطة مُخرجة (PNG)') }}</button>
+        <button class="btn btn-line btn-sm" id="nRoseDl" type="button">{{ m.L('Rose diagram (PNG)', 'مخطط الوردة (PNG)') }}</button>
+        <button class="btn btn-line btn-sm" id="nGj" type="button">GeoJSON</button>
+        <button class="btn btn-line btn-sm" id="nKml" type="button">KML</button>
+        <button class="btn btn-line btn-sm" id="nCsv" type="button">CSV</button>
+        <button class="btn btn-line btn-sm" id="nAsc" type="button">{{ m.L('Density grid (ASCII)', 'شبكة الكثافة (ASCII)') }}</button>
+      </div>
+    </div>
+  </aside>
+  <div class="wsm-map ln-map"><div class="map" id="nMap"></div><div class="map-hint" id="nHint" hidden>{{ m.L('Drag a rectangle, or tap two corners', 'اسحب مستطيلاً أو انقر ركنين') }}</div>
+    <div id="nLeg" class="ln-leg" hidden></div>
+  </div>
+</div>
+<div hidden><svg id="nSheetSvg" viewBox="0 0 1120 800" xmlns="http://www.w3.org/2000/svg"></svg></div>
+{% endblock %}
