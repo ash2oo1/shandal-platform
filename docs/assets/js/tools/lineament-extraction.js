@@ -56,7 +56,7 @@
     G.slope = S; G.z = Z;
     var pc = { low: 0.93, mid: 0.88, high: 0.82 }[SH.val('nSens')] || 0.88, srt = Array.prototype.slice.call(AN).sort(function (a, b) { return a - b; }), th = Math.max(srt[Math.floor(n * pc)], 1.2 / (dx * dy)), M = new Uint8Array(n), kind = SH.val('nKind');
     for (c = 0; c < n; c++) { var ci = c % nx, cj = (c - ci) / nx; if (AN[c] > th && S[c] > 0.4 && ci > 1 && cj > 1 && ci < nx - 2 && cj < ny - 2 && (kind === 'all' || (kind === 'valley') === (sgn[c] > 0))) M[c] = 1; }
-    var DI = [-1, 0, 1, -1, 1, -1, 0, 1], DJ = [-1, -1, -1, 0, 0, 1, 1, 1], lab = new Int32Array(n).fill(-1), stack = [], out = [], minL = Math.max(+SH.val('nMin') || 0, 3 * G.cell);
+    var DI = [-1, 0, 1, -1, 1, -1, 0, 1], DJ = [-1, -1, -1, 0, 0, 1, 1, 1], lab = new Int32Array(n).fill(-1), stack = [], out = [], seg = [], minL = Math.max(+SH.val('nMin') || 0, 3 * G.cell);
     /* principal-axis fit: a zone that is not straight enough (axis ratio < 3) is split at its median and refitted */
     function fit(comp, kindC, depth) {
       if (comp.length < 4) return; var mx = 0, my = 0; comp.forEach(function (u) { mx += u % nx; my += (u - u % nx) / nx; }); mx /= comp.length; my /= comp.length;
@@ -64,13 +64,30 @@
       var tt = cxx + cyy, dd = Math.sqrt(Math.pow(cxx - cyy, 2) + 4 * cxy * cxy), la = (tt + dd) / 2, lb = Math.max((tt - dd) / 2, 1e-6), ang = 0.5 * Math.atan2(2 * cxy, cxx - cyy), ux = Math.cos(ang), uy = Math.sin(ang);
       var pr = comp.map(function (u) { return ((u % nx - mx) * dx) * ux + (((u - u % nx) / nx - my) * dy) * uy; });
       if (la / lb < 9) { if (depth < 4 && comp.length >= 10) { var srt2 = pr.slice().sort(function (a, b) { return a - b; }), med = srt2[Math.floor(srt2.length / 2)]; fit(comp.filter(function (u, k2) { return pr[k2] < med; }), kindC, depth + 1); fit(comp.filter(function (u, k2) { return pr[k2] >= med; }), kindC, depth + 1); } return; }
-      var p0 = Math.min.apply(null, pr), p1 = Math.max.apply(null, pr), len = p1 - p0; if (len < minL) return;
-      var toLL = function (p) { var xi = mx + p * ux / dx, yj = my + p * uy / dy; return [G.b.n - (yj + 0.5) * G.dlat, G.b.w + (xi + 0.5) * G.dlon]; };
-      var a0 = toLL(p0), a1 = toLL(p1); out.push({ pts: [a0, a1], kind: kindC, cells: comp.length, src: 'auto' });
+      var p0 = Math.min.apply(null, pr), p1 = Math.max.apply(null, pr); if (p1 - p0 < 2 * G.cell) return;
+      var X = mx * dx, Y = my * dy; seg.push({ a: [X + p0 * ux, Y + p0 * uy], b: [X + p1 * ux, Y + p1 * uy], kind: kindC, cells: comp.length });
+    }
+    /* collinear merge: pieces of one ridge or valley broken by a saddle or a gully are joined when they keep the same
+       direction (within 10°), lie on one line (offset under 1.5 cells) and the gap between them is short (under 6 cells) */
+    function mergeSegs() {
+      var tol = SH.rad(10), off = 1.5 * G.cell, gap = 6 * G.cell, changed = true;
+      var dir = function (s) { return Math.atan2(s.b[1] - s.a[1], s.b[0] - s.a[0]); };
+      var perp = function (s, p) { var vx = s.b[0] - s.a[0], vy = s.b[1] - s.a[1], L = Math.hypot(vx, vy) || 1; return Math.abs((p[0] - s.a[0]) * vy - (p[1] - s.a[1]) * vx) / L; };
+      var dd = function (p, q) { return Math.hypot(p[0] - q[0], p[1] - q[1]); };
+      while (changed) { changed = false;
+        for (var x1 = 0; x1 < seg.length && !changed; x1++) for (var x2 = x1 + 1; x2 < seg.length; x2++) { var s1 = seg[x1], s2 = seg[x2]; if (s1.kind !== s2.kind) continue;
+          var da = Math.abs(dir(s1) - dir(s2)) % Math.PI; da = Math.min(da, Math.PI - da); if (da > tol) continue;
+          var g = Math.min(dd(s1.a, s2.a), dd(s1.a, s2.b), dd(s1.b, s2.a), dd(s1.b, s2.b)); if (g > gap) continue;
+          if (Math.max(perp(s1, s2.a), perp(s1, s2.b), perp(s2, s1.a), perp(s2, s1.b)) > off) continue;
+          var P = [s1.a, s1.b, s2.a, s2.b], best = [0, 1], bl = -1; for (var e1 = 0; e1 < 4; e1++) for (var e2 = e1 + 1; e2 < 4; e2++) { var l = dd(P[e1], P[e2]); if (l > bl) { bl = l; best = [e1, e2]; } }
+          seg[x1] = { a: P[best[0]], b: P[best[1]], kind: s1.kind, cells: s1.cells + s2.cells }; seg.splice(x2, 1); changed = true; break; } }
     }
     for (c = 0; c < n; c++) { if (!M[c] || lab[c] >= 0) continue; var comp = []; stack.push(c); lab[c] = c;
       while (stack.length) { var u = stack.pop(), ui = u % nx, uj = (u - ui) / nx; comp.push(u); for (k = 0; k < 8; k++) { var vi = ui + DI[k], vj = uj + DJ[k]; if (vi < 0 || vj < 0 || vi >= nx || vj >= ny) continue; var v = vj * nx + vi; if (M[v] && lab[v] < 0 && sgn[v] === sgn[c]) { lab[v] = c; stack.push(v); } } }
       fit(comp, sgn[c] > 0 ? 'valley' : 'ridge', 0); }
+    mergeSegs();
+    var toLL = function (p) { return [G.b.n - (p[1] / dy + 0.5) * G.dlat, G.b.w + (p[0] / dx + 0.5) * G.dlon]; };
+    seg.forEach(function (s2) { if (Math.hypot(s2.b[0] - s2.a[0], s2.b[1] - s2.a[1]) >= minL) out.push({ pts: [toLL(s2.a), toLL(s2.b)], kind: s2.kind, cells: s2.cells, src: 'auto' }); });
     out.forEach(function (l, i2) { l.id = 'A' + (i2 + 1); l.L = lineLen(l.pts); l.az = trend(l.pts); });
     return out;
   }

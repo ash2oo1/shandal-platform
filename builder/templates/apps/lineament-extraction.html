@@ -38,6 +38,7 @@
         {{ m.fld('nMin', 'Minimum length', 'أقل طول', 'number', '500', 'm', '', '', '', '50') }}
         {{ m.sel('nKind', 'Keep', 'احتفظ بـ', [('all', 'Valleys and ridges', 'الوديان والحافات', True), ('valley', 'Linear valleys only', 'الوديان الخطية فقط'), ('ridge', 'Ridges and scarps only', 'الحافات والجروف فقط')]) }}
       </div>
+      <p class="xsmall muted" style="margin:0">{{ m.L('Tip: in folded mountains, a minimum length of 1.5–3 km drops the short gullies on the fold limbs and leaves the regional structural trend.', 'نصيحة: في الجبال المطوية، أقل طول بين 1.5 و3 كم يُسقط المسيلات القصيرة على أجناب الطيات ويُبقي الاتجاه التركيبي الإقليمي.') }}</p>
       <button class="btn btn-gold" id="nRun" type="button">{{ icon('play', 'ico ico-sm') }}{{ m.L('Extract lineaments', 'استخرج الخطيات') }}</button>
       <p class="xsmall muted" id="nProg" style="margin:0"></p>
       <div class="ln-note">{{ m.L('Lineaments are straight or gently curved features of the land surface: linear valleys, ridges and scarps. Many follow faults, fractures or bedding, but some are made by drainage, roads or field edges. Treat them as candidates and check them on imagery and in the field.', 'الخطيات معالم مستقيمة أو قليلة الانحناء على سطح الأرض: وديان خطية وحافات وجروف. كثير منها يتبع الفوالق أو الكسور أو التطبق، لكن بعضها تصنعه شبكات التصريف أو الطرق أو حدود الحقول. تعامل معها كمرشحات وتحقق منها على الصور وفي الحقل.') }}</div>
