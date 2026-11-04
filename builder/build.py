@@ -120,6 +120,90 @@ def _count(o, n):
     if isinstance(o, tuple): return tuple(_count(x, n) for x in o)
     return o
 
+BASE = 'https://geologicalfieldsurvey.com/'
+NOINDEX = {'login', 'account', 'verify'}          # private pages: kept out of search results and the sitemap
+# addresses of the first version of the site (single html files at the root) forward to their tools today
+OLD_URLS = {'index.html': '', '2d_map_lab.html': 'tools/contour-lab/', 'contour-map.html': 'tools/dem-studio/', 'dem-hub.html': 'tools/dem-studio/',
+            'Geophysics_Lab.html': 'tools/magnetic-lab/', 'ShandalGeo-Alert.html': 'tools/hazards-monitor/', 'geo-environmental-dynamics-survey.html': 'tools/env-monitoring/',
+            'shandal-env-module.html': 'tools/env-monitoring/', 'geopark.html': 'geoheritage/', 'geopark1.html': 'geoheritage/', 'geopark2.html': 'geoheritage/',
+            'geopark3.html': 'geoheritage/', 'geopark4.html': 'geoheritage/', 'geopark5.html': 'geoheritage/', 'geopark6.html': 'geoheritage/',
+            'geothermal_lab.html': 'tools/geothermal-lab/', 'kerogen_lab.html': 'tools/kerogen-lab/', 'palynofacies_lab.html': 'tools/palynofacies-lab/',
+            'seismic-evaluation.html': 'tools/seismic-evaluation/', 'strata.html': 'tools/strata/', 'test-structural.html': 'tools/structural-geotechnical/',
+            'quarry.html': 'tools/quarry-survey/', 'login.html': 'login/', 'about.html': 'about/', 'pricing.html': 'pricing/', 'contact.html': 'contact/'}
+
+def _org(lang):
+    return {'@type': 'Organization', '@id': BASE + '#org', 'name': 'Shandal Geological Field Survey System',
+            'alternateName': ['Shandal System', 'نظام شندل', 'نظام شندل للمسح الميداني الجيولوجي', 'Shandal Geo'],
+            'url': BASE, 'logo': {'@type': 'ImageObject', 'url': BASE + 'assets/img/emblem.png', 'width': 512, 'height': 512},
+            'image': BASE + 'assets/img/og.png', 'foundingDate': '2025', 'foundingLocation': 'Baghdad, Iraq',
+            'description': CP.ABOUT['lead'][lang], 'founder': {'@id': BASE + '#founder'},
+            'address': {'@type': 'PostalAddress', 'addressLocality': 'Baghdad', 'addressCountry': 'IQ'},
+            'contactPoint': {'@type': 'ContactPoint', 'contactType': 'customer support', 'telephone': '+' + CP.WA, 'availableLanguage': ['Arabic', 'English']},
+            'knowsAbout': ['Field geology', 'Structural geology', 'Geotechnical engineering', 'Remote sensing', 'Geophysics', 'Seismic hazard', 'Geoheritage', 'GIS'],
+            'sameAs': [CP.FACEBOOK, CP.YOUTUBE, 'https://github.com/ash2oo1/shandal-platform']}
+
+def _founder():
+    return {'@type': 'Person', '@id': BASE + '#founder', 'name': 'Ali Shandal Al-Janabi', 'alternateName': ['علي شندل الجنابي', 'Ali Shandal Falah Al-Janabi', 'علي شندل فلاح الجنابي'],
+            'jobTitle': 'Geologist, remote sensing and geophysics', 'nationality': 'Iraqi', 'url': BASE + 'about/',
+            'image': BASE + 'assets/img/founder.jpg', 'worksFor': {'@id': BASE + '#org'},
+            'alumniOf': {'@type': 'CollegeOrUniversity', 'name': 'Al-Karkh University of Science'}, 'sameAs': ['https://www.instagram.com/ash2oo1']}
+
+def jsonld(key, lang, url, title, desc, tool=None, faq=None):
+    site = {'@type': 'WebSite', '@id': BASE + '#website', 'url': BASE, 'name': 'نظام شندل' if lang == 'ar' else 'Shandal System',
+            'alternateName': ['Shandal Geological Field Survey System', 'نظام شندل للمسح الميداني الجيولوجي'], 'inLanguage': ['ar', 'en'], 'publisher': {'@id': BASE + '#org'}}
+    g = [_org(lang), _founder(), site]
+    page = {'@type': 'AboutPage' if key == 'about' else 'WebPage', '@id': url + '#page', 'url': url, 'name': title, 'description': desc,
+            'inLanguage': lang, 'isPartOf': {'@id': BASE + '#website'}, 'publisher': {'@id': BASE + '#org'}}
+    g.append(page)
+    home = BASE + ('ar/' if lang == 'ar' else '')
+    if key == 'home':
+        g.append({'@type': 'WebApplication', '@id': BASE + '#app', 'name': 'نظام شندل للمسح الميداني الجيولوجي' if lang == 'ar' else 'Shandal Geological Field Survey System',
+                  'url': home, 'applicationCategory': 'BusinessApplication', 'applicationSubCategory': 'Geoscience field survey',
+                  'operatingSystem': 'Any modern browser: Android, iOS, iPadOS, Windows, macOS, Linux', 'browserRequirements': 'Requires JavaScript',
+                  'description': desc, 'image': BASE + 'assets/img/og.png', 'author': {'@id': BASE + '#founder'}, 'publisher': {'@id': BASE + '#org'},
+                  'inLanguage': ['ar', 'en'], 'featureList': [t['name'][lang] for t in TOOLS]})
+        if faq:
+            g.append({'@type': 'FAQPage', '@id': url + '#faq', 'mainEntity': [{'@type': 'Question', 'name': q[0][lang], 'acceptedAnswer': {'@type': 'Answer', 'text': q[1][lang]}} for q in faq]})
+    if tool is not None:
+        g.append({'@type': 'WebApplication', '@id': url + '#app', 'name': tool['name'][lang], 'alternateName': tool['name']['ar' if lang == 'en' else 'en'], 'url': url,
+                  'description': tool['summary'][lang], 'applicationCategory': 'BusinessApplication', 'operatingSystem': 'Any modern browser',
+                  'isPartOf': {'@id': BASE + '#app'}, 'publisher': {'@id': BASE + '#org'}, 'author': {'@id': BASE + '#founder'}, 'inLanguage': lang})
+        g.append({'@type': 'BreadcrumbList', 'itemListElement': [
+            {'@type': 'ListItem', 'position': 1, 'name': 'نظام شندل' if lang == 'ar' else 'Shandal System', 'item': home},
+            {'@type': 'ListItem', 'position': 2, 'name': UI['cat_' + tool['cat']][lang], 'item': home + 'platform/'},
+            {'@type': 'ListItem', 'position': 3, 'name': tool['name'][lang], 'item': url}]})
+    return Markup(json.dumps({'@context': 'https://schema.org', '@graph': g}, ensure_ascii=False).replace('</', '<\\/'))
+
+INDEXNOW_KEY = 'b7e3c1a95f2d4e8a9c6b0d4f1a2e3c7d'
+
+def llms(day):
+    """llms.txt: a plain description of the system for AI assistants and answer engines (both languages)"""
+    A, H = CP.ABOUT, CP.HOME
+    clean = lambda x: re.sub(r'<[^>]+>', '', str(x))
+    cats = {}
+    for t in TOOLS: cats.setdefault(t['cat'], []).append(t)
+    L = ['# Shandal Geological Field Survey System (نظام شندل للمسح الميداني الجيولوجي)', '',
+         '> ' + clean(A['lead']['en']), '> ' + clean(A['lead']['ar']), '',
+         'Website: ' + BASE + ' (English) · ' + BASE + 'ar/ (العربية)',
+         'Also called: Shandal System, Shandal Geo, نظام شندل.',
+         'Founder and designer: Ali Shandal Al-Janabi (علي شندل الجنابي), Iraqi geologist specialising in remote sensing and geophysics, Baghdad, Iraq.',
+         'Founded: 2025 · Official launch: 5 April 2026 · Registered as a scientific work no. 2841/ع at the Iraqi National Centre for Protection of Copyright and Related Rights (13 April 2026).',
+         f'Contact: WhatsApp +{CP.WA} · Facebook {CP.FACEBOOK} · YouTube {CP.YOUTUBE}', f'Updated: {day}', '',
+         '## What it is', clean(H['desc']['en']), clean(A['mission_p1']['en']), clean(A['mission_p2']['en']), '',
+         '## ما هو', clean(H['desc']['ar']), clean(A['mission_p1']['ar']), clean(A['mission_p2']['ar']), '',
+         '## Main pages', f'- [Home]({BASE}): the system and its tools', f'- [Platform]({BASE}platform/): how the workstation works', f'- [About]({BASE}about/): history, founder, registration',
+         f'- [Pricing]({BASE}pricing/): plans and payment', f'- [Academy]({BASE}academy/) and [Library]({BASE}library/)', f'- [Geo-heritage]({BASE}geoheritage/): geological and archaeological sites of Iraq', '',
+         f'## Tools ({len(TOOLS)})']
+    for c, ts in cats.items():
+        L.append(f"### {UI['cat_' + c]['en']} · {UI['cat_' + c]['ar']}")
+        for t in ts:
+            L.append(f"- [{t['name']['en']} · {t['name']['ar']}]({BASE}tools/{t['slug']}/): {clean(t['summary']['en'])}")
+        L.append('')
+    L += ['## Frequently asked questions']
+    for q in CP.FAQ:
+        L += [f"- {clean(q[0]['en'])} {clean(q[1]['en'])}", f"- {clean(q[0]['ar'])} {clean(q[1]['ar'])}"]
+    open(os.path.join(OUT, 'llms.txt'), 'w', encoding='utf-8').write('\n'.join(L) + '\n')
+
 def build():
     for mod in (CP, CX):
         for k, v in list(vars(mod).items()):
@@ -187,6 +271,9 @@ def build():
             else:
                 D = PAGE_DATA[key]
                 ctx.update(X=D, title=D['title'][lang], desc=D['p'][lang], crumb=D['h'][lang], h1=Markup(D['h'][lang]), lead=Markup(D['p'][lang]))
+            canon = BASE + full
+            ctx.update(canon=canon, canon_en=BASE + path, canon_ar=BASE + 'ar/' + path, noindex=key in NOINDEX, og_image=BASE + 'assets/img/og.png',
+                       ldjson=jsonld(key, lang, canon, str(ctx.get('title', '')), str(ctx.get('desc', '')), tool=pg.get('tool') if key in ('tool', 'app') else None, faq=CP.FAQ))
             out_html = env.get_template(pg['tpl']).render(**ctx)
             dest = os.path.join(OUT, full, 'index.html')
             os.makedirs(os.path.dirname(dest), exist_ok=True)
@@ -200,12 +287,23 @@ def build():
                 rel = '../' * (2 if sub else 1) + new_slug + '/' + sub + 'index.html'
                 os.makedirs(os.path.dirname(dest), exist_ok=True)
                 open(dest, 'w', encoding='utf-8').write(f'<!doctype html><html><head><meta charset="utf-8"><meta name="robots" content="noindex"><link rel="canonical" href="{rel}"><meta http-equiv="refresh" content="0; url={rel}"><script>location.replace("{rel}"+location.search+location.hash)</script></head><body><a href="{rel}">{rel}</a></body></html>')
-    # 404
-    # sitemap / robots
-    base = 'https://geologicalfieldsurvey.com/'
-    urls = [base + ('ar/' if l == 'ar' else '') + p['path'] for l in ('en', 'ar') for p in pages()]
-    open(os.path.join(OUT, 'sitemap.xml'), 'w').write('<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' + ''.join(f'<url><loc>{x}</loc></url>' for x in urls) + '</urlset>')
-    open(os.path.join(OUT, 'robots.txt'), 'w').write(f'User-agent: *\nAllow: /\nSitemap: {base}sitemap.xml\n')
+    # addresses of the first version of the site forward to the same work today (search engines and old shared links)
+    for oldf, newp in OLD_URLS.items():
+        if oldf == 'index.html': continue
+        tgt = BASE + newp
+        open(os.path.join(OUT, oldf), 'w', encoding='utf-8').write(f'<!doctype html><html><head><meta charset="utf-8"><title>Shandal System · نظام شندل</title><meta name="robots" content="noindex,follow"><link rel="canonical" href="{tgt}"><meta http-equiv="refresh" content="0; url={tgt}"><script>location.replace("{tgt}"+location.search+location.hash)</script></head><body><a href="{tgt}">{tgt}</a></body></html>')
+    # sitemap with both languages linked to each other, robots, files for AI assistants
+    day = _time.strftime('%Y-%m-%d')
+    pub = [p for p in pages() if p['key'] not in NOINDEX]
+    def alt(p):
+        return (f'<xhtml:link rel="alternate" hreflang="en" href="{BASE}{p["path"]}"/><xhtml:link rel="alternate" hreflang="ar" href="{BASE}ar/{p["path"]}"/>'
+                f'<xhtml:link rel="alternate" hreflang="x-default" href="{BASE}ar/{p["path"]}"/>')
+    def pri(p): return '1.0' if p['key'] == 'home' else '0.9' if p['key'] in ('platform', 'about', 'tool') else '0.7'
+    sm = ''.join(f'<url><loc>{BASE}{l}{p["path"]}</loc><lastmod>{day}</lastmod><priority>{pri(p)}</priority>{alt(p)}</url>' for p in pub for l in ('ar/', ''))
+    open(os.path.join(OUT, 'sitemap.xml'), 'w').write('<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">' + sm + '</urlset>')
+    open(os.path.join(OUT, 'robots.txt'), 'w').write(f'User-agent: *\nAllow: /\nDisallow: /account/\nDisallow: /ar/account/\n\nSitemap: {BASE}sitemap.xml\n')
+    llms(day)
+    open(os.path.join(OUT, INDEXNOW_KEY + '.txt'), 'w').write(INDEXNOW_KEY)
     open(os.path.join(OUT, '.nojekyll'), 'w').write('')
     if cname: open(os.path.join(OUT, 'CNAME'), 'w').write(cname)
     print('pages:', count)

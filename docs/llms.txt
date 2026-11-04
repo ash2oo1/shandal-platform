@@ -1,0 +1,97 @@
+# Shandal Geological Field Survey System (نظام شندل للمسح الميداني الجيولوجي)
+
+> A digital survey system that turns a smartphone into a geological and engineering field station, designed and built by Iraqi geologist Ali Shandal Al-Janabi.
+> نظام رقمي يحوّل الهاتف الذكي إلى محطة مسح جيولوجية وهندسية، صممه وبناه الجيولوجي العراقي علي شندل الجنابي.
+
+Website: https://geologicalfieldsurvey.com/ (English) · https://geologicalfieldsurvey.com/ar/ (العربية)
+Also called: Shandal System, Shandal Geo, نظام شندل.
+Founder and designer: Ali Shandal Al-Janabi (علي شندل الجنابي), Iraqi geologist specialising in remote sensing and geophysics, Baghdad, Iraq.
+Founded: 2025 · Official launch: 5 April 2026 · Registered as a scientific work no. 2841/ع at the Iraqi National Centre for Protection of Copyright and Related Rights (13 April 2026).
+Contact: WhatsApp +9647739949727 · Facebook https://www.facebook.com/Shandalsystem · YouTube https://www.youtube.com/@shandalsystem
+Updated: 2026-11-04
+
+## What it is
+Thirty-five professional tools for Earth scientists: digital compass, stereonets, RMR and SMR, global contour maps, seismic hazard statistics, soil mechanics, Sentinel-2 indices, live hazard feeds and petroleum labs, with PDF reports and an AI assistant.
+For decades, field geology meant scattered tools: readings taken by hand, long calculations, then a return to the office to draw columns, stereonets and contour maps in separate software. Every step cost time and added room for error.
+The Shandal System brings that work into one portable tool, from the first reading to the final report, without leaving the site. The name says what it does: survey, to collect spatial data precisely; field, because it goes where the geologist goes.
+
+## ما هو
+خمس وثلاثون أداة احترافية لعلماء الأرض: بوصلة رقمية ومساقط ستيريوغرافية وRMR وخرائط كنتورية وأطياف تصميم زلزالي وإنذار من الانزلاقات ورصد بيئي ومختبرات بترولية، مع تقارير PDF ومساعد ذكي.
+لعقود طويلة كان العمل الجيولوجي الميداني يعتمد على أدوات متفرقة: قياسات يدوية وحسابات طويلة ثم العودة إلى المكتب لرسم الأعمدة الطباقية والمساقط والخرائط الكنتورية ببرامج منفصلة. كل خطوة تستهلك الوقت وتزيد احتمال الخطأ.
+جاء نظام شندل ليجمع هذا العمل في أداة محمولة واحدة، من القراءة الأولى حتى التقرير النهائي، دون مغادرة الموقع. والاسم يعبّر عن جوهره: «المسح» لجمع البيانات المكانية بدقة، و«الميداني» لأنه يرافق الجيولوجي حيث يعمل.
+
+## Main pages
+- [Home](https://geologicalfieldsurvey.com/): the system and its tools
+- [Platform](https://geologicalfieldsurvey.com/platform/): how the workstation works
+- [About](https://geologicalfieldsurvey.com/about/): history, founder, registration
+- [Pricing](https://geologicalfieldsurvey.com/pricing/): plans and payment
+- [Academy](https://geologicalfieldsurvey.com/academy/) and [Library](https://geologicalfieldsurvey.com/library/)
+- [Geo-heritage](https://geologicalfieldsurvey.com/geoheritage/): geological and archaeological sites of Iraq
+
+## Tools (35)
+### Field geology · الجيولوجيا الميدانية
+- [Quarry & Earthworks Survey · مسح المقالع واستثمار التراب](https://geologicalfieldsurvey.com/tools/quarry-survey/): Converts contract areas and field measurements into extracted and remaining volumes, maximum permitted depth, a 2D site plan and a stratigraphic column for the pit face.
+- [Structural & Geotechnical Survey · المسح التركيبي والجيوتقني](https://geologicalfieldsurvey.com/tools/structural-geotechnical/): Field survey of a rock slope: orientation data from the phone compass-clinometer, kinematic analysis of planar, wedge and toppling failure, limit-equilibrium factors of safety, RMR89 and SMR classification, a geological plan and section, and the stratigraphic column of the outcrop.
+- [Stereonet Lab · مختبر المسقط الستيريوغرافي](https://geologicalfieldsurvey.com/tools/stereonet-lab/): Analyses any number of planes and lines measured in the field or with the phone: pole density contours, Fisher statistics of each set, eigenvalue fabric and π-girdle axis, rose diagram of strikes, and the percentage of measurements critical for planar, wedge and toppling failure against a slope face.
+- [Stratigraphic Column Designer · مصمم العمود الطباقي](https://geologicalfieldsurvey.com/tools/strata/): Draws stratigraphic columns in the layout used in journals and basin studies: ICS chronostratigraphy, group and formation, depth scale, FGDC lithology patterns, unconformities and hiatuses, depositional environment and petroleum-system elements, followed by an automatic stratigraphic description and interpretation.
+- [World Faults and Plates · الفوالق والصفائح العالمية](https://geologicalfieldsurvey.com/tools/faults-plates/): An atlas of 9 600 active faults and of the boundaries of 56 tectonic plates. Each fault opens with its type of movement, dip and dip direction, rake, slip rate, seismogenic depth, length and trend; each plate boundary with its type (subduction, collision, rift, spreading ridge, transform) and its relative velocity. Tap any point for the plate beneath it and its velocity, draw an area for counts, lengths and a rose diagram with the Rayleigh test, and download a framed map, GeoJSON, KML or CSV.
+- [Geological Unit Finder · مستكشف الوحدات الجيولوجية](https://geologicalfieldsurvey.com/tools/geologic-unit/): Identifies the geological units mapped under any point on Earth from Macrostrat’s integrated global geological map, at every available map scale, with age, lithology, depositional setting and source map; places them on the international time scale, builds the local stratigraphic succession and writes a geological description and interpretation of the site.
+- [Fossil Sites Explorer · مستكشف مواقع الأحافير](https://geologicalfieldsurvey.com/tools/fossils/): Finds the published fossil sites of any area and interprets them inside Shandal: the rocks, formation, depositional environment, age and ancient latitude of each site, every fossil found there with its description, photographs, time range and worldwide record, a written reading of the whole region, and print-ready maps, figures and tables.
+- [Geo-Heritage & Archaeological Tourism · السياحة الجيولوجية والآثارية](https://geologicalfieldsurvey.com/tools/geoheritage/): An atlas of 164 natural, geological, archaeological, religious and museum places in Iraq with the geology beneath each, surface rock, elevation, live weather, photographs, nearby places, a trip planner and directions in the navigation app you choose.
+
+### Engineering & geotechnics · الهندسة والجيوتقنية
+- [Rock Mass Classification Lab · مختبر تصنيف الكتلة الصخرية](https://geologicalfieldsurvey.com/tools/rockmass-lab/): Rates a rock mass with the three international classification systems, derives GSI, and converts it into the Hoek–Brown strength envelope, equivalent Mohr–Coulomb cohesion and friction angle, and the rock-mass modulus, for slopes or tunnels.
+- [Seismic Evaluation & Building Code · التقييم السيزمي والكود الهندسي](https://geologicalfieldsurvey.com/tools/seismic-evaluation/): Applies ASCE 7-16 site coefficients to the mapped accelerations, builds the design response spectrum, assigns the seismic design category, computes the equivalent-lateral-force base shear, maps nearby active faults with a deterministic scenario, and checks liquefaction with the Youd et al. (2001) method.
+- [Seismic Hazard Explorer · مستكشف الخطر الزلزالي](https://geologicalfieldsurvey.com/tools/seismic-hazard/): Retrieves the instrumental earthquake catalogue around any site, fits the Gutenberg–Richter law, and estimates annual rates, return periods and the probability of exceedance over a design life, with plate boundaries on the map.
+- [Global Soil Properties · خصائص التربة العالمية](https://geologicalfieldsurvey.com/tools/soil-properties/): Characterises the soil at any point and over a study area: properties at six depths to 2 m with their prediction intervals, USDA texture, water retention, WRB soil group probabilities, the nearest measured soil profiles, and publication-ready maps of the properties chosen for the purpose of the study.
+- [Bearing Capacity of Shallow Foundations · قدرة تحمل الأسس الضحلة](https://geologicalfieldsurvey.com/tools/bearing-capacity/): Calculates ultimate and allowable bearing capacity of strip, square, circular and rectangular footings with the Terzaghi, Meyerhof and Vesić methods, including shape, depth and inclination factors and the effect of the water table.
+- [Mohr Circle & Failure Envelope · دائرة مور وغلاف الانهيار](https://geologicalfieldsurvey.com/tools/mohr-circle/): Draws the Mohr circle for any 2-D stress state, gives principal stresses, maximum shear and the stresses on any plane, checks it against a Mohr–Coulomb envelope, and fits c and φ from a series of triaxial tests.
+- [Atterberg Limits & Plasticity · حدود أتربرغ واللدونة](https://geologicalfieldsurvey.com/tools/atterberg-limits/): Fits the Casagrande flow curve to find the liquid limit at 25 blows, combines it with the plastic limit, and reports plasticity, liquidity, consistency and activity indices with the USCS fine-grained class on the plasticity chart.
+- [Grain-Size Analysis · التحليل الحجمي الحبيبي](https://geologicalfieldsurvey.com/tools/grain-size/): Turns sieve masses into a particle-size distribution curve, reads D10, D30 and D60, computes uniformity and curvature coefficients, classifies the soil with USCS, and gives Folk & Ward graphic statistics for sedimentology.
+- [3-D Surface Plotter · مُرسِم الأسطح ثلاثية الأبعاد](https://geologicalfieldsurvey.com/tools/surface-3d/): Turns a table of samples into a three-dimensional response surface of one property against two others, as in published laboratory studies: classed colour surface with grid lines and a projected map on its base, a contour map with the samples, simple and multiple regression equations with R², and a written interpretation.
+
+### Terrain & maps · التضاريس والخرائط
+- [DEM & Contour Mapping Studio · استوديو نموذج الارتفاع الرقمي والخرائط الكنتورية](https://geologicalfieldsurvey.com/tools/dem-studio/): Mark any area on Earth and the studio fetches a digital elevation model as a regular grid in UTM or geographic coordinates, traces contours at the interval you choose, and lays out a print-ready map in five styles, from colour relief to a spot-height exercise sheet. It cuts topographic profiles, builds a 3D model, computes the hypsometric curve, integral and slope distribution, and exports the grid and contours for Surfer, QGIS, ArcGIS and AutoCAD Civil 3D.
+- [2D Contour Mapping Lab · مختبر الخرائط الكنتورية ثنائية الأبعاد](https://geologicalfieldsurvey.com/tools/contour-lab/): Load X, Y, Z points from a total station, GPS, boreholes or any spatial variable, interpolate them by ordinary kriging or inverse distance, and lay out a print-ready contour map with variogram and cross-validation.
+- [Geomorphological & Contour Survey · المسح الجيومورفولوجي والكنتوري](https://geologicalfieldsurvey.com/tools/geomorphology-contour/): Turns GPS points taken across a site and along a wadi into a kriged contour map in UTM, a longitudinal channel profile with gradient and sinuosity, and a written interpretation joined with your field geomorphology.
+
+### Remote sensing · التحسس النائي
+- [Sentinel-2 Spectral Indices · المؤشرات الطيفية لـ Sentinel-2](https://geologicalfieldsurvey.com/tools/spectral-indices/): Finds Sentinel-2 Level-2A scenes over your area, renders spectral indices such as NDVI, NDWI, NDBI, NBR and the clay, ferrous and iron-oxide mineral ratios as map layers, computes area statistics, and compares two dates to measure change.
+- [Lineament Extraction · استخراج الخطيات](https://geologicalfieldsurvey.com/tools/lineament-extraction/): Draw an area and the tool reads a 30 m elevation model, lights it from four directions, and traces topographic lineaments automatically as linear valleys and as ridges and scarps. Edit them, draw your own or load mapped lines, then read their number, length, density, mean direction and Rayleigh test, compare their trend with the active faults of the world atlas, and download a framed map, rose diagram, GeoJSON, KML, CSV or density grid.
+- [Mineral Prospectivity · الاحتمالية المعدنية](https://geologicalfieldsurvey.com/tools/mineral-prospectivity/): Draw an area and the tool ranks where hydrothermal alteration, structures and favourable host rock coincide: clay–hydroxyl, iron-oxide and ferrous-silicate anomalies from Sentinel-2 with vegetation, fields, water and towns masked, host-rock favourability, distance to lineaments and lineament density. The layers are weighted by the analytic hierarchy process and the map is checked against known occurrences.
+- [Archaeological Site Potential · احتمالية المواقع الأثرية](https://geologicalfieldsurvey.com/tools/archaeo-potential/): Draw an area and the tool ranks where ancient settlement is likely from seven evidence layers: mound (tell) relief, distance to water, height above the nearest drainage, slope, dry-season soil-brightness anomalies, spring crop-mark anomalies and land cover. The layers are weighted by the analytic hierarchy process, the map is generalised to about 1 km to protect unrecorded sites, and it is checked against the sites already recorded in the area.
+
+### Geophysics · الجيوفيزياء
+- [Regional Magnetic Lab · المختبر المغناطيسي الإقليمي](https://geologicalfieldsurvey.com/tools/magnetic-lab/): Computes the IGRF-14 main field in your browser for any area, epoch and height, and reduces ground magnetometer readings to a residual anomaly with diurnal correction, kriged into a contour map.
+- [Thermal Maturity & Geothermal Lab · مختبر الطاقة الحرارية الأرضية والنضج الحراري](https://geologicalfieldsurvey.com/tools/geothermal-lab/): Computes the geothermal gradient from formation and surface temperatures, and places samples in the oil or gas window using vitrinite reflectance and Rock-Eval Tmax.
+
+### Water & rivers · المياه والأنهار
+- [Hydrochemistry Water Lab · مختبر هيدروكيمياء المياه](https://geologicalfieldsurvey.com/tools/water-lab/): Enter the major-ion analysis of surface or groundwater samples. The lab checks the ionic balance, classifies each sample on the Piper, Gibbs, Schoeller, Stiff and USSL diagrams, evaluates drinking quality against the Iraqi standard IQS 417 or the WHO guidelines with two water-quality indices, rates irrigation suitability with six indices and FAO classes, and writes the hydrochemical interpretation.
+- [Hydrological Early Warning · الإنذار الهيدرولوجي المبكر](https://geologicalfieldsurvey.com/tools/hydro-alert/): Fetches hourly rainfall for any point, observed and forecast, tests every window from 1 hour to 10 days against published intensity–duration thresholds, tracks antecedent wetness and reads the local slope from a global DEM.
+- [Groundwater Potential Zones · مناطق احتمالية المياه الجوفية](https://geologicalfieldsurvey.com/tools/potential-zones/): Draw an area and the tool builds a groundwater potential map from lithology, lineament density, slope, drainage density, rainfall, topographic wetness, land cover and dry-season moisture, vegetation and surface temperature. Each layer is rated 1–5, weighted by the analytic hierarchy process, and the map is classed into five zones and validated against known wells.
+
+### Atmosphere & air quality · الغلاف الجوي وجودة الهواء
+- [Air Quality Monitor · مراقب جودة الهواء](https://geologicalfieldsurvey.com/tools/air-quality/): Shows current and forecast air quality for any point from the Copernicus Atmosphere Monitoring Service: US and European AQI, PM2.5, PM10, dust, NO₂, SO₂, O₃, CO and aerosol optical depth, compared with the WHO 2021 guidelines, plus a regional AQI map.
+
+### Climate & emissions · المناخ والانبعاثات
+- [Environmental Monitoring & Modelling · الرصد الفضائي والنمذجة البيئية](https://geologicalfieldsurvey.com/tools/env-monitoring/): Live weather and air quality for the site turned into field guidance: WBGT heat stress, atmospheric stability, a Gaussian plume model for a nearby source, a weighted water-quality index with concrete sulfate class, and the MEDALUS desertification index.
+
+### Natural hazards · المخاطر الطبيعية
+- [Natural Hazards Monitor · مراقب المخاطر الطبيعية](https://geologicalfieldsurvey.com/tools/hazards-monitor/): Combines real-time feeds from USGS and EMSC for earthquakes, NASA EONET for wildfires, storms, floods, dust and volcanoes, GDACS disaster alerts and, with a free key, NASA FIRMS active-fire detections.
+- [Volcanoes of the World · براكين العالم](https://geologicalfieldsurvey.com/tools/volcanoes/): Maps the world’s Holocene volcanoes from the Smithsonian Global Volcanism Program with type, elevation, tectonic setting and last known eruption, highlights volcanoes active now from NASA EONET, and finds the volcanoes nearest to any site.
+
+### Petroleum laboratories · مختبرات البترول
+- [Kerogen Analysis Lab · مختبر تحليل الكيروجين](https://geologicalfieldsurvey.com/tools/kerogen-lab/): Calculates hydrogen, oxygen and production indices from Rock-Eval pyrolysis, estimates vitrinite-equivalent maturity from Tmax, and plots samples on HI–TOC, pseudo-Van Krevelen and HI–Tmax diagrams.
+- [Palynofacies Lab · مختبر السحنات البالينولوجية](https://geologicalfieldsurvey.com/tools/palynofacies-lab/): Plots AOM, phytoclast and palynomorph counts on Tyson’s (1995) ternary diagram and reads off the palynofacies field, depositional setting and kerogen character.
+
+## Frequently asked questions
+- Do I need to install anything? No. The system runs in the browser on your phone, tablet or computer. Location and motion sensors are used only when a tool asks for them.
+- هل أحتاج إلى تثبيت أي برنامج؟ لا. يعمل النظام في متصفح الهاتف أو الجهاز اللوحي أو الحاسوب، وتُستخدم حساسات الموقع والحركة فقط عندما تطلبها الأداة.
+- Does it work without internet in the field? You need a connection to sign in and to load maps and satellite data. Calculations and report export continue to work once a tool is open.
+- هل يعمل دون إنترنت في الحقل؟ تحتاج إلى اتصال لتسجيل الدخول وتحميل الخرائط والبيانات الفضائية، ثم تستمر الحسابات وتصدير التقارير بعد فتح الأداة.
+- How do I pay? Prices are in US dollars. Inside Iraq pay the equivalent in Iraqi dinars by ZainCash; from abroad send a Western Union transfer. Send us the transfer number (MTCN) or a photo of the receipt and your account is activated within three hours.
+- كيف أدفع؟ الأسعار بالدولار الأمريكي. من داخل العراق ادفع ما يعادلها بالدينار العراقي عبر زين كاش، ومن خارج العراق أرسل حوالة ويسترن يونيون. أرسل لنا رقم الحوالة (MTCN) أو صورة الوصل ويُفعَّل حسابك خلال ثلاث ساعات.
+- Can a university or company subscribe for a team? Yes. Institutional plans include several accounts and training. Send us the number of users.
+- هل يمكن لجامعة أو شركة الاشتراك لفريق؟ نعم. تشمل خطط المؤسسات عدة حسابات وتدريباً. أرسل لنا عدد المستخدمين.
+- Can the results be used in official reports? Yes, as supporting analysis. Final engineering decisions must be signed by a qualified, licensed professional.
+- هل يمكن استخدام النتائج في التقارير الرسمية؟ نعم، كتحليل داعم. يجب أن يوقّع القرارات الهندسية النهائية مختص مؤهل ومرخّص.

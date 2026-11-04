@@ -13,8 +13,8 @@ FIELD_SYSTEM = 'https://geologicalfieldsurvey.com/'
 AI_ENDPOINT = 'https://shandal-ai-backend.shandal-geosystem.workers.dev'
 
 HOME = {
- 'title': L('Shandal System — Field survey workstation for geology, engineering and the environment',
-            'نظام شندل — محطة المسح الميداني للجيولوجيا والهندسة والبيئة'),
+ 'title': L('Shandal Geological Field Survey System — digital field station for geology, engineering and the environment',
+            'نظام شندل للمسح الميداني الجيولوجي — محطة رقمية للجيولوجيا والهندسة والبيئة'),
  'desc': L('{NWE} professional tools for Earth scientists: digital compass, stereonets, RMR and SMR, global contour maps, seismic hazard statistics, soil mechanics, Sentinel-2 indices, live hazard feeds and petroleum labs, with PDF reports and an AI assistant.',
            '{NWA} أداة احترافية لعلماء الأرض: بوصلة رقمية ومساقط ستيريوغرافية وRMR وخرائط كنتورية وأطياف تصميم زلزالي وإنذار من الانزلاقات ورصد بيئي ومختبرات بترولية، مع تقارير PDF ومساعد ذكي.'),
  'kicker': L('Registered scientific software · Baghdad', 'برنامج علمي مسجّل · بغداد'),
