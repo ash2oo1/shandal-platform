@@ -4,7 +4,7 @@
 def L(en, ar):
     return {'en': en, 'ar': ar}
 
-WA = '9647814993629'
+WA = '9647739949727'
 EMAIL = 'alishandal12@gmail.com'
 FACEBOOK = 'https://www.facebook.com/Shandalsystem'
 YOUTUBE = 'https://www.youtube.com/@shandalsystem'
