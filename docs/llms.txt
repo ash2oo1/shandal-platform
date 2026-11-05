@@ -8,15 +8,15 @@ Also called: Shandal System, Shandal Geo, نظام شندل.
 Founder and designer: Ali Shandal Al-Janabi (علي شندل الجنابي), Iraqi geologist specialising in remote sensing and geophysics, Baghdad, Iraq.
 Founded: 2025 · Official launch: 5 April 2026 · Registered as a scientific work no. 2841/ع at the Iraqi National Centre for Protection of Copyright and Related Rights (13 April 2026).
 Contact: WhatsApp +9647739949727 · Facebook https://www.facebook.com/Shandalsystem · YouTube https://www.youtube.com/@shandalsystem
-Updated: 2026-11-04
+Updated: 2026-11-05
 
 ## What it is
-Thirty-five professional tools for Earth scientists: digital compass, stereonets, RMR and SMR, global contour maps, seismic hazard statistics, soil mechanics, Sentinel-2 indices, live hazard feeds and petroleum labs, with PDF reports and an AI assistant.
+Thirty-six professional tools for Earth scientists: digital compass, stereonets, RMR and SMR, global contour maps, seismic hazard statistics, soil mechanics, Sentinel-2 indices, live hazard feeds and petroleum labs, with PDF reports and an AI assistant.
 For decades, field geology meant scattered tools: readings taken by hand, long calculations, then a return to the office to draw columns, stereonets and contour maps in separate software. Every step cost time and added room for error.
 The Shandal System brings that work into one portable tool, from the first reading to the final report, without leaving the site. The name says what it does: survey, to collect spatial data precisely; field, because it goes where the geologist goes.
 
 ## ما هو
-خمس وثلاثون أداة احترافية لعلماء الأرض: بوصلة رقمية ومساقط ستيريوغرافية وRMR وخرائط كنتورية وأطياف تصميم زلزالي وإنذار من الانزلاقات ورصد بيئي ومختبرات بترولية، مع تقارير PDF ومساعد ذكي.
+ست وثلاثون أداة احترافية لعلماء الأرض: بوصلة رقمية ومساقط ستيريوغرافية وRMR وخرائط كنتورية وأطياف تصميم زلزالي وإنذار من الانزلاقات ورصد بيئي ومختبرات بترولية، مع تقارير PDF ومساعد ذكي.
 لعقود طويلة كان العمل الجيولوجي الميداني يعتمد على أدوات متفرقة: قياسات يدوية وحسابات طويلة ثم العودة إلى المكتب لرسم الأعمدة الطباقية والمساقط والخرائط الكنتورية ببرامج منفصلة. كل خطوة تستهلك الوقت وتزيد احتمال الخطأ.
 جاء نظام شندل ليجمع هذا العمل في أداة محمولة واحدة، من القراءة الأولى حتى التقرير النهائي، دون مغادرة الموقع. والاسم يعبّر عن جوهره: «المسح» لجمع البيانات المكانية بدقة، و«الميداني» لأنه يرافق الجيولوجي حيث يعمل.
 
@@ -28,7 +28,7 @@ The Shandal System brings that work into one portable tool, from the first readi
 - [Academy](https://geologicalfieldsurvey.com/academy/) and [Library](https://geologicalfieldsurvey.com/library/)
 - [Geo-heritage](https://geologicalfieldsurvey.com/geoheritage/): geological and archaeological sites of Iraq
 
-## Tools (35)
+## Tools (36)
 ### Field geology · الجيولوجيا الميدانية
 - [Quarry & Earthworks Survey · مسح المقالع واستثمار التراب](https://geologicalfieldsurvey.com/tools/quarry-survey/): Converts contract areas and field measurements into extracted and remaining volumes, maximum permitted depth, a 2D site plan and a stratigraphic column for the pit face.
 - [Structural & Geotechnical Survey · المسح التركيبي والجيوتقني](https://geologicalfieldsurvey.com/tools/structural-geotechnical/): Field survey of a rock slope: orientation data from the phone compass-clinometer, kinematic analysis of planar, wedge and toppling failure, limit-equilibrium factors of safety, RMR89 and SMR classification, a geological plan and section, and the stratigraphic column of the outcrop.
@@ -78,6 +78,7 @@ The Shandal System brings that work into one portable tool, from the first readi
 
 ### Natural hazards · المخاطر الطبيعية
 - [Natural Hazards Monitor · مراقب المخاطر الطبيعية](https://geologicalfieldsurvey.com/tools/hazards-monitor/): Combines real-time feeds from USGS and EMSC for earthquakes, NASA EONET for wildfires, storms, floods, dust and volcanoes, GDACS disaster alerts and, with a free key, NASA FIRMS active-fire detections.
+- [Landslide Susceptibility · قابلية الانزلاقات الأرضية](https://geologicalfieldsurvey.com/tools/landslide-susceptibility/): Draw an area and the tool ranks the ground from very low to very high susceptibility to landslides from nine evidence layers: slope, rock and soil type, the heavy-rain day, the strongest earthquake shaking on record, distance to lineaments, distance to streams, plan curvature, vegetation and land cover. The layers are weighted by the analytic hierarchy process and the map is checked against mapped landslides.
 - [Volcanoes of the World · براكين العالم](https://geologicalfieldsurvey.com/tools/volcanoes/): Maps the world’s Holocene volcanoes from the Smithsonian Global Volcanism Program with type, elevation, tectonic setting and last known eruption, highlights volcanoes active now from NASA EONET, and finds the volcanoes nearest to any site.
 
 ### Petroleum laboratories · مختبرات البترول

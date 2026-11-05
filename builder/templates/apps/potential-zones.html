@@ -50,10 +50,11 @@
   <aside class="wsm-side">
     <div class="sec">
       <h3>{{ icon('target') }}{{ m.L('1 · What to look for', '1 · ماذا تبحث عنه') }}</h3>
-      <div class="pz-rec" id="pRec" data-default="{{ {'archaeo-potential': 'arch', 'mineral-prospectivity': 'min'}.get(tool.slug, 'gw') }}">
+      <div class="pz-rec" id="pRec" data-default="{{ {'archaeo-potential': 'arch', 'mineral-prospectivity': 'min', 'landslide-susceptibility': 'ls'}.get(tool.slug, 'gw') }}">
         <button type="button" data-r="gw" aria-pressed="false"><span class="ic">{{ icon('droplets') }}</span><span><b>{{ m.L('Groundwater potential zones', 'مناطق احتمالية المياه الجوفية') }}</b><small>{{ m.L('Ten evidence layers combined by the analytic hierarchy process', 'عشر طبقات أدلة مدمجة بطريقة التحليل الهرمي') }}</small></span></button>
         <button type="button" data-r="arch" aria-pressed="false"><span class="ic">{{ icon('landmark') }}</span><span><b>{{ m.L('Archaeological site potential', 'احتمالية المواقع الأثرية') }}</b><small>{{ m.L('Mounds, water, landform and soil marks, generalised to protect sites', 'التلول والمياه وشكل الأرض وعلامات التربة، معمّمة لحماية المواقع') }}</small></span></button>
         <button type="button" data-r="min" aria-pressed="false"><span class="ic">{{ icon('gem') }}</span><span><b>{{ m.L('Mineral prospectivity', 'الاحتمالية المعدنية') }}</b><small>{{ m.L('Alteration minerals, structures and host rock', 'معادن التغاير والتراكيب والصخر المضيف') }}</small></span></button>
+        <button type="button" data-r="ls" aria-pressed="false"><span class="ic">{{ icon('mountain') }}</span><span><b>{{ m.L('Landslide susceptibility', 'قابلية الانزلاقات الأرضية') }}</b><small>{{ m.L('Slope, rock, heavy rain, earthquake shaking and structures', 'الانحدار والصخر والمطر الغزير والاهتزاز الزلزالي والتراكيب') }}</small></span></button>
       </div>
       <div class="pz-note" id="pNote">{{ m.L('The result ranks the ground inside your area from very low to very high potential. It does not give the depth, thickness or quality of water: those come from electrical soundings and wells.', 'تُرتّب النتيجة الأرض داخل منطقتك من احتمالية منخفضة جداً إلى عالية جداً. ولا تعطي عمق المياه أو سُمك الخزان أو نوعية المياه، فهذه تأتي من السبر الكهربائي والآبار.') }}</div>
     </div>
@@ -75,7 +76,7 @@
       <input type="file" id="pLinF" accept=".geojson,.json,application/geo+json,application/json" hidden>
       <p class="xsmall muted" id="pLinS" style="margin:0"></p>
       {{ m.sel('pCls', 'Class breaks', 'حدود الفئات', [('jenks', 'Natural breaks (Jenks)', 'الفواصل الطبيعية (Jenks)', True), ('equal', 'Equal intervals', 'فترات متساوية'), ('quant', 'Equal areas (quantiles)', 'مساحات متساوية (مئينات)')]) }}
-      <button class="btn btn-gold" id="pRun" type="button">{{ icon('play', 'ico ico-sm') }}{{ m.L('Build the potential map', 'أنشئ خريطة الاحتمالية') }}</button>
+      <button class="btn btn-gold" id="pRun" type="button">{{ icon('play', 'ico ico-sm') }}{{ m.L('Build the map', 'أنشئ الخريطة') }}</button>
       <p class="xsmall muted" id="pProg" style="margin:0"></p>
     </div>
     <div class="sec">

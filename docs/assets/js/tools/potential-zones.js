@@ -6,6 +6,8 @@
      slope and land cover; generalised to about 1 km so that unrecorded sites are not exposed;
    · minerals — clay–hydroxyl, iron-oxide and ferrous-silicate anomalies (vegetation, water and towns masked), host rock,
      distance to lineaments and lineament density.
+   · landslide susceptibility — slope, rock type, heavy-rain day, strongest historical earthquake shaking, distance to lineaments
+     and to streams, plan curvature, vegetation and land cover.
    Each layer is rated 1–5, the weighted sum is classed into five zones, and the map is checked against known points
    (success-rate curve, ROC, frequency ratio, Spearman correlation). */
 (function () {
@@ -70,6 +72,24 @@
     { k: 'ferr', n: C('Ferrous-silicate anomaly (B11/B8)', 'شذوذ السيليكات الحديدوزية (B11/B8)'), imp: 5, kind: 'z', dir: 1, u: '', dp: 3, src: 's2m', d: C('Fe²⁺ in chlorite, epidote, pyroxene and olivine absorbs near 1 µm; high over propylitic alteration and mafic rocks.', 'يمتص Fe²⁺ في الكلورايت والإبيدوت والبيروكسين والأوليفين قرب 1 ميكرون؛ ترتفع النسبة فوق التغاير البروبيليتي والصخور القاعدية.') }
   ];
 
+  /* ---------------------------------------------------------------- recipe: landslide susceptibility */
+  /* rock and soil → susceptibility to sliding: weak, clay-rich and soluble rocks highest; massive crystalline rocks lowest */
+  var LITHL = { marl: 5, clay: 5, claystone: 5, mudstone: 5, shale: 5, siltstone: 4, silt: 4, gypsum: 4, tuff: 4, schist: 4, phyllite: 4, serpentinite: 4, quat: 4,
+    anhydrite: 3, halite: 3, coal: 3, phosphorite: 3, slate: 3, gravel: 3, sand: 3, conglomerate: 3, sandstone: 3, breccia: 3, chalk: 3,
+    limestone: 2, dolomite: 2, reef: 2, oolitic: 2, chert: 2, basalt: 2, andesite: 2, rhyolite: 2, gabbro: 2, gneiss: 2, granite: 1, diorite: 1, quartzite: 1, marble: 1 };
+  var LCL = { 10: 2, 20: 3, 30: 3, 40: 3, 50: 3, 60: 4, 70: 3, 80: 1, 90: 1, 95: 1, 100: 3 };
+  var LSL = [
+    { k: 'slope', n: C('Slope', 'الانحدار'), imp: 9, kind: 'abs', br: [5, 15, 25, 35], rs: [1, 2, 4, 5, 5], u: '°', dp: 1, src: 'dem', d: C('The driving force: shear stress on a slope grows with its angle. Most landslides start between 15° and 45°; nearly level ground rarely moves.', 'القوة المحركة: يزداد إجهاد القص على المنحدر مع زاويته. تبدأ أغلب الانزلاقات بين 15° و45°، ونادراً ما تتحرك الأرض شبه المستوية.') },
+    { k: 'lith', n: C('Rock and soil type', 'نوع الصخر والتربة'), imp: 8, kind: 'cat', src: 'lith', d: C('Marl, clay, shale and gypsum lose strength when wet or dissolve; massive limestone, igneous and metamorphic rocks resist sliding.', 'المارل والطين والطفل والجبس تفقد مقاومتها عند الترطب أو تذوب، أما الحجر الجيري الكتلي والصخور النارية والمتحولة فتقاوم الانزلاق.') },
+    { k: 'rx1', n: C('Heavy-rain day (mean annual maximum)', 'يوم المطر الغزير (متوسط الأقصى السنوي)'), imp: 7, kind: 'abs', dir: 1, br: [20, 35, 50, 75], u: 'mm/day', dp: 0, src: 'rain', d: C('The trigger: the ten-year mean of the wettest day of each year. Intense rain raises pore pressure in the slope and starts most landslides.', 'المُطلِق: متوسط أغزر يوم مطري في كل سنة على مدى عشر سنوات. يرفع المطر الغزير ضغط الماء في مسام المنحدر ويُطلق أغلب الانزلاقات.') },
+    { k: 'eq', n: C('Strongest historical shaking', 'أشد اهتزاز زلزالي تاريخي'), imp: 6, kind: 'abs', dir: 1, br: [0.05, 0.1, 0.2, 0.35], u: 'g', dp: 2, src: 'eq', d: C('Peak ground acceleration that the strongest recorded earthquakes within about 200 km produced at each cell, from the attenuation relation of Joyner and Boore (1981). Shaking above about 0.1 g triggers landslides on weak slopes.', 'أقصى تعجيل أرضي أحدثته أقوى الزلازل المسجلة ضمن نحو 200 كم في كل خلية، بعلاقة التوهين لجوينر وبور (1981). الاهتزاز فوق نحو 0.1 g يُطلق الانزلاقات على المنحدرات الضعيفة.') },
+    { k: 'prox', n: C('Distance to lineaments', 'البعد عن الخطوط التركيبية'), imp: 6, kind: 'abs', dir: -1, br: [250, 500, 1000, 2000], u: 'm', dp: 0, src: 'dem', d: C('Rock near faults and fractures is crushed and weathered deeper, so it fails more easily.', 'الصخر القريب من الفوالق والكسور مهشم ومجوّى إلى عمق أكبر، فينهار بسهولة أكبر.') },
+    { k: 'dstr', n: C('Distance to streams', 'البعد عن المجاري'), imp: 5, kind: 'abs', dir: -1, br: [100, 250, 500, 1000], u: 'm', dp: 0, src: 'dem', d: C('Streams undercut the toe of slopes and keep it wet.', 'تحفر المجاري قدم المنحدرات وتُبقيها رطبة.') },
+    { k: 'curv', n: C('Plan curvature', 'الانحناء الأفقي'), imp: 4, kind: 'abs', br: [-1, -0.2, 0.2, 1], rs: [5, 4, 1, 3, 3], u: '1/100 m', dp: 2, src: 'dem', d: C('Concave hollows (negative values) gather water and soil and fail first; planar ground is the most stable.', 'التجاويف المقعرة (القيم السالبة) تجمع الماء والتربة وتنهار أولاً، والأرض المستوية الجوانب هي الأكثر استقراراً.') },
+    { k: 'ndvi', n: C('Vegetation cover (NDVI)', 'الغطاء النباتي (NDVI)'), imp: 4, kind: 'q', dir: -1, u: '', dp: 2, src: 's2g', d: C('Roots bind the soil and plants draw water out of it, so bare slopes slide more readily than vegetated ones.', 'الجذور تربط التربة والنبات يسحب الماء منها، فتنزلق المنحدرات الجرداء أسهل من المكسوة بالنبات.') },
+    { k: 'lulc', n: C('Land cover', 'الغطاء الأرضي'), imp: 3, kind: 'cat', src: 'lc', d: C('Bare ground and road cuts on slopes are the most prone; forest the least.', 'الأرض الجرداء وقطوع الطرق على المنحدرات الأكثر عرضة، والغابات الأقل.') }
+  ];
+
   var PT = function (o) { return o; };
   var REC = {
     gw: { L: GW, pal: ['#b2182b', '#ef8a62', '#f6dc7d', '#67a9cf', '#2166ac'], title: C('Groundwater potential zones', 'مناطق احتمالية المياه الجوفية'), file: 'groundwater-potential', side: 220,
@@ -97,7 +117,15 @@
         load: C('Load occurrences (CSV)', 'حمّل التمعدنات (CSV)'), tap: C('Tap occurrences on map', 'انقر التمعدنات على الخريطة'), many: C(' occurrences', ' تمعدناً'), pos: C('Mineral occurrence', 'تمعدن معروف'), neg: C('Barren sample', 'عينة عقيمة'), negw: C('barren', 'عقيمة'), yu: '',
         curve: C('Success-rate curve: the share of known occurrences captured as the map is read from its highest to its lowest prospectivity.', 'منحنى معدل النجاح: نسبة التمعدنات المعروفة التي تلتقطها الخريطة عند قراءتها من أعلى احتمالية إلى أدناها.'), roc: C('Mineralised against barren points: ', 'النقاط المتمعدنة مقابل العقيمة: '), yl: C('grade', 'المحتوى'), ax: C('Occurrences captured', 'التمعدنات الملتقطة'), ttl: C('Validation against ', 'التحقق مقابل ') }) }
   };
-  REC.gw.k = 'gw'; REC.arch.k = 'arch'; REC.min.k = 'min';
+  REC.ls = { L: LSL, pal: ['#1a9641', '#a6d96a', '#ffffbf', '#fdae61', '#d7191c'], title: C('Landslide susceptibility', 'قابلية الانزلاقات الأرضية'), file: 'landslide-susceptibility', side: 260,
+    lith: function (k) { return LITHL[k]; }, lc: function (v) { return LCL[v]; },
+    note: C('The map ranks the ground inside your area from very low to very high susceptibility to landslides, from slope, rock, heavy rain, earthquake shaking, structures, streams, landform and cover. It shows where slopes are prone to fail, not when: the timing depends on the next storm or earthquake.', 'ترتّب الخريطة الأرض داخل منطقتك من قابلية منخفضة جداً إلى عالية جداً للانزلاقات الأرضية، من الانحدار والصخر والمطر الغزير والاهتزاز الزلزالي والتراكيب والمجاري وشكل الأرض والغطاء. وهي تبيّن أين تميل المنحدرات إلى الانهيار لا متى: فالتوقيت يحدده المطر الغزير أو الزلزال القادم.'),
+    end: C('Use the high zones to place roads, buildings and pipelines away from them, to plan slope investigations and drainage, and to target field checks after heavy rain.', 'استعمل المناطق العالية لإبعاد الطرق والمباني والأنابيب عنها، ولتخطيط تحريات المنحدرات وتصريف المياه، ولتوجيه الكشف الحقلي بعد الأمطار الغزيرة.'),
+    fig: C('Evidence layers rated 1–5 for landslide susceptibility', 'طبقات الأدلة مقيّمة من 1 إلى 5 لقابلية الانزلاقات الأرضية'),
+    pt: PT({ h: C('5 · Check against mapped landslides', '5 · التحقق بالانزلاقات المرصودة'), p: C('Add mapped landslides: a CSV with latitude, longitude and, if known, status (1 = landslide, 0 = stable ground checked in the field), or tap them on the map. The tool measures how well the map predicts them.', 'أضف انزلاقات مرصودة: ملف CSV فيه خط العرض وخط الطول، ومع الحالة (1 = انزلاق، 0 = أرض مستقرة تم فحصها حقلياً) إن وُجدت، أو انقرها على الخريطة. تقيس الأداة مدى تنبؤ الخريطة بها.'),
+      load: C('Load landslides (CSV)', 'حمّل الانزلاقات (CSV)'), tap: C('Tap landslides on map', 'انقر الانزلاقات على الخريطة'), many: C(' landslides', ' انزلاقاً'), pos: C('Mapped landslide', 'انزلاق مرصود'), neg: C('Stable ground', 'أرض مستقرة'), negw: C('stable', 'مستقرة'), yu: '',
+      curve: C('Success-rate curve: the share of mapped landslides captured as the map is read from its highest to its lowest susceptibility.', 'منحنى معدل النجاح: نسبة الانزلاقات المرصودة التي تلتقطها الخريطة عند قراءتها من أعلى قابلية إلى أدناها.'), roc: C('Landslides against stable ground: ', 'الانزلاقات مقابل الأرض المستقرة: '), yl: C('value', 'القيمة'), ax: C('Landslides captured', 'الانزلاقات الملتقطة'), ttl: C('Validation against ', 'التحقق مقابل ') }) };
+  REC.gw.k = 'gw'; REC.arch.k = 'arch'; REC.min.k = 'min'; REC.ls.k = 'ls';
   var RC = REC.gw, F = GW, FK = {};
 
   /* ---------------------------------------------------------------- state */
@@ -143,7 +171,7 @@
     $('#pNote').textContent = RC.note; $('#pVH').textContent = RC.pt.h; $('#pVP').textContent = RC.pt.p; $('#pWFL').textContent = RC.pt.load; $('#pWAdd').textContent = RC.pt.tap; $('#pOsm').hidden = RC.k !== 'arch';
     document.querySelector('label[for=pLinF]').hidden = RC.k === 'arch'; $('#pLinS').hidden = RC.k === 'arch';
     G = null; if (ov && map) { map.removeLayer(ov); ov = null; } $('#pLeg').hidden = true; $('#pValOut').innerHTML = ''; $('#pProg').innerHTML = '';
-    $('#pShow').innerHTML = '<option value="cls">' + t('Potential classes', 'فئات الاحتمالية') + '</option>';
+    $('#pShow').innerHTML = '<option value="cls">' + (RC.k === 'ls' ? t('Susceptibility classes', 'فئات القابلية') : t('Potential classes', 'فئات الاحتمالية')) + '</option>';
     $('#pOut').innerHTML = '<span class="xsmall muted">' + t('Draw an area and build the map. Tap any point of the result to read every layer there.', 'ارسم منطقة وأنشئ الخريطة. انقر أي نقطة في النتيجة لقراءة كل طبقة فيها.') + '</span>';
     wells = SH.store.get(ptsKey(), []); saveWells(); rows(); SH.store.set('shandal_pz_recipe', RC.k);
     if (aoi) setAoi(aoi);
@@ -242,10 +270,28 @@
     la.forEach(function (a) { lo.forEach(function (o) { pl.push(a.toFixed(4)); pn.push(o.toFixed(4)); }); });
     return SH.getJSON(OM + '?latitude=' + pl.join(',') + '&longitude=' + pn.join(',') + '&start_date=' + y0 + '-01-01&end_date=' + y1 + '-12-31&daily=precipitation_sum&timezone=UTC', { timeout: 60000 }).then(function (j) {
       var arr = Array.isArray(j) ? j : [j], P = arr.map(function (r) { var s = 0, n = 0; (r.daily.precipitation_sum || []).forEach(function (v) { if (v != null) { s += v; n++; } }); return n > 300 ? s / (n / 365.25) : NaN; });
+      /* mean of the yearly maximum one-day rainfall (the landslide trigger) */
+      var PX = arr.map(function (r) { var mx = {}, tm = r.daily.time || []; (r.daily.precipitation_sum || []).forEach(function (v, x) { if (v == null) return; var y = String(tm[x]).slice(0, 4); mx[y] = Math.max(mx[y] || 0, v); }); var ys = Object.keys(mx); return ys.length ? ys.reduce(function (a, y) { return a + mx[y]; }, 0) / ys.length : NaN; });
       if (P.some(function (v) { return !isFinite(v); })) throw new Error('rain');
       var R = new Float32Array(G.n); for (var j2 = 0; j2 < G.ny; j2++) for (var i = 0; i < G.nx; i++) { var fy = (G.lat(j2) - G.b.s) / (G.b.n - G.b.s) * 2, fx = (G.lon(i) - G.b.w) / (G.b.e - G.b.w) * 2, iy = Math.min(1, Math.floor(fy)), ix = Math.min(1, Math.floor(fx)), ty = fy - iy, tx = fx - ix, at = function (a, b) { return P[a * 3 + b]; };
         R[j2 * G.nx + i] = at(iy, ix) * (1 - tx) * (1 - ty) + at(iy, ix + 1) * tx * (1 - ty) + at(iy + 1, ix) * (1 - tx) * ty + at(iy + 1, ix + 1) * tx * ty; }
-      G.rainYears = y0 + '–' + y1; return R; });
+      var RX = new Float32Array(G.n); for (var j3 = 0; j3 < G.ny; j3++) for (var i3 = 0; i3 < G.nx; i3++) { var gy = (G.lat(j3) - G.b.s) / (G.b.n - G.b.s) * 2, gx = (G.lon(i3) - G.b.w) / (G.b.e - G.b.w) * 2, ky = Math.min(1, Math.floor(gy)), kx = Math.min(1, Math.floor(gx)), uy = gy - ky, ux = gx - kx, bt = function (a, b) { return PX[a * 3 + b]; };
+        RX[j3 * G.nx + i3] = bt(ky, kx) * (1 - ux) * (1 - uy) + bt(ky, kx + 1) * ux * (1 - uy) + bt(ky + 1, kx) * (1 - ux) * uy + bt(ky + 1, kx + 1) * ux * uy; }
+      G.rx1 = RX; G.rainYears = y0 + '–' + y1; return R; });
+  }
+  /* strongest historical shaking: every recorded earthquake of magnitude 4 or more within about 200 km of the area, and the
+     peak ground acceleration it produced at each cell by Joyner & Boore (1981): log10 A(g) = −1.02 + 0.249 M − log10 r − 0.00255 r,
+     r = √(d² + 7.3²) km; the cell keeps the largest value */
+  function getEq() {
+    var pad = 1.8, u = 'https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&minmagnitude=4&orderby=magnitude&limit=4000&starttime=1900-01-01'
+      + '&minlatitude=' + (G.b.s - pad).toFixed(3) + '&maxlatitude=' + (G.b.n + pad).toFixed(3) + '&minlongitude=' + (G.b.w - pad * 1.2).toFixed(3) + '&maxlongitude=' + (G.b.e + pad * 1.2).toFixed(3);
+    return SH.getJSON(u, { timeout: 60000 }).then(function (j) {
+      var ev = (j.features || []).map(function (f) { return { lo: f.geometry.coordinates[0], la: f.geometry.coordinates[1], m: f.properties.mag }; }).filter(function (e) { return isFinite(e.m); });
+      var A = new Float32Array(G.n), mlat = (G.b.n + G.b.s) / 2, kx = 111.32 * Math.cos(SH.rad(mlat)), ky = 110.57, c, i, j2, k2;
+      for (j2 = 0; j2 < G.ny; j2++) for (i = 0; i < G.nx; i++) { var la = G.lat(j2), lo = G.lon(i), mx = 0;
+        for (k2 = 0; k2 < ev.length; k2++) { var e = ev[k2], dxk = (lo - e.lo) * kx, dyk = (la - e.la) * ky, d2 = dxk * dxk + dyk * dyk; if (d2 > 40000) continue; var r = Math.sqrt(d2 + 53.29), a = Math.pow(10, -1.02 + 0.249 * e.m - Math.log10(r) - 0.00255 * r); if (a > mx) mx = a; }
+        A[j2 * G.nx + i] = mx; }
+      G.eqN = ev.length; G.eqMax = ev.reduce(function (a, e) { return Math.max(a, e.m); }, 0); return A; });
   }
   /* lithology: the most detailed geological map unit at a grid of points; each cell takes the unit of the nearest point */
   function getLith() {
@@ -417,9 +463,10 @@
       .then(function (s2) { if (s2) { G.m = s2.arr; G.s2 = dates(s2.used); } return set('lst', getLst); })
       .then(function (s2) { if (s2) { G.raw.lst = s2.arr[0]; G.ls = dates(s2.used); } return set('lc', getLc); })
       .then(function (s2) { if (s2) G.raw.lulc = s2.arr[0]; });
-    var rn = set('rain', getRain).then(function (r) { if (r) G.raw.rain = r; });
+    var rn = set('rain', getRain).then(function (r) { if (r) { G.raw.rain = r; if (FK.rx1) G.raw.rx1 = G.rx1; } });
     var lt = set('lith', getLith).then(function (U) { if (U) G.raw.lith = U; });
-    Promise.all([pc, rn, lt]).then(function () {
+    var eq = set('eq', getEq).then(function (A) { if (A) G.raw.eq = A; });
+    Promise.all([pc, rn, lt, eq]).then(function () {
       post();
       F.forEach(function (f) { var rr = G.raw[f.k] ? rate(f) : null; if (rr && !Array.prototype.some.call(rr, isFinite)) rr = null; G.rate[f.k] = rr; if (!rr && f.on) status(f.k, 'bad'); });
       var bad = F.filter(function (f) { return f.on && f.st === 'bad'; }); prog(bad.length ? '<span style="color:var(--warn)">' + t('Not available for this area, left out: ', 'غير متاحة لهذه المنطقة واستُبعدت: ') + bad.map(function (f) { return f.n; }).join(t(', ', '، ')) + '</span>' : t('All layers ready.', 'كل الطبقات جاهزة.'));
@@ -437,6 +484,16 @@
       if (G.a && G.a.sndvi) { var NM = boxMean(G.a.sndvi, SH.clamp(Math.round(600 / G.cell), 3, 12)), CR2 = new Float32Array(G.n).fill(NaN), nC = 0; for (c = 0; c < G.n; c++) if (isFinite(G.a.sndvi[c]) && NM[c] >= 0.2) { CR2[c] = NM[c] - G.a.sndvi[c]; nC++; } G.raw.crop = nC > G.n * 0.02 ? CR2 : null; }
       G.gen = Math.max(1, Math.round(RC.gen / G.cell)); ['mound', 'bright', 'crop'].forEach(function (k) { if (G.raw[k]) G.raw[k] = block(boxMean(G.raw[k], 1), G.gen, true); }); /* the strongest smoothed signal in each block, so a 300 m mound is not averaged away */
     }
+    if (RC.k === 'ls' && G.T) {
+      var ch = new Uint8Array(G.n), anyc = false; for (c = 0; c < G.n; c++) if (G.T.chan[c] > 0 || (LCw && (LCw[c] === 80 || LCw[c] === 90))) { ch[c] = 1; anyc = true; }
+      G.raw.dstr = anyc ? dist(ch) : null;
+      /* plan curvature (Zevenbergen & Thorne 1987) on the lightly smoothed surface, in 1/100 m, signed so that negative = concave hollow where flow converges */
+      var Zs = boxMean(G.z, 1), nx = G.nx, ny = G.ny, dx = G.dx, dy = G.dy, PC2 = new Float32Array(G.n).fill(NaN);
+      for (var jj = 1; jj < ny - 1; jj++) for (var ii = 1; ii < nx - 1; ii++) { c = jj * nx + ii; var z1 = Zs[c - nx - 1], z2 = Zs[c - nx], z3 = Zs[c - nx + 1], z4 = Zs[c - 1], z5 = Zs[c], z6 = Zs[c + 1], z7 = Zs[c + nx - 1], z8 = Zs[c + nx], z9 = Zs[c + nx + 1];
+        var D2 = ((z4 + z6) / 2 - z5) / (dx * dx), E2 = ((z2 + z8) / 2 - z5) / (dy * dy), F2 = (-z1 + z3 + z7 - z9) / (4 * dx * dy), G2 = (-z4 + z6) / (2 * dx), H2 = (z2 - z8) / (2 * dy), q2 = G2 * G2 + H2 * H2;
+        PC2[c] = q2 > 1e-8 ? -2 * (D2 * H2 * H2 + E2 * G2 * G2 - F2 * G2 * H2) / q2 * 100 : 0; }
+      G.raw.curv = PC2;
+    }
     if (RC.k === 'min' && G.m) {
       var masked = 0, ok = 0; for (c = 0; c < G.n; c++) { if (!isFinite(G.m[0][c])) continue; var lc = LCw ? LCw[c] : 60; if (G.m[3][c] > 0.25 || lc === 10 || lc === 40 || lc === 50 || lc === 80 || lc === 90 || lc === 95) { G.m[0][c] = G.m[1][c] = G.m[2][c] = NaN; masked++; } else ok++; }
       G.masked = masked / ((masked + ok) || 1); if (ok > 50) { G.raw.clay = G.m[0]; G.raw.iron = G.m[1]; G.raw.ferr = G.m[2]; }
@@ -450,7 +507,7 @@
   function hex(h) { h = h.replace('#', ''); return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)]; }
   function ramp(f) { f = SH.clamp(f, 0, 1) * (VIR.length - 1); var i = Math.min(VIR.length - 2, Math.floor(f)), a = hex(VIR[i]), b = hex(VIR[i + 1]), u = f - i; return [a[0] + (b[0] - a[0]) * u, a[1] + (b[1] - a[1]) * u, a[2] + (b[2] - a[2]) * u]; }
   function showOpts() {
-    var cur = SH.val('pShow') || 'cls', o = '<option value="cls">' + t('Potential classes', 'فئات الاحتمالية') + '</option><option value="idx">' + t('Potential index (1–5)', 'مؤشر الاحتمالية (1–5)') + '</option>';
+    var cur = SH.val('pShow') || 'cls', o = '<option value="cls">' + (RC.k === 'ls' ? t('Susceptibility classes', 'فئات القابلية') : t('Potential classes', 'فئات الاحتمالية')) + '</option><option value="idx">' + (RC.k === 'ls' ? t('Susceptibility index (1–5)', 'مؤشر القابلية (1–5)') : t('Potential index (1–5)', 'مؤشر الاحتمالية (1–5)')) + '</option>';
     F.forEach(function (f) { if (!G.raw[f.k]) return; o += '<optgroup label="' + SH.esc(f.n) + '"><option value="r:' + f.k + '">' + t('Rating 1–5', 'التقييم 1–5') + '</option><option value="v:' + f.k + '">' + t('Values', 'القيم') + '</option></optgroup>'; });
     $('#pShow').innerHTML = o; $('#pShow').value = /^(cls|idx|[rv]:\w+)$/.test(cur) && $('#pShow').querySelector('option[value="' + cur + '"]') ? cur : 'cls';
   }
@@ -463,7 +520,7 @@
     else if (view === 'idx' || view[0] === 'v' && FK[view.slice(2)].kind !== 'cat') {
       var arr = view === 'idx' ? G.idx : G.raw[view.slice(2)], q = view === 'idx' ? [1, 5] : pct(arr, [0.02, 0.98]), f = FK[view.slice(2)], inv = view !== 'idx' && f && f.dir < 0;
       for (c = 0; c < G.n; c++) if (isFinite(arr[c])) put(c, ramp((arr[c] - q[0]) / ((q[1] - q[0]) || 1)));
-      leg = { title: view === 'idx' ? t('Potential index', 'مؤشر الاحتمالية') : f.n + (f.u ? ' (' + f.u + ')' : ''), grad: [q[0], q[1]], dp: view === 'idx' ? 1 : f.dp, note: inv ? t('Lower values rate higher.', 'القيم الأدنى تُقيّم أعلى.') : '' }; }
+      leg = { title: view === 'idx' ? (RC.k === 'ls' ? t('Susceptibility index', 'مؤشر القابلية') : t('Potential index', 'مؤشر الاحتمالية')) : f.n + (f.u ? ' (' + f.u + ')' : ''), grad: [q[0], q[1]], dp: view === 'idx' ? 1 : f.dp, note: inv ? t('Lower values rate higher.', 'القيم الأدنى تُقيّم أعلى.') : '' }; }
     else if (view[0] === 'r') { var R = G.rate[view.slice(2)]; for (c = 0; c < G.n; c++) if (isFinite(R[c])) put(c, CR[Math.round(R[c]) - 1]); leg = { title: FK[view.slice(2)].n + ' · ' + t('rating', 'التقييم'), sw: CLS.map(function (q, i) { return [q[0], (i + 1) + ' · ' + (AR ? q[2] : q[1])]; }) }; }
     else if (view === 'v:lulc') { var seen = {}; for (c = 0; c < G.n; c++) { var v = G.raw.lulc[c]; if (LC[v]) { put(c, hex(LC[v][0])); seen[v] = (seen[v] || 0) + 1; } } leg = { title: FK.lulc.n, sw: Object.keys(seen).sort(function (a, b) { return seen[b] - seen[a]; }).map(function (v) { return [LC[v][0], (AR ? LC[v][2] : LC[v][1]) + ' · ' + RC.lc(v)]; }) }; }
     else if (view === 'v:lith') { var su = {}; for (c = 0; c < G.n; c++) { var u = G.units[G.raw.lith[c]]; if (u) { put(c, hex(u.color)); su[G.raw.lith[c]] = 1; } } leg = { title: FK.lith.n, sw: Object.keys(su).map(function (i) { var u = G.units[i]; return [u.color, u.name + ' · ' + u.r]; }) }; }
@@ -484,7 +541,7 @@
   if (map) map.on('click', function (e) {
     if (addMode) { wells.push({ lat: e.latlng.lat, lon: e.latlng.lng }); saveWells(); return; }
     var c = cellAt(e.latlng.lat, e.latlng.lng); if (c < 0 || !G || !G.done) return;
-    var h = '<div class="pz-pop"><b>' + (G.cls[c] >= 0 ? t('Potential: ', 'الاحتمالية: ') + (AR ? CLS[G.cls[c]][2] : CLS[G.cls[c]][1]) + ' · <span class="ltr">' + SH.fmt(G.idx[c], 2) + '</span>' : t('No data', 'لا بيانات')) + '</b><table><tr><td></td><td class="num">' + t('value', 'القيمة') + '</td><td class="num">' + t('rating', 'التقييم') + '</td><td class="num">' + t('weight', 'الوزن') + '</td></tr>' +
+    var h = '<div class="pz-pop"><b>' + (G.cls[c] >= 0 ? (RC.k === 'ls' ? t('Susceptibility: ', 'القابلية: ') : t('Potential: ', 'الاحتمالية: ')) + (AR ? CLS[G.cls[c]][2] : CLS[G.cls[c]][1]) + ' · <span class="ltr">' + SH.fmt(G.idx[c], 2) + '</span>' : t('No data', 'لا بيانات')) + '</b><table><tr><td></td><td class="num">' + t('value', 'القيمة') + '</td><td class="num">' + t('rating', 'التقييم') + '</td><td class="num">' + t('weight', 'الوزن') + '</td></tr>' +
       F.filter(function (f) { return G.raw[f.k]; }).map(function (f) { var r = G.rate[f.k] ? G.rate[f.k][c] : NaN; return '<tr><td>' + SH.esc(f.n) + '</td><td class="num">' + SH.esc(valTxt(f, c)) + '</td><td class="num"><b>' + (isFinite(r) ? r : '—') + '</b></td><td class="num">' + (f.on && f.w ? SH.fmt(f.w * 100, 0) + '%' : '—') + '</td></tr>'; }).join('') + '</table><span class="ltr" style="color:#666">' + SH.fmtLatLon(e.latlng.lat, e.latlng.lng, 4) + '</span></div>';
     L.popup({ maxWidth: 340 }).setLatLng(e.latlng).setContent(h).openOn(map);
   });
@@ -496,7 +553,7 @@
     /* which layers set the high zones apart: mean rating inside high + very high minus the area mean */
     var drv = G.act.map(function (f) { var s1 = 0, n1 = 0, s0 = 0, n0 = 0, R = G.rate[f.k]; for (var c = 0; c < G.n; c++) { if (!isFinite(R[c]) || G.cls[c] < 0) continue; s0 += R[c]; n0++; if (G.cls[c] >= 3) { s1 += R[c]; n1++; } } return { f: f, d: n1 && n0 ? s1 / n1 - s0 / n0 : 0, m: n1 ? s1 / n1 : NaN }; }).sort(function (a, b) { return b.d * b.f.w - a.d * a.f.w; });
     var top = drv.filter(function (x) { return x.d > 0.15; }).slice(0, 3);
-    var txt = t('High and very high potential cover ', 'تغطي الاحتمالية العالية والعالية جداً ') + '<b class="ltr">' + SH.fmt(hi, 1) + ' %</b>' + t(' of the area (', ' من المنطقة (') + '<span class="ltr">' + SH.fmt(hk, 1) + ' km²</span>). ' +
+    var txt = (RC.k === 'ls' ? t('High and very high susceptibility cover ', 'تغطي القابلية العالية والعالية جداً ') : t('High and very high potential cover ', 'تغطي الاحتمالية العالية والعالية جداً ')) + '<b class="ltr">' + SH.fmt(hi, 1) + ' %</b>' + t(' of the area (', ' من المنطقة (') + '<span class="ltr">' + SH.fmt(hk, 1) + ' km²</span>). ' +
       (top.length ? t('The layers that set them apart most are ', 'وأكثر الطبقات تمييزاً لها: ') + top.map(function (x) { return '<b>' + SH.esc(x.f.n) + '</b>'; }).join(t(', ', '، ')) + t('; each rates clearly higher there than in the rest of the area. ', '؛ إذ يرتفع تقييم كل منها فيها بوضوح عن بقية المنطقة. ') : '') +
       RC.end + (RC.k === 'arch' ? ' ' + t('Cells are generalised to about ', 'الخلايا معمّمة إلى نحو ') + '<span class="ltr">' + SH.fmt(G.gen * G.cell / 1000, 1) + ' km</span>' + t(' to protect unrecorded sites.', ' لحماية المواقع غير المسجلة.') + (G.cell > 90 ? ' <span style="color:var(--warn)">' + t('Cells are coarser than 90 m, so small mounds blur; a smaller area gives finer cells.', 'الخلايا أخشن من 90 م فتضيع التلول الصغيرة؛ المساحة الأصغر تعطي خلايا أدق.') + '</span>' : '') : '') +
       (RC.k === 'min' && G.masked != null ? ' ' + t('Vegetation, fields, water and towns hide ', 'تحجب النباتات والحقول والمياه والمدن ') + '<b class="ltr">' + SH.fmt(G.masked * 100, 0) + ' %</b>' + t(' of the area from the spectral layers; only the structural and rock layers rate it.', ' من المنطقة عن الطبقات الطيفية، فلا تقيّمها هناك إلا طبقتا التراكيب والصخر.') : '');
@@ -550,7 +607,7 @@
       fr.map(function (r, i) { return '<tr><td><i style="display:inline-block;width:10px;height:10px;border-radius:2px;background:' + CLS[i][0] + '"></i> ' + (AR ? CLS[i][2] : CLS[i][1]) + '</td><td class="num">' + SH.fmt(A[i].p, 1) + '</td><td class="num">' + r.n + '</td><td class="num"><b>' + (isFinite(r.fr) ? SH.fmt(r.fr, 2) : '—') + '</b></td></tr>'; }).join('') + '</tbody></table><span class="xsmall muted">' + t('A frequency ratio above 1 means the class holds more points than its share of the area. A good map shows ratios rising from very low to very high.', 'نسبة التكرار الأعلى من 1 تعني أن الفئة تحوي آباراً أكثر من نصيبها من المساحة. الخريطة الجيدة تُظهر نسباً تتصاعد من المنخفضة جداً إلى العالية جداً.') + '</span></div>';
     var pal = SH.palette();
     SH.plot('pRoc', [{ x: [0, 100], y: [0, 100], mode: 'lines', line: { color: '#999', dash: 'dash', width: 1 }, hoverinfo: 'skip', name: t('Random', 'عشوائي') }, { x: curve.x, y: curve.y, mode: 'lines', line: { color: pal.accent, width: 2.5, shape: 'spline' }, fill: 'tonexty', fillcolor: SH.alpha(pal.accent, .12), name: 'AUC ' + SH.fmt(sAuc, 2), hovertemplate: '%{x:.0f}% → %{y:.0f}%<extra></extra>' }],
-      function () { return SH.plotLayout({ margin: { l: 66, r: 10, t: 10, b: 44 }, showlegend: false, xaxis: { range: [0, 100], ticksuffix: '%', title: { text: t('Area, from highest potential', 'المساحة من أعلى احتمالية'), font: { size: 11 }, standoff: 8 } }, yaxis: { range: [0, 101], ticksuffix: '%', title: { text: RC.pt.ax, font: { size: 11 }, standoff: 10 } } }); }, { displayModeBar: false });
+      function () { return SH.plotLayout({ margin: { l: 66, r: 10, t: 10, b: 44 }, showlegend: false, xaxis: { range: [0, 100], ticksuffix: '%', title: { text: (RC.k === 'ls' ? t('Area, from highest susceptibility', 'المساحة من أعلى قابلية') : t('Area, from highest potential', 'المساحة من أعلى احتمالية')), font: { size: 11 }, standoff: 8 } }, yaxis: { range: [0, 101], ticksuffix: '%', title: { text: RC.pt.ax, font: { size: 11 }, standoff: 10 } } }); }, { displayModeBar: false });
   }
   $('#pVal').addEventListener('click', function () { validate(); });
   /* archaeology: sites already recorded on open map data inside the area */
@@ -585,7 +642,7 @@
     var W = M * 2 + cols * pw + (cols - 1) * 24, H = 110 + rowsN * (ph + 46) + 90, cv = document.createElement('canvas'); cv.width = W; cv.height = H; var x = cv.getContext('2d'), FN = '"IBM Plex Sans Arabic", Manrope, Arial, sans-serif';
     x.fillStyle = '#fff'; x.fillRect(0, 0, W, H); x.strokeStyle = '#1B232B'; x.lineWidth = 1.5; x.strokeRect(10, 10, W - 20, H - 20); x.fillStyle = '#1B232B'; x.font = '800 24px ' + FN; x.textAlign = AR ? 'right' : 'left'; x.direction = AR ? 'rtl' : 'ltr';
     x.fillText(RC.fig, AR ? W - M : M, 52); x.font = '500 14px ' + FN; x.fillStyle = '#55616B'; x.fillText(t('Weights from the analytic hierarchy process are shown under each layer.', 'أوزان التحليل الهرمي مبينة تحت كل طبقة.'), AR ? W - M : M, 78);
-    var items = fs.map(function (f) { return { v: 'r:' + f.k, n: f.n + ' · \u2066' + SH.fmt(f.w * 100, 1) + '%\u2069' }; }).concat([{ v: 'cls', n: t('Result: potential classes', 'النتيجة: فئات الاحتمالية') }]), jobs = items.map(function (it) { return new Promise(function (res) { var im = new Image(); im.onload = function () { res(im); }; im.src = paint(it.v).url; }); });
+    var items = fs.map(function (f) { return { v: 'r:' + f.k, n: f.n + ' · \u2066' + SH.fmt(f.w * 100, 1) + '%\u2069' }; }).concat([{ v: 'cls', n: (RC.k === 'ls' ? t('Result: susceptibility classes', 'النتيجة: فئات القابلية') : t('Result: potential classes', 'النتيجة: فئات الاحتمالية')) }]), jobs = items.map(function (it) { return new Promise(function (res) { var im = new Image(); im.onload = function () { res(im); }; im.src = paint(it.v).url; }); });
     Promise.all(jobs).then(function (ims) { ims.forEach(function (im, k) { var ci = k % cols, ri = Math.floor(k / cols), px = AR ? W - M - (ci + 1) * pw - ci * 24 : M + ci * (pw + 24), py = 104 + ri * (ph + 46);
         x.imageSmoothingEnabled = false; x.fillStyle = '#f3f3f3'; x.fillRect(px, py, pw, ph); x.drawImage(im, px, py, pw, ph); x.strokeStyle = '#1B232B'; x.lineWidth = 1; x.strokeRect(px, py, pw, ph);
         x.fillStyle = '#1B232B'; x.font = (k === items.length - 1 ? '800' : '600') + ' 14px ' + FN; x.textAlign = 'center'; x.fillText(items[k].n, px + pw / 2, py + ph + 22); });

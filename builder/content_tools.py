@@ -497,7 +497,7 @@ ORDER = ['quarry-survey', 'structural-geotechnical', 'stereonet-lab', 'rockmass-
          'water-lab', 'hydro-alert', 'potential-zones',
          'air-quality',
          'env-monitoring',
-         'hazards-monitor', 'volcanoes',
+         'hazards-monitor', 'landslide-susceptibility', 'volcanoes',
          'kerogen-lab', 'palynofacies-lab']
 _all = {t['slug']: t for t in TOOLS + NEW_TOOLS}
 TOOLS = [_all[k] for k in ORDER]
