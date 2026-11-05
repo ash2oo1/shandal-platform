@@ -38,6 +38,7 @@
 .wl-acc table{border-collapse:collapse;width:100%;font-size:.78rem}
 .wl-acc th,.wl-acc td{padding:5px 6px;border-bottom:1px solid var(--line);text-align:start;vertical-align:top}
 .wl-acc td.num{direction:ltr;text-align:end;white-space:nowrap}
+.wl-dl{display:inline-flex;gap:4px}.wl-dl button{all:unset;cursor:pointer;font-size:.72rem;font-weight:700;padding:4px 9px;border:1px solid var(--line-2);border-radius:8px;background:var(--surface)}.wl-dl button:hover{border-color:var(--accent);color:var(--accent)}
 .sw-chip{display:inline-block;width:12px;height:12px;border-radius:3px;vertical-align:-2px;margin-inline-end:4px;border:1px solid rgba(0,0,0,.25)}
 </style>
 {% endblock %}
@@ -125,15 +126,15 @@
   <div class="ws-main">
     <div class="kpis" id="wKpis"></div>
     <div id="wVerd" style="display:grid;gap:10px"></div>
-    {{ m.fig_open('fgLog', '1', 'Composite log and interpretation', 'السجل المركب والتفسير') }}
+    {{ m.fig_open('fgLog', '1', 'Composite log and interpretation', 'السجل المركب والتفسير', '<span class="wl-dl" data-ex="log"><button type="button" data-f="png">PNG</button><button type="button" data-f="jpg">JPG</button><button type="button" data-f="pdf">PDF</button></span>') }}
       <div class="fig-b"><div class="wl-scroll" id="wLog" dir="ltr"></div></div>
     {{ m.fig_close() }}
-    {{ m.fig_open('fgX', '2', 'Crossplots', 'المخططات التقاطعية') }}
+    {{ m.fig_open('fgX', '2', 'Crossplots', 'المخططات التقاطعية', '<span class="wl-dl" data-ex="x"><button type="button" data-f="png">PNG</button><button type="button" data-f="jpg">JPG</button><button type="button" data-f="pdf">PDF</button></span>') }}
       <div class="fig-b wl-x"><div class="plot" id="wXnd"></div><div class="plot" id="wXpk"></div><div><div class="wl-chips" id="wX3" style="justify-content:center"><button type="button" data-x="mn" aria-pressed="true">M–N</button><button type="button" data-x="dr" aria-pressed="false">{{ m.L('Sonic–density', 'الصوتي–الكثافة') }}</button><button type="button" data-x="dn" aria-pressed="false">{{ m.L('Sonic–neutron', 'الصوتي–النيوترون') }}</button></div><div class="plot" id="wXmn"></div></div></div>
-      <p class="xsmall muted" id="wXcap" style="margin:6px 0 0"></p>
+      <p class="xsmall muted" id="wXcap" style="margin:6px 0 0;padding:0 16px 12px;line-height:1.9"></p>
     {{ m.fig_close() }}
-    <section class="pn"><div class="pn-h">{{ icon('layers') }}<h2>{{ m.L('Layers and their interpretation', 'الطبقات وتفسيرها') }}</h2></div><div class="pn-b flush tbl-wrap"><table class="tbl" id="wZones"></table></div></section>
-    <section class="pn" id="pnStep"><div class="pn-h">{{ icon('calculator') }}<h2>{{ m.L('Calculate at a depth, step by step', 'الحساب عند عمق معيّن خطوة بخطوة') }}</h2></div><div class="pn-b" style="display:grid;gap:10px">
+    <section class="pn"><div class="pn-h">{{ icon('layers') }}<h2>{{ m.L('Layers and their interpretation', 'الطبقات وتفسيرها') }}</h2><div class="sp no-print"><span class="wl-dl" data-ex="zones"><button type="button" data-f="png">PNG</button><button type="button" data-f="jpg">JPG</button><button type="button" data-f="pdf">PDF</button></span></div></div><div class="pn-b flush tbl-wrap"><table class="tbl" id="wZones"></table></div></section>
+    <section class="pn" id="pnStep"><div class="pn-h">{{ icon('calculator') }}<h2>{{ m.L('Calculate at a depth, step by step', 'الحساب عند عمق معيّن خطوة بخطوة') }}</h2><div class="sp no-print"><span class="wl-dl" data-ex="step"><button type="button" data-f="png">PNG</button><button type="button" data-f="jpg">JPG</button><button type="button" data-f="pdf">PDF</button></span></div></div><div class="pn-b" style="display:grid;gap:10px">
       <p class="xsmall muted" style="margin:0">{{ m.L('Type a depth or tap the composite log. Every equation is written out with the readings of that depth, as worked in the lectures: gamma-ray index, shale volume, density, sonic and neutron porosity, total and effective porosity, secondary porosity, Sw, Sxo, the moveable hydrocarbon index and the hydrocarbon saturations.', 'اكتب عمقاً أو انقر على السجل المركب. تُكتب كل معادلة بقراءات ذلك العمق كما في المحاضرات: دليل أشعة گاما، وحجم الطين، ومسامية الكثافة والصوتي والنيوترون، والمسامية الكلية والفعالة، والمسامية الثانوية، وSw وSxo، ودليل الهيدروكربونات المتحركة، والتشبعات الهيدروكربونية.') }}</p>
       <div class="row2">
         {{ m.fld('wSD', 'Depth', 'العمق', 'number', '', '', '', '') }}
@@ -142,7 +143,7 @@
       <div class="tbl-wrap"><table class="tbl" id="wStep"></table></div>
       <div id="wStepV"></div>
     </div></section>
-    {{ m.fig_open('fgCorr', '3', 'Comparison and correlation of the loaded wells', 'مقارنة الآبار المحمّلة ومضاهاتها') }}
+    {{ m.fig_open('fgCorr', '3', 'Comparison and correlation of the loaded wells', 'مقارنة الآبار المحمّلة ومضاهاتها', '<span class="wl-dl" data-ex="corr"><button type="button" data-f="png">PNG</button><button type="button" data-f="jpg">JPG</button><button type="button" data-f="pdf">PDF</button></span>') }}
       <div class="fig-b"><div class="wl-chips" id="wCorrK"></div><div class="wl-scroll" id="wCorr" dir="ltr" style="margin-top:8px"></div></div>
     {{ m.fig_close() }}
     {{ m.fig_open('fgDig', '4', 'Read a log from an image', 'قراءة مجس من صورة') }}
@@ -155,7 +156,17 @@
         <p class="xsmall" id="wDigOut" style="margin:0"></p>
       </div>
     {{ m.fig_close() }}
-    {{ m.fig_open('fgType', '5', 'How each log responds to rocks and fluids', 'كيف يستجيب كل مجس للصخور والموائع') }}
+    {{ m.fig_open('fgExp', '5', 'Log response explorer', 'مستكشف استجابة المجسات', '<span class="wl-dl" data-ex="exp"><button type="button" data-f="png">PNG</button><button type="button" data-f="jpg">JPG</button><button type="button" data-f="pdf">PDF</button></span>') }}
+      <div class="fig-b" style="display:grid;gap:10px">
+        <p class="xsmall muted" style="margin:0">{{ m.L('Choose a log and a rock or fluid: the system shows the typical reading, where it sits among the other rocks, and why the log reads so there.', 'اختر مجساً وصخراً أو مائعاً: يعرض النظام القراءة النموذجية، وموقعها بين الصخور الأخرى، ولماذا يقرأ المجس هكذا هناك.') }}</p>
+        <div class="row2">
+          {{ m.sel('wEL', 'Log', 'المجس', [('GR', 'Gamma ray (GR)', 'أشعة گاما (GR)', True), ('SP', 'Spontaneous potential (SP)', 'الجهد الذاتي (SP)'), ('CALI', 'Caliper (CALI)', 'مقياس القطر (CALI)'), ('RD', 'Deep resistivity (RD)', 'المقاومة العميقة (RD)'), ('RXO', 'Shallow resistivity (RXO)', 'المقاومة الضحلة (RXO)'), ('RHOB', 'Bulk density (RHOB)', 'الكثافة الكلية (RHOB)'), ('NPHI', 'Neutron porosity (NPHI)', 'المسامية النيوترونية (NPHI)'), ('PEF', 'Photoelectric factor (PEF)', 'العامل الكهروضوئي (PEF)'), ('DT', 'Sonic (DT)', 'الصوتي (DT)'), ('K', 'Potassium (K)', 'البوتاسيوم (K)'), ('TH', 'Thorium (TH)', 'الثوريوم (TH)'), ('U', 'Uranium (U)', 'اليورانيوم (U)')]) }}
+          {{ m.sel('wER', 'Rock or fluid', 'الصخر أو المائع', []) }}
+        </div>
+        <div id="wEOut" style="display:grid;gap:10px"></div>
+      </div>
+    {{ m.fig_close() }}
+    {{ m.fig_open('fgType', '6', 'How each log responds to rocks and fluids', 'كيف يستجيب كل مجس للصخور والموائع', '<span class="wl-dl" data-ex="type"><button type="button" data-f="png">PNG</button><button type="button" data-f="jpg">JPG</button><button type="button" data-f="pdf">PDF</button></span>') }}
       <div class="fig-b"><div class="wl-scroll" id="wType" dir="ltr"></div></div>
     {{ m.fig_close() }}
     <section class="pn"><div class="pn-h">{{ icon('book-open') }}<h2>{{ m.L('Guide to well logs', 'دليل المجسات البئرية') }}</h2></div><div class="pn-b"><div class="wl-chips" id="wGF" style="margin-bottom:10px"></div><div class="wl-guide" id="wGuide"></div></div></section>

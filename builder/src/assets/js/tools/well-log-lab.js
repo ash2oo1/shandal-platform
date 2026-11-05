@@ -135,7 +135,7 @@
     if (has('RD') || has('RM') || has('RXO')) TR.push({ id: 'res', w: 170, ks: ['RD', 'RM', 'RXO'] });
     if (has('RHOB') || has('NPHI') || has('PEF')) TR.push({ id: 'nd', w: 180, ks: ['RHOB', 'NPHI', 'PEF'] });
     if (has('DT') || has('DTS')) TR.push({ id: 'dt', w: 120, ks: ['DT', 'DTS'] });
-    TR.push({ id: 'vol', w: 150 }); TR.push({ id: 'phi', w: 130 }); TR.push({ id: 'int', w: 104 });
+    TR.push({ id: 'vol', w: 150 }); TR.push({ id: 'phi', w: 150 }); TR.push({ id: 'int', w: 104 });
     var x = 12; TR.forEach(function (tr) { tr.x = x; x += tr.w; }); var W = x + 12, HH = 112, y0 = 58 + HH, H = y0 + Hp + 150;
     var Y = function (d) { return y0 + (d - D[i0]) / (span || 1) * Hp; };
     var stride = Math.max(1, Math.floor(nIn / Hp)), rowH = Math.max(1, Hp / nIn * stride) + 0.4;
@@ -200,7 +200,7 @@
         o.push('<path d="' + fw + '" fill="#4f9fe0" opacity="0.7"/><path d="' + fh + '" fill="#1a9850" opacity="0.8"/><path d="' + fhg + '" fill="#d7191c" opacity="0.8"/>');
         o.push(poly(tr, R.PHI, sP, false, '#111', null, 1.3));
         if (R.P.mode !== 'water' && R.avail.RD) o.push(poly(tr, R.SW, [1, 0], false, '#7b3294', '5 3', 1.2));
-        header(tr, [{ n: 'PHIE · effective porosity', c: '#111', s: ['0.5', '0'], u: 'v/v' }, R.P.mode !== 'water' && R.avail.RD ? { n: 'SW · water saturation', c: '#7b3294', d: '5 3', s: ['1', '0'], u: 'v/v' } : { n: 'blue: water-filled', c: '#2c7bb6' }, { n: 'BVW: blue · HC: green/red', c: '#444' }]);
+        header(tr, [{ n: 'PHIE · effective porosity', c: '#111', s: ['0.5', '0'], u: 'v/v' }, R.P.mode !== 'water' && R.avail.RD ? { n: 'SW · water saturation', c: '#7b3294', d: '5 3', s: ['1', '0'], u: 'v/v' } : { n: 'blue = water-filled', c: '#2c7bb6' }, { n: 'BVW blue · HC green / red', c: '#444' }]);
       }
       if (tr.id === 'int') {
         var hw = tr.w / 2 - 2, fp = {}, flp = {}, frp = '', wsp = '', srp = '';
@@ -230,17 +230,19 @@
   }
 
   /* ---------------------------------------------------------------- crossplots */
+  /* labels of end members set off from the cloud of samples with a leader line and a white box, so they never overlap the data */
+  function lab(pts, off) { return pts.map(function (q) { var o2 = off[q[2]] || [30, -30]; return { x: q[0], y: q[1], text: q[2], showarrow: true, arrowhead: 0, arrowwidth: 1, arrowcolor: '#555', ax: o2[0], ay: o2[1], bgcolor: 'rgba(255,255,255,0.9)', bordercolor: '#bbb', borderwidth: 1, borderpad: 2, font: { size: 11, color: '#222' } }; }); }
   function xplots() {
     if (!window.Plotly) return; var w = R.w, c = function (k) { return WL.curve(w, k); }, RB = c('RHOB'), NP = c('NPHI'), RD = c('RD') || c('RM'), DT = c('DT'), GR = c('GR') || c('CGR');
     var idx = []; for (var i = 0; i < R.n; i++) if (R.IN[i]) idx.push(i); var st = Math.max(1, Math.floor(idx.length / 2500)); idx = idx.filter(function (_, k) { return k % st === 0; });
-    var cb = function (ttl) { return { thickness: 10, len: 0.6, title: { text: ttl, side: 'right' }, x: 1.02 }; };
+    var cb = function (ttl) { return { thickness: 10, len: 0.6, title: { text: ttl, side: 'top' }, x: 1.03 }; };
     var L = function (x, y) { return { margin: { l: 58, r: 70, t: 30, b: 92 }, xaxis: x, yaxis: y, legend: { orientation: 'h', y: -0.3 }, showlegend: true }; };
     if (RB && NP) {
       var lines = [['Sandstone', 2.65, function (p) { return 0.95 * p - 0.02; }, '#b08800'], ['Limestone', 2.71, function (p) { return p; }, '#2c7bb6'], ['Dolomite', 2.87, function (p) { return 1.08 * p + 0.02; }, '#8e44ad']].map(function (L2) {
         var ps = [0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4]; return { x: ps.map(L2[2]), y: ps.map(function (p) { return L2[1] - (L2[1] - R.P.rhof) * p; }), mode: 'lines+markers', marker: { size: 4 }, line: { color: L2[3], width: 1.6 }, name: L2[0], text: ps.map(function (p) { return 'φ ' + p; }), hoverinfo: 'name+text' }; });
       var pts = { x: idx.map(function (i) { return NP[i]; }), y: idx.map(function (i) { return RB[i]; }), mode: 'markers', type: 'scattergl', name: 'Samples', marker: { size: 4, color: idx.map(function (i) { return GR ? GR[i] : 0; }), colorscale: 'Viridis', cmin: R.grMin, cmax: R.grMax, colorbar: cb('GR'), opacity: 0.75 }, hovertemplate: 'NPHI %{x:.3f} · RHOB %{y:.3f}<extra></extra>' };
-      var ref = { x: [-0.02, -0.03, R.SH.n], y: [2.98, 2.04, R.SH.r], mode: 'markers+text', text: ['Anhydrite', 'Salt', 'Shale'], textposition: 'middle right', marker: { size: 9, symbol: 'diamond', color: '#333' }, name: 'End members' };
-      SH.plot('wXnd', lines.concat([pts, ref]), L({ title: { text: 'NPHI (v/v, limestone units)' }, range: [-0.05, 0.5] }, { title: { text: 'RHOB (g/cm³)' }, range: [3.0, 1.9] }), { filename: 'shandal-density-neutron' });
+      var ref = { x: [-0.02, -0.03, R.SH.n], y: [2.98, 2.04, R.SH.r], text: ['Anhydrite', 'Salt', 'Shale'], mode: 'markers', hoverinfo: 'text', marker: { size: 9, symbol: 'diamond', color: '#333' }, name: 'End members' };
+      SH.plot('wXnd', lines.concat([pts, ref]), Object.assign(L({ title: { text: 'NPHI (v/v, limestone units)' }, range: [-0.05, 0.5] }, { title: { text: 'RHOB (g/cm³)' }, range: [3.0, 1.9] }), { annotations: lab([[-0.02, 2.98, 'Anhydrite'], [-0.03, 2.04, 'Salt'], [R.SH.n, R.SH.r, 'Shale']], { Anhydrite: [45, -20], Salt: [40, 20], Shale: [30, 35] }) }), { filename: 'shandal-density-neutron' });
     } else { Plotly.purge($('#wXnd')); $('#wXnd').innerHTML = '<div class="empty-s"><p>' + t('Density and neutron logs are needed for this crossplot.', 'يحتاج هذا المخطط إلى مجسي الكثافة والنيوترون.') + '</p></div>'; }
     if (RD) {
       var ix2 = idx.filter(function (i) { return R.PHI[i] > 0.01 && RD[i] > 0; }), a = R.P.a, m = R.P.m, nn = R.P.n, lines2 = [1, 0.5, 0.25, 0.1].map(function (s) { var ph = [0.01, 1]; return { x: ph, y: ph.map(function (p) { return a * R.rw / (Math.pow(p, m) * Math.pow(s, nn)); }), mode: 'lines', name: 'Sw ' + s * 100 + '%', line: { width: 1.5, dash: s === 1 ? 'solid' : 'dash' } }; });
@@ -257,15 +259,15 @@
       var rf = R.P.rhof, ix3 = idx.filter(function (i) { return RB[i] > rf + 0.2; }), MN = function (dt, r, nph) { return [(189 - dt) / (r - rf) * 0.01, (1 - nph) / (r - rf)]; };
       var mins = ['qtz', 'cal', 'dol', 'anh', 'hal'].map(function (k) { var M = WL.MIN[k]; return [M.en].concat(MN(M.dt, M.r, M.n)); }); mins.push(['Shale'].concat(MN(R.SH.dt, R.SH.r, R.SH.n)));
       SH.plot('wXmn', [{ x: ix3.map(function (i) { return MN(DT[i], RB[i], NP[i])[1]; }), y: ix3.map(function (i) { return MN(DT[i], RB[i], NP[i])[0]; }), mode: 'markers', type: 'scattergl', name: 'Samples', marker: { size: 4, color: ix3.map(function (i) { return GR ? GR[i] : 0; }), colorscale: 'Viridis', cmin: R.grMin, cmax: R.grMax, colorbar: cb('GR'), opacity: 0.75 } },
-        { x: mins.map(function (q) { return q[2]; }), y: mins.map(function (q) { return q[1]; }), text: mins.map(function (q) { return q[0]; }), mode: 'markers+text', textposition: 'top center', marker: { size: 10, symbol: 'diamond', color: '#333' }, name: 'Minerals' }],
-        L({ title: { text: 'N = (1 − NPHI) / (ρb − ρf)' }, range: [0.3, 1.1] }, { title: { text: 'M = 0.01 (189 − DT) / (ρb − ρf)' }, range: [0.5, 1.3] }), { filename: 'shandal-m-n' });
+        { x: mins.map(function (q) { return q[2]; }), y: mins.map(function (q) { return q[1]; }), text: mins.map(function (q) { return q[0]; }), mode: 'markers', hoverinfo: 'text', marker: { size: 10, symbol: 'diamond', color: '#333' }, name: 'Minerals' }],
+        Object.assign(L({ title: { text: 'N = (1 − NPHI) / (ρb − ρf)' }, range: [0.3, 1.1] }, { title: { text: 'M = 0.01 (189 − DT) / (ρb − ρf)' }, range: [0.5, 1.3] }), { annotations: lab(mins.map(function (q) { return [q[2], q[1], q[0]]; }), { Quartz: [55, 30], Calcite: [40, -45], Dolomite: [-70, -20], Anhydrite: [-60, 25], Halite: [-55, -25], Shale: [25, 45] }) }), { filename: 'shandal-m-n' });
     } else if (GR) {
       var gv = idx.map(function (i) { return GR[i]; });
       SH.plot('wXmn', [{ x: gv, type: 'histogram', nbinsx: 40, marker: { color: '#1a9850' }, name: 'GR' }, { x: [R.grMin, R.grMin], y: [0, idx.length / 8], mode: 'lines', name: 'GR clean', line: { color: '#b08800', dash: 'dash' } }, { x: [R.grMax, R.grMax], y: [0, idx.length / 8], mode: 'lines', name: 'GR shale', line: { color: '#555', dash: 'dash' } }],
         L({ title: { text: 'Gamma ray (gAPI)' } }, { title: { text: 'Samples' } }), { filename: 'shandal-gr-histogram' });
     }
-    $('#wXcap').textContent = t('Left: density–neutron crossplot with the sandstone, limestone and dolomite lines (porosity marked every 0.05); gas moves points up and to the left, shale to the lower right. Middle: Pickett plot of porosity against deep resistivity with lines of equal water saturation (slope −1/m). Right: M–N lithology plot, or sonic against density or neutron with the lithology lines (Wyllie), or the gamma-ray histogram when there is no sonic.',
-      'اليسار: مخطط الكثافة والنيوترون مع خطوط الحجر الرملي والجيري والدولومايت (المسامية معلّمة كل 0.05)؛ يحرك الغاز النقاط إلى الأعلى واليسار، والطفل إلى الأسفل واليمين. الوسط: مخطط بيكيت للمسامية مقابل المقاومة العميقة مع خطوط تساوي التشبع بالماء (الميل −1/m). اليمين: مخطط M–N للصخارية، أو الصوتي مقابل الكثافة أو النيوترون مع خطوط الصخارية (ويلي)، أو مدرج أشعة گاما عند غياب الصوتي.');
+    $('#wXcap').innerHTML = t('Left: density–neutron crossplot with the sandstone, limestone and dolomite lines (porosity marked every 0.05); gas moves points up and to the left, shale to the lower right. Middle: Pickett plot of porosity against deep resistivity with lines of equal water saturation (slope −1/m). Right: M–N lithology plot, or sonic against density or neutron with the lithology lines (Wyllie), or the gamma-ray histogram when there is no sonic.',
+      'اليسار: مخطط الكثافة والنيوترون مع خطوط الحجر الرملي والجيري والدولومايت (المسامية معلّمة كل 0.05)؛ يحرك الغاز النقاط إلى الأعلى واليسار، والطفل إلى الأسفل واليمين. الوسط: مخطط بيكيت للمسامية مقابل المقاومة العميقة مع خطوط تساوي التشبع بالماء (الميل <span dir="ltr" style="display:inline-block">−1/m</span>). اليمين: مخطط M–N للصخارية، أو الصوتي مقابل الكثافة أو النيوترون مع خطوط الصخارية (ويلي)، أو مدرج أشعة گاما عند غياب الصوتي.');
   }
 
 
@@ -393,6 +395,8 @@
   $('#wTypePng').addEventListener('click', function () { var s = $('#wType svg'); if (s) SH.svgPng(s, 'shandal-log-response-chart.png', 2, '#fff'); });
 
   /* ---------------------------------------------------------------- guide */
+  /* in Arabic text, equations and ratios are isolated left-to-right so their brackets and signs keep their order */
+  var bidi = function (str) { return AR ? String(str).replace(/([A-Za-zφρΦΔ(][^\u0600-\u06FF،؛]*?[=/×][^\u0600-\u06FF،؛]*[A-Za-z0-9)φρ])/g, '<span dir="ltr" style="unicode-bidi:isolate;display:inline-block">$1</span>') : str; };
   var gf = 'all';
   function guide() {
     var GR = WL.GUIDE.GROUPS, groups = ['all'].concat(Object.keys(GR));
@@ -400,8 +404,8 @@
     var L2 = AR ? 1 : 0;
     $('#wGuide').innerHTML = WL.GUIDE.filter(function (g) { return gf === 'all' || g.grp === gf; }).map(function (g) {
       return '<article class="wl-g"><h4>' + (AR ? g.ar : g.en) + ' <small>' + SH.esc(g.mn) + ' · ' + SH.esc(g.u) + '</small></h4>' +
-        '<div class="r"><b>' + t('Measures', 'يقيس') + '</b><span>' + g.m[L2] + '</span></div><div class="r"><b>' + t('High', 'مرتفع') + '</b><span>' + g.hi[L2] + '</span></div><div class="r"><b>' + t('Low', 'منخفض') + '</b><span>' + g.lo[L2] + '</span></div>' +
-        '<div class="r"><b>' + t('Used for', 'يُستعمل في') + '</b><span>' + g.use[L2] + '</span></div><div class="r"><b>' + t('Limits', 'حدوده') + '</b><span>' + g.lim[L2] + '</span></div>' +
+        '<div class="r"><b>' + t('Measures', 'يقيس') + '</b><span>' + bidi(g.m[L2]) + '</span></div><div class="r"><b>' + t('High', 'مرتفع') + '</b><span>' + bidi(g.hi[L2]) + '</span></div><div class="r"><b>' + t('Low', 'منخفض') + '</b><span>' + bidi(g.lo[L2]) + '</span></div>' +
+        '<div class="r"><b>' + t('Used for', 'يُستعمل في') + '</b><span>' + bidi(g.use[L2]) + '</span></div><div class="r"><b>' + t('Limits', 'حدوده') + '</b><span>' + bidi(g.lim[L2]) + '</span></div>' +
         (g.v.length ? '<table>' + g.v.map(function (v) { return '<tr><td>' + (AR ? v[1] : v[0]) + '</td><td class="num">' + v[2] + '</td></tr>'; }).join('') + '</table>' : '') + '</article>'; }).join('');
   }
   $('#wGF').addEventListener('click', function (e) { var b = e.target.closest('[data-g]'); if (!b) return; gf = b.getAttribute('data-g'); guide(); });
@@ -471,7 +475,76 @@
     DG.pts = []; DG.col = null; DG.mode = 'L'; steps(); paintDig();
   }
 
+
+  /* ---------------------------------------------------------------- downloads of every figure and table: PNG, JPG, PDF */
+  function svgCanvas(svg, scale) { return new Promise(function (res, rej) { var vb = svg.viewBox.baseVal, W = vb.width, H = vb.height, sc = Math.min(scale || 2, 14000 / H, 8000 / W); var xml = new XMLSerializer().serializeToString(svg), im = new Image();
+    im.onload = function () { var cv2 = document.createElement('canvas'); cv2.width = Math.round(W * sc); cv2.height = Math.round(H * sc); var x = cv2.getContext('2d'); x.fillStyle = '#fff'; x.fillRect(0, 0, cv2.width, cv2.height); x.drawImage(im, 0, 0, cv2.width, cv2.height); res(cv2); }; im.onerror = rej; im.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(xml); }); }
+  function plotsCanvas(ids, capEl) { var els = ids.map(function (id) { return $('#' + id); }).filter(function (e) { return e && e.data; });
+    if (!els.length || !window.Plotly) return Promise.reject(new Error('none'));
+    return Promise.all(els.map(function (e) { return Plotly.toImage(e, { format: 'png', scale: 2, width: 560, height: 470 }).then(function (u) { return new Promise(function (r) { var i = new Image(); i.onload = function () { r(i); }; i.src = u; }); }); }).concat([htmlCanvas(capEl)])).then(function (ims) {
+      var cap = ims.pop(), pad = 30, cw = 1120, ch = 940, W = ims.length * cw + (ims.length + 1) * pad, ck = Math.min(1, (W - 2 * pad) / cap.width), H = ch + 3 * pad + cap.height * ck, cv2 = document.createElement('canvas'); cv2.width = W; cv2.height = H; var x = cv2.getContext('2d');
+      x.fillStyle = '#fff'; x.fillRect(0, 0, W, H); ims.forEach(function (im, k) { x.drawImage(im, pad + k * (cw + pad), pad, cw, ch); }); x.drawImage(cap, pad, ch + 2 * pad, cap.width * ck, cap.height * ck); return cv2; }); }
+  function wrapText(s2, n) { var out = [], cur = ''; String(s2 || '').replace(/<[^>]+>/g, '').replace(/[⁦-⁩]/g, '').split(' ').forEach(function (wd) { if ((cur + ' ' + wd).length > n) { out.push(cur); cur = wd; } else cur = cur ? cur + ' ' + wd : wd; }); if (cur) out.push(cur); return out; }
+  function htmlCanvas(el) { return libs().then(function () { return window.html2canvas(el, { backgroundColor: '#ffffff', scale: 2 }); }); }
+  var libP = null; function libs() { return libP || (libP = Promise.all(['assets/vendor/pdf/html2canvas.min.js', 'assets/vendor/pdf/jspdf.umd.min.js'].map(function (u) { return new Promise(function (r, j) { var sc = document.createElement('script'); sc.src = SH.base + u; sc.onload = r; sc.onerror = j; document.head.appendChild(sc); }); }))); }
+  function save(cv2, name, f) {
+    return SH.stamp(cv2).then(function (o) {
+      if (f === 'png') o.toBlob(function (b) { SH.download(name + '.png', b); }, 'image/png');
+      else if (f === 'jpg') o.toBlob(function (b) { SH.download(name + '.jpg', b); }, 'image/jpeg', 0.93);
+      else return libs().then(function () { var J = window.jspdf.jsPDF, land = o.width > o.height, pdf = new J({ orientation: land ? 'l' : 'p', unit: 'mm', format: 'a4' }), pw = pdf.internal.pageSize.getWidth() - 16, ph = pdf.internal.pageSize.getHeight() - 16;
+        /* a tall composite log is cut into A4 pages at full width */
+        var k = pw / o.width, sliceH = Math.floor(ph / k), pages = Math.ceil(o.height / sliceH);
+        if (o.height * k <= ph) pdf.addImage(o.toDataURL('image/jpeg', 0.92), 'JPEG', 8, 8, o.width * k, o.height * k);
+        else for (var pg = 0; pg < pages; pg++) { var part = document.createElement('canvas'); part.width = o.width; part.height = Math.min(sliceH, o.height - pg * sliceH); part.getContext('2d').drawImage(o, 0, -pg * sliceH); if (pg) pdf.addPage(); pdf.addImage(part.toDataURL('image/jpeg', 0.92), 'JPEG', 8, 8, part.width * k, part.height * k); }
+        SH.download(name + '.pdf', pdf.output('blob')); });
+    });
+  }
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest('.wl-dl [data-f]'); if (!b) return; var ex = b.parentElement.getAttribute('data-ex'), f = b.getAttribute('data-f'), wn = fname(''), p2;
+    if (ex === 'log') { if (!lastSvg) return; p2 = svgCanvas(lastSvg, 2); wn = fname('composite-log'); }
+    else if (ex === 'corr') { var sc = $('#wCorr svg'); if (!sc) return; p2 = svgCanvas(sc, 2); wn = fname('correlation'); }
+    else if (ex === 'type') { p2 = svgCanvas($('#wType svg'), 2); wn = 'shandal-log-response-chart'; }
+    else if (ex === 'exp') { var se = $('#wEOut svg'); if (!se) return; p2 = htmlCanvas($('#wEOut')); wn = 'shandal-log-response-' + SH.val('wEL') + '-' + SH.val('wER'); }
+    else if (ex === 'x') { if (!R) return; p2 = plotsCanvas(['wXnd', 'wXpk', 'wXmn'], $('#wXcap')); wn = fname('crossplots'); }
+    else if (ex === 'zones') { if (!R) return; p2 = htmlCanvas($('#wZones')); wn = fname('layers'); }
+    else if (ex === 'step') { if (!R) return; p2 = htmlCanvas($('#pnStep .pn-b')); wn = fname('calculation-' + $('#wSD').value); }
+    if (!p2) return; b.disabled = true; p2.then(function (cv2) { return save(cv2, wn, f); }).catch(function () { SH.toast(t('The image could not be prepared.', 'تعذر تجهيز الصورة.'), 'bad'); }).then(function () { b.disabled = false; });
+  });
+
+  /* ---------------------------------------------------------------- log response explorer */
+  var EU = { GR: ['gAPI', [0, 220]], SP: ['mV', [-100, 20]], CALI: ['in', [6, 16]], RD: ['Ω·m', [0.2, 2000], 1], RXO: ['Ω·m', [0.2, 2000], 1], RHOB: ['g/cm³', [1.3, 3.0]], NPHI: ['v/v', [-0.05, 0.55]], PEF: ['b/e', [0, 6]], DT: ['µs/ft', [40, 130]], K: ['%', [0, 4]], TH: ['ppm', [0, 15]], U: ['ppm', [0, 18]] };
+  /* why each log reads as it does in each rock and fluid */
+  var WHY = {
+    GR: { sh: ['Clay minerals hold potassium and adsorb thorium and uranium: shale is the highest common reading and defines the shale line.', 'تحمل المعادن الطينية البوتاسيوم وتمتز الثوريوم واليورانيوم، فالطفل أعلى قراءة شائعة ويحدد خط الطفل.'], hot: ['Organic matter traps uranium: the gamma ray rises far above ordinary shale. A sign of source rock.', 'تحتجز المادة العضوية اليورانيوم فترتفع أشعة گاما كثيراً فوق الطفل الاعتيادي، وهي علامة الصخر المصدري.'], ssw: ['Clean quartz sand has almost no radioactive minerals; the fluid does not change gamma ray.', 'الرمل الكوارتزي النظيف يكاد يخلو من المعادن المشعة، والمائع لا يغيّر أشعة گاما.'], anh: ['Evaporites are among the least radioactive rocks.', 'المتبخرات من أقل الصخور إشعاعاً.'], slt: ['Halite is non-radioactive (potash salts would read very high).', 'الهالايت غير مشع (أما أملاح البوتاس فتقرأ عالية جداً).'], col: ['Coal is usually low, but uranium-rich coal can read high.', 'الفحم منخفض عادةً، لكن الفحم الغني باليورانيوم قد يقرأ عالياً.'] },
+    SP: { sh: ['Shale fixes the baseline (zero reference).', 'يحدد الطفل خط الأساس (المرجع الصفري).'], ssw: ['Permeable bed with saltier water than the mud: full negative deflection (static SP).', 'طبقة نفاذة بماء أملح من الطين: انحراف سالب كامل (الجهد الذاتي الثابت).'], sho: ['Hydrocarbons reduce the deflection slightly.', 'تقلل الهيدروكربونات الانحراف قليلاً.'], shg: ['Gas reduces the deflection further.', 'يقلل الغاز الانحراف أكثر.'], anh: ['Tight rock: no permeability, no deflection.', 'صخر محكم: لا نفاذية ولا انحراف.'] },
+    CALI: { sh: ['Shale may cave or swell: the hole is often larger than the bit.', 'قد ينهار الطفل أو ينتفخ، فيكون البئر غالباً أوسع من الحافرة.'], ssw: ['Mudcake on a permeable bed makes the hole smaller than the bit.', 'كعكة الطين على الطبقة النفاذة تجعل البئر أضيق من الحافرة.'], slt: ['Fresh mud dissolves salt: a large washout.', 'يذيب الطين العذب الملح فيحدث توسّع كبير.'], anh: ['Hard rock keeps the hole at bit size.', 'الصخر الصلب يُبقي البئر بقطر الحافرة.'] },
+    RD: { sh: ['Clay-bound water conducts: shale is low.', 'الماء المرتبط بالطين موصل، فالطفل منخفض.'], ssw: ['Pores full of salty water: the lowest reading of a porous rock (Ro).', 'مسام مملوءة بماء مالح: أدنى قراءة لصخر مسامي (Ro).'], sho: ['Oil does not conduct: resistivity rises many times above the water sand.', 'النفط لا يوصل الكهرباء، فترتفع المقاومة أضعافاً فوق الرمل المائي.'], shg: ['Gas does not conduct: high resistivity.', 'الغاز لا يوصل: مقاومة عالية.'], dlo: ['Low porosity and oil: high resistivity.', 'مسامية قليلة ونفط: مقاومة عالية.'], frc: ['Tight rock with little water: very high, lowered only along conductive fractures.', 'صخر محكم قليل الماء: عالية جداً، ولا تنخفض إلا على الكسور الموصلة.'], anh: ['No pores, no water: off scale.', 'لا مسام ولا ماء: خارج المقياس.'], slt: ['No pores, no water: off scale.', 'لا مسام ولا ماء: خارج المقياس.'], hot: ['Kerogen and hydrocarbons raise the resistivity of the source rock above ordinary shale.', 'يرفع الكيروجين والهيدروكربونات مقاومة الصخر المصدري فوق الطفل الاعتيادي.'] },
+    RXO: { ssw: ['Fresh mud filtrate has replaced the salty water near the hole: Rxo far above Rt, the classic sign of invasion and permeability.', 'حلّ راشح الطين العذب محل الماء المالح قرب البئر: Rxo أعلى بكثير من Rt، وهي العلامة التقليدية للغزو والنفاذية.'], sho: ['Filtrate flushed part of the oil: Rxo below Rt.', 'أزاح الراشح جزءاً من النفط: Rxo أقل من Rt.'], sh: ['No invasion in shale: Rxo close to Rt.', 'لا غزو في الطفل: Rxo قريبة من Rt.'] },
+    RHOB: { shg: ['Gas in the pores lowers the density strongly.', 'الغاز في المسام يخفض الكثافة بشدة.'], anh: ['Anhydrite 2.98 g/cm³: the densest common rock.', 'الأنهايدرايت 2.98 غم/سم³: أكثف الصخور الشائعة.'], slt: ['Halite 2.04 g/cm³: unusually light for a tight rock.', 'الهالايت 2.04 غم/سم³: خفيف على نحو غير مألوف لصخر محكم.'], col: ['Coal 1.2–1.8 g/cm³: the lightest rock, off scale.', 'الفحم 1.2–1.8 غم/سم³: أخف الصخور، خارج المقياس.'], dlo: ['Dense dolomite matrix (2.87) less its porosity.', 'حشوة دولومايت كثيفة (2.87) ناقصاً مساميتها.'], ssw: ['Quartz 2.65 less the porosity filled with water.', 'كوارتز 2.65 ناقصاً المسامية المملوءة بالماء.'] },
+    NPHI: { sh: ['Clay-bound water is hydrogen: shale reads high whatever its porosity.', 'الماء المرتبط بالطين هيدروجين، فيقرأ الطفل عالياً مهما كانت مساميته.'], shg: ['Gas has little hydrogen: neutron reads low and crosses the density (crossover).', 'الغاز قليل الهيدروجين، فيقرأ النيوترون منخفضاً ويتقاطع مع الكثافة.'], anh: ['No hydrogen: near zero.', 'لا هيدروجين: قرب الصفر.'], slt: ['No hydrogen: near zero.', 'لا هيدروجين: قرب الصفر.'], col: ['Coal is rich in hydrogen: very high.', 'الفحم غني بالهيدروجين: عالٍ جداً.'], ssw: ['Sandstone reads a little below its porosity in limestone units.', 'يقرأ الحجر الرملي أقل قليلاً من مساميته بوحدات الحجر الجيري.'] },
+    PEF: { ssw: ['Quartz 1.8: the sandstone signature.', 'الكوارتز 1.8: بصمة الحجر الرملي.'], lsw: ['Calcite 5.1: the limestone signature.', 'الكالسايت 5.1: بصمة الحجر الجيري.'], dlo: ['Dolomite 3.1: between sandstone and limestone.', 'الدولومايت 3.1: بين الحجر الرملي والجيري.'], anh: ['5.05, like limestone: told apart by density 2.98.', '5.05 مثل الحجر الجيري، ويُميّز بالكثافة 2.98.'], col: ['Light elements: about 0.2.', 'عناصر خفيفة: نحو 0.2.'] },
+    DT: { sh: ['Soft, compliant shale: slow.', 'الطفل طري ولين: بطيء.'], shg: ['Gas slows the wave and can cause cycle skipping.', 'يُبطئ الغاز الموجة وقد يسبب تخطي الدورات.'], dlo: ['Stiff dolomite: fast.', 'الدولومايت صلب: سريع.'], frc: ['Sonic sees mainly the matrix: fractures hardly slow it, so sonic porosity is below density–neutron porosity.', 'يرى الصوتي الحشوة أساساً ولا تكاد الكسور تبطئه، فتقل المسامية الصوتية عن مسامية الكثافة والنيوترون.'], col: ['Coal is very slow.', 'الفحم بطيء جداً.'] },
+    K: { sh: ['Illite and other clays carry potassium.', 'الإلايت والأطيان الأخرى تحمل البوتاسيوم.'] }, TH: { sh: ['Thorium is adsorbed on clays and heavy minerals.', 'يمتز الثوريوم على الأطيان والمعادن الثقيلة.'] }, U: { hot: ['Uranium follows organic matter: the key source-rock indicator.', 'يتبع اليورانيوم المادة العضوية، وهو المؤشر الرئيس للصخر المصدري.'] }
+  };
+  var EXR = WL.TYPE.filter(function (q, i, a) { return a.findIndex(function (z) { return z.en === q.en; }) === i; });
+  (function () { $('#wER').innerHTML = EXR.map(function (q) { return '<option value="' + q.id + '">' + (AR ? q.ar : q.en) + '</option>'; }).join(''); $('#wER').value = 'ssw'; })();
+  function explore() {
+    var lg = SH.val('wEL'), rid = SH.val('wER'), rock = EXR.filter(function (q) { return q.id === rid; })[0] || EXR[0], U = EU[lg], v = rock[lg], lgS = U[2], sc = U[1];
+    var gd = WL.GUIDE.filter(function (g) { return g.k === (lg === 'RD' ? 'RES' : lg === 'K' || lg === 'TH' || lg === 'U' ? 'SGR' : lg); })[0];
+    var Wd = 760, rowH = 24, H = 40 + EXR.length * rowH + 40, x0 = 230, x1 = Wd - 70, X = function (val) { var f = lgS ? (Math.log10(val) - Math.log10(sc[0])) / (Math.log10(sc[1]) - Math.log10(sc[0])) : (val - sc[0]) / (sc[1] - sc[0]); return x0 + Math.max(0, Math.min(1, f)) * (x1 - x0); };
+    var o = ['<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + Wd + ' ' + H + '" width="100%" font-family="Manrope, Arial, sans-serif" style="direction:ltr;background:#fff;max-width:' + Wd + 'px"><rect width="100%" height="100%" fill="#fff"/>'];
+    o.push('<text x="12" y="22" font-size="14" font-weight="800" fill="#111">' + esc(lg + ' (' + U[0] + ') in common rocks and fluids') + '</text>');
+    EXR.forEach(function (q, k) { var y = 40 + k * rowH, val = q[lg], on = q.id === rock.id; o.push('<rect x="8" y="' + (y + 2) + '" width="14" height="14" fill="' + q.col + '" stroke="#888" stroke-width="0.5"/><text x="28" y="' + (y + 14) + '" font-size="11.5" fill="#111"' + (on ? ' font-weight="800"' : '') + '>' + esc(q.en) + '</text>');
+      var xb = X(val), xz = lgS ? x0 : X(Math.max(sc[0], Math.min(0, sc[1]))); o.push('<rect x="' + Math.min(xz, xb).toFixed(1) + '" y="' + (y + 4) + '" width="' + Math.max(2, Math.abs(xb - xz)).toFixed(1) + '" height="12" fill="' + (on ? '#b08800' : '#c9ced4') + '"/><text x="' + (Math.max(xz, xb) + 5).toFixed(1) + '" y="' + (y + 14) + '" font-size="10.5" fill="#333">' + (Math.abs(val) >= 100 ? Math.round(val) : +val.toFixed(2)) + '</text>'); });
+    var ya = 40 + EXR.length * rowH + 10; o.push('<line x1="' + x0 + '" y1="' + ya + '" x2="' + x1 + '" y2="' + ya + '" stroke="#555"/>');
+    (lgS ? [0.2, 2, 20, 200, 2000] : [0, 0.25, 0.5, 0.75, 1].map(function (f) { return sc[0] + f * (sc[1] - sc[0]); })).forEach(function (tv) { o.push('<line x1="' + X(tv).toFixed(1) + '" y1="' + ya + '" x2="' + X(tv).toFixed(1) + '" y2="' + (ya + 5) + '" stroke="#555"/><text x="' + X(tv).toFixed(1) + '" y="' + (ya + 18) + '" font-size="10" text-anchor="middle" fill="#444">' + (+tv.toFixed(2)) + '</text>'); });
+    o.push('</svg>');
+    var why = (WHY[lg] && WHY[lg][rock.id]) || (WHY[lg] && rock.id === 'sh2' && WHY[lg].sh) || null, sh = EXR[0][lg], rel = lgS ? Math.log10(Math.max(v, 1e-3) / Math.max(sh, 1e-3)) / 4 : (v - sh) / (sc[1] - sc[0]), cmp = rel > 0.06 ? t('higher than shale', 'أعلى من الطفل') : rel < -0.06 ? t('lower than shale', 'أقل من الطفل') : t('close to shale', 'قريبة من الطفل');
+    $('#wEOut').innerHTML = '<div class="kpis" style="margin:0">' + kpi('info', (AR ? rock.ar : rock.en), '<span class="ltr">' + (Math.abs(v) >= 100 ? Math.round(v) : +v.toFixed(2)) + '</span><small> ' + U[0] + '</small>', lg + ' · ' + cmp) + '</div>' +
+      '<div class="wl-g"><div class="r"><b>' + t('Why', 'السبب') + '</b><span>' + bidi(why ? why[AR ? 1 : 0] : (gd ? (v > sh ? gd.hi : gd.lo)[AR ? 1 : 0] : '')) + '</span></div>' + (gd ? '<div class="r"><b>' + t('The log', 'المجس') + '</b><span>' + bidi(gd.m[AR ? 1 : 0]) + '</span></div><div class="r"><b>' + t('Used for', 'يُستعمل في') + '</b><span>' + bidi(gd.use[AR ? 1 : 0]) + '</span></div>' : '') + '</div>' + o.join('');
+  }
+  ['wEL', 'wER'].forEach(function (id) { $('#' + id).addEventListener('change', explore); });
   /* ---------------------------------------------------------------- start */
-  typeChart(); guide(); empty();
+  typeChart(); guide(); explore(); empty();
   document.addEventListener('sh:redraw', function () { if (R) xplots(); });
 })();
