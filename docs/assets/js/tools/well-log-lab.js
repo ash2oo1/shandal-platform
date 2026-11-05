@@ -58,7 +58,7 @@
     persist.save(); var w = wells[act];
     if (!w) { R = null; empty(); return; }
     var P = params(); R = WL.analyse(w, P); R.P = P; R.w = w;
-    kpis(); verdict(); drawLog(); xplots(); zonesTable(); corr(); accDyn();
+    kpis(); verdict(); drawLog(); xplots(); zonesTable(); corr(); accDyn(); stepCalc();
   }
   function empty() {
     $('#wKpis').innerHTML = ''; $('#wVerd').innerHTML = '<div class="verdict info"><span class="vi">' + SH.icon('info') + '</span><div><h3>' + t('Load a well', 'حمّل بئراً') + '</h3><p>' + t('Load a LAS, Excel or CSV file, type the readings, trace a log from an image, or open the example well built from the response chart below.', 'حمّل ملف LAS أو Excel أو CSV، أو اكتب القراءات، أو تتبّع مجساً من صورة، أو افتح البئر المثال المبنية من لوحة الاستجابة أدناه.') + '</p></div></div>';
@@ -105,6 +105,7 @@
     if (z.f === 7) s.push(t('possible source rock (high gamma ray and resistivity, low density)', 'صخر مصدري محتمل (گاما ومقاومة عاليتان وكثافة منخفضة)'));
     if (z.frac > 0.2) s.push(t('fracture or vug candidate', 'مرشح كسور أو فجوات'));
     if (z.inv > 0.4 && z.f !== 4) s.push(t('invaded, permeable', 'مغزو بطين الحفر، نفاذ'));
+    if (isFinite(z.mhi) && z.flu >= 1 && z.flu <= 2) s.push('MHI ' + SH.fmt(z.mhi, 2) + (z.mhi < ([1, 2].indexOf(z.f) >= 0 ? 0.6 : 0.7) ? t(' (moveable)', ' (متحركة)') : ''));
     if (z.wash > 0.4) s.push(t('washed-out hole', 'بئر متوسّع'));
     return lith + (s.filter(Boolean).length ? t(': ', ': ') + s.filter(Boolean).join(t(', ', '، ')) : '');
   }
@@ -225,7 +226,7 @@
     H = ly + 20; o[0] = o[0].replace(/ \d+" width="(\d+)" height="\d+"/, ' ' + Math.round(H) + '" width="$1" height="' + Math.round(H) + '"'); o[1] = '<rect width="' + W + '" height="' + Math.round(H) + '" fill="#fff"/>';
     o.push('</svg>');
     $('#wLog').innerHTML = (warn ? '<p class="xsmall" style="margin:6px;color:var(--warn)">' + warn + '</p>' : '') + o.join('');
-    lastSvg = $('#wLog svg');
+    lastSvg = $('#wLog svg'); R.ymap = { y0: y0, Hp: Hp, d0: D[i0], span: span };
   }
 
   /* ---------------------------------------------------------------- crossplots */
@@ -246,7 +247,13 @@
       SH.plot('wXpk', lines2.concat([{ x: ix2.map(function (i) { return R.PHI[i]; }), y: ix2.map(function (i) { return RD[i]; }), mode: 'markers', type: 'scattergl', name: 'Samples', marker: { size: 4, color: ix2.map(function (i) { return R.VSH[i]; }), colorscale: 'YlOrBr', cmin: 0, cmax: 1, colorbar: cb('Vsh'), opacity: 0.8 }, hovertemplate: 'φ %{x:.3f} · Rt %{y:.2f}<extra></extra>' }]),
         L({ title: { text: 'Effective porosity φ (v/v)' }, type: 'log', range: [-2, 0] }, { title: { text: 'Deep resistivity Rt (Ω·m)' }, type: 'log', range: [-1, 3.3] }), { filename: 'shandal-pickett' });
     } else { Plotly.purge($('#wXpk')); $('#wXpk').innerHTML = '<div class="empty-s"><p>' + t('A deep resistivity log is needed for the Pickett plot.', 'يحتاج مخطط بيكيت إلى مجس مقاومة عميقة.') + '</p></div>'; }
-    if (DT && RB && NP) {
+    var x3 = (document.querySelector('#wX3 [aria-pressed=true]') || {}).getAttribute ? document.querySelector('#wX3 [aria-pressed=true]').getAttribute('data-x') : 'mn';
+    var LIT = [['Sandstone', 2.65, 55.5, function (p) { return 0.95 * p - 0.02; }, '#b08800'], ['Limestone', 2.71, 47.6, function (p) { return p; }, '#2c7bb6'], ['Dolomite', 2.87, 43.5, function (p) { return 1.08 * p + 0.02; }, '#8e44ad']], PS = [0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4];
+    if (DT && (x3 === 'dr' && RB || x3 === 'dn' && NP)) {
+      var isR = x3 === 'dr', ys = isR ? RB : NP, lines3 = LIT.map(function (L3) { return { x: PS.map(function (p) { return isR ? L3[1] - (L3[1] - R.P.rhof) * p : L3[3](p); }), y: PS.map(function (p) { return L3[2] * (1 - p) + 189 * p; }), mode: 'lines+markers', marker: { size: 4 }, line: { color: L3[4], width: 1.6 }, name: L3[0], text: PS.map(function (p) { return 'φ ' + p; }), hoverinfo: 'name+text' }; });
+      SH.plot('wXmn', lines3.concat([{ x: idx.map(function (i) { return ys[i]; }), y: idx.map(function (i) { return DT[i]; }), mode: 'markers', type: 'scattergl', name: 'Samples', marker: { size: 4, color: idx.map(function (i) { return GR ? GR[i] : 0; }), colorscale: 'Viridis', cmin: R.grMin, cmax: R.grMax, colorbar: cb('GR'), opacity: 0.75 } }]),
+        L(isR ? { title: { text: 'RHOB (g/cm³)' }, range: [1.9, 3.0] } : { title: { text: 'NPHI (v/v, limestone units)' }, range: [-0.05, 0.45] }, { title: { text: 'DT (µs/ft)' }, range: [40, 130] }), { filename: isR ? 'shandal-sonic-density' : 'shandal-sonic-neutron' });
+    } else if (DT && RB && NP) {
       var rf = R.P.rhof, ix3 = idx.filter(function (i) { return RB[i] > rf + 0.2; }), MN = function (dt, r, nph) { return [(189 - dt) / (r - rf) * 0.01, (1 - nph) / (r - rf)]; };
       var mins = ['qtz', 'cal', 'dol', 'anh', 'hal'].map(function (k) { var M = WL.MIN[k]; return [M.en].concat(MN(M.dt, M.r, M.n)); }); mins.push(['Shale'].concat(MN(R.SH.dt, R.SH.r, R.SH.n)));
       SH.plot('wXmn', [{ x: ix3.map(function (i) { return MN(DT[i], RB[i], NP[i])[1]; }), y: ix3.map(function (i) { return MN(DT[i], RB[i], NP[i])[0]; }), mode: 'markers', type: 'scattergl', name: 'Samples', marker: { size: 4, color: ix3.map(function (i) { return GR ? GR[i] : 0; }), colorscale: 'Viridis', cmin: R.grMin, cmax: R.grMax, colorbar: cb('GR'), opacity: 0.75 } },
@@ -257,10 +264,52 @@
       SH.plot('wXmn', [{ x: gv, type: 'histogram', nbinsx: 40, marker: { color: '#1a9850' }, name: 'GR' }, { x: [R.grMin, R.grMin], y: [0, idx.length / 8], mode: 'lines', name: 'GR clean', line: { color: '#b08800', dash: 'dash' } }, { x: [R.grMax, R.grMax], y: [0, idx.length / 8], mode: 'lines', name: 'GR shale', line: { color: '#555', dash: 'dash' } }],
         L({ title: { text: 'Gamma ray (gAPI)' } }, { title: { text: 'Samples' } }), { filename: 'shandal-gr-histogram' });
     }
-    $('#wXcap').textContent = t('Left: density–neutron crossplot with the sandstone, limestone and dolomite lines (porosity marked every 0.05); gas moves points up and to the left, shale to the lower right. Middle: Pickett plot of porosity against deep resistivity with lines of equal water saturation (slope −1/m). Right: M–N lithology plot (needs sonic) or the gamma-ray histogram with the clean and shale values used.',
-      'اليسار: مخطط الكثافة والنيوترون مع خطوط الحجر الرملي والجيري والدولومايت (المسامية معلّمة كل 0.05)؛ يحرك الغاز النقاط إلى الأعلى واليسار، والطفل إلى الأسفل واليمين. الوسط: مخطط بيكيت للمسامية مقابل المقاومة العميقة مع خطوط تساوي التشبع بالماء (الميل −1/m). اليمين: مخطط M–N للصخارية (يحتاج الصوتي) أو مدرج أشعة گاما مع قيمتي الصخر النظيف والطفل المستعملتين.');
+    $('#wXcap').textContent = t('Left: density–neutron crossplot with the sandstone, limestone and dolomite lines (porosity marked every 0.05); gas moves points up and to the left, shale to the lower right. Middle: Pickett plot of porosity against deep resistivity with lines of equal water saturation (slope −1/m). Right: M–N lithology plot, or sonic against density or neutron with the lithology lines (Wyllie), or the gamma-ray histogram when there is no sonic.',
+      'اليسار: مخطط الكثافة والنيوترون مع خطوط الحجر الرملي والجيري والدولومايت (المسامية معلّمة كل 0.05)؛ يحرك الغاز النقاط إلى الأعلى واليسار، والطفل إلى الأسفل واليمين. الوسط: مخطط بيكيت للمسامية مقابل المقاومة العميقة مع خطوط تساوي التشبع بالماء (الميل −1/m). اليمين: مخطط M–N للصخارية، أو الصوتي مقابل الكثافة أو النيوترون مع خطوط الصخارية (ويلي)، أو مدرج أشعة گاما عند غياب الصوتي.');
   }
 
+
+  /* ---------------------------------------------------------------- calculation at one depth, written out step by step */
+  var MAT = { ls: [2.71, 47.6, 'limestone'], dol: [2.87, 43.5, 'dolomite'], ss: [2.65, 55.5, 'sandstone'] };
+  function stepCalc() {
+    if (!R) { $('#wStep').innerHTML = ''; $('#wStepV').innerHTML = ''; return; }
+    var w = R.w, D = w.D, d = num('wSD'); if (!isFinite(d)) { var z0 = R.zones.filter(function (z) { return z.net > 0; })[0] || R.zones[0]; d = z0 ? (z0.top + z0.base) / 2 : D[0]; $('#wSD').value = d.toFixed(2); }
+    var i = 0, bd = 1e9; for (var k = 0; k < D.length; k++) { var e = Math.abs(D[k] - d); if (e < bd) { bd = e; i = k; } }
+    var c = function (kk) { var a = WL.curve(w, kk); return a ? a[i] : NaN; }, M = MAT[SH.val('wSM')] || MAT.ls, P = R.P, rf = P.rhof, f = function (v, n) { return isFinite(v) ? (+v).toFixed(n == null ? 3 : n) : '—'; };
+    var GR = c('GR'), RB = c('RHOB'), NP = c('NPHI'), DT = c('DT'), RT = c('RD'), RS = isFinite(c('RXO')) ? c('RXO') : c('RM'), rs = isFinite(c('RXO')) ? 'Rxo' : 'R<sub>LLS</sub>';
+    var IGR = (GR - R.grMin) / (R.grMax - R.grMin); IGR = Math.max(0, Math.min(1, IGR));
+    var vO = 0.33 * (Math.pow(2, 2 * IGR) - 1), vT = 0.083 * (Math.pow(2, 3.7 * IGR) - 1), vsh = P.vshM === 'laro' ? vO : P.vshM === 'lin' ? IGR : P.vshM === 'stieber' ? IGR / (3 - 2 * IGR) : vT;
+    var pD = (M[0] - RB) / (M[0] - rf), pS = (DT - M[1]) / (189 - M[1]), pN = NP, pT = isFinite(pD) && isFinite(pN) ? (pN + pD) / 2 : isFinite(pD) ? pD : isFinite(pN) ? pN : pS, pE = pT * (1 - vsh), spi = pT - pS;
+    var a = P.a, m = P.m, n = P.n, rw = R.rw, sw = Math.min(1, Math.pow(a * rw / (Math.pow(pE, m) * RT), 1 / n)), rmf = P.rmf, sxo = rmf > 0 && isFinite(RS) ? Math.min(1, Math.pow(a * rmf / (Math.pow(pE, m) * RS), 1 / n)) : NaN, mhi = sw / sxo, lim = SH.val('wSM') === 'ss' ? 0.7 : 0.6;
+    var row = function (h, eq, v, u) { return '<tr><td>' + h + '</td><td class="ltr" style="white-space:normal">' + eq + '</td><td class="num"><b>' + v + '</b>' + (u ? ' <small>' + u + '</small>' : '') + '</td></tr>'; };
+    var o = '<tr><th>' + t('Step', 'الخطوة') + '</th><th>' + t('Equation with the readings at ', 'المعادلة بقراءات العمق ') + '<span class="ltr">' + f(D[i], 2) + ' ' + w.unit + '</span></th><th class="num">' + t('Result', 'النتيجة') + '</th></tr>';
+    o += row(t('Gamma-ray index', 'دليل أشعة گاما'), 'I<sub>GR</sub> = (GR − GR<sub>min</sub>) / (GR<sub>max</sub> − GR<sub>min</sub>) = (' + f(GR, 1) + ' − ' + f(R.grMin, 1) + ') / (' + f(R.grMax, 1) + ' − ' + f(R.grMin, 1) + ')', f(IGR));
+    o += row(t('Shale volume, older rocks', 'حجم الطين، صخور قديمة'), 'V<sub>sh</sub> = 0.33 (2<sup>2 I<sub>GR</sub></sup> − 1) = 0.33 (2<sup>' + f(2 * IGR, 2) + '</sup> − 1)', f(vO));
+    o += row(t('Shale volume, Tertiary rocks', 'حجم الطين، صخور ثلاثية'), 'V<sub>sh</sub> = 0.083 (2<sup>3.7 I<sub>GR</sub></sup> − 1) = 0.083 (2<sup>' + f(3.7 * IGR, 2) + '</sup> − 1)', f(vT));
+    if (isFinite(RB)) o += row(t('Density porosity', 'مسامية الكثافة'), 'Φ<sub>D</sub> = (ρ<sub>ma</sub> − ρ<sub>b</sub>) / (ρ<sub>ma</sub> − ρ<sub>f</sub>) = (' + M[0] + ' − ' + f(RB, 2) + ') / (' + M[0] + ' − ' + rf + ')', f(pD));
+    if (isFinite(DT)) o += row(t('Sonic porosity (Wyllie)', 'المسامية الصوتية (ويلي)'), 'Φ<sub>S</sub> = (Δt<sub>log</sub> − Δt<sub>ma</sub>) / (Δt<sub>f</sub> − Δt<sub>ma</sub>) = (' + f(DT, 1) + ' − ' + M[1] + ') / (189 − ' + M[1] + ')', f(pS));
+    if (isFinite(NP)) o += row(t('Neutron porosity', 'المسامية النيوترونية'), 'Φ<sub>N</sub> = NPHI', f(pN));
+    o += row(t('Total porosity', 'المسامية الكلية'), 'Φ<sub>t</sub> = (Φ<sub>N</sub> + Φ<sub>D</sub>) / 2', f(pT));
+    o += row(t('Effective porosity', 'المسامية الفعالة'), 'Φ<sub>eff</sub> = Φ<sub>t</sub> (1 − V<sub>sh</sub>) = ' + f(pT) + ' × (1 − ' + f(vsh) + ')', f(pE));
+    if (isFinite(pS)) o += row(t('Secondary porosity index', 'دليل المسامية الثانوية'), 'SPI = Φ<sub>t</sub> − Φ<sub>S</sub> = ' + f(pT) + ' − ' + f(pS), f(spi));
+    if (isFinite(RT)) o += row(t('Water saturation (Archie)', 'التشبع بالماء (آرشي)'), 'S<sub>w</sub> = (a R<sub>w</sub> / (Φ<sup>m</sup> R<sub>t</sub>))<sup>1/n</sup> = (' + a + ' × ' + f(rw, 3) + ' / (' + f(pE) + '<sup>' + m + '</sup> × ' + f(RT, 2) + '))<sup>1/' + n + '</sup>', f(sw));
+    if (isFinite(sxo)) o += row(t('Flushed-zone saturation', 'تشبع النطاق المغسول'), 'S<sub>xo</sub> = (a R<sub>mf</sub> / (Φ<sup>m</sup> ' + rs + '))<sup>1/n</sup> = (' + a + ' × ' + f(rmf, 3) + ' / (' + f(pE) + '<sup>' + m + '</sup> × ' + f(RS, 2) + '))<sup>1/' + n + '</sup>', f(sxo));
+    if (isFinite(mhi)) o += row(t('Moveable hydrocarbon index', 'دليل الهيدروكربونات المتحركة'), 'MHI = S<sub>w</sub> / S<sub>xo</sub>', f(mhi, 2));
+    if (isFinite(sw)) o += row(t('Hydrocarbon saturation', 'التشبع الهيدروكربوني'), 'S<sub>h</sub> = 1 − S<sub>w</sub>', f(1 - sw));
+    if (isFinite(sxo)) { o += row(t('Residual hydrocarbon saturation', 'التشبع الهيدروكربوني المتبقي'), 'S<sub>hr</sub> = 1 − S<sub>xo</sub>', f(1 - sxo)); o += row(t('Moveable hydrocarbon saturation', 'التشبع الهيدروكربوني المتحرك'), 'S<sub>hm</sub> = S<sub>xo</sub> − S<sub>w</sub>', f(sxo - sw)); }
+    if (isFinite(sw)) o += row(t('Bulk volume of water', 'الحجم الكلي للماء'), 'BVW = Φ<sub>eff</sub> × S<sub>w</sub>', f(pE * sw));
+    $('#wStep').innerHTML = o;
+    var v = [t('Matrix ', 'الحشوة ') + (AR ? { limestone: 'حجر جيري', dolomite: 'دولومايت', sandstone: 'حجر رملي' }[M[2]] : M[2]) + ', R<sub>w</sub> = ' + f(rw, 3) + ' Ω·m' + (R.rwAuto ? t(' (estimated)', ' (مقدّرة)') : '') + ', ρ<sub>f</sub> = ' + rf + ', a = ' + a + ', m = ' + m + ', n = ' + n + '.'];
+    if (isFinite(sw)) v.push(sw <= P.cutS && pE >= P.cutP && vsh <= P.cutV ? t('This level is reservoir with hydrocarbons (Sw at or below ', 'هذا المستوى مكمن حامل للهيدروكربونات (Sw عند ') + pc(P.cutS) + t(').', ' أو دونها).') : pE < P.cutP ? t('Porosity is below the cutoff: not a reservoir.', 'المسامية دون الحد: ليس مكمناً.') : vsh > P.cutV ? t('Too shaly to be a reservoir.', 'كثير الطين ولا يُعدّ مكمناً.') : t('Water-bearing reservoir.', 'مكمن حامل للماء.'));
+    if (isFinite(mhi)) v.push(mhi >= 1 ? t('MHI ≥ 1: hydrocarbons were not moved by the invasion.', 'MHI ≥ 1: لم يُزِح الغزو الهيدروكربونات.') : mhi < lim ? t('MHI below ', 'MHI دون ') + lim + t(': moveable hydrocarbons.', ': هيدروكربونات قابلة للحركة.') : t('MHI between ', 'MHI بين ') + lim + t(' and 1: little moveable hydrocarbon.', ' و1: هيدروكربونات متحركة قليلة.'));
+    if (isFinite(spi) && spi > 0.025) v.push(t('SPI above 0.025: secondary porosity (fractures or vugs) is likely.', 'SPI فوق 0.025: يُرجّح وجود مسامية ثانوية (كسور أو فجوات).'));
+    if (!(rmf > 0)) v.push(t('Enter Rmf to compute Sxo, the moveable hydrocarbon index and Shr, Shm.', 'أدخل Rmf لحساب Sxo ودليل الهيدروكربونات المتحركة وShr وShm.'));
+    $('#wStepV').innerHTML = '<p class="xsmall" style="margin:0;line-height:1.9">' + v.join(' ') + '</p>';
+  }
+  ['wSD', 'wSM'].forEach(function (id) { $('#' + id).addEventListener('change', stepCalc); });
+  $('#wLog').addEventListener('click', function (e) { var sv = e.target.closest('svg'); if (!sv || !R || !R.ymap) return; var r = sv.getBoundingClientRect(), y = (e.clientY - r.top) * sv.viewBox.baseVal.height / r.height, M2 = R.ymap; if (y < M2.y0 || y > M2.y0 + M2.Hp) return;
+    $('#wSD').value = (M2.d0 + (y - M2.y0) / M2.Hp * M2.span).toFixed(2); stepCalc(); $('#pnStep').scrollIntoView({ behavior: 'smooth', block: 'start' }); });
+  $('#wX3').addEventListener('click', function (e) { var b = e.target.closest('[data-x]'); if (!b) return; SH.$$('#wX3 button').forEach(function (q) { q.setAttribute('aria-pressed', q === b ? 'true' : 'false'); }); if (R) xplots(); });
   /* ---------------------------------------------------------------- correlation of loaded wells */
   var corrK = 'GR';
   function corr() {

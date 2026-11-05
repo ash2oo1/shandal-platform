@@ -132,7 +132,7 @@
     var rmf = P.rmf;
     for (i = 0; i < n; i++) {
       if (!IN[i] || !RD) continue; var sw = swOf(RD[i], R.PHI[i], R.VSH[i] || 0, a, m, nn, rw); R.SW[i] = sw; if (isFinite(sw)) R.BVW[i] = R.PHI[i] * sw;
-      if (RXO && rmf > 0 && isFinite(RXO[i])) R.SXO[i] = swOf(RXO[i], R.PHI[i], R.VSH[i] || 0, a, m, nn, rmf);
+      var RS = RXO || RM; if (RS && rmf > 0 && isFinite(RS[i])) R.SXO[i] = swOf(RS[i], R.PHI[i], R.VSH[i] || 0, a, m, nn, rmf);   /* flushed zone from the microresistivity, or the shallow laterolog when there is none */
       if (isFinite(sw) && sw < 0.9 && R.PHI[i] > 0.03) R.PERM[i] = 0.136 * Math.pow(R.PHI[i] * 100, 4.4) / Math.pow(Math.max(sw, 0.08) * 100, 2);  /* Timur (1968), md */
     }
     /* ---- invasion, fractures, source rock */
@@ -170,14 +170,17 @@
       if (swi <= cS) { R.FLU[i] = R.GAS[i] ? 2 : 1; R.PAY[i] = 1; } else R.FLU[i] = 0;
     }
     /* ---- zonation: runs of one facies, thinner runs merged into the neighbour of nearest gamma ray */
-    var zones = [], minTh = P.minTh > 0 ? P.minTh : (w.unit === 'ft' ? 2 : 0.6), cur = null;
+    /* majority filter over about 1 m: single noisy samples do not open a layer */
+    var win = Math.max(2, Math.round((w.unit === 'ft' ? 3.3 : 1) / (w.step || 1) / 2)), mode = function (A2) { var out = A2.slice(); for (var q = 0; q < n; q++) { if (!IN[q] || A2[q] < 0) continue; var cnt = {}, best = A2[q], bc = 0; for (var r2 = Math.max(0, q - win); r2 <= Math.min(n - 1, q + win); r2++) { if (!IN[r2] || A2[r2] < 0) continue; var v2 = A2[r2]; cnt[v2] = (cnt[v2] || 0) + 1; if (cnt[v2] > bc) { bc = cnt[v2]; best = v2; } } out[q] = best; } return out; };
+    R.FAC = mode(R.FAC); var FL2 = mode(R.FLU); for (i = 0; i < n; i++) if (R.FLU[i] >= 0 || FL2[i] < 0) R.FLU[i] = FL2[i];
+    var zones = [], minTh = P.minTh > 0 ? P.minTh : Math.max(w.unit === 'ft' ? 2 : 0.6, 4 * (w.step || 0)), cur = null;
     /* a layer is one lithology with one fluid: a sandstone with gas over oil over water gives three layers */
     var key = function (q) { return R.FAC[q] * 10 + (R.FLU[q] >= 0 ? R.FLU[q] : 9); };
     for (i = 0; i < n; i++) { if (!IN[i]) continue; var f = key(i); if (!cur || f !== cur.k) { if (cur) zones.push(cur); cur = { k: f, f: R.FAC[i], a: i, b: i }; } else cur.b = i; }
     if (cur) zones.push(cur);
     var mean = function (arr, z) { if (!arr) return NaN; var s3 = 0, k3 = 0; for (var q = z.a; q <= z.b; q++) if (isFinite(arr[q])) { s3 += arr[q]; k3++; } return k3 ? s3 / k3 : NaN; };
     var th = function (z) { return D[z.b] - D[z.a] + (w.step || 0); };
-    for (var pass = 0; pass < 40; pass++) {
+    for (var pass = 0; pass < 20000; pass++) {
       var idx = -1, tmin = minTh; zones.forEach(function (z, k) { var t = th(z); if (t < tmin) { tmin = t; idx = k; } }); if (idx < 0 || zones.length < 2) break;
       var z0 = zones[idx], L = zones[idx - 1], Rz = zones[idx + 1], g0 = mean(GR || R.VSH, z0), tgt;
       if (!L) tgt = Rz; else if (!Rz) tgt = L; else tgt = Math.abs(mean(GR || R.VSH, L) - g0) <= Math.abs(mean(GR || R.VSH, Rz) - g0) ? L : Rz;
@@ -192,6 +195,7 @@
       z.top = D[z.a]; z.base = D[z.b] + (w.step || 0); z.th = z.base - z.top; z.net = [0, 1, 2, 8].indexOf(z.f) >= 0 || P.mode === 'water' && z.f !== 4 ? net * (w.step || 0) : 0;
       z.gr = mean(GR, z); z.vsh = mean(R.VSH, z); z.phi = mean(R.PHI, z); z.sw = mean(R.SW, z); z.rt = RD ? Math.pow(10, mean(Float32Array.from(RD, function (v) { return v > 0 ? Math.log10(v) : NaN; }), z)) : NaN;
       z.rhob = mean(RHOB, z); z.nphi = mean(NPHI, z); z.dt = mean(DT, z); z.tds = mean(R.TDS, z);
+      z.sxo = mean(R.SXO, z); z.mhi = isFinite(z.sxo) && z.sxo > 0 && isFinite(z.sw) ? z.sw / z.sxo : NaN;   /* moveable hydrocarbon index Sw/Sxo */
       z.flu = mf; z.frac = frac / nz; z.wash = wash / nz; z.inv = inv / nz; z.gas = mean(Float32Array.from(R.GAS), z);
       /* uncertainty of saturation: cementation exponent ±0.2, Rw ±20 %, porosity ±0.02, saturation exponent ±0.2 */
       if (P.mode !== 'water' && isFinite(z.sw) && isFinite(z.rt) && z.phi > 0.02) {

@@ -129,10 +129,19 @@
       <div class="fig-b"><div class="wl-scroll" id="wLog" dir="ltr"></div></div>
     {{ m.fig_close() }}
     {{ m.fig_open('fgX', '2', 'Crossplots', 'المخططات التقاطعية') }}
-      <div class="fig-b wl-x"><div class="plot" id="wXnd"></div><div class="plot" id="wXpk"></div><div class="plot" id="wXmn"></div></div>
+      <div class="fig-b wl-x"><div class="plot" id="wXnd"></div><div class="plot" id="wXpk"></div><div><div class="wl-chips" id="wX3" style="justify-content:center"><button type="button" data-x="mn" aria-pressed="true">M–N</button><button type="button" data-x="dr" aria-pressed="false">{{ m.L('Sonic–density', 'الصوتي–الكثافة') }}</button><button type="button" data-x="dn" aria-pressed="false">{{ m.L('Sonic–neutron', 'الصوتي–النيوترون') }}</button></div><div class="plot" id="wXmn"></div></div></div>
       <p class="xsmall muted" id="wXcap" style="margin:6px 0 0"></p>
     {{ m.fig_close() }}
     <section class="pn"><div class="pn-h">{{ icon('layers') }}<h2>{{ m.L('Layers and their interpretation', 'الطبقات وتفسيرها') }}</h2></div><div class="pn-b flush tbl-wrap"><table class="tbl" id="wZones"></table></div></section>
+    <section class="pn" id="pnStep"><div class="pn-h">{{ icon('calculator') }}<h2>{{ m.L('Calculate at a depth, step by step', 'الحساب عند عمق معيّن خطوة بخطوة') }}</h2></div><div class="pn-b" style="display:grid;gap:10px">
+      <p class="xsmall muted" style="margin:0">{{ m.L('Type a depth or tap the composite log. Every equation is written out with the readings of that depth, as worked in the lectures: gamma-ray index, shale volume, density, sonic and neutron porosity, total and effective porosity, secondary porosity, Sw, Sxo, the moveable hydrocarbon index and the hydrocarbon saturations.', 'اكتب عمقاً أو انقر على السجل المركب. تُكتب كل معادلة بقراءات ذلك العمق كما في المحاضرات: دليل أشعة گاما، وحجم الطين، ومسامية الكثافة والصوتي والنيوترون، والمسامية الكلية والفعالة، والمسامية الثانوية، وSw وSxo، ودليل الهيدروكربونات المتحركة، والتشبعات الهيدروكربونية.') }}</p>
+      <div class="row2">
+        {{ m.fld('wSD', 'Depth', 'العمق', 'number', '', '', '', '') }}
+        {{ m.sel('wSM', 'Matrix', 'الحشوة', [('ls', 'Limestone (2.71 g/cm³, 47.6 µs/ft)', 'حجر جيري (2.71 غم/سم³، 47.6 مايكروثانية/قدم)', True), ('dol', 'Dolomite (2.87, 43.5)', 'دولومايت (2.87، 43.5)'), ('ss', 'Sandstone (2.65, 55.5)', 'حجر رملي (2.65، 55.5)')]) }}
+      </div>
+      <div class="tbl-wrap"><table class="tbl" id="wStep"></table></div>
+      <div id="wStepV"></div>
+    </div></section>
     {{ m.fig_open('fgCorr', '3', 'Comparison and correlation of the loaded wells', 'مقارنة الآبار المحمّلة ومضاهاتها') }}
       <div class="fig-b"><div class="wl-chips" id="wCorrK"></div><div class="wl-scroll" id="wCorr" dir="ltr" style="margin-top:8px"></div></div>
     {{ m.fig_close() }}
