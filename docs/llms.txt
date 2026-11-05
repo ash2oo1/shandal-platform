@@ -11,12 +11,12 @@ Contact: WhatsApp +9647739949727 · Facebook https://www.facebook.com/Shandalsys
 Updated: 2026-11-05
 
 ## What it is
-Thirty-six professional tools for Earth scientists: digital compass, stereonets, RMR and SMR, global contour maps, seismic hazard statistics, soil mechanics, Sentinel-2 indices, live hazard feeds and petroleum labs, with PDF reports and an AI assistant.
+Thirty-seven professional tools for Earth scientists: digital compass, stereonets, RMR and SMR, global contour maps, seismic hazard statistics, soil mechanics, Sentinel-2 indices, live hazard feeds and petroleum labs, with PDF reports and an AI assistant.
 For decades, field geology meant scattered tools: readings taken by hand, long calculations, then a return to the office to draw columns, stereonets and contour maps in separate software. Every step cost time and added room for error.
 The Shandal System brings that work into one portable tool, from the first reading to the final report, without leaving the site. The name says what it does: survey, to collect spatial data precisely; field, because it goes where the geologist goes.
 
 ## ما هو
-ست وثلاثون أداة احترافية لعلماء الأرض: بوصلة رقمية ومساقط ستيريوغرافية وRMR وخرائط كنتورية وأطياف تصميم زلزالي وإنذار من الانزلاقات ورصد بيئي ومختبرات بترولية، مع تقارير PDF ومساعد ذكي.
+سبع وثلاثون أداة احترافية لعلماء الأرض: بوصلة رقمية ومساقط ستيريوغرافية وRMR وخرائط كنتورية وأطياف تصميم زلزالي وإنذار من الانزلاقات ورصد بيئي ومختبرات بترولية، مع تقارير PDF ومساعد ذكي.
 لعقود طويلة كان العمل الجيولوجي الميداني يعتمد على أدوات متفرقة: قياسات يدوية وحسابات طويلة ثم العودة إلى المكتب لرسم الأعمدة الطباقية والمساقط والخرائط الكنتورية ببرامج منفصلة. كل خطوة تستهلك الوقت وتزيد احتمال الخطأ.
 جاء نظام شندل ليجمع هذا العمل في أداة محمولة واحدة، من القراءة الأولى حتى التقرير النهائي، دون مغادرة الموقع. والاسم يعبّر عن جوهره: «المسح» لجمع البيانات المكانية بدقة، و«الميداني» لأنه يرافق الجيولوجي حيث يعمل.
 
@@ -28,7 +28,7 @@ The Shandal System brings that work into one portable tool, from the first readi
 - [Academy](https://geologicalfieldsurvey.com/academy/) and [Library](https://geologicalfieldsurvey.com/library/)
 - [Geo-heritage](https://geologicalfieldsurvey.com/geoheritage/): geological and archaeological sites of Iraq
 
-## Tools (36)
+## Tools (37)
 ### Field geology · الجيولوجيا الميدانية
 - [Quarry & Earthworks Survey · مسح المقالع واستثمار التراب](https://geologicalfieldsurvey.com/tools/quarry-survey/): Converts contract areas and field measurements into extracted and remaining volumes, maximum permitted depth, a 2D site plan and a stratigraphic column for the pit face.
 - [Structural & Geotechnical Survey · المسح التركيبي والجيوتقني](https://geologicalfieldsurvey.com/tools/structural-geotechnical/): Field survey of a rock slope: orientation data from the phone compass-clinometer, kinematic analysis of planar, wedge and toppling failure, limit-equilibrium factors of safety, RMR89 and SMR classification, a geological plan and section, and the stratigraphic column of the outcrop.
@@ -63,6 +63,7 @@ The Shandal System brings that work into one portable tool, from the first readi
 
 ### Geophysics · الجيوفيزياء
 - [Regional Magnetic Lab · المختبر المغناطيسي الإقليمي](https://geologicalfieldsurvey.com/tools/magnetic-lab/): Computes the IGRF-14 main field in your browser for any area, epoch and height, and reduces ground magnetometer readings to a residual anomaly with diurnal correction, kriged into a contour map.
+- [Well Log Lab · مختبر المجسات البئرية](https://geologicalfieldsurvey.com/tools/well-log-lab/): Load well logs as LAS, Excel or CSV files, type the readings, or trace a printed log from an image. The lab recognises the curves of the main service companies, draws the composite log in the standard layout and interprets it: shale volume, porosity, mineral volumes, water saturation, gas, oil and water, invaded permeable beds, bad hole, fracture candidates, source rocks, layer boundaries and net pay — or, in water wells, aquifers and their salinity. Crossplots, well correlation, a response chart of every log and a guide to all the common logs complete it.
 - [Thermal Maturity & Geothermal Lab · مختبر الطاقة الحرارية الأرضية والنضج الحراري](https://geologicalfieldsurvey.com/tools/geothermal-lab/): Computes the geothermal gradient from formation and surface temperatures, and places samples in the oil or gas window using vitrinite reflectance and Rock-Eval Tmax.
 
 ### Water & rivers · المياه والأنهار

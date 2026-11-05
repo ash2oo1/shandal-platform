@@ -1,0 +1,174 @@
+{% extends "app_base.html" %}
+{% import "apps/_m.html" as m with context %}
+{% block apphead %}
+<style>
+.wl-wells{display:grid;gap:6px}
+.wl-wells label{display:grid;grid-template-columns:18px minmax(0,1fr) auto;gap:8px;align-items:center;padding:7px 9px;border:1px solid var(--line);border-radius:10px;background:var(--surface);font-size:.8rem;cursor:pointer}
+.wl-wells label small{color:var(--text-3);display:block}
+.wl-wells .x{all:unset;cursor:pointer;color:var(--text-3);padding:2px 6px}
+.wl-cv{width:100%;border-collapse:collapse;font-size:.76rem}
+.wl-cv td,.wl-cv th{padding:4px 5px;border-bottom:1px solid var(--line);text-align:start}
+.wl-cv select{height:28px;font:inherit;font-size:.74rem;border:1px solid var(--line-2);border-radius:6px;background:var(--bg);color:var(--text);max-width:110px}
+.wl-paste textarea{width:100%;min-height:120px;font:12px/1.5 ui-monospace,Menlo,Consolas,monospace;border:1px solid var(--line-2);border-radius:10px;padding:8px;background:var(--bg);color:var(--text);direction:ltr}
+.wl-scroll{overflow:auto;max-height:78vh;border:1px solid var(--line);border-radius:10px;background:#fff}
+.wl-scroll svg{display:block}
+.wl-x{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px}
+.wl-x .plot{height:400px}
+.wl-guide{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:12px}
+.wl-g{border:1px solid var(--line);border-radius:12px;padding:12px 14px;background:var(--surface);display:grid;gap:6px;font-size:.82rem;line-height:1.75}
+.wl-g h4{margin:0;font-size:.95rem;display:flex;gap:8px;align-items:baseline;flex-wrap:wrap}
+.wl-g h4 small{font-weight:500;color:var(--text-3);font-size:.74rem;direction:ltr}
+.wl-g .r{display:grid;grid-template-columns:76px minmax(0,1fr);gap:8px}
+.wl-g .r b{color:var(--text-2);font-size:.76rem}
+.wl-g table{border-collapse:collapse;width:100%;font-size:.76rem}
+.wl-g td{padding:3px 5px;border-bottom:1px solid var(--line)}
+.wl-g td.num{direction:ltr;text-align:end;white-space:nowrap}
+.wl-chips{display:flex;flex-wrap:wrap;gap:6px}
+.wl-chips button{all:unset;cursor:pointer;padding:5px 10px;border:1px solid var(--line);border-radius:999px;font-size:.76rem;background:var(--surface)}
+.wl-chips button[aria-pressed=true]{background:var(--accent);color:#fff;border-color:var(--accent)}
+.wl-dig{display:grid;gap:10px}
+.wl-dig .cv{position:relative;overflow:auto;max-height:70vh;border:1px solid var(--line);border-radius:10px;background:#fafafa}
+.wl-dig canvas{display:block;max-width:none;cursor:crosshair}
+.wl-steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:8px}
+.wl-step{border:1px solid var(--line);border-radius:10px;padding:8px 10px;display:grid;gap:6px;font-size:.78rem;background:var(--surface)}
+.wl-step[data-on=true]{border-color:var(--accent);box-shadow:0 0 0 2px color-mix(in srgb,var(--accent) 25%,transparent)}
+.wl-step .row{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.wl-step input,.wl-step select{height:30px;min-width:0;width:88px;font:inherit;font-size:.78rem;border:1px solid var(--line-2);border-radius:6px;padding:0 6px;background:var(--bg);color:var(--text)}
+.wl-acc{display:grid;gap:8px;font-size:.82rem;line-height:1.8}
+.wl-acc table{border-collapse:collapse;width:100%;font-size:.78rem}
+.wl-acc th,.wl-acc td{padding:5px 6px;border-bottom:1px solid var(--line);text-align:start;vertical-align:top}
+.wl-acc td.num{direction:ltr;text-align:end;white-space:nowrap}
+.sw-chip{display:inline-block;width:12px;height:12px;border-radius:3px;vertical-align:-2px;margin-inline-end:4px;border:1px solid rgba(0,0,0,.25)}
+</style>
+{% endblock %}
+{% block ws %}
+<div class="ws-wrap">
+<div class="ws wide-side">
+  <aside class="ws-side">
+    {{ m.panel_open(1, 'Well data', 'بيانات البئر') }}
+      <div class="row2">
+        <label class="btn btn-ink btn-sm" for="wFile" style="cursor:pointer">{{ icon('upload', 'ico ico-sm') }}{{ m.L('Load files', 'حمّل ملفات') }}</label>
+        <button class="btn btn-line btn-sm" id="wDemo" type="button">{{ m.L('Example well', 'بئر مثال') }}</button>
+      </div>
+      <input type="file" id="wFile" accept=".las,.LAS,.csv,.txt,.tsv,.dat,.xlsx" multiple hidden>
+      <p class="xsmall muted" style="margin:0">{{ m.L('LAS (the standard log format), Excel (.xlsx) or CSV/text with a header row. Several files can be loaded and compared.', 'ملفات LAS (الصيغة القياسية للمجسات) أو Excel (.xlsx) أو CSV/نص بسطر عناوين. يمكن تحميل عدة ملفات ومقارنتها.') }}</p>
+      <div class="row2">
+        <button class="btn btn-line btn-sm" id="wPasteBtn" type="button">{{ icon('table', 'ico ico-sm') }}{{ m.L('Type or paste readings', 'اكتب القراءات أو الصقها') }}</button>
+        <button class="btn btn-line btn-sm" id="wDigBtn" type="button">{{ icon('image', 'ico ico-sm') }}{{ m.L('From a log image', 'من صورة مجس') }}</button>
+      </div>
+      <div class="wl-paste" id="wPaste" hidden>
+        <textarea id="wPasteT" spellcheck="false" placeholder="DEPTH  GR  RHOB  NPHI  LLD&#10;2000.0 35 2.31 0.17 18&#10;2000.5 38 2.30 0.18 16"></textarea>
+        <div class="row2">{{ m.fld('wPasteN', 'Name of the data', 'اسم البيانات', 'text', '', '', '', '', 'Well-1 · run 2') }}<button class="btn btn-gold btn-sm" id="wPasteGo" type="button" style="align-self:end">{{ m.L('Read', 'اقرأ') }}</button></div>
+        <p class="xsmall muted" style="margin:0">{{ m.L('First line: names of the columns (depth first). Columns may be separated by spaces, tabs, commas or semicolons; copy straight from Excel.', 'السطر الأول: أسماء الأعمدة (العمق أولاً). يمكن الفصل بين الأعمدة بمسافات أو علامات جدولة أو فواصل؛ وانسخ مباشرة من Excel.') }}</p>
+      </div>
+      <div class="wl-wells" id="wWells"></div>
+    {{ m.panel_close() }}
+    {{ m.panel_open(2, 'Curves recognised', 'المنحنيات المعرّفة') }}
+      <p class="xsmall muted" style="margin:0">{{ m.L('Each curve is recognised from its name. Correct the log type if a name is unusual, or untick a curve to leave it out.', 'يُعرَّف كل منحنى من اسمه. صحّح نوع المجس إن كان الاسم غير مألوف، أو ألغِ التحديد لاستبعاد المنحنى.') }}</p>
+      <div id="wCurves" class="tbl-wrap"></div>
+    {{ m.panel_close() }}
+    {{ m.panel_open(3, 'Interpretation', 'التفسير') }}
+      <div class="row2">
+        {{ m.sel('wMode', 'Well type', 'نوع البئر', [('oil', 'Oil and gas', 'نفط وغاز', True), ('water', 'Groundwater', 'مياه جوفية')]) }}
+        {{ m.sel('wForm', 'Formations', 'التكوينات', [('mixed', 'Mixed', 'مختلطة', True), ('clastic', 'Clastic (sand–shale)', 'فتاتية (رمل–طفل)'), ('carbonate', 'Carbonate and evaporite', 'كربونات ومتبخرات')]) }}
+      </div>
+      <div class="row2">
+        {{ m.fld('wTop', 'Top', 'القمة', 'number', '', '', 'Leave empty for the whole log.', 'اتركه فارغاً للسجل كاملاً.') }}
+        {{ m.fld('wBot', 'Base', 'القاعدة', 'number', '', '', '', '') }}
+      </div>
+      <div class="row2">
+        {{ m.sel('wVsh', 'Shale volume', 'حجم الطين', [('lin', 'Linear (IGR)', 'خطي (IGR)'), ('lart', 'Larionov, Tertiary rocks', 'لاريونوف، صخور ثلاثية', True), ('laro', 'Larionov, older rocks', 'لاريونوف، صخور أقدم'), ('stieber', 'Stieber', 'ستيبر')]) }}
+        {{ m.sel('wModel', 'Saturation equation', 'معادلة التشبع', [('indonesia', 'Indonesia (shaly)', 'إندونيسيا (طينية)', True), ('simandoux', 'Simandoux (shaly sand)', 'سيماندو (رمل طيني)'), ('archie', 'Archie (clean rock)', 'آرشي (صخر نظيف)')]) }}
+      </div>
+      <div class="row2">
+        {{ m.fld('wGrMin', 'GR clean', 'GR النظيف', 'number', '', 'gAPI', 'Gamma ray of clean rock. Empty: 5th percentile of the interval.', 'أشعة گاما للصخر النظيف. فارغ: المئين الخامس للمدى.') }}
+        {{ m.fld('wGrMax', 'GR shale', 'GR الطفل', 'number', '', 'gAPI', 'Gamma ray of shale. Empty: 95th percentile.', 'أشعة گاما للطفل. فارغ: المئين 95.') }}
+      </div>
+      <div class="row2">
+        {{ m.fld('wRw', 'Rw', 'Rw', 'number', '', 'Ω·m', 'Formation-water resistivity at formation temperature. Empty: estimated from the lowest apparent Rwa of clean porous levels.', 'مقاومة ماء التكوين عند حرارة التكوين. فارغ: يُقدَّر من أدنى قيم Rwa الظاهرية في المستويات النظيفة المسامية.') }}
+        {{ m.fld('wFT', 'Formation temperature', 'حرارة التكوين', 'number', '', '°C', 'Used to bring Rw from its measurement temperature (next field) to the formation, and for salinity in water wells.', 'تُستعمل لنقل Rw من حرارة قياسها (الحقل التالي) إلى التكوين، ولحساب الملوحة في آبار المياه.') }}
+      </div>
+      <div class="row2">
+        {{ m.fld('wRwT', 'Rw measured at', 'قيست Rw عند', 'number', '', '°C', '', '') }}
+        {{ m.fld('wRmf', 'Rmf', 'Rmf', 'number', '', 'Ω·m', 'Mud-filtrate resistivity at formation temperature, from the log header. Gives the flushed-zone saturation Sxo.', 'مقاومة راشح الطين عند حرارة التكوين، من رأس السجل. تعطي تشبع النطاق المغسول Sxo.') }}
+      </div>
+      <div class="row2">
+        {{ m.fld('wA', 'a', 'a', 'number', '1', '', 'Tortuosity factor of Archie. 1 for most rocks; 0.62 (Humble) for sands.', 'معامل التعرج في معادلة آرشي. 1 لأغلب الصخور، و0.62 (هامبل) للرمال.') }}
+        {{ m.fld('wM', 'm', 'm', 'number', '2', '', 'Cementation exponent: 1.8–2.0 sands, 2.0–2.3 carbonates, up to 3 in vuggy rock, about 1.4 in fractures.', 'أس السمنتة: 1.8–2.0 للرمال، و2.0–2.3 للكربونات، وحتى 3 في الصخر الفجوي، ونحو 1.4 في الكسور.') }}
+      </div>
+      <div class="row2">
+        {{ m.fld('wN', 'n', 'n', 'number', '2', '', 'Saturation exponent: 2 for water-wet rock; higher in oil-wet rock.', 'أس التشبع: 2 للصخر المحب للماء، وأعلى في الصخر المحب للنفط.') }}
+        {{ m.fld('wRhof', 'Fluid density', 'كثافة المائع', 'number', '1.0', 'g/cm³', '1.0 fresh, 1.1 salty mud filtrate.', '1.0 للعذب، و1.1 لراشح الطين المالح.') }}
+      </div>
+      <div class="row2">
+        {{ m.fld('wCV', 'Cutoff Vsh ≤', 'حد Vsh ≤', 'number', '0.4', '', '', '') }}
+        {{ m.fld('wCP', 'Cutoff φ ≥', 'حد φ ≥', 'number', '0.08', '', 'Porosity below which a level cannot produce. Typical 0.06–0.10 oil, 0.15 water wells.', 'المسامية التي لا تنتج المستويات دونها. نموذجياً 0.06–0.10 للنفط و0.15 لآبار المياه.') }}
+      </div>
+      <div class="row2">
+        {{ m.fld('wCS', 'Cutoff Sw ≤', 'حد Sw ≤', 'number', '0.5', '', '', '') }}
+        {{ m.fld('wMinTh', 'Thinnest layer', 'أرق طبقة', 'number', '', '', 'Layers thinner than this join their neighbour. Empty: 0.6 m or 2 ft.', 'تُدمج الطبقات الأرق من هذا مع جارتها. فارغ: 0.6 م أو 2 قدم.') }}
+      </div>
+      {{ m.sel('wScale', 'Depth scale', 'مقياس العمق', [('fit', 'Fit the interval', 'ملاءمة المدى', True), ('200', '1:200', '1:200'), ('500', '1:500', '1:500'), ('1000', '1:1000', '1:1000')]) }}
+    {{ m.panel_close() }}
+    {{ m.panel_open(4, 'Downloads', 'التنزيلات') }}
+      <div class="row2">
+        <button class="btn btn-gold btn-sm" id="wPng" type="button">{{ m.L('Composite log (PNG)', 'السجل المركب (PNG)') }}</button>
+        <button class="btn btn-line btn-sm" id="wLas" type="button">{{ m.L('Results (LAS)', 'النتائج (LAS)') }}</button>
+      </div>
+      <div class="row2">
+        <button class="btn btn-line btn-sm" id="wCsv" type="button">{{ m.L('Results (CSV)', 'النتائج (CSV)') }}</button>
+        <button class="btn btn-line btn-sm" id="wZCsv" type="button">{{ m.L('Zones (CSV)', 'النطاقات (CSV)') }}</button>
+      </div>
+      <button class="btn btn-line btn-sm" id="wTypePng" type="button">{{ m.L('Log response chart (PNG)', 'لوحة استجابة المجسات (PNG)') }}</button>
+    {{ m.panel_close() }}
+  </aside>
+  <div class="ws-main">
+    <div class="kpis" id="wKpis"></div>
+    <div id="wVerd" style="display:grid;gap:10px"></div>
+    {{ m.fig_open('fgLog', '1', 'Composite log and interpretation', 'السجل المركب والتفسير') }}
+      <div class="fig-b"><div class="wl-scroll" id="wLog" dir="ltr"></div></div>
+    {{ m.fig_close() }}
+    {{ m.fig_open('fgX', '2', 'Crossplots', 'المخططات التقاطعية') }}
+      <div class="fig-b wl-x"><div class="plot" id="wXnd"></div><div class="plot" id="wXpk"></div><div class="plot" id="wXmn"></div></div>
+      <p class="xsmall muted" id="wXcap" style="margin:6px 0 0"></p>
+    {{ m.fig_close() }}
+    <section class="pn"><div class="pn-h">{{ icon('layers') }}<h2>{{ m.L('Layers and their interpretation', 'الطبقات وتفسيرها') }}</h2></div><div class="pn-b flush tbl-wrap"><table class="tbl" id="wZones"></table></div></section>
+    {{ m.fig_open('fgCorr', '3', 'Comparison and correlation of the loaded wells', 'مقارنة الآبار المحمّلة ومضاهاتها') }}
+      <div class="fig-b"><div class="wl-chips" id="wCorrK"></div><div class="wl-scroll" id="wCorr" dir="ltr" style="margin-top:8px"></div></div>
+    {{ m.fig_close() }}
+    {{ m.fig_open('fgDig', '4', 'Read a log from an image', 'قراءة مجس من صورة') }}
+      <div class="fig-b wl-dig" id="wDig">
+        <p class="xsmall muted" style="margin:0">{{ m.L('Load a scan or photo of a printed log (from a report or a book). Mark two depths and the scale of the track, pick the colour of the curve, and the system traces it into readings. Hold the camera square to the page: a tilted photo skews depths.', 'حمّل صورة ممسوحة أو ملتقطة لمجس مطبوع (من تقرير أو كتاب). حدّد عمقين ومقياس المسار، واختر لون المنحنى، فيتتبعه النظام ويحوّله إلى قراءات. صوّر الصفحة بشكل عمودي، فالصورة المائلة تُشوّه الأعماق.') }}</p>
+        <div class="row2"><label class="btn btn-ink btn-sm" for="wImg" style="cursor:pointer">{{ icon('image', 'ico ico-sm') }}{{ m.L('Load image', 'حمّل الصورة') }}</label><span class="xsmall muted" id="wImgN"></span></div>
+        <input type="file" id="wImg" accept="image/*" hidden>
+        <div class="wl-steps" id="wSteps"></div>
+        <div class="cv" id="wCv" hidden><canvas id="wCan"></canvas></div>
+        <p class="xsmall" id="wDigOut" style="margin:0"></p>
+      </div>
+    {{ m.fig_close() }}
+    {{ m.fig_open('fgType', '5', 'How each log responds to rocks and fluids', 'كيف يستجيب كل مجس للصخور والموائع') }}
+      <div class="fig-b"><div class="wl-scroll" id="wType" dir="ltr"></div></div>
+    {{ m.fig_close() }}
+    <section class="pn"><div class="pn-h">{{ icon('book-open') }}<h2>{{ m.L('Guide to well logs', 'دليل المجسات البئرية') }}</h2></div><div class="pn-b"><div class="wl-chips" id="wGF" style="margin-bottom:10px"></div><div class="wl-guide" id="wGuide"></div></div></section>
+    <section class="pn"><div class="pn-h">{{ icon('target') }}<h2>{{ m.L('Accuracy and limits of error', 'الدقة وحدود الخطأ') }}</h2></div><div class="pn-b wl-acc" id="wAcc">
+      <p style="margin:0">{{ m.L('The calculations follow the published equations exactly; the error of the results comes from the logs themselves and from the parameters chosen. The typical measurement accuracy of the logs, from service-company specifications, and its effect:', 'تتبع الحسابات المعادلات المنشورة بدقة، ويأتي خطأ النتائج من المجسات نفسها ومن المعاملات المختارة. الدقة النموذجية لقياس المجسات بحسب مواصفات شركات الخدمة، وأثرها:') }}</p>
+      <table>
+        <tr><th>{{ m.L('Log', 'المجس') }}</th><th>{{ m.L('Typical accuracy', 'الدقة النموذجية') }}</th><th>{{ m.L('Effect on results', 'الأثر في النتائج') }}</th></tr>
+        <tr><td>{{ m.L('Density', 'الكثافة') }}</td><td class="num">± 0.01–0.025 g/cm³</td><td>{{ m.L('± 0.6–1.5 porosity units', '± 0.6–1.5 وحدة مسامية') }}</td></tr>
+        <tr><td>{{ m.L('Neutron', 'النيوترون') }}</td><td class="num">± 1 p.u. (φ &lt; 10 %) · ± 5 % rel.</td><td>{{ m.L('Lithology and gas separation', 'فصل الصخارية والغاز') }}</td></tr>
+        <tr><td>{{ m.L('Sonic', 'الصوتي') }}</td><td class="num">± 1–2 µs/ft</td><td>{{ m.L('± 1 porosity unit', '± 1 وحدة مسامية') }}</td></tr>
+        <tr><td>{{ m.L('Deep resistivity', 'المقاومة العميقة') }}</td><td class="num">± 2–5 %</td><td>{{ m.L('± 1–3 % in water saturation', '± 1–3 % في التشبع بالماء') }}</td></tr>
+        <tr><td>{{ m.L('Gamma ray', 'أشعة گاما') }}</td><td class="num">± 5 % (statistical)</td><td>{{ m.L('± 0.03–0.05 in shale volume', '± 0.03–0.05 في حجم الطين') }}</td></tr>
+      </table>
+      <p style="margin:0"><b>{{ m.L('The largest error is in the parameters, not the logs.', 'الخطأ الأكبر في المعاملات لا في المجسات.') }}</b> {{ m.L('An error of 0.2 in the cementation exponent m, or 20 % in Rw, changes water saturation by 10–20 saturation units. For every hydrocarbon layer the table of layers gives the range of Sw when m and n vary by ± 0.2, Rw by ± 20 % and porosity by ± 0.02.', 'خطأ 0.2 في أس السمنتة m أو 20 % في Rw يغيّر التشبع بالماء بمقدار 10–20 وحدة تشبع. ولكل طبقة هيدروكربونية يعطي جدول الطبقات مدى Sw عندما يتغير m وn بمقدار ± 0.2 وRw بمقدار ± 20 % والمسامية بمقدار ± 0.02.') }}</p>
+      <p style="margin:0"><b>{{ m.L('Lithology:', 'الصخارية:') }}</b> {{ m.L('the mineral solution is checked by rebuilding the measured logs from the solved volumes; the misfit is shown in the results. A misfit above 1 (in units of the log error) means a mineral or fluid is missing from the model: change the formation setting or check for gas, coal or salt.', 'يُتحقق من حل المعادن بإعادة بناء المجسات المقاسة من الحجوم المحسوبة، ويظهر عدم التطابق في النتائج. عدم تطابق أكبر من 1 (بوحدات خطأ المجس) يعني أن معدناً أو مائعاً غائب عن النموذج: غيّر إعداد التكوينات أو تحقق من الغاز أو الفحم أو الملح.') }}</p>
+      <p style="margin:0"><b>{{ m.L('Permeability', 'النفاذية') }}</b> {{ m.L('from the Timur equation is good to within about one order of magnitude; calibrate it with core or well tests.', 'المحسوبة بمعادلة تيمور دقيقة ضمن رتبة عشرية واحدة تقريباً؛ فعايرها باللباب أو باختبارات الآبار.') }}</p>
+      <p style="margin:0"><b>{{ m.L('Bad hole:', 'البئر المتضرر:') }}</b> {{ m.L('where the caliper exceeds the bit by more than 1 inch or the density correction exceeds 0.1 g/cm³, density and neutron readings are unreliable; those levels are marked and kept out of the gas flag.', 'حيث يتجاوز مقياس القطر الحافرة بأكثر من بوصة واحدة أو يتجاوز تصحيح الكثافة 0.1 غم/سم³، لا يُعتمد على قراءات الكثافة والنيوترون؛ وتُعلَّم هذه المستويات وتُستثنى من مؤشر الغاز.') }}</p>
+      <p style="margin:0"><b>{{ m.L('Logs read from an image:', 'المجسات المقروءة من صورة:') }}</b> {{ m.L('the error is about one pixel in depth and in value; the tool states it in units after tracing. Scan at 300 dpi or more and keep the page flat.', 'الخطأ نحو بكسل واحد في العمق وفي القيمة، وتذكره الأداة بالوحدات بعد التتبع. امسح الصفحة بدقة 300 نقطة بالبوصة أو أكثر واجعلها مستوية.') }}</p>
+      <div id="wAccDyn"></div>
+    </div></section>
+  </div>
+</div>
+</div>
+{% endblock %}
+{% block appscripts %}<script src="{{ u('assets/js/tools/wl/lib.js') }}?v={{ version }}" defer></script><script src="{{ u('assets/js/tools/wl/petro.js') }}?v={{ version }}" defer></script><script src="{{ u('assets/js/tools/wl/guide.js') }}?v={{ version }}" defer></script>{% endblock %}
