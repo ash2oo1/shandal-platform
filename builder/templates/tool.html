@@ -40,6 +40,7 @@
         <li><a href="#io">{{ t('inputs') }} · {{ t('outputs') }}</a></li>
         <li><a href="#workflow">{{ t('workflow') }}</a></li>
         <li><a href="#method">{{ t('method') }}</a></li>
+        {% if tool.accuracy %}<li><a href="#accuracy">{{ 'الدقة وحدود الخطأ' if lang == 'ar' else 'Accuracy and error limits' }}</a></li>{% endif %}
         <li><a href="#users">{{ t('who_uses') }}</a></li>
         <li><a href="#refs">{{ t('references') }}</a></li>
       </ol>
@@ -68,6 +69,12 @@
           {% endfor %}
         </div>
       </section>
+      {% if tool.accuracy %}
+      <section id="accuracy">
+        <h2>{{ 'الدقة وحدود الخطأ' if lang == 'ar' else 'Accuracy and error limits' }}</h2>
+        <ul class="checks acc">{% for a in tool.accuracy %}<li>{{ icon('target') }}<span>{{ tr(a) }}</span></li>{% endfor %}</ul>
+      </section>
+      {% endif %}
       <section id="users">
         <h2>{{ t('who_uses') }}</h2>
         <div class="users">{% for us in tool.users %}<span>{{ icon('users') }}{{ tr(us) }}</span>{% endfor %}</div>

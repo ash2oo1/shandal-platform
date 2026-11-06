@@ -10,13 +10,12 @@
 .ln-tbl{width:100%;border-collapse:collapse;font-size:.78rem}
 .ln-tbl th,.ln-tbl td{padding:5px 6px;border-bottom:1px solid var(--line);text-align:start}
 .ln-tbl td.num,.ln-tbl th.num{text-align:end;white-space:nowrap}
-.ln-leg{position:absolute;bottom:30px;inset-inline-start:12px;z-index:600;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 12px;max-width:250px;box-shadow:0 8px 24px rgba(0,0,0,.18);font-size:.75rem;line-height:1.55}
+.ln-leg{position:absolute;bottom:46px;inset-inline-start:12px;z-index:600;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 12px;max-width:250px;box-shadow:0 8px 24px rgba(0,0,0,.18);font-size:.75rem;line-height:1.55}
 .ln-leg .r{display:grid;grid-template-columns:22px 1fr;gap:6px;align-items:center}
 .ln-leg i{display:inline-block;width:18px;height:4px;border-radius:2px}
 .ln-leg .gr{height:10px;border-radius:3px;border:1px solid rgba(0,0,0,.2);margin-top:3px}
 .ln-leg .sc{display:flex;justify-content:space-between;direction:ltr;font-size:.7rem;color:var(--text-2)}
-[dir=rtl] .ln-leg{bottom:58px}
-[dir=ltr] .ln-map .leaflet-bottom.leaflet-right{margin-bottom:70px}
+@media (max-width:620px){.ln-leg{max-width:190px;max-height:38vh;overflow:auto}}
 .ln-rose svg{width:100%;height:auto;display:block}
 .ln-dl{display:grid;grid-template-columns:1fr 1fr;gap:6px}
 .ln-pop{font-size:.78rem;line-height:1.6;min-width:200px}
@@ -30,13 +29,18 @@
       <h3>{{ icon('square-dashed') }}{{ m.L('1 · Area of study', '1 · منطقة الدراسة') }}</h3>
       <div class="row2"><button class="btn btn-ink btn-sm" id="nDraw" type="button">{{ m.L('Draw rectangle', 'ارسم مستطيلاً') }}</button><button class="btn btn-line btn-sm" id="nView" type="button">{{ m.L('Use map view', 'استخدم العرض') }}</button></div>
       <p class="xsmall muted" id="nAoi" style="margin:0">{{ m.L('No area yet. Between 1 and 3000 km².', 'لم تُحدد منطقة بعد. بين 1 و3000 كم².') }}</p>
+      {{ m.sel('nMeth', 'Method', 'الطريقة', [('line', 'Edges of four hillshades, linked (recommended)', 'حواف أربعة ظلال تضاريس مع الربط (موصى بها)', True), ('curv', 'Terrain curvature (straight segments)', 'تقعر التضاريس (قطع مستقيمة)')], 'Edge method: the terrain is lit from 0°, 45°, 90° and 135°, edges are found with the Canny detector, thinned, traced and the collinear pieces are linked across short gaps into continuous lineaments.', 'طريقة الحواف: تُضاء التضاريس من 0° و45° و90° و135°، وتُكتشف الحواف بكاشف كاني، وتُرقق وتُتتبع، ثم تُربط القطع المتسامتة عبر الفجوات القصيرة في خطيات متصلة.') }}
       <div class="row2">
         {{ m.sel('nRes', 'Cell size', 'حجم الخلية', [('auto', 'Automatic', 'تلقائي', True), ('fine', 'Fine (slower)', 'دقيق (أبطأ)'), ('coarse', 'Coarse (regional)', 'خشن (إقليمي)')]) }}
         {{ m.sel('nSens', 'Sensitivity', 'الحساسية', [('low', 'Low: clear features only', 'منخفضة: الواضحة فقط'), ('mid', 'Medium', 'متوسطة', True), ('high', 'High: more, fainter lines', 'عالية: خطوط أكثر وأضعف')]) }}
       </div>
       <div class="row2">
         {{ m.fld('nMin', 'Minimum length', 'أقل طول', 'number', '500', 'm', '', '', '', '50') }}
-        {{ m.sel('nKind', 'Keep', 'احتفظ بـ', [('all', 'Valleys and ridges', 'الوديان والحافات', True), ('valley', 'Linear valleys only', 'الوديان الخطية فقط'), ('ridge', 'Ridges and scarps only', 'الحافات والجروف فقط')]) }}
+        {{ m.sel('nKind', 'Keep', 'احتفظ بـ', [('all', 'All forms', 'كل الأشكال', True), ('valley', 'Linear valleys only', 'الوديان الخطية فقط'), ('ridge', 'Ridges and scarps', 'الحافات والجروف'), ('scarp', 'Scarps and steps only', 'الجروف والدرجات فقط')]) }}
+      </div>
+      <div class="row2">
+        {{ m.sel('nGap', 'Bridge gaps up to', 'اربط الفجوات حتى', [('4', '4 cells (strict)', '4 خلايا (صارم)'), ('8', '8 cells', '8 خلايا', True), ('15', '15 cells (regional)', '15 خلية (إقليمي)')], 'Pieces of one lineament broken by a saddle, a gully or a landslide are joined when the gap is shorter than this and they keep the same direction.', 'تُوصل قطع الخطية الواحدة التي يقطعها سرج أو مسيل أو انزلاق إذا كانت الفجوة أقصر من هذا وحافظت على الاتجاه نفسه.') }}
+        {{ m.sel('nAng', 'Direction tolerance', 'سماحية الاتجاه', [('10', '10°', '10°'), ('20', '20°', '20°', True), ('30', '30°', '30°')]) }}
       </div>
       <p class="xsmall muted" style="margin:0">{{ m.L('Tip: in folded mountains, a minimum length of 1.5–3 km drops the short gullies on the fold limbs and leaves the regional structural trend.', 'نصيحة: في الجبال المطوية، أقل طول بين 1.5 و3 كم يُسقط المسيلات القصيرة على أجناب الطيات ويُبقي الاتجاه التركيبي الإقليمي.') }}</p>
       <button class="btn btn-gold" id="nRun" type="button">{{ icon('play', 'ico ico-sm') }}{{ m.L('Extract lineaments', 'استخرج الخطيات') }}</button>
@@ -53,7 +57,10 @@
         <label><input type="checkbox" id="nShowM" checked> {{ m.L('Your lineaments', 'خطياتك') }}</label>
         <label><input type="checkbox" id="nShowF"> {{ m.L('Active faults of the world atlas', 'الفوالق النشطة من الأطلس العالمي') }}</label>
       </div>
-      {{ m.sel('nBg', 'Background', 'الخلفية', [('shade', 'Multi-directional hillshade', 'ظلال تضاريس متعددة الاتجاهات', True), ('density', 'Lineament density', 'كثافة الخطيات'), ('none', 'Basemap only', 'الخريطة الأساسية فقط')]) }}
+      <div class="row2">
+      {{ m.sel('nBg', 'Background', 'الخلفية', [('shade', 'Multi-directional hillshade', 'ظلال تضاريس متعددة الاتجاهات', True), ('density', 'Lineament density', 'كثافة الخطيات'), ('geology', 'Geological map', 'الخريطة الجيولوجية'), ('none', 'Basemap only', 'الخريطة الأساسية فقط')]) }}
+      {{ m.sel('nCol', 'Colour lines by', 'لوّن الخطوط حسب', [('kind', 'Form (valley, ridge, scarp)', 'الشكل (وادٍ، حافة، جرف)', True), ('cls', 'Length class (depth reach)', 'صنف الطول (العمق الإرشادي)')]) }}
+      </div>
       <div class="fg"><label for="nOp">{{ m.L('Background opacity', 'شفافية الخلفية') }}</label><input type="range" id="nOp" min="0.2" max="1" step="0.05" value="0.75"></div>
     </div>
     <div class="sec">

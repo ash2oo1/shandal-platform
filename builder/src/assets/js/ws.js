@@ -303,7 +303,8 @@
     (bm[def] || bm.light).layer.addTo(m);
     m._shBase = def; el._shMap = m;
     m.attributionControl.setPrefix('<a href="https://leafletjs.com">Leaflet</a>');
-    L.control.scale({ metric: true, imperial: false }).addTo(m);
+    /* the scale sits on the side away from the assistant button, which is at the inline end: bottom right in Arabic, bottom left in English */
+    L.control.scale({ metric: true, imperial: false, position: SH.lang === 'ar' ? 'bottomright' : 'bottomleft' }).addTo(m);
     if (!opts.noSwitch) m._shLayers = L.control.layers(layers, opts.overlays || {}, { position: 'topleft', collapsed: true }).addTo(m);
     if (opts.locate !== false) {
       var Loc = L.Control.extend({ options: { position: 'topleft' }, onAdd: function () {
