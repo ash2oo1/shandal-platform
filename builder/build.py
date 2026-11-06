@@ -213,7 +213,7 @@ def build():
         for k, v in list(vars(mod).items()):
             if k.isupper(): setattr(mod, k, _count(v, len(TOOLS)))
     _count(UI, len(TOOLS))
-    cname = open(os.path.join(OUT, 'CNAME')).read() if os.path.exists(os.path.join(OUT, 'CNAME')) else None  # custom domain set on GitHub
+    cname = open(os.path.join(OUT, 'CNAME')).read() if os.path.exists(os.path.join(OUT, 'CNAME')) else 'geologicalfieldsurvey.com'  # custom domain set on GitHub (kept even if an earlier build stopped half way)
     if os.path.exists(OUT):
         shutil.rmtree(OUT)
     shutil.copytree(os.path.join(ROOT, 'src'), OUT)
