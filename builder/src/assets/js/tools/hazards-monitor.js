@@ -54,8 +54,9 @@
       var gs = e.geometry || [], g = gs[gs.length - 1]; if (!g) return; var c = g.coordinates; if (g.type === 'Polygon') { var r = c[0], sx = 0, sy = 0; r.forEach(function (q) { sx += q[0]; sy += q[1]; }); c = [sx / r.length, sy / r.length]; }
       var track = gs.length > 1 ? gs.filter(function (q) { return q.type === 'Point'; }).map(function (q) { return [q.coordinates[1], q.coordinates[0]]; }) : null;
       out.push({ net: 'E', h: h, id: e.id, lat: c[1], lon: c[0], time: Date.parse(g.date), start: Date.parse(gs[0].date), place: e.title, size: g.magnitudeValue, sizeU: g.magnitudeUnit, track: track && track.length > 1 ? track : null, n: gs.length }); }); return out; }); }
-  function alerts() { return SH.getJSON('https://www.gdacs.org/gdacsapi/api/events/geteventlist/EVENTS4APP', { timeout: 20000 }).then(function (j) { return (j.features || []).filter(function (f) { return f.geometry && f.geometry.type === 'Point' && GD[f.properties.eventtype]; }).map(function (f) { var p = f.properties, c = f.geometry.coordinates;
-      return { net: 'G', h: GD[p.eventtype], id: p.eventtype + p.eventid, lat: c[1], lon: c[0], time: Date.parse(p.datemodified || p.todate || p.fromdate), start: Date.parse(p.fromdate), place: p.name || p.description, alert: (p.alertlevel || '').toLowerCase(), sev: p.severitydata && p.severitydata.severitytext, country: p.country }; }); }); }
+  function alerts() { var d0 = new Date(Date.now() - 14 * 864e5).toISOString().slice(0, 10), d1 = new Date(Date.now() + 864e5).toISOString().slice(0, 10);
+    return SH.getJSON('https://www.gdacs.org/gdacsapi/api/events/geteventlist/SEARCH?eventlist=TC;FL;VO;DR;WF&alertlevel=green;orange;red&fromdate=' + d0 + '&todate=' + d1, { timeout: 25000 }).then(function (j) { return (j.features || []).filter(function (f) { return f.geometry && f.geometry.type === 'Point' && GD[f.properties.eventtype] && (String(f.properties.iscurrent) === 'true' || Date.now() - Date.parse(f.properties.todate) < 3 * 864e5); }).map(function (f) { var p = f.properties, c = f.geometry.coordinates;
+      return { net: 'G', h: GD[p.eventtype], id: p.eventtype + p.eventid, lat: c[1], lon: c[0], time: Date.parse(p.datemodified || p.todate || p.fromdate), start: Date.parse(p.fromdate), place: p.name || p.description, alert: (p.alertlevel || '').toLowerCase(), sev: p.severitydata && p.severitydata.severitytext, country: p.country }; }).filter(function (e, i, A) { for (var k = 0; k < i; k++) if (A[k].id === e.id) return false; return true; }); }); }
 
   function refresh() {
     persist.save(); $('#zRef').disabled = true; $('#zStamp').textContent = t('Updating…', 'جارٍ التحديث…');
@@ -223,7 +224,7 @@
     if ($('#zPlates').checked) h += '<div class="hz-t">' + t('Plate boundaries', 'حدود الصفائح') + '</div>' + sw('#E63946', PNAME.SUB) + sw('#F4A261', PNAME.CCB) + sw('#2A9D8F', PNAME.OSR) + sw('#9D4EDD', t('transform', 'تحويلي'));
     if ($('#zFaults').checked && faultLayer) h += sw('#FFB703', t('active fault', 'صدع نشط'));
     if ($('#zVolc').checked && volcLayer) h += sw('#FF5252', t('volcano, historical eruption', 'بركان بثوران تاريخي')) + sw('#FFAB91', t('volcano, Holocene', 'بركان هولوسيني'));
-    c.innerHTML = h ? '<details open><summary>' + t('Legend', 'المفتاح') + '</summary>' + h + '</details>' : ''; c.style.display = h ? '' : 'none';
+    var od = c.querySelector('details'), op = od ? od.open : window.innerWidth >= 700; c.innerHTML = h ? '<details' + (op ? ' open' : '') + '><summary>' + t('Legend', 'المفتاح') + '</summary>' + h + '</details>' : ''; c.style.display = h ? '' : 'none';
   }
 
   /* ---------- events */
