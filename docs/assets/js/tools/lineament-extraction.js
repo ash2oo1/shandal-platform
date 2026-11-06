@@ -168,7 +168,10 @@
         for (var a = -1; a <= 1; a++) for (var b = -1; b <= 1; b++) (H[(gx + a) + ':' + (gy + b)] || []).forEach(function (B) {
           if (B.s <= A.s) return; var dx = B.p[0] - A.p[0], dy = B.p[1] - A.p[1], d = Math.hypot(dx, dy); if (d > gap) return;
           var opp = -(A.u[0] * B.u[0] + A.u[1] * B.u[1]); if (opp < cosT) return;
-          if (d > 1.5 * G.cell) { var wx = dx / d, wy = dy / d; if (A.u[0] * wx + A.u[1] * wy < cosT || -(B.u[0] * wx + B.u[1] * wy) < cosT) return; }
+          /* B must lie ahead of A (and A ahead of B), and its lateral step from A's line must stay small: en-echelon
+             pieces of one crest or valley, offset sideways by a cell or two, are joined; side-by-side lines are not */
+          var alA = dx * A.u[0] + dy * A.u[1], alB = -(dx * B.u[0] + dy * B.u[1]), ltA = Math.abs(dx * A.u[1] - dy * A.u[0]), ltB = Math.abs(dx * B.u[1] - dy * B.u[0]);
+          if (alA < -G.cell || alB < -G.cell) return; if (ltA > Math.max(2 * G.cell, 0.35 * alA) || ltB > Math.max(2 * G.cell, 0.35 * alB)) return;
           cand.push({ A: A, B: B, sc: d / gap + Math.acos(Math.min(1, opp)) / atol }); }); });
       if (!cand.length) break; cand.sort(function (x, y) { return x.sc - y.sc; });
       var par = S.map(function (q, k) { return k; }), fd = function (x) { while (par[x] !== x) x = par[x] = par[par[x]]; return x; }, used = {}, nb = S.map(function () { return [null, null]; });
