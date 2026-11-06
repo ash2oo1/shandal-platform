@@ -34,6 +34,16 @@
   </div>
 </div>
 
+<section class="section" id="free">
+  <div class="wrap">
+    <div class="sec-head">
+      <div><span class="kicker"><span class="dot"></span>{{ tr(H.free_k) }}</span><h2 class="h2">{{ tr(H.free_h) }}</h2></div>
+      <p class="lead">{{ tr(H.free_p) }}</p>
+    </div>
+    <div class="tool-grid">{% for tl in tools if tl.access == 'free' %}{% include "_toolcard.html" %}{% endfor %}</div>
+  </div>
+</section>
+
 <section class="section">
   <div class="wrap">
     <div class="sec-head">

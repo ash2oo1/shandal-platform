@@ -828,3 +828,29 @@ def piper(uid, label):
     return svg(''.join(o), uid, label)
 
 REG.update({'piper': piper})
+
+# ---------------------------------------------------------------- unit converter: a ruler in metres and feet, a protractor
+# with degrees against percent slope, and a few exact equivalences
+def units(uid, label):
+    o = []
+    x0, x1, y = 40, 440, 70
+    o.append(f'<line class="il-axis" x1="{x0}" y1="{y}" x2="{x1}" y2="{y}"/>')
+    for k in range(0, 11):                                   # 0–10 m along the top
+        x = x0 + (x1 - x0) * k / 10
+        o.append(f'<line class="il-axis" x1="{f(x)}" y1="{y}" x2="{f(x)}" y2="{y - (12 if k % 5 == 0 else 7)}"/>')
+        if k % 5 == 0: o.append(f'<text class="il-small" x="{f(x)}" y="{y - 16}" text-anchor="middle">{k} m</text>')
+    for k in range(0, 33):                                   # 0–32.8 ft along the bottom
+        x = x0 + (x1 - x0) * k * 0.3048 / 10
+        o.append(f'<line class="il-axis" x1="{f(x)}" y1="{y}" x2="{f(x)}" y2="{y + (12 if k % 10 == 0 else 6)}"/>')
+        if k % 10 == 0: o.append(f'<text class="il-small" x="{f(x)}" y="{y + 26}" text-anchor="middle">{k} ft</text>')
+    cx, cy, r = 50, 280, 110                                 # slope: degrees and percent
+    o.append(f'<line class="il-axis" x1="{cx}" y1="{cy}" x2="{cx + r + 10}" y2="{cy}"/>')
+    for deg, pct in [(10, 18), (20, 36), (30, 58), (45, 100)]:
+        a = math.radians(deg); ex, ey = cx + r * math.cos(a), cy - r * math.sin(a)
+        o.append(f'<line class="il-dim" x1="{cx}" y1="{cy}" x2="{f(ex)}" y2="{f(ey)}"/>')
+        o.append(f'<text class="il-small" x="{f(ex + 6)}" y="{f(ey + 4)}">{deg}° = {pct} %</text>')
+    eqs = ['1 ft = 0.3048 m', '1 psi = 6.895 kPa', '1 bbl = 158.99 L', '1 D = 0.987 µm²', 'Iraqi dunam = 2500 m²', '0 °C = 32 °F = 273.15 K']
+    for k, e in enumerate(eqs):
+        o.append(f'<text class="il-value" x="300" y="{136 + k * 30}" style="font-size:14px">{e}</text>')
+    return svg(''.join(o), uid, label)
+REG.update({'units': units})

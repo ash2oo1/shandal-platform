@@ -8,15 +8,15 @@ Also called: Shandal System, Shandal Geo, نظام شندل.
 Founder and designer: Ali Shandal Al-Janabi (علي شندل الجنابي), Iraqi geologist specialising in remote sensing and geophysics, Baghdad, Iraq.
 Founded: 2025 · Official launch: 5 April 2026 · Registered as a scientific work no. 2841/ع at the Iraqi National Centre for Protection of Copyright and Related Rights (13 April 2026).
 Contact: WhatsApp +9647739949727 · Facebook https://www.facebook.com/Shandalsystem · YouTube https://www.youtube.com/@shandalsystem
-Updated: 2026-11-05
+Updated: 2026-11-06
 
 ## What it is
-Thirty-seven professional tools for Earth scientists: digital compass, stereonets, RMR and SMR, global contour maps, seismic hazard statistics, soil mechanics, Sentinel-2 indices, live hazard feeds and petroleum labs, with PDF reports and an AI assistant.
+Thirty-eight professional tools for Earth scientists: digital compass, stereonets, RMR and SMR, global contour maps, seismic hazard statistics, soil mechanics, Sentinel-2 indices, live hazard feeds and petroleum labs, with PDF reports and an AI assistant.
 For decades, field geology meant scattered tools: readings taken by hand, long calculations, then a return to the office to draw columns, stereonets and contour maps in separate software. Every step cost time and added room for error.
 The Shandal System brings that work into one portable tool, from the first reading to the final report, without leaving the site. The name says what it does: survey, to collect spatial data precisely; field, because it goes where the geologist goes.
 
 ## ما هو
-سبع وثلاثون أداة احترافية لعلماء الأرض: بوصلة رقمية ومساقط ستيريوغرافية وRMR وخرائط كنتورية وأطياف تصميم زلزالي وإنذار من الانزلاقات ورصد بيئي ومختبرات بترولية، مع تقارير PDF ومساعد ذكي.
+ثماني وثلاثون أداة احترافية لعلماء الأرض: بوصلة رقمية ومساقط ستيريوغرافية وRMR وخرائط كنتورية وأطياف تصميم زلزالي وإنذار من الانزلاقات ورصد بيئي ومختبرات بترولية، مع تقارير PDF ومساعد ذكي.
 لعقود طويلة كان العمل الجيولوجي الميداني يعتمد على أدوات متفرقة: قياسات يدوية وحسابات طويلة ثم العودة إلى المكتب لرسم الأعمدة الطباقية والمساقط والخرائط الكنتورية ببرامج منفصلة. كل خطوة تستهلك الوقت وتزيد احتمال الخطأ.
 جاء نظام شندل ليجمع هذا العمل في أداة محمولة واحدة، من القراءة الأولى حتى التقرير النهائي، دون مغادرة الموقع. والاسم يعبّر عن جوهره: «المسح» لجمع البيانات المكانية بدقة، و«الميداني» لأنه يرافق الجيولوجي حيث يعمل.
 
@@ -28,8 +28,9 @@ The Shandal System brings that work into one portable tool, from the first readi
 - [Academy](https://geologicalfieldsurvey.com/academy/) and [Library](https://geologicalfieldsurvey.com/library/)
 - [Geo-heritage](https://geologicalfieldsurvey.com/geoheritage/): geological and archaeological sites of Iraq
 
-## Tools (37)
+## Tools (38)
 ### Field geology · الجيولوجيا الميدانية
+- [Unit Converter · محوّل الوحدات](https://geologicalfieldsurvey.com/tools/unit-converter/): Converts between all common units of 30 quantities with the exact factors of the international standards: length, area (including the Iraqi dunam and olk), volume and barrels, mass and carats, density, API gravity and mud weight, pressure and stress, pressure and geothermal gradients, temperature, angle, dip and slope in percent and ratio, time and geological time, speed and sonic slowness, gravity in milligal, force, energy, power, flow, permeability in darcy, hydraulic conductivity, viscosity, concentration, resistivity, conductivity and salinity, magnetic field in nanotesla, radioactivity and dose, frequency, data and fuel. It also converts coordinates between decimal degrees, degrees–minutes–seconds and UTM, works out map scales, and turns ions between mg/L and meq/L with the ionic balance. Free for everyone.
 - [Quarry & Earthworks Survey · مسح المقالع واستثمار التراب](https://geologicalfieldsurvey.com/tools/quarry-survey/): Converts contract areas and field measurements into extracted and remaining volumes, maximum permitted depth, a 2D site plan and a stratigraphic column for the pit face.
 - [Structural & Geotechnical Survey · المسح التركيبي والجيوتقني](https://geologicalfieldsurvey.com/tools/structural-geotechnical/): Field survey of a rock slope: orientation data from the phone compass-clinometer, kinematic analysis of planar, wedge and toppling failure, limit-equilibrium factors of safety, RMR89 and SMR classification, a geological plan and section, and the stratigraphic column of the outcrop.
 - [Stereonet Lab · مختبر المسقط الستيريوغرافي](https://geologicalfieldsurvey.com/tools/stereonet-lab/): Analyses any number of planes and lines measured in the field or with the phone: pole density contours, Fisher statistics of each set, eigenvalue fabric and π-girdle axis, rose diagram of strikes, and the percentage of measurements critical for planar, wedge and toppling failure against a slope face.

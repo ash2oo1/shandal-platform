@@ -1,0 +1,72 @@
+{% extends "app_base.html" %}
+{% import "apps/_m.html" as m with context %}
+{% block apphead %}
+<style>
+.uc-cats{display:grid;gap:5px;max-height:62vh;overflow:auto;padding:2px}
+.uc-cats button{all:unset;box-sizing:border-box;cursor:pointer;display:grid;grid-template-columns:20px minmax(0,1fr);gap:9px;align-items:center;padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:var(--surface);font-size:.82rem;line-height:1.4}
+.uc-cats button:hover{border-color:var(--accent)}
+.uc-cats button[aria-pressed=true]{background:var(--accent);color:#fff;border-color:var(--accent)}
+.uc-cats .ico{width:18px;height:18px}
+.uc-io{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);gap:10px;align-items:end}
+.uc-io input,.uc-io select{width:100%;height:44px;font:inherit;font-size:1rem;border:1px solid var(--line-2);border-radius:10px;padding:0 12px;background:var(--bg);color:var(--text)}
+.uc-io .fg{display:grid;gap:6px}
+.uc-res{font-size:1.6rem;font-weight:800;padding:14px 16px;border-radius:12px;background:var(--surface-2);border:1px solid var(--line);word-break:break-all}
+.uc-res small{font-size:.85rem;font-weight:600;color:var(--text-2)}
+.uc-tb{width:100%;border-collapse:collapse;font-size:.86rem}
+.uc-tb td{padding:7px 8px;border-bottom:1px solid var(--line)}
+.uc-tb td.num{text-align:end;white-space:nowrap}
+.uc-tb tr.on td{background:color-mix(in srgb,var(--accent) 10%,transparent)}
+.uc-tb td.cp{width:40px;text-align:end}
+.uc-tb input{width:100%;height:34px;font:inherit;border:1px solid var(--line-2);border-radius:8px;padding:0 8px;background:var(--bg);color:var(--text)}
+.uc-sec{display:grid;gap:12px}.uc-sec[hidden]{display:none}
+.uc-note{border-inline-start:3px solid var(--accent);background:var(--surface-2);border-radius:8px;padding:8px 12px;font-size:.82rem;line-height:1.8}
+@media (max-width:620px){.uc-io{grid-template-columns:1fr}.uc-io #uSwap{justify-self:center}}
+</style>
+{% endblock %}
+{% block ws %}
+<div hidden id="uIc">{% for n in ['activity', 'arrow-down', 'atom', 'box', 'clock', 'copy', 'droplet', 'droplets', 'flame', 'flask-conical', 'fuel', 'gauge', 'hard-drive', 'layers', 'magnet', 'map', 'map-pin', 'move-down', 'plug-zap', 'radiation', 'radio', 'ruler', 'square', 'thermometer', 'trending-down', 'triangle-right', 'weight', 'zap'] %}<i data-n="{{ n }}">{{ icon(n) }}</i>{% endfor %}</div>
+<div class="ws-wrap">
+<div class="ws wide-side">
+  <aside class="ws-side">
+    {{ m.panel_open(1, 'Quantity', 'الكمية') }}
+      <div class="fg"><input id="uQ" type="search" placeholder="{{ m.L('Search: psi, dunam, darcy, ppg…', 'ابحث: psi، دونم، دارسي، ppg…') }}" aria-label="{{ m.L('Search units', 'ابحث في الوحدات') }}"></div>
+      <div class="uc-cats" id="uCats"></div>
+    {{ m.panel_close() }}
+  </aside>
+  <div class="ws-main" id="uMain">
+    <section class="pn"><div class="pn-h">{{ icon('arrow-left-right') }}<h2 id="uTitle"></h2></div><div class="pn-b" style="display:grid;gap:14px">
+      <div id="uConv" class="uc-sec">
+        <div class="uc-io">
+          <div class="fg"><label for="uVal">{{ m.L('Value', 'القيمة') }}</label><input id="uVal" type="number" step="any" value="1" class="ltr"></div>
+          <span></span><span></span>
+          <div class="fg"><label for="uFrom">{{ m.L('From', 'من') }}</label><select id="uFrom"></select></div>
+          <button class="btn btn-line btn-sm" id="uSwap" type="button" aria-label="{{ m.L('Swap', 'بدّل') }}" style="height:44px">{{ icon('arrow-left-right') }}</button>
+          <div class="fg"><label for="uTo">{{ m.L('To', 'إلى') }}</label><select id="uTo"></select></div>
+        </div>
+        <div class="uc-res" id="uRes">—</div>
+        <div class="uc-note" id="uNote" hidden></div>
+        <h3 style="margin:4px 0 0;font-size:.95rem">{{ m.L('In every unit', 'بكل الوحدات') }}</h3>
+        <div class="tbl-wrap"><table class="uc-tb" id="uAll"></table></div>
+      </div>
+      <div id="uCoord" class="uc-sec" hidden>
+        <div class="row2">{{ m.fld('cLat', 'Latitude', 'خط العرض', 'text', '', '', 'Decimal (33.3128) or degrees minutes seconds (33 18 46 N).', 'عشري (33.3128) أو درجات ودقائق وثوانٍ (33 18 46 N).', '33 18 46 N') }}{{ m.fld('cLon', 'Longitude', 'خط الطول', 'text', '', '', '', '', '44 21 40 E') }}</div>
+        <button class="btn btn-line btn-sm" id="cGps" type="button" style="justify-self:start">{{ icon('locate', 'ico ico-sm') }}{{ m.L('My location', 'موقعي') }}</button>
+        <div class="row2">{{ m.fld('cE', 'UTM easting', 'الإحداثي الشرقي UTM', 'number', '', 'm', '', '') }}{{ m.fld('cN', 'UTM northing', 'الإحداثي الشمالي UTM', 'number', '', 'm', '', '') }}</div>
+        <div class="row2">{{ m.fld('cZ', 'UTM zone', 'نطاق UTM', 'number', '38', '', 'Iraq lies in zones 37, 38 and 39.', 'يقع العراق في النطاقات 37 و38 و39.') }}{{ m.sel('cH', 'Hemisphere', 'نصف الكرة', [('N', 'North', 'الشمالي', True), ('S', 'South', 'الجنوبي')]) }}</div>
+        <div class="tbl-wrap"><table class="uc-tb" id="cOut"></table></div>
+      </div>
+      <div id="uScale" class="uc-sec" hidden>
+        <div class="row2">{{ m.fld('sS', 'Scale 1 :', 'المقياس 1 :', 'text', '50000', '', '', '') }}{{ m.fld('sMap', 'Distance on the map', 'المسافة على الخريطة', 'number', '', 'cm', '', '') }}</div>
+        {{ m.fld('sGr', 'Distance on the ground', 'المسافة على الأرض', 'number', '', 'm', '', '') }}
+        <div class="tbl-wrap"><table class="uc-tb" id="sOut"></table></div>
+      </div>
+      <div id="uIons" class="uc-sec" hidden>
+        <p class="xsmall muted" style="margin:0">{{ m.L('meq/L = (mg/L) / equivalent weight; equivalent weight = atomic or formula weight / charge. Type either column; the ionic balance of the analysis is checked.', 'ملّي مكافئ/لتر = (ملغم/لتر) / الوزن المكافئ؛ والوزن المكافئ = الوزن الذري أو الجزيئي / الشحنة. اكتب في أي عمود، ويُفحص التوازن الأيوني للتحليل.') }}</p>
+        <div class="tbl-wrap"><table class="uc-tb"><thead><tr><th>{{ m.L('Ion', 'الأيون') }}</th><th class="num">{{ m.L('Eq. weight', 'الوزن المكافئ') }}</th><th>mg/L</th><th>meq/L</th></tr></thead><tbody id="iTb"></tbody></table></div>
+        <p class="small" id="iBal" style="margin:0"></p>
+      </div>
+    </div></section>
+  </div>
+</div>
+</div>
+{% endblock %}
