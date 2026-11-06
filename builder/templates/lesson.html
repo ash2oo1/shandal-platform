@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block bodyattr %} class="lx-page" data-access="free"{% endblock %}
+{% block head %}<link rel="stylesheet" href="{{ u('assets/css/learn.css') }}?v={{ version }}">{% endblock %}
+{% block main %}
+<section class="page-hero band-dark lx-hero lx-hero-sm">
+  <div class="contour-bg" aria-hidden="true">{{ bgcontours }}</div>
+  <div class="wrap">
+    <nav class="crumbs" aria-label="Breadcrumb"><a href="{{ u('') }}">{{ t('home') }}</a>{{ icon('chevron-right', 'ico flip') }}<a href="{{ u('learn/') }}">{{ tr(LX.h) }}</a>{{ icon('chevron-right', 'ico flip') }}<span>{{ tr(L.name) }}</span></nav>
+    <span class="kicker" style="margin-top:14px"><span class="dot"></span>{{ tr(D.name) }} · {{ L.mins }} {{ tr(LX.min) }}</span>
+    <h1 class="h1" style="max-width:26ch;margin-top:10px">{{ tr(L.name) }}</h1>
+    <p class="lead" style="margin-top:12px;max-width:66ch">{{ tr(L.tagline) }}</p>
+  </div>
+</section>
+<section class="section lx-main">
+  <div class="wrap">
+    <div class="lx-player" id="lx" data-slug="{{ L.slug }}" data-base="{{ u('assets/')[:-7] }}" data-title="{{ tr(L.name) }}">
+      <div class="lx-stage-wrap"><div class="lx-stage" id="lxStage"></div></div>
+      <div class="lx-cap" id="lxCap" aria-live="polite"></div>
+      <div class="lx-bar">
+        <button class="lx-btn lx-play" id="lxPlay" type="button" aria-pressed="false" aria-label="{{ tr(LX.play) }}"><span class="i-play">{{ icon('play') }}</span><span class="i-pause" style="display:none">{{ icon('pause') }}</span></button>
+        <button class="lx-btn" id="lxRe" type="button" aria-label="{{ tr(LX.replay) }}" title="{{ tr(LX.replay) }}">{{ icon('rotate-ccw') }}</button>
+        <input type="range" id="lxT" min="0" max="20" step="0.01" value="0" aria-label="Time" dir="ltr">
+        <span class="lx-time" id="lxTime" dir="ltr">0.0</span>
+        <div class="seg lx-speed" id="lxSpeed" aria-label="{{ tr(LX.speed) }}"><button type="button" data-v="0.5" aria-pressed="false">0.5×</button><button type="button" data-v="1" aria-pressed="true">1×</button><button type="button" data-v="2" aria-pressed="false">2×</button></div>
+      </div>
+      <div class="lx-steps" id="lxSteps" aria-label="{{ tr(LX.steps) }}"></div>
+      <div class="lx-row">
+        <div class="lx-params" id="lxParams"></div>
+        <div class="lx-ex" id="lxEx"><span class="lx-pl">{{ icon('download', 'ico ico-sm') }}{{ tr(LX.dl) }}</span>
+          <button class="btn btn-line btn-sm" type="button" data-f="png">PNG</button><button class="btn btn-line btn-sm" type="button" data-f="jpg">JPG</button><button class="btn btn-line btn-sm" type="button" data-f="pdf">PDF</button><button class="btn btn-gold btn-sm" type="button" data-f="video">{{ icon('clapperboard', 'ico ico-sm') }}<span>{{ tr(LX.video) }}</span></button></div>
+      </div>
+      <p class="xsmall muted lx-note">{{ icon('keyboard', 'ico ico-sm') }} {{ tr(LX.kbd) }} · {{ tr(LX.video_note) }}</p>
+    </div>
+    <div class="lx-doc">
+      <section><h2 class="h3">{{ tr(LX.what_h) }}</h2>{% for p in L.what %}<p>{{ tr(p) }}</p>{% endfor %}</section>
+      <section><h2 class="h3">{{ tr(LX.keys_h) }}</h2><ul class="lx-keys">{% for k in L.ideas %}<li>{{ icon('check', 'ico ico-sm') }}<span>{{ tr(k) }}</span></li>{% endfor %}</ul></section>
+      <section><h2 class="h3">{{ tr(LX.quiz_h) }}</h2>
+        {% for q in L.quiz %}{% set qi = loop.index %}<div class="lx-q"><p class="lx-qq"><b>{{ qi }}.</b> {{ tr(q.q) }}</p><div class="lx-opts">{% for o in q.o %}<button type="button" data-ok="{{ 1 if loop.index0 == q.ok else 0 }}">{{ tr(o) }}</button>{% endfor %}</div><p class="lx-qex" hidden>{{ tr(q.ex) }}</p></div>{% endfor %}
+      </section>
+      <section><h2 class="h3">{{ tr(LX.refs_h) }}</h2><ol class="refs">{% for r in L.refs %}<li>{{ r }}</li>{% endfor %}</ol></section>
+      <nav class="lx-nav">{% if prev %}<a class="btn btn-line" href="{{ u('learn/' + prev.slug + '/') }}">{{ icon('chevron-left', 'ico ico-sm flip') }}{{ tr(prev.name) }}</a>{% else %}<span></span>{% endif %}<a class="btn btn-line" href="{{ u('learn/') }}">{{ tr(LX.all) }}</a>{% if nxt %}<a class="btn btn-gold" href="{{ u('learn/' + nxt.slug + '/') }}">{{ tr(nxt.name) }}{{ icon('chevron-right', 'ico ico-sm flip') }}</a>{% else %}<span></span>{% endif %}</nav>
+    </div>
+  </div>
+</section>
+{% endblock %}
+{% block scripts %}
+<script src="{{ u('assets/js/learn/engine.js') }}?v={{ version }}" defer></script>
+<script src="{{ u('assets/js/learn/' + L.slug + '.js') }}?v={{ version }}" defer></script>
+<script>document.addEventListener('DOMContentLoaded',function(){var r=document.getElementById('lx');SHL.player(r.getAttribute('data-slug'),r);});</script>
+{% endblock %}

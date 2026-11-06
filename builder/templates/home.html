@@ -44,6 +44,21 @@
   </div>
 </section>
 
+<section class="section band-dark lx-home">
+  <div class="wrap">
+    <div class="sec-head">
+      <div><span class="kicker"><span class="dot"></span>{{ icon('clapperboard', 'ico ico-sm') }} {{ tr(LXG.h) }}</span><h2 class="h2">{{ tr(H.lab_h) }}</h2></div>
+      <p class="lead">{{ tr(LXG.p) }}</p>
+    </div>
+    <div class="lx-grid">
+      {% for l in learn_lessons if l.slug in ['cross-cutting', 'convergent', 'divergent'] %}
+      <a class="lx-card" href="{{ u('learn/' + l.slug + '/') }}"><div class="lx-thumb" data-still="{{ l.slug }}"></div><div class="lx-cb"><h3>{{ tr(l.name) }}</h3><p>{{ tr(l.tagline) }}</p></div></a>
+      {% endfor %}
+    </div>
+    <div style="margin-top:26px"><a class="btn btn-gold btn-lg" href="{{ u('learn/') }}">{{ tr(H.lab_cta) }} {{ icon('arrow-right', 'ico ico-sm flip') }}</a></div>
+  </div>
+</section>
+
 <section class="section">
   <div class="wrap">
     <div class="sec-head">
@@ -195,4 +210,7 @@
   </div>
 </section>
 {% endblock %}
-{% block scripts %}<script src="{{ u('assets/js/globe.js') }}?v={{ version }}" defer></script>{% endblock %}
+{% block head %}<link rel="stylesheet" href="{{ u('assets/css/learn.css') }}?v={{ version }}">{% endblock %}
+{% block scripts %}<script src="{{ u('assets/js/globe.js') }}?v={{ version }}" defer></script>
+<script src="{{ u('assets/js/learn/engine.js') }}?v={{ version }}" defer></script>{% for sl in ['cross-cutting', 'convergent', 'divergent'] %}<script src="{{ u('assets/js/learn/' + sl + '.js') }}?v={{ version }}" defer></script>{% endfor %}
+<script>document.addEventListener('DOMContentLoaded',function(){document.querySelectorAll('[data-still]').forEach(function(el){if(window.SHL)SHL.still(el.getAttribute('data-still'),el);});});</script>{% endblock %}

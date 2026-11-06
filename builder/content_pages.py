@@ -32,6 +32,8 @@ HOME = {
  'trust2': L('Partner: GeoNB geology app', 'شريك: تطبيق جيونبأ الجيولوجي'),
  'trust3': L('Data: Copernicus · USGS · NASA · BGS', 'البيانات: Copernicus · USGS · NASA · BGS'),
  'trust4': L('Built in Baghdad, used worldwide', 'صُمم في بغداد، للعالم'),
+ 'lab_h': L('Geology you can watch, pause and replay', 'جيولوجيا تشاهدها وتوقفها وتعيدها'),
+ 'lab_cta': L('Open the Visual Lab', 'افتح المختبر المرئي'),
  'free_k': L('Free for everyone', 'مجاني للجميع'),
  'free_h': L('Start free', 'ابدأ مجاناً'),
  'free_p': L('These tools are open to everyone without an account or subscription.', 'هذه الأدوات مفتوحة للجميع دون حساب أو اشتراك.'),

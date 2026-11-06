@@ -45,6 +45,8 @@ UI = {
  'menu_geoheritage': {'en': 'Geo-heritage atlas', 'ar': 'أطلس التراث الجيولوجي'},
  'menu_geoheritage_d': {'en': 'Geosites and archaeological landmarks', 'ar': 'المواقع الجيولوجية والمعالم الآثارية'},
  'menu_academy': {'en': 'Academy', 'ar': 'الأكاديمية'},
+ 'menu_lab': {'en': 'Visual Lab', 'ar': 'المختبر المرئي'},
+ 'menu_lab_d': {'en': 'Animated geology lessons you control', 'ar': 'دروس جيولوجية متحركة تتحكم بها'},
  'menu_academy_d': {'en': 'Courses and verifiable certificates', 'ar': 'دورات وشهادات قابلة للتحقق'},
  'menu_library': {'en': 'Library & journal', 'ar': 'المكتبة والمجلة'},
  'menu_library_d': {'en': 'Field guides, booklets and publications', 'ar': 'أدلة ميدانية وكتيبات وإصدارات'},
