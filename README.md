@@ -12,7 +12,7 @@
 
 جاء نظام شندل ليجمع هذا العمل في أداة محمولة واحدة، من القراءة الأولى حتى التقرير النهائي، دون مغادرة الموقع. والاسم يعبّر عن جوهره: «المسح» لجمع البيانات المكانية بدقة، و«الميداني» لأنه يرافق الجيولوجي حيث يعمل.
 
-يضم النظام اليوم 48 أداة في الجيولوجيا والتضاريس والتحسس النائي والجيوفيزياء والهندسة والمياه والبيئة والمخاطر الطبيعية والمختبرات البترولية، تعمل في المتصفح على الهاتف والجهاز اللوحي والحاسوب دون تثبيت، وتصدر خرائط مُخرجة وتقارير PDF.
+يضم النظام اليوم 49 أداة في الجيولوجيا والتضاريس والتحسس النائي والجيوفيزياء والهندسة والمياه والبيئة والمخاطر الطبيعية والمختبرات البترولية، تعمل في المتصفح على الهاتف والجهاز اللوحي والحاسوب دون تثبيت، وتصدر خرائط مُخرجة وتقارير PDF.
 
 - **المؤسس والمصمم:** الجيولوجي علي شندل الجنابي، متخصص في التحسس النائي والجيوفيزياء، بغداد، العراق.
 - **التأسيس:** 2025 · **الإطلاق الرسمي:** 5 نيسان 2026.
@@ -31,6 +31,7 @@
 - [مستكشف مواقع الأحافير](https://geologicalfieldsurvey.com/ar/tools/fossils/) — كل موقع أحفوري على خريطتك، مقروءاً ومفسَّراً.
 - [السياحة الجيولوجية والآثارية](https://geologicalfieldsurvey.com/ar/tools/geoheritage/) — أماكن العراق الطبيعية والجيولوجية والأثرية، مقروءة على الأرض التي تقوم عليها.
 - [التقرير الشامل للموقع](https://geologicalfieldsurvey.com/ar/tools/site-report/) — أي نقطة على الأرض: تضاريسها وصخورها وصدوعها وزلازلها ومناخها وتربتها وأنهارها، مفحوصة للمخاطر في تقرير واحد.
+- [مرافق المسح الحقلي](https://geologicalfieldsurvey.com/ar/tools/field-companion/) — دفتر الجيولوجي الحقلي على الهاتف: المحطات والقياسات والعينات والصور، حتى دون اتصال.
 - [آلة الزمن للعراق](https://geologicalfieldsurvey.com/ar/tools/iraq-time-machine/) — 540 مليون سنة: أين كان العراق على الكرة الأرضية وما الذي غطاه وأي صخور تركها.
 - [العراق عبر 40 سنة](https://geologicalfieldsurvey.com/ar/tools/iraq-timelapse/) — أربعون سنة من صور لاندسات فوق أهوار العراق وبحيراته وأنهاره ومدنه: مقيسة ومقارنة ومعروضة فيلماً.
 - [محوّل الوحدات](https://geologicalfieldsurvey.com/ar/tools/unit-converter/) — كل وحدات العلوم والهندسة والحقل.
@@ -98,7 +99,7 @@ For decades, field geology meant scattered tools: readings taken by hand, long c
 
 The Shandal System brings that work into one portable tool, from the first reading to the final report, without leaving the site. The name says what it does: survey, to collect spatial data precisely; field, because it goes where the geologist goes.
 
-The system now has 48 tools for geology, terrain, remote sensing, geophysics, engineering, water, environment, natural hazards and petroleum laboratories. They run in the browser on phones, tablets and computers with nothing to install, and export finished map sheets and PDF reports.
+The system now has 49 tools for geology, terrain, remote sensing, geophysics, engineering, water, environment, natural hazards and petroleum laboratories. They run in the browser on phones, tablets and computers with nothing to install, and export finished map sheets and PDF reports.
 
 - **Founder and designer:** Ali Shandal Al-Janabi, Iraqi geologist (remote sensing and geophysics), Baghdad, Iraq.
 - **Founded:** 2025 · **Official launch:** 5 April 2026.
@@ -117,6 +118,7 @@ The system now has 48 tools for geology, terrain, remote sensing, geophysics, en
 - [Fossil Sites Explorer](https://geologicalfieldsurvey.com/tools/fossils/) — Every fossil site on your map, read and interpreted.
 - [Geo-Heritage & Archaeological Tourism](https://geologicalfieldsurvey.com/tools/geoheritage/) — Iraq’s natural, geological and archaeological places, read on the ground they stand on.
 - [Site Report](https://geologicalfieldsurvey.com/tools/site-report/) — Any point on Earth: terrain, rocks, faults, earthquakes, climate, soil and rivers, screened for hazards in one report.
+- [Field Survey Companion](https://geologicalfieldsurvey.com/tools/field-companion/) — The geologist’s field notebook on the phone: stations, measurements, samples and photos, even without a connection.
 - [Iraq Time Machine](https://geologicalfieldsurvey.com/tools/iraq-time-machine/) — 540 million years: where Iraq lay on the globe, what covered it and which rocks it left.
 - [Iraq Through 40 Years](https://geologicalfieldsurvey.com/tools/iraq-timelapse/) — Forty years of Landsat over the marshes, the lakes, the rivers and the cities of Iraq: measured, compared and played as a film.
 - [Unit Converter](https://geologicalfieldsurvey.com/tools/unit-converter/) — Every unit of science, engineering and the field.

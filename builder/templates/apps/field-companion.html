@@ -1,0 +1,102 @@
+{% extends "app_base.html" %}
+{% import "apps/_m.html" as m with context %}
+{% block apphead %}
+<style>
+#fcMap{height:360px}
+.fc-net{display:flex;gap:8px;align-items:center;font-size:.8rem;font-weight:700;padding:6px 10px;border-radius:10px;background:var(--surface-2);border:1px solid var(--line)}
+.fc-net i{width:10px;height:10px;border-radius:50%;background:#2E7D4F;flex:none}.fc-net.off i{background:#B03A2E}
+.fc-live{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;text-align:center;background:#14202B;color:#E9EEF2;border-radius:12px;padding:10px}
+.fc-live b{display:block;font-size:1.4rem;font-variant-numeric:tabular-nums;color:#E2C27A}.fc-live span{font-size:.72rem;opacity:.8}
+.fc-list{display:grid;gap:5px}
+.fc-it{display:flex;gap:8px;align-items:center;justify-content:space-between;background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:6px 8px;font-size:.84rem}
+.fc-it b{font-variant-numeric:tabular-nums}
+.fc-ph{display:grid;grid-template-columns:repeat(auto-fill,minmax(72px,1fr));gap:6px}
+.fc-ph div{position:relative}.fc-ph img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:8px;display:block}
+.fc-ph button{position:absolute;top:2px;inset-inline-end:2px;width:22px;height:22px;border-radius:50%;border:0;background:rgba(0,0,0,.65);color:#fff;cursor:pointer;font-size:.8rem;line-height:1}
+.fc-photos{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
+.fc-photos figure{margin:0;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--surface)}
+.fc-photos img{width:100%;height:auto;display:block}
+.fc-photos figcaption{padding:8px 10px;font-size:.82rem;line-height:1.6}
+.fc-edit{border:2px solid #B08A3E}
+#fcTbl tr{cursor:pointer}
+</style>
+{% endblock %}
+{% block ws %}
+<div class="ws-wrap">
+<div class="ws wide-side">
+  <aside class="ws-side">
+    <div class="fc-net" id="fcNet" data-rp-skip><i></i><span></span></div>
+    {{ m.panel_open(1, 'Project', 'المشروع') }}
+      <div class="row2">
+        <div class="fg"><label for="fcProj">{{ m.L('Survey', 'المسح') }}</label><select id="fcProj"></select></div>
+        {{ m.fld('fcName', 'Survey name', 'اسم المسح', 'text', '', '', '', '', '') }}
+      </div>
+      {{ m.fld('geoName', 'Geologist', 'الجيولوجي', 'text', '', '', 'Printed on the report and every downloaded figure.', 'يُطبع على التقرير وكل شكل يُنزَّل.') }}
+      <div class="row2" data-rp-skip>
+        <button class="btn btn-line btn-xs" id="fcNew" type="button">{{ icon('plus', 'ico ico-sm') }}{{ m.L('New survey', 'مسح جديد') }}</button>
+        <button class="btn btn-line btn-xs" id="fcDel" type="button">{{ icon('trash', 'ico ico-sm') }}{{ m.L('Delete survey', 'احذف المسح') }}</button>
+      </div>
+    {{ m.panel_close() }}
+    <div data-rp-skip>
+    {{ m.panel_open(2, 'Station', 'المحطة') }}
+      <div class="row2">
+        {{ m.fld('fcId', 'Station', 'المحطة', 'text', '', '', '', '', 'S01') }}
+        {{ m.sel('fcLith', 'Lithology', 'الصخارية', [('', '—', '—', true), ('limestone', 'Limestone', 'حجر جيري'), ('dolomite', 'Dolomite', 'دولومايت'), ('marl', 'Marl', 'مارل'), ('chalk', 'Chalk', 'طباشير'), ('gypsum', 'Gypsum', 'جبس'), ('anhydrite', 'Anhydrite', 'أنهيدرايت'), ('sandstone', 'Sandstone', 'حجر رملي'), ('siltstone', 'Siltstone', 'حجر غريني'), ('claystone', 'Claystone', 'حجر طيني'), ('shale', 'Shale', 'طفل'), ('conglomerate', 'Conglomerate', 'مدملكات'), ('breccia', 'Breccia', 'بريشيا'), ('alluvium', 'Alluvium / soil', 'رواسب نهرية / تربة'), ('basalt', 'Basalt', 'بازلت'), ('granite', 'Granite', 'غرانيت'), ('gabbro', 'Gabbro', 'كابرو'), ('schist', 'Schist', 'شست'), ('gneiss', 'Gneiss', 'نايس'), ('marble', 'Marble', 'رخام'), ('quartzite', 'Quartzite', 'كوارتزايت'), ('other', 'Other', 'أخرى')]) }}
+      </div>
+      <button class="btn btn-ink btn-block btn-sm" id="fcGps" type="button">{{ icon('crosshair', 'ico ico-sm') }}{{ m.L('Fix my position (averaged GPS)', 'ثبّت موقعي (GPS بالمعدل)') }}</button>
+      <div class="row3">
+        {{ m.fld('fcLat', 'Latitude', 'دائرة العرض', 'number', '', '°', '', '', '', '0.000001') }}
+        {{ m.fld('fcLon', 'Longitude', 'خط الطول', 'number', '', '°', '', '', '', '0.000001') }}
+        {{ m.fld('fcAcc', 'Accuracy', 'الدقة', 'number', '', 'm', 'Horizontal accuracy reported by the receiver.', 'الدقة الأفقية التي يعطيها المستقبل.', '', '0.1') }}
+      </div>
+      {{ m.fld('fcUnit', 'Formation or unit', 'التكوين أو الوحدة', 'text', '', '', '', '', 'Fatha Fm.') }}
+      <div class="fg"><label for="fcDesc">{{ m.L('Description', 'الوصف') }}</label><textarea id="fcDesc" rows="3" placeholder="{{ m.L('Colour, grain size, bedding, structures, fossils, weathering…', 'اللون، الحجم الحبيبي، التطبق، التراكيب، المتحجرات، التجوية…') }}"></textarea></div>
+    {{ m.panel_close() }}
+    {{ m.panel_open(3, 'Measurements', 'القياسات') }}
+      <div class="row3">
+        {{ m.sel('fcMt', 'Type', 'النوع', [('S0', 'Bedding S0', 'تطبق S0', true), ('J', 'Joint', 'فاصل'), ('F', 'Fault', 'صدع'), ('S1', 'Foliation / cleavage', 'تورق / انفصام'), ('V', 'Vein / dyke', 'عرق / قاطع'), ('L', 'Lineation', 'تخطط'), ('FA', 'Fold axis', 'محور طية'), ('SL', 'Slickenline', 'تخدش صدعي')]) }}
+        {{ m.fld('fcA', 'Dip direction / trend', 'اتجاه الميل / الاتجاه', 'number', '', '°', 'True north. For a line: the trend.', 'بالنسبة للشمال الجغرافي. للخط: اتجاهه.', '', '1', 'min="0" max="360"') }}
+        {{ m.fld('fcB', 'Dip / plunge', 'الميل / الغطس', 'number', '', '°', '', '', '', '1', 'min="0" max="90"') }}
+      </div>
+      <div class="row2"><button class="btn btn-line btn-sm" id="fcPhone" type="button">{{ icon('compass', 'ico ico-sm') }}{{ m.L('Read from the phone', 'اقرأ من الهاتف') }}</button><button class="btn btn-gold btn-sm" id="fcAddM" type="button">{{ icon('plus', 'ico ico-sm') }}{{ m.L('Add measurement', 'أضف القياس') }}</button></div>
+      <div class="fc-live" id="fcLive" hidden><div><b id="fcLdd">—</b><span>{{ m.L('dip direction', 'اتجاه الميل') }}</span></div><div><b id="fcLdip">—</b><span>{{ m.L('dip', 'الميل') }}</span></div><div><b id="fcLa95">—</b><span>α95</span></div></div>
+      <p class="xsmall muted" id="fcLhint" hidden style="margin:0">{{ m.L('Lay the back of the phone flat on the plane, away from metal; hold still for two seconds, then press “Add measurement”.', 'ضع ظهر الهاتف مستوياً على السطح بعيداً عن المعادن، وثبّته ثانيتين، ثم اضغط «أضف القياس».') }}</p>
+      <div class="fc-list" id="fcMs"></div>
+    {{ m.panel_close() }}
+    {{ m.panel_open(4, 'Samples and photos', 'العينات والصور') }}
+      <div class="row2">
+        {{ m.sel('fcSt', 'Sample type', 'نوع العينة', [('rock', 'Rock', 'صخر', true), ('soil', 'Soil', 'تربة'), ('water', 'Water', 'ماء'), ('fossil', 'Fossil', 'متحجرة'), ('core', 'Core', 'لباب')]) }}
+        {{ m.fld('fcSn', 'Sample note', 'ملاحظة العينة', 'text', '', '', '', '', '') }}
+      </div>
+      <button class="btn btn-line btn-sm" id="fcAddS" type="button">{{ icon('package', 'ico ico-sm') }}{{ m.L('Add sample', 'أضف عينة') }}</button>
+      <div class="fc-list" id="fcSs"></div>
+      <label class="btn btn-line btn-sm" style="cursor:pointer">{{ icon('camera', 'ico ico-sm') }}{{ m.L('Take or add photos', 'التقط صوراً أو أضفها') }}<input type="file" id="fcPh" accept="image/*" capture="environment" multiple hidden></label>
+      <div class="fc-ph" id="fcPhs"></div>
+    {{ m.panel_close() }}
+    <div class="row2"><button class="btn btn-gold btn-block" id="fcSave" type="button">{{ icon('save', 'ico ico-sm') }}{{ m.L('Save station', 'احفظ المحطة') }}</button><button class="btn btn-line btn-block" id="fcClear" type="button">{{ m.L('New station', 'محطة جديدة') }}</button></div>
+    </div>
+  </aside>
+  <div class="ws-main">
+    <div class="kpis" id="fcKpis"></div>
+    <div id="fcVerd" style="display:grid;gap:10px"></div>
+    {{ m.fig_open('ffc1', '1', 'Station map', 'خريطة المحطات') }}
+      <div class="fig-b pad0"><div class="map" id="fcMap" data-rp-skip></div></div>
+    {{ m.fig_close() }}
+    {{ m.fig_open('ffc2', '2', 'Traverse plan with structural symbols', 'مخطط المسار مع الرموز التركيبية', '<span data-egfig="fcPlan"></span>') }}
+      <div class="fig-b"><svg class="chart" id="fcPlan" viewBox="0 0 900 640" role="img"></svg></div>
+      <div class="fig-cap" id="fcPlanCap"></div>
+    {{ m.fig_close() }}
+    {{ m.fig_open('ffc3', '3', 'Stereonet of all measurements', 'الإسقاط المجسم لكل القياسات', '<span data-egfig="fcNetF"></span>') }}
+      <div class="fig-b"><svg class="chart" id="fcNetF" viewBox="0 0 640 640" role="img"></svg></div>
+      <div class="fig-cap" id="fcNetCap"></div>
+    {{ m.fig_close() }}
+    <section class="pn"><div class="pn-h">{{ icon('table') }}<h2>{{ m.L('Stations', 'المحطات') }}</h2></div><div class="pn-b flush tbl-wrap"><table class="tbl" id="fcTbl"></table></div></section>
+    <section class="pn" id="fcPhotoSec"><div class="pn-h">{{ icon('image') }}<h2>{{ m.L('Photo sheet', 'لوحة الصور') }}</h2></div><div class="pn-b"><div class="fc-photos" id="fcPhotos"></div></div></section>
+    <section class="pn" data-rp-skip><div class="pn-h">{{ icon('share-2') }}<h2>{{ m.L('Send and export', 'الإرسال والتصدير') }}</h2></div><div class="pn-b" style="display:grid;gap:10px">
+      <div style="display:flex;gap:6px;flex-wrap:wrap"><button class="btn btn-ink btn-sm" id="fcToNet" type="button">{{ icon('target', 'ico ico-sm') }}{{ m.L('Send measurements to the Stereonet Lab', 'أرسل القياسات إلى مختبر الإسقاط المجسم') }}</button><button class="btn btn-ink btn-sm" id="fcToSite" type="button">{{ icon('clipboard-list', 'ico ico-sm') }}{{ m.L('Site report for the selected station', 'تقرير الموقع للمحطة المختارة') }}</button></div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap"><button class="btn btn-line btn-xs" data-ex="csv" type="button">CSV</button><button class="btn btn-line btn-xs" data-ex="geojson" type="button">GeoJSON</button><button class="btn btn-line btn-xs" data-ex="kml" type="button">KML</button><button class="btn btn-line btn-xs" data-ex="json" type="button">{{ m.L('Full backup (JSON with photos)', 'نسخة كاملة (JSON مع الصور)') }}</button><label class="btn btn-line btn-xs" style="cursor:pointer">{{ m.L('Restore a backup', 'استرجع نسخة') }}<input type="file" id="fcImp" accept=".json,application/json" hidden></label></div>
+    </div></section>
+  </div>
+</div>
+</div>
+{% endblock %}
