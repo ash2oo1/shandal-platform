@@ -418,7 +418,7 @@
 
   function figEq(D) {
     var Q = D.eq, svg = $('#sEq'); if (!ok(Q) || !Q.ev.length) { svg.innerHTML = '<rect width="900" height="400" fill="#fff"/>' + tx(450, 200, ok(Q) ? 'No earthquake of M ≥ 4 recorded within ' + D.R + ' km since 1973' : 'Earthquake data not available', { anchor: 'middle', fill: MUT }); $('#sEqCap').textContent = ''; return; }
-    var X0 = 70, Y0 = 20, PW = 800, PH = 290, mmax = Math.max(6, Math.ceil(Q.max.mag * 2) / 2 + 0.5), y1 = 1973, y2 = new Date().getUTCFullYear() + 1, o = '<rect width="900" height="400" fill="#fff"/>';
+    svg.setAttribute('viewBox', '0 0 900 410'); var X0 = 70, Y0 = 20, PW = 800, PH = 290, mmax = Math.max(6, Math.ceil(Q.max.mag * 2) / 2 + 0.5), y1 = 1973, y2 = new Date().getUTCFullYear() + 1, o = '<rect width="900" height="410" fill="#fff"/>';
     var px = function (yr) { return X0 + (yr - y1) / (y2 - y1) * PW; }, py = function (m) { return Y0 + (mmax - m) / (mmax - 4) * PH; };
     ticks(4, mmax, 0.5).forEach(function (v) { var y = py(v); o += '<line x1="' + X0 + '" x2="' + (X0 + PW) + '" y1="' + y + '" y2="' + y + '" stroke="#E3E6E8"/>' + tx(X0 - 8, y + 4, F(v, 1), { anchor: 'end', fs: 11, fill: MUT }); });
     ticks(1975, y2, 5).forEach(function (v) { var x = px(v); o += '<line x1="' + x + '" x2="' + x + '" y1="' + (Y0 + PH) + '" y2="' + (Y0 + PH + 5) + '" stroke="' + INK + '"/>' + tx(x, Y0 + PH + 18, String(v), { anchor: 'middle', fs: 11 }); });
@@ -427,28 +427,28 @@
     o += '<rect x="' + X0 + '" y="' + Y0 + '" width="' + PW + '" height="' + PH + '" fill="none" stroke="' + INK + '"/>';
     o += tx(X0 + PW / 2, Y0 + PH + 40, 'Year', { anchor: 'middle', fw: 700 }) + tx(20, Y0 + PH / 2, 'Magnitude (M)', { anchor: 'middle', fw: 700, rot: -90 });
     var lx = X0, ly = 378; [['≤ 50 km from the site', '#C0392B'], ['50–100 km', '#E67E22'], ['> 100 km', '#2E6FBF']].forEach(function (q) { o += '<circle cx="' + (lx + 6) + '" cy="' + (ly - 4) + '" r="6" fill="' + q[1] + '" fill-opacity=".55" stroke="' + q[1] + '"/>' + tx(lx + 18, ly, q[0], { fs: 11.5 }); lx += 190; });
-    o += tx(lx + 10, ly, 'Circle size grows with magnitude. M ≥ 4, since 1973, within ' + D.R + ' km.', { fs: 11, fill: MUT });
+    o += tx(X0, ly + 20, 'Circle size grows with magnitude. M ≥ 4, since 1973, within ' + D.R + ' km of the site.', { fs: 11, fill: MUT });
     svg.innerHTML = o;
     $('#sEqCap').textContent = t('Every recorded earthquake of magnitude 4 or more inside the circle, by year and magnitude; colour gives the distance from the site. Clusters mark sequences on the same fault; the record before about 1990 misses some events near M 4.', 'كل زلزال مسجل بقدر 4 فأكثر داخل الدائرة بحسب السنة والقدر؛ ويدل اللون على البعد عن الموقع. تشير التجمعات إلى متواليات على الصدع نفسه، والسجل قبل نحو 1990 ينقصه بعض الأحداث قرب القدر 4.');
   }
 
   function figCli(D) {
     var C = D.cli, svg = $('#sClim'); if (!ok(C)) { svg.innerHTML = '<rect width="900" height="420" fill="#fff"/>' + tx(450, 210, 'Climate data not available', { anchor: 'middle', fill: MUT }); return; }
-    var X0 = 80, Y0 = 46, PW = 740, PH = 290, M = C.M, Tn = Math.min(0, Math.min.apply(null, M.map(function (o) { return o.Tn; }))), Tx = Math.max.apply(null, M.map(function (o) { return o.Tx; })), Pm = Math.max.apply(null, M.map(function (o) { return Math.max(o.P, o.E); }));
+    var X0 = 80, Y0 = 46, PW = 740, PH = 290, M = C.M, Tn = Math.min(0, Math.min.apply(null, M.map(function (o) { return o.Tn; }))), Tx = Math.max.apply(null, M.map(function (o) { return o.Tx; })), Pm = Math.max.apply(null, M.map(function (o) { return o.P; }));
     var tlo = Math.floor(Tn / 10) * 10, thi = Math.max(Math.ceil(Tx / 10) * 10, Math.ceil(Pm / 2 / 10) * 10), py = function (tc) { return Y0 + (thi - tc) / (thi - tlo) * PH; }, bw = PW / 12, o = '<rect width="900" height="420" fill="#fff"/>';
-    o += tx(X0, 26, 'Mean annual temperature ' + F(C.T, 1) + ' °C · Annual rainfall ' + F(C.P, 0) + ' mm · Köppen–Geiger ' + C.kg + ' · 1995–2024', { fw: 800, fs: 13 });
+    o += tx(X0, 26, 'Mean annual temperature ' + F(C.T, 1) + ' °C · Annual rainfall ' + F(C.P, 0) + ' mm · ET0 ' + F(C.ET, 0) + ' mm · Köppen–Geiger ' + C.kg + ' · 1995–2024', { fw: 800, fs: 13 });
     ticks(tlo, thi, 10).forEach(function (v) { var y = py(v); o += '<line x1="' + X0 + '" x2="' + (X0 + PW) + '" y1="' + y + '" y2="' + y + '" stroke="#E3E6E8"/>' + tx(X0 - 8, y + 4, String(v), { anchor: 'end', fs: 11, fill: '#C0392B' }) + tx(X0 + PW + 8, y + 4, String(v * 2), { fs: 11, fill: '#2E6FBF' }); });
     M.forEach(function (m, i) { var x = X0 + i * bw, dry = m.P < 2 * m.T; if (dry) o += '<rect x="' + x + '" y="' + py(m.T) + '" width="' + bw + '" height="' + Math.max(0, py(m.P / 2) - py(m.T)) + '" fill="#F3D9A4" opacity=".7"/>'; o += '<rect x="' + (x + bw * .2) + '" y="' + py(m.P / 2) + '" width="' + bw * .6 + '" height="' + Math.max(0, py(0) - py(m.P / 2)) + '" fill="#2E6FBF" opacity=".8"/>'; o += tx(x + bw / 2, Y0 + PH + 18, 'JFMAMJJASOND'[i], { anchor: 'middle', fs: 12, fw: 700 }); });
     var line = function (k, col, dash, w) { return '<path d="' + M.map(function (m, i) { return (i ? 'L' : 'M') + (X0 + (i + .5) * bw).toFixed(1) + ' ' + py(k === 'E' ? m.E / 2 : m[k]).toFixed(1); }).join('') + '" fill="none" stroke="' + col + '" stroke-width="' + (w || 2) + '"' + (dash ? ' stroke-dasharray="' + dash + '"' : '') + '/>'; };
-    o += line('Tx', '#C0392B', '5 4', 1.4) + line('Tn', '#C0392B', '2 3', 1.4) + line('T', '#C0392B', '', 2.6) + line('E', '#E67E22', '8 4', 1.8);
+    o += line('Tx', '#C0392B', '5 4', 1.4) + line('Tn', '#C0392B', '2 3', 1.4) + line('T', '#C0392B', '', 2.6);
     if (tlo < 0) o += '<line x1="' + X0 + '" x2="' + (X0 + PW) + '" y1="' + py(0) + '" y2="' + py(0) + '" stroke="' + INK + '" stroke-width=".8"/>';
     o += '<rect x="' + X0 + '" y="' + Y0 + '" width="' + PW + '" height="' + PH + '" fill="none" stroke="' + INK + '"/>';
-    o += tx(22, Y0 + PH / 2, 'Temperature (°C)', { anchor: 'middle', fw: 700, rot: -90, fill: '#C0392B' }) + tx(882, Y0 + PH / 2, 'Precipitation, ET0 (mm / month)', { anchor: 'middle', fw: 700, rot: 90, fill: '#2E6FBF' });
-    var lx = X0, ly = 396, it = [['bar', '#2E6FBF', 'P: precipitation'], ['line', '#C0392B', 'T: mean temperature'], ['dash', '#C0392B', 'Tmax / Tmin: mean daily maximum / minimum'], ['dash2', '#E67E22', 'ET0: reference evapotranspiration'], ['area', '#F3D9A4', 'Dry months (P < 2T)']];
+    o += tx(22, Y0 + PH / 2, 'Temperature (°C)', { anchor: 'middle', fw: 700, rot: -90, fill: '#C0392B' }) + tx(882, Y0 + PH / 2, 'Precipitation (mm / month)', { anchor: 'middle', fw: 700, rot: 90, fill: '#2E6FBF' });
+    var lx = X0, ly = 396, it = [['bar', '#2E6FBF', 'P: precipitation'], ['line', '#C0392B', 'T: mean temperature'], ['dash', '#C0392B', 'Tmax / Tmin: mean daily maximum / minimum'], ['area', '#F3D9A4', 'Dry months (P < 2T)']];
     it.forEach(function (q, i) { var x = lx + (i % 3) * 250, y = ly + Math.floor(i / 3) * 18; o += q[0] === 'bar' || q[0] === 'area' ? '<rect x="' + x + '" y="' + (y - 10) + '" width="16" height="10" fill="' + q[1] + '"/>' : '<line x1="' + x + '" x2="' + (x + 18) + '" y1="' + (y - 5) + '" y2="' + (y - 5) + '" stroke="' + q[1] + '" stroke-width="2"' + (q[0] === 'dash' ? ' stroke-dasharray="5 4"' : q[0] === 'dash2' ? ' stroke-dasharray="8 4"' : '') + '/>'; o += tx(x + 24, y, q[2], { fs: 11 }); });
     svg.setAttribute('viewBox', '0 0 900 ' + (ly + 26)); o = o.replace('<rect width="900" height="420"', '<rect width="900" height="' + (ly + 26) + '"');
     svg.innerHTML = o;
-    $('#sClimCap').textContent = t('Monthly normals of 1995–2024 drawn on the Walter–Lieth scale (20 mm of rain for every 10 °C). Where the rain bar falls below the temperature line the month is dry; the gap between rain and evapotranspiration shows how much water plants and open water would lose.', 'المعدلات الشهرية للفترة 1995–2024 مرسومة بمقياس والتر–ليث (20 ملم مطر لكل 10 °م). حيثما ينخفض عمود المطر تحت خط الحرارة يكون الشهر جافاً، ويبين الفرق بين المطر والتبخر–النتح مقدار ما تفقده النباتات والمسطحات المائية من ماء.');
+    $('#sClimCap').textContent = t('Monthly normals of 1995–2024 drawn on the Walter–Lieth scale (20 mm of rain for every 10 °C). Where the rain bar falls below the temperature line the month is dry; ET0 in the title is the yearly reference evapotranspiration, the water that a grass cover would lose if it never ran short.', 'المعدلات الشهرية للفترة 1995–2024 مرسومة بمقياس والتر–ليث (20 ملم مطر لكل 10 °م). حيثما ينخفض عمود المطر تحت خط الحرارة يكون الشهر جافاً، وET0 في العنوان هو التبخر–النتح المرجعي السنوي، أي الماء الذي يفقده غطاء عشبي لو لم ينقصه الماء أبداً.');
   }
 
   /* ------------------------------------------------------------------ location map (canvas) */
@@ -478,7 +478,7 @@
       g.restore();
       /* neat line, graticule, north arrow, scale */
       g.strokeStyle = INK; g.lineWidth = 1.6 * S; g.strokeRect(X0, Y0, PW, PH); g.lineWidth = .8 * S; g.strokeRect(X0 - 6 * S, Y0 - 6 * S, PW + 12 * S, PH + 12 * S);
-      g.fillStyle = INK; g.font = '800 ' + 17 * S + 'px ' + PF; g.textAlign = 'left'; g.textBaseline = 'alphabetic'; g.fillText(('Site location: ' + (D.title || (ok(D.loc) ? [D.loc.place, D.loc.country].filter(Boolean).join(', ') : ''))).slice(0, 90), X0 - 6 * S, 30 * S);
+      g.fillStyle = INK; g.font = '800 ' + 17 * S + 'px ' + PF; g.textAlign = 'left'; g.textBaseline = 'alphabetic'; var nm0 = D.title || (ok(D.loc) ? [D.loc.place, D.loc.country].filter(Boolean).join(', ') : ''); g.fillText(nm0 && !/[\u0600-\u06FF]/.test(nm0) ? ('Site location: ' + nm0).slice(0, 90) : 'Site location', X0 - 6 * S, 30 * S);
       g.font = '500 ' + 12 * S + 'px ' + PF; g.fillStyle = MUT; g.fillText(SH.fmtLatLon(p.lat, p.lon, 4) + ' · WGS 84 · Web Mercator', X0 - 6 * S, 50 * S);
       var w0 = LO(X0), e0 = LO(X0 + PW), n0 = LA(Y0), s0 = LA(Y0 + PH), gs = [0.25, 0.5, 1, 2, 5], st = gs.filter(function (v) { return (e0 - w0) / v <= 6; })[0] || 5, dm = function (v, ax) { var aa = Math.abs(v), dd = Math.floor(aa + 1e-9), mm = Math.round((aa - dd) * 60); if (mm === 60) { dd++; mm = 0; } return dd + '°' + (mm < 10 ? '0' : '') + mm + '′' + (ax ? (v >= 0 ? 'N' : 'S') : (v >= 0 ? 'E' : 'W')); };
       g.font = '500 ' + 11.5 * S + 'px ' + PF; g.fillStyle = INK; g.lineWidth = S;
