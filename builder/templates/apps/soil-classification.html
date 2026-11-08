@@ -1,0 +1,41 @@
+{% extends "app_base.html" %}
+{% import "apps/_m.html" as m with context %}
+{% block ws %}
+<div class="ws-wrap">
+<div class="ws wide-side">
+  <aside class="ws-side">
+    {{ m.panel_open(1, 'Gradation (% passing)', 'التدرج (% المار)') }}
+      {{ m.fld('scId', 'Sample', 'النموذج', 'text', '', '', '', '', 'BH-2 · 3.0 m') }}
+      <div id="scRows" style="display:grid;gap:5px"></div>
+      <p class="xsmall muted" style="margin:0">{{ m.L('Percent passing by mass for each sieve. The Grain Size tool turns retained masses into these values.', 'النسبة المارة بالكتلة لكل منخل. تحوّل أداة التحليل الحبيبي الكتل المحتجزة إلى هذه القيم.') }}</p>
+    {{ m.panel_close() }}
+    {{ m.panel_open(2, 'Plasticity of the fraction below 0.425 mm', 'لدونة الجزء الأنعم من 0.425 مم') }}
+      <div class="row2">
+        {{ m.fld('scLL', 'Liquid limit LL', 'حد السيولة LL', 'number', '34', '%', '', '', '', '0.1', 'min="0"') }}
+        {{ m.fld('scPL', 'Plastic limit PL', 'حد اللدونة PL', 'number', '19', '%', 'Leave empty if the fines are non-plastic (NP).', 'اتركه فارغاً إذا كان الناعم غير لدن (NP).', '', '0.1', 'min="0"') }}
+      </div>
+      <div class="row2">
+        {{ m.fld('scLLo', 'LL after oven drying', 'LL بعد التجفيف بالفرن', 'number', '', '%', 'Optional: if LL(oven dried) / LL < 0.75 the fines are organic (OL or OH).', 'اختياري: إذا كان LL (المجفف) / LL أقل من 0.75 فالناعم عضوي (OL أو OH).', '', '0.1', 'min="0"') }}
+        {{ m.sel('scPt', 'Peat', 'خث', [('0', 'No', 'لا', true), ('1', 'Mainly organic matter, dark, fibrous, odour', 'مادة عضوية في الغالب، داكن، ليفي، ذو رائحة')]) }}
+      </div>
+    {{ m.panel_close() }}
+    <div class="row2"><button class="btn btn-line btn-xs" id="scDemo" type="button">{{ m.L('Example: clayey sand', 'مثال: رمل طيني') }}</button><button class="btn btn-line btn-xs" id="scDemo2" type="button">{{ m.L('Example: fat clay', 'مثال: طين عالي اللدونة') }}</button></div>
+  </aside>
+  <div class="ws-main">
+    <div class="kpis" id="scKpis"></div>
+    <div id="scVerd" style="display:grid;gap:10px"></div>
+    <div class="grid2">
+      {{ m.fig_open('fsc1', '1', 'Particle-size distribution', 'منحنى التوزيع الحبيبي', '<span data-egfig="scGrad"></span>') }}
+        <div class="fig-b"><svg class="chart" id="scGrad" viewBox="0 0 560 460" role="img"></svg></div>
+        <div class="fig-cap" id="scGradCap"></div>
+      {{ m.fig_close() }}
+      {{ m.fig_open('fsc2', '2', 'Plasticity chart', 'مخطط اللدونة', '<span data-egfig="scPlas"></span>') }}
+        <div class="fig-b"><svg class="chart" id="scPlas" viewBox="0 0 560 460" role="img"></svg></div>
+        <div class="fig-cap" id="scPlasCap"></div>
+      {{ m.fig_close() }}
+    </div>
+    <section class="pn"><div class="pn-h">{{ icon('table') }}<h2>{{ m.L('Classification data', 'بيانات التصنيف') }}</h2><div class="sp no-print"><button class="btn btn-line btn-xs" id="scCsv" type="button">{{ icon('download', 'ico ico-sm') }}CSV</button></div></div><div class="pn-b flush"><table class="tbl" id="scTbl"></table></div></section>
+  </div>
+</div>
+</div>
+{% endblock %}

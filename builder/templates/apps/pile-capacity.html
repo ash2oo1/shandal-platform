@@ -1,0 +1,41 @@
+{% extends "app_base.html" %}
+{% import "apps/_m.html" as m with context %}
+{% block ws %}
+<div class="ws-wrap">
+<div class="ws wide-side">
+  <aside class="ws-side">
+    {{ m.panel_open(1, 'Pile', 'الركيزة') }}
+      {{ m.sel('pcT', 'Installation', 'طريقة التنفيذ', [('bored', 'Bored, cast in place', 'محفورة ومصبوبة في الموقع', true), ('driven', 'Driven, closed-ended (precast or steel)', 'مدقوقة مغلقة الطرف (مسبقة الصب أو فولاذية)')]) }}
+      <div class="row2">
+        {{ m.fld('pcD', 'Diameter D', 'القطر D', 'number', '0.8', 'm', 'Side for a square pile: enter the diameter of a circle of equal area (1.128 × side).', 'للركيزة المربعة أدخل قطر دائرة مساوية بالمساحة (1.128 × الضلع).', '', '0.05', 'min="0.2" max="3"') }}
+        {{ m.fld('pcL', 'Length L', 'الطول L', 'number', '18', 'm', 'Embedded length below the ground surface.', 'الطول المدفون تحت سطح الأرض.', '', '0.5', 'min="2"') }}
+      </div>
+      <div class="row3">
+        {{ m.fld('pcW', 'Water table', 'منسوب المياه', 'number', '2', 'm', '', '', '', '0.1', 'min="0"') }}
+        {{ m.fld('pcFS', 'Factor of safety', 'معامل الأمان', 'number', '2.5', '', '2.5–3 without a load test, 2.0 with one.', '2.5–3 دون فحص تحميل، و2.0 معه.', '', '0.1', 'min="1.5"') }}
+        {{ m.fld('pcP', 'Working load', 'الحمل التشغيلي', 'number', '1500', 'kN', 'Optional: the length that carries this load is found.', 'اختياري: يُحسب الطول الذي يحمل هذا الحمل.', '', '10', 'min="0"') }}
+      </div>
+    {{ m.panel_close() }}
+    {{ m.panel_open(2, 'Soil layers from the surface', 'طبقات التربة من السطح') }}
+      <div id="pcRows" style="display:grid;gap:5px"></div>
+      <p class="xsmall muted" style="margin:0">{{ m.L('h thickness (m) · γ bulk unit weight (kN/m³) · cu undrained shear strength of clay (kPa) · φ′ friction angle of sand (°) · N60 SPT blow count of sand, used for bored piles.', 'h السمك (م) · γ وحدة الوزن الكلية (كيلونيوتن/م³) · cu مقاومة القص غير المصرفة للطين (كيلوباسكال) · φ′ زاوية احتكاك الرمل (°) · N60 عدد ضربات الفحص للرمل، يُستعمل للركائز المحفورة.') }}</p>
+      <button class="btn btn-line btn-sm" id="pcAdd" type="button">{{ icon('plus', 'ico ico-sm') }}{{ m.L('Add layer', 'أضف طبقة') }}</button>
+    {{ m.panel_close() }}
+    <button class="btn btn-line btn-xs" id="pcDemo" type="button">{{ m.L('Example: bored pile through soft clay into dense sand', 'مثال: ركيزة محفورة عبر طين طري إلى رمل كثيف') }}</button>
+  </aside>
+  <div class="ws-main">
+    <div class="kpis" id="pcKpis"></div>
+    <div id="pcVerd" style="display:grid;gap:10px"></div>
+    {{ m.fig_open('fpc1', '1', 'Pile, soil and resistance with depth', 'الركيزة والتربة والمقاومة مع العمق', '<span data-egfig="pcProf"></span>') }}
+      <div class="fig-b"><svg class="chart" id="pcProf" viewBox="0 0 900 640" role="img"></svg></div>
+      <div class="fig-cap" id="pcProfCap"></div>
+    {{ m.fig_close() }}
+    {{ m.fig_open('fpc2', '2', 'Capacity against pile length', 'القدرة مقابل طول الركيزة', '<span data-egfig="pcLen"></span>') }}
+      <div class="fig-b"><svg class="chart" id="pcLen" viewBox="0 0 760 440" role="img"></svg></div>
+      <div class="fig-cap" id="pcLenCap"></div>
+    {{ m.fig_close() }}
+    <section class="pn"><div class="pn-h">{{ icon('table') }}<h2>{{ m.L('Shaft resistance by layer', 'مقاومة الجسم لكل طبقة') }}</h2><div class="sp no-print"><button class="btn btn-line btn-xs" id="pcCsv" type="button">{{ icon('download', 'ico ico-sm') }}CSV</button></div></div><div class="pn-b flush tbl-wrap"><table class="tbl" id="pcTbl"></table></div></section>
+  </div>
+</div>
+</div>
+{% endblock %}

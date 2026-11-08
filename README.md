@@ -12,7 +12,7 @@
 
 جاء نظام شندل ليجمع هذا العمل في أداة محمولة واحدة، من القراءة الأولى حتى التقرير النهائي، دون مغادرة الموقع. والاسم يعبّر عن جوهره: «المسح» لجمع البيانات المكانية بدقة، و«الميداني» لأنه يرافق الجيولوجي حيث يعمل.
 
-يضم النظام اليوم 40 أداة في الجيولوجيا والتضاريس والتحسس النائي والجيوفيزياء والهندسة والمياه والبيئة والمخاطر الطبيعية والمختبرات البترولية، تعمل في المتصفح على الهاتف والجهاز اللوحي والحاسوب دون تثبيت، وتصدر خرائط مُخرجة وتقارير PDF.
+يضم النظام اليوم 47 أداة في الجيولوجيا والتضاريس والتحسس النائي والجيوفيزياء والهندسة والمياه والبيئة والمخاطر الطبيعية والمختبرات البترولية، تعمل في المتصفح على الهاتف والجهاز اللوحي والحاسوب دون تثبيت، وتصدر خرائط مُخرجة وتقارير PDF.
 
 - **المؤسس والمصمم:** الجيولوجي علي شندل الجنابي، متخصص في التحسس النائي والجيوفيزياء، بغداد، العراق.
 - **التأسيس:** 2025 · **الإطلاق الرسمي:** 5 نيسان 2026.
@@ -41,6 +41,13 @@
 - [خصائص التربة العالمية](https://geologicalfieldsurvey.com/ar/tools/soil-properties/) — مقاطع التربة وتصنيفها والمقاطع المقيسة وخرائط الخصائص لأي مكان.
 - [قدرة تحمل الأسس الضحلة](https://geologicalfieldsurvey.com/ar/tools/bearing-capacity/) — Terzaghi وMeyerhof وVesić جنباً إلى جنب.
 - [دائرة مور وغلاف الانهيار](https://geologicalfieldsurvey.com/ar/tools/mohr-circle/) — تحويل الإجهادات وانهيار مور–كولوم بشكل تفاعلي.
+- [قدرة تحمل الركائز](https://geologicalfieldsurvey.com/ar/tools/pile-capacity/) — احتكاك الجسم وتحمل الطرف للركائز المحفورة والمدقوقة في طبقات الطين والرمل، والطول الذي يحتاجه الحمل.
+- [الهبوط والانضمام](https://geologicalfieldsurvey.com/ar/tools/settlement/) — كم سيهبط الأساس، وكم يستغرق الطين تحته ليكتمل انضمامه.
+- [ثبات المنحدرات](https://geologicalfieldsurvey.com/ar/tools/slope-stability/) — معامل أمان الحفريات والسداد والمنحدرات الطبيعية بطريقة الشرائح، مع المياه والزلازل.
+- [الجدران الساندة](https://geologicalfieldsurvey.com/ar/tools/retaining-wall/) — ضغط التربة على الجدران الكابولية وجدران الجاذبية، مع فحوص الانقلاب والانزلاق والتحمل، وفي الزلازل أيضاً.
+- [تميّع التربة](https://geologicalfieldsurvey.com/ar/tools/liquefaction/) — هل يتحول الرمل تحت الموقع إلى سائل أثناء الزلزال؟ من سجل فحص الاختراق القياسي في البئر.
+- [الرص ونسبة تحمل كاليفورنيا](https://geologicalfieldsurvey.com/ar/tools/compaction-cbr/) — منحنى بروكتور وأقصى كثافة جافة والمحتوى المائي الأمثل وقبول الرص الحقلي ونسبة CBR لتربة أساس الطرق.
+- [التصنيف الهندسي للتربة](https://geologicalfieldsurvey.com/ar/tools/soil-classification/) — رمز مجموعة USCS واسمها ومجموعة AASHTO مع دليل المجموعة، من التدرج وحدود أتربرغ.
 - [حدود أتربرغ واللدونة](https://geologicalfieldsurvey.com/ar/tools/atterberg-limits/) — حد السيولة من منحنى الجريان، والصنف من مخطط اللدونة.
 - [التحليل الحجمي الحبيبي](https://geologicalfieldsurvey.com/ar/tools/grain-size/) — من بيانات المناخل إلى منحنى التدرج وصنف USCS وإحصاءات Folk & Ward.
 - [مُرسِم الأسطح ثلاثية الأبعاد](https://geologicalfieldsurvey.com/ar/tools/surface-3d/) — Z = f(X, Y) من عيناتك: سطح قابل للتدوير وخريطة كنتورية ومعادلات انحدار.
@@ -90,7 +97,7 @@ For decades, field geology meant scattered tools: readings taken by hand, long c
 
 The Shandal System brings that work into one portable tool, from the first reading to the final report, without leaving the site. The name says what it does: survey, to collect spatial data precisely; field, because it goes where the geologist goes.
 
-The system now has 40 tools for geology, terrain, remote sensing, geophysics, engineering, water, environment, natural hazards and petroleum laboratories. They run in the browser on phones, tablets and computers with nothing to install, and export finished map sheets and PDF reports.
+The system now has 47 tools for geology, terrain, remote sensing, geophysics, engineering, water, environment, natural hazards and petroleum laboratories. They run in the browser on phones, tablets and computers with nothing to install, and export finished map sheets and PDF reports.
 
 - **Founder and designer:** Ali Shandal Al-Janabi, Iraqi geologist (remote sensing and geophysics), Baghdad, Iraq.
 - **Founded:** 2025 · **Official launch:** 5 April 2026.
@@ -119,6 +126,13 @@ The system now has 40 tools for geology, terrain, remote sensing, geophysics, en
 - [Global Soil Properties](https://geologicalfieldsurvey.com/tools/soil-properties/) — Soil profiles, classification, measured profiles and property maps for any place.
 - [Bearing Capacity of Shallow Foundations](https://geologicalfieldsurvey.com/tools/bearing-capacity/) — Terzaghi, Meyerhof and Vesić side by side.
 - [Mohr Circle & Failure Envelope](https://geologicalfieldsurvey.com/tools/mohr-circle/) — Stress transformation and Mohr–Coulomb failure, interactively.
+- [Pile Capacity](https://geologicalfieldsurvey.com/tools/pile-capacity/) — Shaft friction and end bearing of bored and driven piles in layered clay and sand, and the length a load needs.
+- [Settlement and Consolidation](https://geologicalfieldsurvey.com/tools/settlement/) — How much a footing will settle and how long the clay below it takes to consolidate.
+- [Slope Stability](https://geologicalfieldsurvey.com/tools/slope-stability/) — Factor of safety of cuts, embankments and natural slopes by the method of slices, with water and earthquakes.
+- [Retaining Walls](https://geologicalfieldsurvey.com/tools/retaining-wall/) — Earth pressure on cantilever and gravity walls, with overturning, sliding and bearing checks, also in earthquakes.
+- [Soil Liquefaction](https://geologicalfieldsurvey.com/tools/liquefaction/) — Will the sand under the site turn to liquid in an earthquake? From the SPT log of a borehole.
+- [Compaction and CBR](https://geologicalfieldsurvey.com/tools/compaction-cbr/) — Proctor curve, maximum dry density and optimum water, field acceptance, and the CBR of road subgrades.
+- [Engineering Soil Classification](https://geologicalfieldsurvey.com/tools/soil-classification/) — USCS group symbol and name and AASHTO group with group index, from gradation and Atterberg limits.
 - [Atterberg Limits & Plasticity](https://geologicalfieldsurvey.com/tools/atterberg-limits/) — Liquid limit from the flow curve, class from the plasticity chart.
 - [Grain-Size Analysis](https://geologicalfieldsurvey.com/tools/grain-size/) — Sieve data to gradation curve, USCS class and Folk & Ward statistics.
 - [3-D Surface Plotter](https://geologicalfieldsurvey.com/tools/surface-3d/) — Z = f(X, Y) from your samples: rotatable surface, contour map and regressions.

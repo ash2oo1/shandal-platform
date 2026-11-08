@@ -28,7 +28,7 @@
     var fx = function (v) { var a = X.log ? (lg(v) - lg(X.lo)) / (lg(X.hi) - lg(X.lo)) : (v - X.lo) / (X.hi - X.lo); return m.l + (X.rev ? 1 - a : a) * PW; };
     var fy = function (v) { var a = Y.log ? (lg(v) - lg(Y.lo)) / (lg(Y.hi) - lg(Y.lo)) : (v - Y.lo) / (Y.hi - Y.lo); return m.t + (Y.rev ? a : 1 - a) * PH; };
     var id = 'c' + Math.random().toString(36).slice(2, 8), s = '<defs><clipPath id="' + id + '"><rect x="' + m.l + '" y="' + m.t + '" width="' + PW + '" height="' + PH + '"/></clipPath></defs>';
-    var xt = X.log ? logTicks(X.lo, X.hi) : EG.ticks(X.lo, X.hi, X.st || EG.step(X.lo, X.hi, 6)), yt = Y.log ? logTicks(Y.lo, Y.hi) : EG.ticks(Y.lo, Y.hi, Y.st || EG.step(Y.lo, Y.hi, 5));
+    var xt = X.none ? [] : X.log ? logTicks(X.lo, X.hi) : EG.ticks(X.lo, X.hi, X.st || EG.step(X.lo, X.hi, 6)), yt = Y.log ? logTicks(Y.lo, Y.hi) : EG.ticks(Y.lo, Y.hi, Y.st || EG.step(Y.lo, Y.hi, 5));
     xt.forEach(function (v) { var x = fx(v); s += '<line x1="' + x.toFixed(1) + '" x2="' + x.toFixed(1) + '" y1="' + m.t + '" y2="' + (m.t + PH) + '" stroke="' + GRID + '"/>'; var ty = X.top ? m.t - 8 : m.t + PH + 17; s += '<line x1="' + x.toFixed(1) + '" x2="' + x.toFixed(1) + '" y1="' + (X.top ? m.t - 4 : m.t + PH) + '" y2="' + (X.top ? m.t : m.t + PH + 4) + '" stroke="' + INK + '"/>' + EG.tx(x, ty, X.log ? logLab(v) : fmtT(v, X.st || EG.step(X.lo, X.hi, 6)), { anchor: 'middle', fs: 11 }); });
     yt.forEach(function (v) { var y = fy(v); s += '<line x1="' + m.l + '" x2="' + (m.l + PW) + '" y1="' + y.toFixed(1) + '" y2="' + y.toFixed(1) + '" stroke="' + GRID + '"/><line x1="' + (m.l - 4) + '" x2="' + m.l + '" y1="' + y.toFixed(1) + '" y2="' + y.toFixed(1) + '" stroke="' + INK + '"/>' + EG.tx(m.l - 8, y + 4, Y.log ? logLab(v) : fmtT(v, Y.st || EG.step(Y.lo, Y.hi, 5)), { anchor: 'end', fs: 11 }); });
     s += '<g clip-path="url(#' + id + ')">' + (o.under ? (typeof o.under === 'function' ? o.under(fx, fy) : o.under) : '');
@@ -60,6 +60,7 @@
     return l + mk;
   }
   EG.sym = sym;
+  EG.panel = function (o) { var tmp = d.createElementNS('http://www.w3.org/2000/svg', 'svg'); EG.chart(tmp, o); return tmp.innerHTML.replace(/^<rect[^>]*fill="#fff"[^>]*>(<\/rect>)?/, ''); };
   function wrap(s, n) { var out = [], cur = ''; String(s).split(' ').forEach(function (w0) { if ((cur + ' ' + w0).trim().length > n) { if (cur) out.push(cur); cur = w0; } else cur = (cur + ' ' + w0).trim(); }); if (cur) out.push(cur); return out; }
   EG.wrap = wrap;
   function logTicks(lo, hi) { var a = []; for (var e = Math.floor(Math.log10(lo)); e <= Math.ceil(Math.log10(hi)); e++) { var b = Math.pow(10, e); if (b >= lo * 0.999 && b <= hi * 1.001) a.push(b); } return a; }

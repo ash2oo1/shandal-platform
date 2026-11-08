@@ -1,0 +1,52 @@
+{% extends "app_base.html" %}
+{% import "apps/_m.html" as m with context %}
+{% block ws %}
+<div class="ws-wrap">
+<div class="ws wide-side">
+  <aside class="ws-side">
+    {{ m.panel_open(1, 'Proctor compaction test', 'فحص الرص (بروكتور)') }}
+      <div class="row2">
+        {{ m.sel('cpT', 'Test', 'الفحص', [('std', 'Standard (ASTM D698)', 'القياسي (ASTM D698)', true), ('mod', 'Modified (ASTM D1557)', 'المعدل (ASTM D1557)')]) }}
+        {{ m.fld('cpGs', 'Specific gravity Gs', 'الوزن النوعي Gs', 'number', '2.68', '', 'Of the soil solids; about 2.65 for quartz sand, 2.70–2.75 for clays, 2.32 for gypsum.', 'لحبيبات التربة؛ نحو 2.65 لرمل الكوارتز، و2.70–2.75 للأطيان، و2.32 للجبس.', '', '0.01', 'min="2" max="3.2"') }}
+      </div>
+      <div class="row2">
+        {{ m.fld('cpV', 'Mould volume', 'حجم القالب', 'number', '944', 'cm³', '944 cm³ for the 101.6 mm mould, 2124 cm³ for the 152.4 mm mould.', '944 سم³ للقالب 101.6 مم، و2124 سم³ للقالب 152.4 مم.', '', '1', 'min="100"') }}
+        {{ m.fld('cpMm', 'Mould mass', 'كتلة القالب', 'number', '4250', 'g', 'Empty mould with base plate, without the collar.', 'القالب الفارغ مع القاعدة، دون الطوق.', '', '1', 'min="0"') }}
+      </div>
+      <div id="cpRows" style="display:grid;gap:5px"></div>
+      <p class="xsmall muted" style="margin:0">{{ m.L('M mass of mould and compacted wet soil (g) · w water content (%).', 'M كتلة القالب مع التربة الرطبة المرصوصة (غم) · w المحتوى المائي (%).') }}</p>
+      <button class="btn btn-line btn-sm" id="cpAdd" type="button">{{ icon('plus', 'ico ico-sm') }}{{ m.L('Add point', 'أضف نقطة') }}</button>
+    {{ m.panel_close() }}
+    {{ m.panel_open(2, 'Field compaction check', 'فحص الرص الحقلي') }}
+      <div class="row3">
+        {{ m.fld('cpFd', 'Field dry density', 'الكثافة الجافة الحقلية', 'number', '1.78', 'g/cm³', 'From the sand-cone or nuclear gauge test.', 'من فحص المخروط الرملي أو المقياس النووي.', '', '0.001', 'min="0"') }}
+        {{ m.fld('cpFw', 'Field water content', 'المحتوى المائي الحقلي', 'number', '13', '%', '', '', '', '0.1', 'min="0"') }}
+        {{ m.fld('cpRc', 'Required compaction', 'الرص المطلوب', 'number', '95', '%', 'Usually 95 % of the modified maximum for road layers, 90–95 % of the standard maximum for fills.', 'عادة 95 % من الأقصى المعدل لطبقات الطرق، و90–95 % من الأقصى القياسي للردم.', '', '0.5', 'min="80" max="105"') }}
+      </div>
+    {{ m.panel_close() }}
+    {{ m.panel_open(3, 'California bearing ratio (CBR)', 'نسبة تحمل كاليفورنيا (CBR)') }}
+      <div id="cbRows" style="display:grid;gap:5px"></div>
+      <p class="xsmall muted" style="margin:0">{{ m.L('Penetration of the 49.6 mm piston (mm) and load on it (kN).', 'اختراق المكبس بقطر 49.6 مم (مم) والحمل عليه (كيلونيوتن).') }}</p>
+      <div class="row2"><button class="btn btn-line btn-sm" id="cbAdd" type="button">{{ icon('plus', 'ico ico-sm') }}{{ m.L('Add reading', 'أضف قراءة') }}</button>
+        {{ m.fld('cbSw', 'Swell after soaking', 'الانتفاخ بعد الغمر', 'number', '0.8', '%', 'Change in specimen height after 4 days of soaking, as % of the initial height.', 'التغير في ارتفاع النموذج بعد 4 أيام غمر كنسبة من الارتفاع الابتدائي.', '', '0.1', 'min="0"') }}</div>
+    {{ m.panel_close() }}
+    <button class="btn btn-line btn-xs" id="cpDemo" type="button">{{ m.L('Example: silty sand subgrade', 'مثال: تربة أساس طريق من رمل غريني') }}</button>
+  </aside>
+  <div class="ws-main">
+    <div class="kpis" id="cpKpis"></div>
+    <div id="cpVerd" style="display:grid;gap:10px"></div>
+    <div class="grid2">
+      {{ m.fig_open('fcp1', '1', 'Compaction curve', 'منحنى الرص', '<span data-egfig="cpCur"></span>') }}
+        <div class="fig-b"><svg class="chart" id="cpCur" viewBox="0 0 560 460" role="img"></svg></div>
+        <div class="fig-cap" id="cpCurCap"></div>
+      {{ m.fig_close() }}
+      {{ m.fig_open('fcp2', '2', 'CBR load–penetration curve', 'منحنى الحمل–الاختراق لـ CBR', '<span data-egfig="cbCur"></span>') }}
+        <div class="fig-b"><svg class="chart" id="cbCur" viewBox="0 0 560 460" role="img"></svg></div>
+        <div class="fig-cap" id="cbCurCap"></div>
+      {{ m.fig_close() }}
+    </div>
+    <section class="pn"><div class="pn-h">{{ icon('table') }}<h2>{{ m.L('Compaction points', 'نقاط الرص') }}</h2><div class="sp no-print"><button class="btn btn-line btn-xs" id="cpCsv" type="button">{{ icon('download', 'ico ico-sm') }}CSV</button></div></div><div class="pn-b flush tbl-wrap"><table class="tbl" id="cpTbl"></table></div></section>
+  </div>
+</div>
+</div>
+{% endblock %}
