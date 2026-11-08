@@ -1,0 +1,43 @@
+{% extends "app_base.html" %}
+{% import "apps/_m.html" as m with context %}
+{% block ws %}
+<div class="ws-wrap">
+<div class="ws wide-side">
+  <aside class="ws-side">
+    {{ m.panel_open(1, 'Design earthquake', 'الزلزال التصميمي') }}
+      <div class="row2">
+        {{ m.fld('lqM', 'Magnitude Mw', 'القدر Mw', 'number', '6.5', '', 'Moment magnitude of the design earthquake; the Seismic Hazard tool lists the largest events around a site.', 'القدر العزمي للزلزال التصميمي؛ تعرض أداة الخطر الزلزالي أكبر الأحداث حول الموقع.', '', '0.1', 'min="5" max="9"') }}
+        {{ m.fld('lqA', 'Peak ground acceleration', 'أقصى تسارع أرضي', 'number', '0.2', 'g', 'At the ground surface, including site amplification. The Seismic Evaluation tool gives PGA from the code.', 'عند سطح الأرض، شاملاً تضخيم الموقع. تعطي أداة التقييم الزلزالي التسارع من الكود.', '', '0.01', 'min="0.01" max="1.5"') }}
+      </div>
+      {{ m.fld('lqW', 'Water table during the earthquake', 'منسوب المياه أثناء الزلزال', 'number', '1.5', 'm', 'Use the highest seasonal level, often near the surface beside rivers.', 'استعمل أعلى منسوب موسمي، وكثيراً ما يكون قرب السطح بجوار الأنهار.', '', '0.1', 'min="0"') }}
+    {{ m.panel_close() }}
+    {{ m.panel_open(2, 'SPT test conditions', 'ظروف فحص الاختراق القياسي') }}
+      <div class="row2">
+        {{ m.fld('lqER', 'Hammer energy ratio', 'نسبة طاقة المطرقة', 'number', '60', '%', 'Safety hammer 60–75 %, donut hammer 45–60 %, automatic trip 80–100 %.', 'مطرقة الأمان 60–75 %، والمطرقة الحلقية 45–60 %، والإسقاط الآلي 80–100 %.', '', '1', 'min="30" max="110"') }}
+        {{ m.sel('lqBH', 'Borehole diameter', 'قطر البئر', [('1', '65–115 mm', '65–115 مم', true), ('1.05', '150 mm', '150 مم'), ('1.15', '200 mm', '200 مم')]) }}
+      </div>
+      {{ m.sel('lqSm', 'Sampler', 'المِنزَع', [('1', 'Standard, with liner', 'قياسي مع بطانة', true), ('1.2', 'Room for liner, used without it', 'مهيأ لبطانة واستُعمل دونها')]) }}
+    {{ m.panel_close() }}
+    {{ m.panel_open(3, 'Borehole log', 'سجل البئر') }}
+      <div id="lqRows" style="display:grid;gap:5px"></div>
+      <p class="xsmall muted" style="margin:0">{{ m.L('z test depth (m) · N field blow count per 30 cm · FC fines content (%) · γ unit weight (kN/m³) · Clay-like: plasticity index above 7 (not susceptible to flow liquefaction).', 'z عمق الفحص (م) · N عدد الضربات الحقلي لكل 30 سم · FC نسبة الناعم (%) · γ وحدة الوزن (كيلونيوتن/م³) · شبيه بالطين: دليل لدونة أكبر من 7 (غير قابل للتميع الجريان).') }}</p>
+      <button class="btn btn-line btn-sm" id="lqAdd" type="button">{{ icon('plus', 'ico ico-sm') }}{{ m.L('Add test', 'أضف فحصاً') }}</button>
+    {{ m.panel_close() }}
+    <button class="btn btn-line btn-xs" id="lqDemo" type="button">{{ m.L('Example: loose river sand, M 6.5, 0.2 g', 'مثال: رمل نهري مفكك، قدر 6.5، تسارع 0.2 g') }}</button>
+  </aside>
+  <div class="ws-main">
+    <div class="kpis" id="lqKpis"></div>
+    <div id="lqVerd" style="display:grid;gap:10px"></div>
+    {{ m.fig_open('flq1', '1', 'Liquefaction profile', 'مقطع التميع', '<span data-egfig="lqProf"></span>') }}
+      <div class="fig-b"><svg class="chart" id="lqProf" viewBox="0 0 900 640" role="img"></svg></div>
+      <div class="fig-cap" id="lqProfCap"></div>
+    {{ m.fig_close() }}
+    {{ m.fig_open('flq2', '2', 'Cyclic resistance chart', 'مخطط المقاومة الدورية', '<span data-egfig="lqCrr"></span>') }}
+      <div class="fig-b"><svg class="chart" id="lqCrr" viewBox="0 0 760 460" role="img"></svg></div>
+      <div class="fig-cap" id="lqCrrCap"></div>
+    {{ m.fig_close() }}
+    <section class="pn"><div class="pn-h">{{ icon('table') }}<h2>{{ m.L('Results by depth', 'النتائج بحسب العمق') }}</h2><div class="sp no-print"><button class="btn btn-line btn-xs" id="lqCsv" type="button">{{ icon('download', 'ico ico-sm') }}CSV</button></div></div><div class="pn-b flush tbl-wrap"><table class="tbl" id="lqTbl"></table></div></section>
+  </div>
+</div>
+</div>
+{% endblock %}

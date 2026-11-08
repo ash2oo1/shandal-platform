@@ -816,3 +816,6 @@ NEW_TOOLS = [
  'related': ['seismic-hazard', 'geologic-unit', 'landslide-susceptibility'],
 },
 ]
+
+from content_eng import ENG_TOOLS
+NEW_TOOLS += ENG_TOOLS

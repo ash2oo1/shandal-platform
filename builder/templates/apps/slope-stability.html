@@ -1,0 +1,56 @@
+{% extends "app_base.html" %}
+{% import "apps/_m.html" as m with context %}
+{% block ws %}
+<div class="ws-wrap">
+<div class="ws wide-side">
+  <aside class="ws-side">
+    {{ m.panel_open(1, 'Slope geometry', 'هندسة المنحدر') }}
+      <div class="row2">
+        {{ m.fld('ssH', 'Height H', 'الارتفاع H', 'number', '12', 'm', 'Vertical height from toe to crest.', 'الارتفاع الرأسي من القدم إلى الحافة العليا.', '', '0.1', 'min="1"') }}
+        {{ m.fld('ssB', 'Slope angle β', 'زاوية المنحدر β', 'number', '34', '°', 'Angle of the slope face from the horizontal. 1V:2H = 26.6°, 1V:1.5H = 33.7°, 1V:1H = 45°.', 'زاوية وجه المنحدر عن الأفق. 1 رأسي : 2 أفقي = 26.6°، و1 : 1.5 = 33.7°، و1 : 1 = 45°.', '', '0.5', 'min="5" max="85"') }}
+      </div>
+      <div class="row2">
+        {{ m.fld('ssQ', 'Surcharge on the crest q', 'الحمل على الحافة q', 'number', '0', 'kPa', 'Traffic, stockpile or building load on top of the slope (about 10–20 kPa for roads).', 'حمل المرور أو الأكوام أو المباني أعلى المنحدر (نحو 10–20 كيلوباسكال للطرق).', '', '1', 'min="0"') }}
+        {{ m.fld('ssD', 'Firm layer below the toe', 'الطبقة الصلبة تحت القدم', 'number', '8', 'm', 'Depth of rock or very stiff ground below the toe; slip circles cannot pass below it.', 'عمق الصخر أو الأرض الصلبة جداً تحت القدم؛ لا تمر دوائر الانزلاق أسفله.', '', '0.5', 'min="0"') }}
+      </div>
+    {{ m.panel_close() }}
+    {{ m.panel_open(2, 'Soil strength', 'مقاومة التربة') }}
+      <div class="row2">
+        {{ m.fld('ssC', 'Cohesion c′', 'التماسك c′', 'number', '12', 'kPa', 'Effective cohesion from drained shear tests. For short-term clay stability enter the undrained strength cu and φ = 0.', 'التماسك الفعال من فحوص القص المصرفة. لثبات الطين قصير الأمد أدخل مقاومة القص غير المصرفة cu وφ = 0.', '', '0.5', 'min="0"') }}
+        {{ m.fld('ssF', 'Friction angle φ′', 'زاوية الاحتكاك φ′', 'number', '26', '°', 'From direct shear or triaxial tests; about 28–34° for sand, 20–28° for silty clay, 15–22° for fat clay.', 'من فحص القص المباشر أو ثلاثي المحاور؛ نحو 28–34° للرمل، و20–28° للطين الغريني، و15–22° للطين عالي اللدونة.', '', '0.5', 'min="0" max="50"') }}
+      </div>
+      <div class="row2">
+        {{ m.fld('ssG', 'Unit weight γ', 'وحدة الوزن γ', 'number', '19', 'kN/m³', '', '', '', '0.1', 'min="10" max="27"') }}
+        {{ m.fld('ssGs', 'Saturated unit weight γsat', 'وحدة الوزن المشبعة γsat', 'number', '20', 'kN/m³', 'Used below the water table.', 'تستعمل تحت منسوب المياه.', '', '0.1', 'min="10" max="27"') }}
+      </div>
+    {{ m.panel_close() }}
+    {{ m.panel_open(3, 'Water and earthquake', 'المياه والزلزال') }}
+      {{ m.sel('ssW', 'Groundwater', 'المياه الجوفية', [('dry', 'Dry slope', 'منحدر جاف', true), ('phr', 'Water table (phreatic line)', 'منسوب مياه (خط التشبع)'), ('ru', 'Pore-pressure ratio ru', 'نسبة ضغط المسام ru')]) }}
+      <div class="row2">
+        {{ m.fld('ssHw', 'Water height behind the crest', 'ارتفاع الماء خلف الحافة', 'number', '6', 'm', 'Height of the water table above the toe level, measured behind the crest; it falls to the toe along the face.', 'ارتفاع منسوب المياه فوق مستوى القدم خلف الحافة؛ وينخفض حتى القدم على امتداد الوجه.', '', '0.1', 'min="0"') }}
+        {{ m.fld('ssRu', 'ru', 'ru', 'number', '0.2', '', 'Pore pressure divided by the overburden pressure: 0 dry, 0.2–0.3 typical wet season, 0.5 fully saturated with surface seepage.', 'ضغط المسام مقسوماً على ضغط الغطاء: 0 جاف، و0.2–0.3 موسم رطب معتاد، و0.5 مشبع مع رشح سطحي.', '', '0.05', 'min="0" max="0.7"') }}
+      </div>
+      <div class="row2">
+        {{ m.fld('ssK', 'Seismic coefficient kh', 'المعامل الزلزالي kh', 'number', '0', 'g', 'Pseudo-static horizontal coefficient, commonly one half to two thirds of the peak ground acceleration (0.05–0.15 in Iraq).', 'المعامل الأفقي شبه الساكن، يؤخذ عادة نصف إلى ثلثي أقصى تسارع أرضي (0.05–0.15 في العراق).', '', '0.01', 'min="0" max="0.4"') }}
+        {{ m.fld('ssFr', 'Required factor of safety', 'معامل الأمان المطلوب', 'number', '1.5', '', '1.5 for permanent slopes, 1.3 for temporary cuts, 1.1 with earthquake loading.', '1.5 للمنحدرات الدائمة، و1.3 للحفريات المؤقتة، و1.1 مع الحمل الزلزالي.', '', '0.05', 'min="1"') }}
+      </div>
+    {{ m.panel_close() }}
+    <button class="btn btn-line btn-xs" id="ssDemo" type="button">{{ m.L('Example: road cut in silty clay with a wet season water table', 'مثال: قطع طريق في طين غريني مع منسوب مياه الموسم الرطب') }}</button>
+  </aside>
+  <div class="ws-main">
+    <div class="kpis" id="ssKpis"></div>
+    <div id="ssVerd" style="display:grid;gap:10px"></div>
+    {{ m.fig_open('fss1', '1', 'Critical slip circle and the search grid', 'دائرة الانزلاق الحرجة وشبكة البحث', '<span data-egfig="ssSec"></span>') }}
+      <div class="fig-b"><svg class="chart" id="ssSec" viewBox="0 0 900 520" role="img"></svg></div>
+      <div class="fig-cap" id="ssSecCap"></div>
+    {{ m.fig_close() }}
+    {{ m.fig_open('fss2', '2', 'Factor of safety against slope angle', 'معامل الأمان مقابل زاوية المنحدر', '<span data-egfig="ssAng"></span>') }}
+      <div class="fig-b"><svg class="chart" id="ssAng" viewBox="0 0 760 420" role="img"></svg></div>
+      <div class="fig-cap" id="ssAngCap"></div>
+    {{ m.fig_close() }}
+    <section class="pn"><div class="pn-h">{{ icon('table') }}<h2>{{ m.L('Methods compared', 'مقارنة الطرق') }}</h2></div><div class="pn-b flush tbl-wrap"><table class="tbl" id="ssTbl"></table></div></section>
+    <section class="pn"><div class="pn-h">{{ icon('list') }}<h2>{{ m.L('Slices of the critical circle', 'شرائح الدائرة الحرجة') }}</h2><div class="sp no-print"><button class="btn btn-line btn-xs" id="ssCsv" type="button">{{ icon('download', 'ico ico-sm') }}CSV</button></div></div><div class="pn-b flush tbl-wrap" style="max-height:420px;overflow:auto"><table class="tbl" id="ssSl"></table></div></section>
+  </div>
+</div>
+</div>
+{% endblock %}

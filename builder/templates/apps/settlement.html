@@ -1,0 +1,50 @@
+{% extends "app_base.html" %}
+{% import "apps/_m.html" as m with context %}
+{% block ws %}
+<div class="ws-wrap">
+<div class="ws wide-side">
+  <aside class="ws-side">
+    {{ m.panel_open(1, 'Foundation and load', 'الأساس والحمل') }}
+      {{ m.sel('stS', 'Shape', 'الشكل', [('rect', 'Rectangular or square', 'مستطيل أو مربع', true), ('strip', 'Strip (continuous)', 'شريطي (مستمر)'), ('circ', 'Circular', 'دائري')]) }}
+      <div class="row3">
+        {{ m.fld('stB', 'Width B', 'العرض B', 'number', '3', 'm', 'Diameter for a circular footing.', 'القطر للأساس الدائري.', '', '0.1', 'min="0.3"') }}
+        {{ m.fld('stL', 'Length L', 'الطول L', 'number', '3', 'm', '', '', '', '0.1', 'min="0.3"') }}
+        {{ m.fld('stDf', 'Depth Df', 'العمق Df', 'number', '1.5', 'm', 'Depth of the footing base below the ground surface.', 'عمق قاعدة الأساس تحت سطح الأرض.', '', '0.1', 'min="0"') }}
+      </div>
+      <div class="row2">
+        {{ m.fld('stQ', 'Net pressure qn', 'الضغط الصافي qn', 'number', '150', 'kPa', 'Applied pressure minus the weight of soil removed: column load / area − γ·Df.', 'الضغط المسلط مطروحاً منه وزن التربة المزالة: حمل العمود / المساحة − γ·Df.', '', '1', 'min="0"') }}
+        {{ m.fld('stW', 'Water table depth', 'عمق منسوب المياه', 'number', '2', 'm', 'Below the ground surface.', 'تحت سطح الأرض.', '', '0.1', 'min="0"') }}
+      </div>
+    {{ m.panel_close() }}
+    {{ m.panel_open(2, 'Soil layers from the surface', 'طبقات التربة من السطح') }}
+      <div id="stRows" style="display:grid;gap:5px"></div>
+      <p class="xsmall muted" style="margin:0">{{ m.L('h thickness (m) · γ bulk unit weight (kN/m³) · E modulus (MPa; undrained Eu for clay) · Cc compression index · e0 initial void ratio · OCR overconsolidation ratio · cv coefficient of consolidation (m²/year). Sand uses only h, γ and E.', 'h السمك (م) · γ وحدة الوزن الكلية (كيلونيوتن/م³) · E المعامل (ميغاباسكال؛ Eu غير المصرف للطين) · Cc معامل الانضغاط · e0 نسبة الفراغات الابتدائية · OCR نسبة فرط الانضمام · cv معامل الانضمام (م²/سنة). الرمل يستعمل h وγ وE فقط.') }}</p>
+      <div class="row2"><button class="btn btn-line btn-sm" id="stAdd" type="button">{{ icon('plus', 'ico ico-sm') }}{{ m.L('Add layer', 'أضف طبقة') }}</button>
+        {{ m.fld('stCs', 'Swelling index Cs / Cc', 'نسبة Cs / Cc', 'number', '0.15', '', 'Recompression index as a fraction of Cc; usually 0.1–0.2.', 'معامل إعادة الانضغاط كنسبة من Cc؛ عادة 0.1–0.2.', '', '0.01', 'min="0.02" max="0.5"') }}</div>
+    {{ m.panel_close() }}
+    {{ m.panel_open(3, 'Drainage and limit', 'التصريف والحد المسموح') }}
+      <div class="row2">
+        {{ m.sel('stDr', 'Clay drains through', 'يصرّف الطين عبر', [('2', 'Top and bottom', 'الأعلى والأسفل', true), ('1', 'One face only', 'وجه واحد فقط')]) }}
+        {{ m.fld('stAl', 'Allowable settlement', 'الهبوط المسموح', 'number', '25', 'mm', '25 mm for isolated footings, 50 mm for rafts (common practice).', '25 مم للأسس المنفردة، و50 مم للحصائر (الممارسة الشائعة).', '', '1', 'min="1"') }}
+      </div>
+    {{ m.panel_close() }}
+    <button class="btn btn-line btn-xs" id="stDemo" type="button">{{ m.L('Example: 3 × 3 m footing on sand over soft clay', 'مثال: أساس 3 × 3 م على رمل فوق طين طري') }}</button>
+  </aside>
+  <div class="ws-main">
+    <div class="kpis" id="stKpis"></div>
+    <div id="stVerd" style="display:grid;gap:10px"></div>
+    <div class="grid2">
+      {{ m.fig_open('fst1', '1', 'Stresses with depth', 'الإجهادات مع العمق', '<span data-egfig="stProf"></span>') }}
+        <div class="fig-b"><svg class="chart" id="stProf" viewBox="0 0 560 620" role="img"></svg></div>
+        <div class="fig-cap" id="stProfCap"></div>
+      {{ m.fig_close() }}
+      {{ m.fig_open('fst2', '2', 'Settlement with time', 'الهبوط مع الزمن', '<span data-egfig="stTime"></span>') }}
+        <div class="fig-b"><svg class="chart" id="stTime" viewBox="0 0 560 620" role="img"></svg></div>
+        <div class="fig-cap" id="stTimeCap"></div>
+      {{ m.fig_close() }}
+    </div>
+    <section class="pn"><div class="pn-h">{{ icon('table') }}<h2>{{ m.L('Settlement by layer', 'الهبوط لكل طبقة') }}</h2><div class="sp no-print"><button class="btn btn-line btn-xs" id="stCsv" type="button">{{ icon('download', 'ico ico-sm') }}CSV</button></div></div><div class="pn-b flush tbl-wrap"><table class="tbl" id="stTbl"></table></div></section>
+  </div>
+</div>
+</div>
+{% endblock %}

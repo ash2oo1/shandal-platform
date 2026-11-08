@@ -1,0 +1,61 @@
+{% extends "app_base.html" %}
+{% import "apps/_m.html" as m with context %}
+{% block ws %}
+<div class="ws-wrap">
+<div class="ws wide-side">
+  <aside class="ws-side">
+    {{ m.panel_open(1, 'Wall geometry', 'هندسة الجدار') }}
+      <div class="row2">
+        {{ m.fld('rwH', 'Total height H', 'الارتفاع الكلي H', 'number', '5', 'm', 'From the underside of the base to the top of the stem.', 'من أسفل القاعدة إلى أعلى الساق.', '', '0.1', 'min="1"') }}
+        {{ m.fld('rwB', 'Base width B', 'عرض القاعدة B', 'number', '3.3', 'm', 'Usually 0.5–0.7 H for cantilever walls.', 'عادة 0.5–0.7 من H للجدران الكابولية.', '', '0.05', 'min="0.5"') }}
+      </div>
+      <div class="row2">
+        {{ m.fld('rwToe', 'Toe length', 'طول المقدمة', 'number', '0.8', 'm', 'Part of the base in front of the stem; usually B/3 or less.', 'جزء القاعدة أمام الساق؛ عادة B/3 أو أقل.', '', '0.05', 'min="0"') }}
+        {{ m.fld('rwTb', 'Base thickness', 'سمك القاعدة', 'number', '0.5', 'm', '', '', '', '0.05', 'min="0.2"') }}
+      </div>
+      <div class="row2">
+        {{ m.fld('rwT1', 'Stem width at top', 'عرض الساق في الأعلى', 'number', '0.3', 'm', 'For a gravity wall enter a wide stem; the tool handles both.', 'لجدار الجاذبية أدخل ساقاً عريضة؛ تتعامل الأداة مع النوعين.', '', '0.05', 'min="0.15"') }}
+        {{ m.fld('rwT2', 'Stem width at bottom', 'عرض الساق في الأسفل', 'number', '0.5', 'm', '', '', '', '0.05', 'min="0.15"') }}
+      </div>
+      {{ m.fld('rwGc', 'Unit weight of the wall', 'وحدة وزن الجدار', 'number', '24', 'kN/m³', 'Reinforced concrete 24–25, stone masonry 21–23.', 'الخرسانة المسلحة 24–25، والبناء الحجري 21–23.', '', '0.5', 'min="15" max="27"') }}
+    {{ m.panel_close() }}
+    {{ m.panel_open(2, 'Retained soil', 'التربة المسنودة') }}
+      <div class="row2">
+        {{ m.fld('rwPhi', 'Friction angle φ′', 'زاوية الاحتكاك φ′', 'number', '32', '°', 'Granular, free-draining backfill is assumed (c′ = 0).', 'يُفترض ردم حبيبي جيد التصريف (c′ = 0).', '', '0.5', 'min="15" max="45"') }}
+        {{ m.fld('rwG', 'Unit weight γ', 'وحدة الوزن γ', 'number', '18', 'kN/m³', '', '', '', '0.1', 'min="12" max="23"') }}
+      </div>
+      <div class="row2">
+        {{ m.fld('rwA', 'Backfill slope α', 'ميل الردم α', 'number', '0', '°', 'Slope of the ground behind the wall above the horizontal.', 'ميل الأرض خلف الجدار فوق الأفق.', '', '0.5', 'min="0" max="35"') }}
+        {{ m.fld('rwQ', 'Surcharge q', 'الحمل الإضافي q', 'number', '10', 'kPa', 'Traffic about 10–15 kPa; it is not counted as resisting overturning or sliding.', 'المرور نحو 10–15 كيلوباسكال؛ ولا يُحسب مقاوماً للانقلاب أو الانزلاق.', '', '1', 'min="0"') }}
+      </div>
+      <div class="row2">
+        {{ m.sel('rwM', 'Earth pressure theory', 'نظرية ضغط التربة', [('rankine', 'Rankine on the vertical through the heel', 'رانكن على الرأسي المار بالكعب', true), ('coulomb', 'Coulomb with wall friction δ', 'كولومب مع احتكاك الجدار δ')]) }}
+        {{ m.fld('rwD', 'Wall friction δ', 'احتكاك الجدار δ', 'number', '21', '°', 'Coulomb only; usually ⅔ φ′.', 'لكولومب فقط؛ عادة ⅔ φ′.', '', '0.5', 'min="0" max="40"') }}
+      </div>
+    {{ m.panel_close() }}
+    {{ m.panel_open(3, 'Foundation soil and earthquake', 'تربة الأساس والزلزال') }}
+      <div class="row2">
+        {{ m.fld('rwPf', 'Base soil φ′', 'φ′ تربة الأساس', 'number', '30', '°', '', '', '', '0.5', 'min="0" max="45"') }}
+        {{ m.fld('rwCf', 'Base soil c′', 'c′ تربة الأساس', 'number', '0', 'kPa', 'Base friction and adhesion are taken as ⅔ of φ′ and c′.', 'يؤخذ احتكاك القاعدة والتصاقها ⅔ من φ′ وc′.', '', '1', 'min="0"') }}
+      </div>
+      <div class="row2">
+        {{ m.fld('rwDf', 'Soil in front of the toe', 'التربة أمام المقدمة', 'number', '1', 'm', 'Depth of the base underside below the ground in front.', 'عمق أسفل القاعدة تحت الأرض الأمامية.', '', '0.1', 'min="0"') }}
+        {{ m.fld('rwQa', 'Allowable bearing pressure', 'ضغط التحمل المسموح', 'number', '200', 'kPa', 'From the Bearing Capacity tool or the soil report.', 'من أداة قدرة التحمل أو تقرير التربة.', '', '5', 'min="10"') }}
+      </div>
+      <label class="chk"><input type="checkbox" id="rwPp"> {{ m.L('Count passive resistance in front of the toe', 'احسب المقاومة السلبية أمام المقدمة') }}</label>
+      {{ m.fld('rwK', 'Seismic coefficient kh', 'المعامل الزلزالي kh', 'number', '0', 'g', 'Horizontal pseudo-static coefficient (Mononobe–Okabe). Usually ½ of the peak ground acceleration for walls that can move.', 'المعامل الأفقي شبه الساكن (مونونوبي–أوكابي). عادة نصف أقصى تسارع أرضي للجدران القادرة على الحركة.', '', '0.01', 'min="0" max="0.4"') }}
+    {{ m.panel_close() }}
+    <button class="btn btn-line btn-xs" id="rwDemo" type="button">{{ m.L('Example: 5 m cantilever wall with road surcharge', 'مثال: جدار كابولي 5 م مع حمل طريق') }}</button>
+  </aside>
+  <div class="ws-main">
+    <div class="kpis" id="rwKpis"></div>
+    <div id="rwVerd" style="display:grid;gap:10px"></div>
+    {{ m.fig_open('frw1', '1', 'Wall section, earth pressure and base pressure', 'مقطع الجدار وضغط التربة وضغط القاعدة', '<span data-egfig="rwSec"></span>') }}
+      <div class="fig-b"><svg class="chart" id="rwSec" viewBox="0 0 900 600" role="img"></svg></div>
+      <div class="fig-cap" id="rwSecCap"></div>
+    {{ m.fig_close() }}
+    <section class="pn"><div class="pn-h">{{ icon('table') }}<h2>{{ m.L('Forces and moments about the toe (per metre of wall)', 'القوى والعزوم حول المقدمة (لكل متر من الجدار)') }}</h2><div class="sp no-print"><button class="btn btn-line btn-xs" id="rwCsv" type="button">{{ icon('download', 'ico ico-sm') }}CSV</button></div></div><div class="pn-b flush tbl-wrap"><table class="tbl" id="rwTbl"></table></div></section>
+  </div>
+</div>
+</div>
+{% endblock %}
