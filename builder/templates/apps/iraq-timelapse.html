@@ -1,0 +1,100 @@
+{% extends "app_base.html" %}
+{% import "apps/_m.html" as m with context %}
+{% block apphead %}
+<style>
+#tlMap{height:300px}
+.tl-view{background:#0F1720;border-radius:12px;overflow:hidden}
+.tl-view canvas{width:100%;height:auto;display:block}
+.tl-bar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:10px}
+.tl-bar input[type=range]{flex:1;min-width:160px;accent-color:#B08A3E}
+.tl-btn{appearance:none;border:1px solid var(--line-2);background:var(--surface-2);color:var(--text);width:44px;height:44px;border-radius:50%;display:grid;place-items:center;cursor:pointer;flex:none}
+.tl-btn.play{background:linear-gradient(180deg,var(--gold-400),var(--gold-500));color:#141C24;border:0}
+.tl-yr{font-weight:800;font-size:1.3rem;min-width:64px;text-align:center;font-variant-numeric:tabular-nums}
+.tl-dl{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:8px}
+.tl-prog{height:8px;border-radius:99px;background:var(--surface-2);overflow:hidden;border:1px solid var(--line)}
+.tl-prog i{display:block;height:100%;width:0;background:linear-gradient(90deg,#2E6FBF,#2E8B57);transition:width .3s}
+.tl-cmp{display:flex;gap:8px;align-items:end;flex-wrap:wrap}
+.tl-cmp .fg{min-width:120px;flex:1}
+.tl-chips{display:flex;gap:6px;flex-wrap:wrap}
+.tl-chips button{appearance:none;border:1px solid var(--line-2);background:var(--surface-2);color:var(--text);font:inherit;font-size:.8rem;padding:5px 10px;border-radius:999px;cursor:pointer}
+.tl-chips button[aria-pressed=true]{border-color:#B08A3E;background:color-mix(in srgb,#B08A3E 16%,var(--surface))}
+</style>
+{% endblock %}
+{% block ws %}
+<div class="ws-wrap">
+<div class="ws wide-side">
+  <aside class="ws-side">
+    {{ m.panel_open(1, 'Place', 'المكان') }}
+      <div class="tl-chips" id="tlPre"></div>
+      <div class="row2"><button class="btn btn-ink btn-sm" id="tlDraw" type="button">{{ icon('square-dashed', 'ico ico-sm') }}{{ m.L('Draw your own area', 'ارسم منطقتك') }}</button><span class="xsmall muted" id="tlAoi" style="align-self:center"></span></div>
+      <p class="xsmall muted" id="tlHint" hidden style="margin:0">{{ m.L('Drag a rectangle on the map, or tap two opposite corners.', 'اسحب مستطيلاً على الخريطة، أو انقر ركنين متقابلين.') }}</p>
+      <div class="map" id="tlMap" data-rp-skip></div>
+    {{ m.panel_close() }}
+    {{ m.panel_open(2, 'Period and season', 'الفترة والموسم') }}
+      <div class="row3">
+        {{ m.fld('tlY0', 'From', 'من', 'number', '1985', '', '', '', '', '1', 'min="1984" max="2026"') }}
+        {{ m.fld('tlY1', 'To', 'إلى', 'number', '2025', '', '', '', '', '1', 'min="1984" max="2026"') }}
+        {{ m.sel('tlStep', 'Every', 'كل', [('1', 'year', 'سنة'), ('2', '2 years', 'سنتين', true), ('3', '3 years', '3 سنوات'), ('5', '5 years', '5 سنوات')]) }}
+      </div>
+      <div class="row2">
+        {{ m.sel('tlSea', 'Season', 'الموسم', [('mam', 'Spring (Mar–May)', 'الربيع (آذار–أيار)', true), ('jja', 'Summer (Jun–Aug)', 'الصيف (حزيران–آب)'), ('son', 'Autumn (Sep–Nov)', 'الخريف (أيلول–تشرين الثاني)'), ('djf', 'Winter (Dec–Feb)', 'الشتاء (كانون الأول–شباط)'), ('all', 'Whole year', 'السنة كلها')], 'The same season every year keeps water and vegetation comparable.', 'الموسم نفسه كل سنة يجعل المياه والنبات قابلة للمقارنة.') }}
+        {{ m.fld('tlCl', 'Cloud limit', 'حد الغيوم', 'number', '20', '%', 'Scenes with more cloud are skipped; the clearest scene of each season is used.', 'تُستبعد المشاهد ذات الغيوم الأكثر، ويُستعمل أصفى مشهد في كل موسم.', '', '1', 'min="1" max="80"') }}
+      </div>
+    {{ m.panel_close() }}
+    {{ m.panel_open(3, 'What to measure', 'ما يُقاس') }}
+      <div class="row2">
+        {{ m.fld('tlTw', 'Water when MNDWI above', 'ماء حين يتجاوز MNDWI', 'number', '0', '', 'Modified normalised difference water index (green and short-wave infrared). 0 is the usual threshold; raise it to 0.1–0.2 if dark soil or shadow is taken as water.', 'مؤشر الفرق المعياري المعدل للمياه (الأخضر والأشعة تحت الحمراء القصيرة). 0 هو الحد المعتاد؛ ارفعه إلى 0.1–0.2 إذا عُدّت التربة الداكنة أو الظل ماءً.', '', '0.05', 'min="-0.5" max="0.6"') }}
+        {{ m.fld('tlTv', 'Green vegetation when NDVI above', 'نبات أخضر حين يتجاوز NDVI', 'number', '0.3', '', 'Crops, orchards and reeds are usually above 0.3; sparse desert plants stay below.', 'المحاصيل والبساتين والقصب عادة فوق 0.3، ويبقى النبات الصحراوي المتناثر دونها.', '', '0.05', 'min="0.1" max="0.8"') }}
+      </div>
+      <div class="chks" style="grid-template-columns:1fr 1fr">
+        <label class="chk"><input type="checkbox" id="tlOw" checked> {{ m.L('Show water', 'أظهر المياه') }}</label>
+        <label class="chk"><input type="checkbox" id="tlOv"> {{ m.L('Show vegetation', 'أظهر النبات') }}</label>
+      </div>
+    {{ m.panel_close() }}
+    <button class="btn btn-gold btn-block" id="tlRun" type="button">{{ icon('clapperboard', 'ico ico-sm') }}{{ m.L('Build the time-lapse', 'ابنِ الفيلم الزمني') }}</button>
+    <section class="sec" data-rp-skip><div class="tl-prog"><i id="tlBar"></i></div><p class="xsmall muted" id="tlMsg" style="margin:6px 0 0"></p></section>
+  </aside>
+  <div class="ws-main">
+    <div id="tlEmpty" class="pn">{{ m.empty('satellite', 'Forty years of Iraq seen from space', 'أربعون سنة من العراق كما تُرى من الفضاء', 'Choose a place such as the marshes, Lake Sawa, Razzaza, the Mosul Dam lake or Baghdad, or draw your own. The system takes the clearest Landsat scene of the same season in every year since 1984, measures water and green vegetation, and plays the change as a film you can download.', 'اختر مكاناً مثل الأهوار أو بحيرة ساوة أو الرزازة أو بحيرة سد الموصل أو بغداد، أو ارسم منطقتك. يأخذ النظام أصفى مشهد لاندسات في الموسم نفسه من كل سنة منذ 1984، ويقيس المياه والنبات الأخضر، ويعرض التغير فيلماً يمكنك تنزيله.') }}</div>
+    <div id="tlOut" hidden style="display:grid;gap:18px">
+      <div class="kpis" id="tlKpis"></div>
+      <div id="tlVerd" style="display:grid;gap:10px"></div>
+      {{ m.fig_open('ftl1', '1', 'Time-lapse', 'الفيلم الزمني') }}
+        <div class="fig-b">
+          <div class="tl-view"><canvas id="tlCv" width="1200" height="900"></canvas></div>
+          <div class="tl-bar no-print">
+            <button class="tl-btn play" id="tlPlay" type="button" aria-label="{{ m.L('Play', 'تشغيل') }}"><span class="i-play">{{ icon('play') }}</span><span class="i-pause" style="display:none">{{ icon('pause') }}</span></button>
+            <input type="range" id="tlSl" min="0" max="0" value="0" aria-label="{{ m.L('Year', 'السنة') }}">
+            <span class="tl-yr ltr" id="tlYr">—</span>
+          </div>
+          <div class="tl-dl no-print">
+            <span class="xsmall muted">{{ m.L('This frame', 'هذا الإطار') }}</span><button class="btn btn-line btn-xs" type="button" data-fr="png">PNG</button><button class="btn btn-line btn-xs" type="button" data-fr="jpg">JPG</button><button class="btn btn-line btn-xs" type="button" data-fr="pdf">PDF</button>
+            <span class="xsmall muted" style="margin-inline-start:8px">{{ m.L('Film', 'الفيلم') }}</span>
+            <select id="tlFmt" class="ltr" style="height:30px;border-radius:8px;border:1px solid var(--line-2);background:var(--surface-2);color:var(--text);font:inherit;font-size:.8rem"><option value="land">16:9</option><option value="reel">{{ m.L('9:16 reel', '9:16 ريلز') }}</option><option value="sq">1:1</option></select>
+            <select id="tlSp" style="height:30px;border-radius:8px;border:1px solid var(--line-2);background:var(--surface-2);color:var(--text);font:inherit;font-size:.8rem"><option value="0.6">{{ m.L('fast', 'سريع') }}</option><option value="1" selected>{{ m.L('normal', 'عادي') }}</option><option value="1.6">{{ m.L('slow', 'بطيء') }}</option></select>
+            <button class="btn btn-gold btn-xs" type="button" id="tlVid">{{ icon('film', 'ico ico-sm') }}{{ m.L('Download video', 'نزّل الفيديو') }}</button>
+          </div>
+        </div>
+        <div class="fig-cap" id="tlCap"></div>
+      {{ m.fig_close() }}
+      {{ m.fig_open('ftl2', '2', 'Water and green vegetation through the years', 'المياه والنبات الأخضر عبر السنين', '<span data-egfig="tlChart"></span>') }}
+        <div class="fig-b"><svg class="chart" id="tlChart" viewBox="0 0 760 440" role="img"></svg></div>
+        <div class="fig-cap" id="tlChartCap"></div>
+      {{ m.fig_close() }}
+      {{ m.fig_open('ftl3', '3', 'Change between two years', 'التغير بين سنتين') }}
+        <div class="fig-b">
+          <div class="tl-cmp no-print">
+            <div class="fg"><label for="tlA">{{ m.L('Before', 'قبل') }}</label><select id="tlA"></select></div>
+            <div class="fg"><label for="tlB">{{ m.L('After', 'بعد') }}</label><select id="tlB"></select></div>
+            <span class="tl-dl" style="margin:0"><button class="btn btn-line btn-xs" type="button" data-ch="png">PNG</button><button class="btn btn-line btn-xs" type="button" data-ch="jpg">JPG</button><button class="btn btn-line btn-xs" type="button" data-ch="pdf">PDF</button></span>
+          </div>
+          <div class="tl-view" style="margin-top:10px;background:#fff"><canvas id="tlChg" width="1200" height="900"></canvas></div>
+        </div>
+        <div class="fig-cap" id="tlChgCap"></div>
+      {{ m.fig_close() }}
+      <section class="pn"><div class="pn-h">{{ icon('table') }}<h2>{{ m.L('Scenes and measurements', 'المشاهد والقياسات') }}</h2><div class="sp no-print"><button class="btn btn-line btn-xs" id="tlCsv" type="button">{{ icon('download', 'ico ico-sm') }}CSV</button></div></div><div class="pn-b flush tbl-wrap"><table class="tbl" id="tlTbl"></table></div></section>
+    </div>
+  </div>
+</div>
+</div>
+{% endblock %}
