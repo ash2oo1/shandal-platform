@@ -131,7 +131,7 @@
     if (bg) { var la = bg[1], drift = SH.dist({ lat: la, lon: bg[0] }, { lat: D.BAGHDAD[1], lon: D.BAGHDAD[0] }) / 1000;
       pos = '<div class="itm-pos"><b>' + SH.fmt(Math.abs(la), 0) + '° ' + (la >= 0 ? t('N', 'شمالاً') : t('S', 'جنوباً')) + '</b><span>' + t('latitude of Baghdad then', 'خط عرض بغداد آنذاك') + '</span></div>' +
         (snap(age) > 0 ? '<div class="itm-pos"><b>' + SH.fmt(Math.round(drift / 100) * 100, 0) + t(' km', ' كم') + '</b><span>' + t('travelled since then to its place today', 'قطعتها منذ ذلك الحين إلى مكانها اليوم') + '</span></div>' : '') +
-        '<div class="itm-pos"><b>' + (Math.abs(la) < 23.4 ? t('tropics', 'المدارين') : Math.abs(la) < 40 ? t('subtropics', 'شبه المداري') : Math.abs(la) < 60 ? t('mid-latitudes', 'العروض الوسطى') : t('polar', 'القطبي')) + '</b><span>' + t('climate belt', 'النطاق المناخي') + '</span></div>'; }
+        '<div class="itm-pos"><b>' + (Math.abs(la) < 23.4 ? t('tropics', 'المدارين') : Math.abs(la) < 40 ? t('subtropics', 'شبه المداري') : Math.abs(la) < 60 ? t('mid-latitudes', 'العروض الوسطى') : t('high latitudes', 'العروض العليا')) + '</b><span>' + t('climate belt', 'النطاق المناخي') + '</span></div>'; }
     var act = FORMS.filter(function (f) { return age <= f.b + 0.001 && age >= f.t - 0.001; });
     $('#tInfo').innerHTML =
       '<div class="itm-when"><span class="itm-age">' + esc(fmt(age)) + '</span><span class="itm-chips"><i style="background:' + e[3] + '">' + esc(tr(e[4], e[5])) + '</i><i style="background:' + p[3] + '">' + esc(tr(p[4], p[5])) + '</i>' + (ep ? '<i style="background:#FFF3B0">' + esc(tr(ep[0], ep[1])) + '</i>' : '') + '</span></div>' +
