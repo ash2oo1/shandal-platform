@@ -520,3 +520,8 @@ for _t in TOOLS:
 from content_tools3 import OVERRIDES as _OV
 for _t in TOOLS:
     _t.update(_OV.get(_t['slug'], {}))
+
+from content_accuracy import ACC as _ACC
+for _t in TOOLS:
+    if not _t.get('accuracy') and _t['slug'] in _ACC:
+        _t['accuracy'] = _ACC[_t['slug']]
