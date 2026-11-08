@@ -1,0 +1,101 @@
+{% extends "app_base.html" %}
+{% import "apps/_m.html" as m with context %}
+{% block apphead %}
+<style>
+#sMap{height:340px}
+.sr-hits{display:grid;gap:4px}
+.sr-prog{list-style:none;margin:0;padding:0;display:grid;gap:5px;font-size:.82rem}
+.sr-prog li{display:flex;gap:8px;align-items:center;color:var(--text-2)}
+.sr-prog li i{width:10px;height:10px;border-radius:50%;background:var(--line-2);flex:none}
+.sr-prog li.run i{background:#E2C27A;animation:srP 1s ease-in-out infinite}
+.sr-prog li.ok i{background:#2E7D4F}.sr-prog li.no i{background:#B03A2E}
+.sr-prog li.ok,.sr-prog li.no{color:var(--text)}
+@keyframes srP{50%{opacity:.3}}
+.sr-head{display:grid;gap:6px}
+.sr-head h2{margin:0;font-size:1.25rem}
+.sr-head p{margin:0;color:var(--text-2);font-size:.88rem;line-height:1.7}
+.sr-mx{width:100%;border-collapse:collapse;font-size:.88rem}
+.sr-mx td,.sr-mx th{padding:8px 8px;border-bottom:1px solid var(--line);vertical-align:top;text-align:start}
+.sr-mx th{font-size:.78rem;color:var(--text-2);font-weight:700}
+.sr-mx td:first-child{font-weight:700;white-space:nowrap}
+.sr-lv{display:inline-block;font-weight:800;font-size:.76rem;padding:3px 10px;border-radius:999px;color:#fff;white-space:nowrap}
+.sr-l0{background:#2E7D4F}.sr-l1{background:#B9932F}.sr-l2{background:#D0652A}.sr-l3{background:#B03A2E}.sr-lx{background:#7A8590}
+.sr-why{font-size:.8rem;color:var(--text-2);line-height:1.6}
+.sr-kv{width:100%;border-collapse:collapse;font-size:.88rem}
+.sr-kv td{padding:6px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+.sr-kv td:first-child{color:var(--text-2);width:40%}
+.sr-rec{margin:0;padding-inline-start:20px;display:grid;gap:8px;line-height:1.8}
+.sr-tools{display:flex;flex-wrap:wrap;gap:6px}
+.sr-fig img{width:100%;height:auto;display:block}
+.sr-svg{width:100%;height:auto;display:block}
+.sr-dl{display:flex;gap:4px;flex-wrap:wrap}
+.sr-note{font-size:.8rem;color:var(--text-2);line-height:1.7;margin:8px 0 0}
+</style>
+{% endblock %}
+{% block ws %}
+<div class="ws-wrap">
+<div class="ws wide-side">
+  <aside class="ws-side">
+    {{ m.panel_open(1, 'Site', 'الموقع') }}
+      <div class="fg"><label for="sQ">{{ m.L('Find a place', 'ابحث عن مكان') }}</label><div style="display:flex;gap:6px"><input id="sQ" type="search" placeholder="{{ m.L('Town, village, mountain…', 'مدينة أو قرية أو جبل…') }}" style="flex:1;min-width:0"><button class="btn btn-ink btn-sm" id="sFind" type="button" aria-label="{{ m.L('Search', 'بحث') }}">{{ icon('search', 'ico ico-sm') }}</button></div></div>
+      <div class="sr-hits" id="sHits"></div>
+      <div class="row2">
+        {{ m.fld('sLat', 'Latitude', 'دائرة العرض', 'number', '35.468', '°', '', '', '', '0.0001') }}
+        {{ m.fld('sLon', 'Longitude', 'خط الطول', 'number', '44.392', '°', '', '', '', '0.0001') }}
+      </div>
+      <div class="row2"><button class="btn btn-ink btn-sm" id="sGps" type="button">{{ icon('crosshair', 'ico ico-sm') }}{{ m.L('My location', 'موقعي') }}</button><span class="xsmall muted" style="align-self:center">{{ m.L('or click the map', 'أو انقر الخريطة') }}</span></div>
+      <div class="map" id="sMap" data-rp-skip></div>
+    {{ m.panel_close() }}
+    {{ m.panel_open(2, 'Report', 'التقرير') }}
+      {{ m.fld('sTitle', 'Project or site name', 'اسم المشروع أو الموقع', 'text', '', '', 'Printed on the report and the figures.', 'يُطبع على التقرير والأشكال.') }}
+      {{ m.fld('geoName', 'Prepared by', 'إعداد', 'text', '', '', 'Printed at the foot of every downloaded image.', 'يُطبع أسفل كل صورة تُنزَّل.') }}
+      {{ m.sel('sR', 'Radius for earthquakes and faults', 'نطاق الزلازل والصدوع', [('100', '100 km', '100 كم'), ('150', '150 km', '150 كم', true), ('250', '250 km', '250 كم')], 'Earthquakes of magnitude 4 and above since 1973 inside this circle are counted.', 'تُحسب الزلازل ذات القدر 4 فأكثر منذ 1973 داخل هذه الدائرة.') }}
+    {{ m.panel_close() }}
+    <button class="btn btn-gold btn-block" id="sRun" type="button">{{ icon('clipboard-list', 'ico ico-sm') }}{{ m.L('Prepare the site report', 'أعدّ تقرير الموقع') }}</button>
+    <button class="btn btn-line btn-xs" id="sDemo" type="button">{{ m.L('Example: Kirkuk', 'مثال: كركوك') }}</button>
+    <section class="sec" data-rp-skip><ul class="sr-prog" id="sProg"></ul></section>
+  </aside>
+  <div class="ws-main">
+    <div id="sEmpty" class="pn">{{ m.empty('clipboard-list', 'Everything about one place, in one report', 'كل ما يخص موقعاً واحداً في تقرير واحد', 'Choose a point and the system gathers its terrain, rocks, faults, earthquakes, volcanoes, climate, soil and rivers, screens it for natural hazards and writes what to check in the field. The whole report downloads as a PDF.', 'اختر نقطة فيجمع النظام تضاريسها وصخورها وصدوعها وزلازلها وبراكينها ومناخها وتربتها وأنهارها، ثم يفحصها للمخاطر الطبيعية ويكتب ما ينبغي التحقق منه في الحقل. ويُنزَّل التقرير كاملاً بصيغة PDF.') }}</div>
+    <div id="sOut" hidden style="display:grid;gap:18px">
+      <section class="pn"><div class="pn-b sr-head" id="sHead"></div></section>
+      <div class="kpis" id="sKpis"></div>
+      <section class="pn"><div class="pn-h">{{ icon('shield-alert') }}<h2>{{ m.L('Hazard screening', 'الفحص الأولي للمخاطر') }}</h2></div><div class="pn-b flush tbl-wrap"><table class="sr-mx" id="sMx"></table></div></section>
+      {{ m.fig_open('sF1', '1', 'Location map', 'خريطة الموقع', '<span class="sr-dl" data-fig="map"></span>') }}
+        <div class="fig-b sr-fig" id="sFigMap"></div>
+        <div class="fig-cap" id="sFigMapCap"></div>
+      {{ m.fig_close() }}
+      <div class="grid2">
+        <section class="pn"><div class="pn-h">{{ icon('map-pin') }}<h2>{{ m.L('Location', 'الموقع الجغرافي') }}</h2></div><div class="pn-b flush"><table class="sr-kv" id="sLoc"></table></div></section>
+        <section class="pn"><div class="pn-h">{{ icon('mountain') }}<h2>{{ m.L('Terrain', 'التضاريس') }}</h2></div><div class="pn-b flush"><table class="sr-kv" id="sTer"></table></div></section>
+      </div>
+      {{ m.fig_open('sF2', '2', 'Ground profiles through the site', 'مقاطع الأرض عبر الموقع', '<span class="sr-dl" data-fig="prof"></span>') }}
+        <div class="fig-b"><svg class="sr-svg" id="sProf" viewBox="0 0 900 380" role="img"></svg></div>
+        <div class="fig-cap" id="sProfCap"></div>
+      {{ m.fig_close() }}
+      <section class="pn"><div class="pn-h">{{ icon('layers') }}<h2>{{ m.L('Geology at the site', 'الجيولوجيا في الموقع') }}</h2></div><div class="pn-b" id="sGeo"></div></section>
+      <div class="grid2">
+        <section class="pn"><div class="pn-h">{{ icon('activity') }}<h2>{{ m.L('Faults and plate boundary', 'الصدوع وحد الصفيحة') }}</h2></div><div class="pn-b" id="sStr"></div></section>
+        <section class="pn"><div class="pn-h">{{ icon('radar') }}<h2>{{ m.L('Earthquakes', 'الزلازل') }}</h2></div><div class="pn-b" id="sSei"></div></section>
+      </div>
+      {{ m.fig_open('sF3', '3', 'Earthquakes around the site', 'الزلازل حول الموقع', '<span class="sr-dl" data-fig="eq"></span>') }}
+        <div class="fig-b"><svg class="sr-svg" id="sEq" viewBox="0 0 900 400" role="img"></svg></div>
+        <div class="fig-cap" id="sEqCap"></div>
+      {{ m.fig_close() }}
+      <section class="pn"><div class="pn-h">{{ icon('cloud-sun') }}<h2>{{ m.L('Climate (30-year normals)', 'المناخ (معدلات 30 سنة)') }}</h2></div><div class="pn-b" id="sCli"></div></section>
+      {{ m.fig_open('sF4', '4', 'Climate diagram', 'المخطط المناخي', '<span class="sr-dl" data-fig="cli"></span>') }}
+        <div class="fig-b"><svg class="sr-svg" id="sClim" viewBox="0 0 900 420" role="img"></svg></div>
+        <div class="fig-cap" id="sClimCap"></div>
+      {{ m.fig_close() }}
+      <div class="grid2">
+        <section class="pn"><div class="pn-h">{{ icon('shovel') }}<h2>{{ m.L('Soil', 'التربة') }}</h2></div><div class="pn-b" id="sSoil"></div></section>
+        <section class="pn"><div class="pn-h">{{ icon('droplets') }}<h2>{{ m.L('Water and volcanoes', 'المياه والبراكين') }}</h2></div><div class="pn-b" id="sHyd"></div></section>
+      </div>
+      <section class="pn"><div class="pn-h">{{ icon('clipboard-check') }}<h2>{{ m.L('What to check in the field', 'ما ينبغي التحقق منه في الحقل') }}</h2></div><div class="pn-b"><ol class="sr-rec" id="sRec"></ol></div></section>
+      <section class="pn" data-rp-skip><div class="pn-h">{{ icon('wrench') }}<h2>{{ m.L('Go deeper with the Shandal tools', 'تعمّق بأدوات شندل') }}</h2><div class="sp no-print"><button class="btn btn-line btn-xs" id="sCsv" type="button">{{ icon('download', 'ico ico-sm') }}CSV</button><button class="btn btn-line btn-xs" id="sJson" type="button">JSON</button></div></div><div class="pn-b"><div class="sr-tools" id="sTools"></div></div></section>
+      <section class="pn"><div class="pn-h">{{ icon('info') }}<h2>{{ m.L('Accuracy and limits', 'الدقة وحدود الخطأ') }}</h2></div><div class="pn-b"><p class="sr-note" style="margin:0">{{ m.L('This is a desk screening made from regional data: terrain on a 90 m grid, geological maps at regional scale, a global fault database, the instrumental earthquake catalogue since 1973, a climate reanalysis on a 10–25 km grid and soil predictions on a 250 m grid. It points to what deserves attention; it does not replace boreholes, laboratory tests, a geological field survey or a site-specific seismic hazard study.', 'هذا فحص مكتبي مبني على بيانات إقليمية: تضاريس على شبكة 90 م، وخرائط جيولوجية بمقياس إقليمي، وقاعدة صدوع عالمية، وفهرس الزلازل الآلي منذ 1973، وإعادة تحليل مناخية على شبكة 10–25 كم، وتنبؤات تربة على شبكة 250 م. يشير إلى ما يستحق الانتباه، ولا يغني عن الآبار الاستكشافية والفحوص المختبرية والمسح الجيولوجي الحقلي ودراسة الخطر الزلزالي الخاصة بالموقع.') }}</p></div></section>
+    </div>
+  </div>
+</div>
+</div>
+{% endblock %}

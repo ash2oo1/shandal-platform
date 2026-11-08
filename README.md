@@ -12,7 +12,7 @@
 
 جاء نظام شندل ليجمع هذا العمل في أداة محمولة واحدة، من القراءة الأولى حتى التقرير النهائي، دون مغادرة الموقع. والاسم يعبّر عن جوهره: «المسح» لجمع البيانات المكانية بدقة، و«الميداني» لأنه يرافق الجيولوجي حيث يعمل.
 
-يضم النظام اليوم 35 أداة في الجيولوجيا والتضاريس والتحسس النائي والجيوفيزياء والهندسة والمياه والبيئة والمخاطر الطبيعية والمختبرات البترولية، تعمل في المتصفح على الهاتف والجهاز اللوحي والحاسوب دون تثبيت، وتصدر خرائط مُخرجة وتقارير PDF.
+يضم النظام اليوم 40 أداة في الجيولوجيا والتضاريس والتحسس النائي والجيوفيزياء والهندسة والمياه والبيئة والمخاطر الطبيعية والمختبرات البترولية، تعمل في المتصفح على الهاتف والجهاز اللوحي والحاسوب دون تثبيت، وتصدر خرائط مُخرجة وتقارير PDF.
 
 - **المؤسس والمصمم:** الجيولوجي علي شندل الجنابي، متخصص في التحسس النائي والجيوفيزياء، بغداد، العراق.
 - **التأسيس:** 2025 · **الإطلاق الرسمي:** 5 نيسان 2026.
@@ -30,6 +30,9 @@
 - [مستكشف الوحدات الجيولوجية](https://geologicalfieldsurvey.com/ar/tools/geologic-unit/) — أي نقطة على الأرض: الوحدة الصخرية وعمرها وتتابعها ومصادرها.
 - [مستكشف مواقع الأحافير](https://geologicalfieldsurvey.com/ar/tools/fossils/) — كل موقع أحفوري على خريطتك، مقروءاً ومفسَّراً.
 - [السياحة الجيولوجية والآثارية](https://geologicalfieldsurvey.com/ar/tools/geoheritage/) — أماكن العراق الطبيعية والجيولوجية والأثرية، مقروءة على الأرض التي تقوم عليها.
+- [التقرير الشامل للموقع](https://geologicalfieldsurvey.com/ar/tools/site-report/) — أي نقطة على الأرض: تضاريسها وصخورها وصدوعها وزلازلها ومناخها وتربتها وأنهارها، مفحوصة للمخاطر في تقرير واحد.
+- [آلة الزمن للعراق](https://geologicalfieldsurvey.com/ar/tools/iraq-time-machine/) — 540 مليون سنة: أين كان العراق على الكرة الأرضية وما الذي غطاه وأي صخور تركها.
+- [محوّل الوحدات](https://geologicalfieldsurvey.com/ar/tools/unit-converter/) — كل وحدات العلوم والهندسة والحقل.
 
 **الهندسة والجيوتقنية**
 - [مختبر تصنيف الكتلة الصخرية](https://geologicalfieldsurvey.com/ar/tools/rockmass-lab/) — تصنيفات RMR89 وQ وQ-slope وGSI مع مقاومة Hoek–Brown ومعامل التشوه.
@@ -55,6 +58,7 @@
 
 **الجيوفيزياء**
 - [المختبر المغناطيسي الإقليمي](https://geologicalfieldsurvey.com/ar/tools/magnetic-lab/) — شبكات المجال المغناطيسي المرجعي للاستكشاف.
+- [مختبر المجسات البئرية](https://geologicalfieldsurvey.com/ar/tools/well-log-lab/) — تحميل المجسات ورسمها وتفسيرها: الصخارية والمسامية والتشبع والموائع.
 - [مختبر الطاقة الحرارية الأرضية والنضج الحراري](https://geologicalfieldsurvey.com/ar/tools/geothermal-lab/) — التدرج والحرارة ونافذة النفط في نموذج بئر واحد.
 
 **المياه والأنهار**
@@ -71,6 +75,7 @@
 **المخاطر الطبيعية**
 - [مراقب المخاطر الطبيعية](https://geologicalfieldsurvey.com/ar/tools/hazards-monitor/) — الزلازل والحرائق والعواصف والبراكين، مباشرة على خريطة واحدة.
 - [براكين العالم](https://geologicalfieldsurvey.com/ar/tools/volcanoes/) — براكين الهولوسين بنوعها وارتفاعها وحالتها وآخر ثوران.
+- [قابلية الانزلاقات الأرضية](https://geologicalfieldsurvey.com/ar/tools/landslide-susceptibility/) — أين تميل المنحدرات إلى الانهيار، من الانحدار والصخر والمطر والاهتزاز والتراكيب.
 
 **مختبرات البترول**
 - [مختبر تحليل الكيروجين](https://geologicalfieldsurvey.com/ar/tools/kerogen-lab/) — من نتائج Rock-Eval إلى نوع الكيروجين ونضجه.
@@ -85,7 +90,7 @@ For decades, field geology meant scattered tools: readings taken by hand, long c
 
 The Shandal System brings that work into one portable tool, from the first reading to the final report, without leaving the site. The name says what it does: survey, to collect spatial data precisely; field, because it goes where the geologist goes.
 
-The system now has 35 tools for geology, terrain, remote sensing, geophysics, engineering, water, environment, natural hazards and petroleum laboratories. They run in the browser on phones, tablets and computers with nothing to install, and export finished map sheets and PDF reports.
+The system now has 40 tools for geology, terrain, remote sensing, geophysics, engineering, water, environment, natural hazards and petroleum laboratories. They run in the browser on phones, tablets and computers with nothing to install, and export finished map sheets and PDF reports.
 
 - **Founder and designer:** Ali Shandal Al-Janabi, Iraqi geologist (remote sensing and geophysics), Baghdad, Iraq.
 - **Founded:** 2025 · **Official launch:** 5 April 2026.
@@ -103,6 +108,9 @@ The system now has 35 tools for geology, terrain, remote sensing, geophysics, en
 - [Geological Unit Finder](https://geologicalfieldsurvey.com/tools/geologic-unit/) — Any point on Earth: rock unit, age, succession and sources.
 - [Fossil Sites Explorer](https://geologicalfieldsurvey.com/tools/fossils/) — Every fossil site on your map, read and interpreted.
 - [Geo-Heritage & Archaeological Tourism](https://geologicalfieldsurvey.com/tools/geoheritage/) — Iraq’s natural, geological and archaeological places, read on the ground they stand on.
+- [Site Report](https://geologicalfieldsurvey.com/tools/site-report/) — Any point on Earth: terrain, rocks, faults, earthquakes, climate, soil and rivers, screened for hazards in one report.
+- [Iraq Time Machine](https://geologicalfieldsurvey.com/tools/iraq-time-machine/) — 540 million years: where Iraq lay on the globe, what covered it and which rocks it left.
+- [Unit Converter](https://geologicalfieldsurvey.com/tools/unit-converter/) — Every unit of science, engineering and the field.
 
 **Engineering & geotechnics**
 - [Rock Mass Classification Lab](https://geologicalfieldsurvey.com/tools/rockmass-lab/) — RMR89, Q, Q-slope and GSI with Hoek–Brown strength and deformation modulus.
@@ -128,6 +136,7 @@ The system now has 35 tools for geology, terrain, remote sensing, geophysics, en
 
 **Geophysics**
 - [Regional Magnetic Lab](https://geologicalfieldsurvey.com/tools/magnetic-lab/) — Reference geomagnetic field grids for exploration.
+- [Well Log Lab](https://geologicalfieldsurvey.com/tools/well-log-lab/) — Load, draw and interpret well logs: lithology, porosity, saturation and fluids.
 - [Thermal Maturity & Geothermal Lab](https://geologicalfieldsurvey.com/tools/geothermal-lab/) — Gradient, heat and the oil window in one well model.
 
 **Water & rivers**
@@ -144,6 +153,7 @@ The system now has 35 tools for geology, terrain, remote sensing, geophysics, en
 **Natural hazards**
 - [Natural Hazards Monitor](https://geologicalfieldsurvey.com/tools/hazards-monitor/) — Earthquakes, fires, storms and volcanoes, live on one map.
 - [Volcanoes of the World](https://geologicalfieldsurvey.com/tools/volcanoes/) — Holocene volcanoes with type, height, status and last eruption.
+- [Landslide Susceptibility](https://geologicalfieldsurvey.com/tools/landslide-susceptibility/) — Where slopes are prone to fail, from slope, rock, heavy rain, shaking and structure.
 
 **Petroleum laboratories**
 - [Kerogen Analysis Lab](https://geologicalfieldsurvey.com/tools/kerogen-lab/) — Rock-Eval results to kerogen type and maturity.
