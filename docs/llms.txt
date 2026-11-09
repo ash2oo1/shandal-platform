@@ -8,15 +8,15 @@ Also called: Shandal System, Shandal Geo, نظام شندل.
 Founder and designer: Ali Shandal Al-Janabi (علي شندل الجنابي), Iraqi geologist specialising in remote sensing and geophysics, Baghdad, Iraq.
 Founded: 2025 · Official launch: 5 April 2026 · Registered as a scientific work no. 2841/ع at the Iraqi National Centre for Protection of Copyright and Related Rights (13 April 2026).
 Contact: WhatsApp +9647739949727 · Facebook https://www.facebook.com/Shandalsystem · YouTube https://www.youtube.com/@shandalsystem
-Updated: 2026-11-08
+Updated: 2026-11-09
 
 ## What it is
-Forty-nine professional tools for Earth scientists: digital compass, stereonets, RMR and SMR, global contour maps, seismic hazard statistics, soil mechanics, Sentinel-2 indices, live hazard feeds and petroleum labs, with PDF reports and an AI assistant.
+Fifty professional tools for Earth scientists: digital compass, stereonets, RMR and SMR, global contour maps, seismic hazard statistics, soil mechanics, Sentinel-2 indices, live hazard feeds and petroleum labs, with PDF reports and an AI assistant.
 For decades, field geology meant scattered tools: readings taken by hand, long calculations, then a return to the office to draw columns, stereonets and contour maps in separate software. Every step cost time and added room for error.
 The Shandal System brings that work into one portable tool, from the first reading to the final report, without leaving the site. The name says what it does: survey, to collect spatial data precisely; field, because it goes where the geologist goes.
 
 ## ما هو
-تسع وأربعون أداة احترافية لعلماء الأرض: بوصلة رقمية ومساقط ستيريوغرافية وRMR وخرائط كنتورية وأطياف تصميم زلزالي وإنذار من الانزلاقات ورصد بيئي ومختبرات بترولية، مع تقارير PDF ومساعد ذكي.
+خمسون أداة احترافية لعلماء الأرض: بوصلة رقمية ومساقط ستيريوغرافية وRMR وخرائط كنتورية وأطياف تصميم زلزالي وإنذار من الانزلاقات ورصد بيئي ومختبرات بترولية، مع تقارير PDF ومساعد ذكي.
 لعقود طويلة كان العمل الجيولوجي الميداني يعتمد على أدوات متفرقة: قياسات يدوية وحسابات طويلة ثم العودة إلى المكتب لرسم الأعمدة الطباقية والمساقط والخرائط الكنتورية ببرامج منفصلة. كل خطوة تستهلك الوقت وتزيد احتمال الخطأ.
 جاء نظام شندل ليجمع هذا العمل في أداة محمولة واحدة، من القراءة الأولى حتى التقرير النهائي، دون مغادرة الموقع. والاسم يعبّر عن جوهره: «المسح» لجمع البيانات المكانية بدقة، و«الميداني» لأنه يرافق الجيولوجي حيث يعمل.
 
@@ -28,7 +28,7 @@ The Shandal System brings that work into one portable tool, from the first readi
 - [Academy](https://geologicalfieldsurvey.com/academy/) and [Library](https://geologicalfieldsurvey.com/library/)
 - [Geo-heritage](https://geologicalfieldsurvey.com/geoheritage/): geological and archaeological sites of Iraq
 
-## Tools (49)
+## Tools (50)
 ### Field geology · الجيولوجيا الميدانية
 - [Unit Converter · محوّل الوحدات](https://geologicalfieldsurvey.com/tools/unit-converter/): Converts between all common units of 30 quantities with the exact factors of the international standards: length, area (including the Iraqi dunam and olk), volume and barrels, mass and carats, density, API gravity and mud weight, pressure and stress, pressure and geothermal gradients, temperature, angle, dip and slope in percent and ratio, time and geological time, speed and sonic slowness, gravity in milligal, force, energy, power, flow, permeability in darcy, hydraulic conductivity, viscosity, concentration, resistivity, conductivity and salinity, magnetic field in nanotesla, radioactivity and dose, frequency, data and fuel. It also converts coordinates between decimal degrees, degrees–minutes–seconds and UTM, works out map scales, and turns ions between mg/L and meq/L with the ionic balance. Free for everyone.
 - [Iraq Time Machine · آلة الزمن للعراق](https://geologicalfieldsurvey.com/tools/iraq-time-machine/): Travel from the Cambrian to today and watch the plates move Iraq from near the South Pole to its place now. At every moment the tool shows the latitude of Baghdad, the climate belt and the distance travelled since, the setting that covered Iraq (sea, reef, lagoon, delta, river or ice), the story of that interval and the formations being laid down. An interactive stratigraphic column of more than ninety formations links each one to its age, rocks, setting, importance (oil reservoir, source, seal, aquifer, mineral resource) and the places where it can be seen.
@@ -77,6 +77,7 @@ The Shandal System brings that work into one portable tool, from the first readi
 - [Regional Magnetic Lab · المختبر المغناطيسي الإقليمي](https://geologicalfieldsurvey.com/tools/magnetic-lab/): Computes the IGRF-14 main field in your browser for any area, epoch and height, and reduces ground magnetometer readings to a residual anomaly with diurnal correction, kriged into a contour map.
 - [Well Log Lab · مختبر المجسات البئرية](https://geologicalfieldsurvey.com/tools/well-log-lab/): Load well logs as LAS, Excel or CSV files, type the readings, or trace a printed log from an image. The lab recognises the curves of the main service companies, draws the composite log in the standard layout and interprets it: shale volume, porosity, mineral volumes, water saturation, gas, oil and water, invaded permeable beds, bad hole, fracture candidates, source rocks, layer boundaries and net pay — or, in water wells, aquifers and their salinity. Crossplots, well correlation, a response chart of every log and a guide to all the common logs complete it.
 - [Thermal Maturity & Geothermal Lab · مختبر الطاقة الحرارية الأرضية والنضج الحراري](https://geologicalfieldsurvey.com/tools/geothermal-lab/): Computes the geothermal gradient from formation and surface temperatures, and places samples in the oil or gas window using vitrinite reflectance and Rock-Eval Tmax.
+- [Vertical Electrical Sounding Lab · مختبر السبر الكهربائي العمودي](https://geologicalfieldsurvey.com/tools/ves-lab/): Turns the field readings of a resistivity sounding into apparent resistivity, joins the curve segments measured with different potential electrode spacings, and inverts the curve to a model of two to six horizontal layers by damped least squares with an exact forward solution of the layered earth. Each layer gets its thickness, depth and true resistivity with an uncertainty, an interpretation in terms of rock, clay and water, and the Dar Zarrouk parameters. Soundings saved along a line are joined into a geoelectric section.
 
 ### Water & rivers · المياه والأنهار
 - [Hydrochemistry Water Lab · مختبر هيدروكيمياء المياه](https://geologicalfieldsurvey.com/tools/water-lab/): Enter the major-ion analysis of surface or groundwater samples. The lab checks the ionic balance, classifies each sample on the Piper, Gibbs, Schoeller, Stiff and USSL diagrams, evaluates drinking quality against the Iraqi standard IQS 417 or the WHO guidelines with two water-quality indices, rates irrigation suitability with six indices and FAO classes, and writes the hydrochemical interpretation.

@@ -854,3 +854,35 @@ def units(uid, label):
         o.append(f'<text class="il-value" x="300" y="{136 + k * 30}" style="font-size:14px">{e}</text>')
     return svg(''.join(o), uid, label)
 REG.update({'units': units})
+
+# ---------------------------------------------------------------- ves (vertical electrical sounding curve)
+def ves(uid, label):
+    x0, y0, x1, y1 = 70, 30, 456, 292   # AB/2 1–1000 m, apparent resistivity 1–100 ohm-m, both log
+    def X(v): return x0 + (x1 - x0) * math.log10(v) / 3
+    def Y(v): return y1 - (y1 - y0) * math.log10(v) / 2
+    o = []
+    for e in range(0, 4):
+        for m in range(1, 10):
+            v = m * 10 ** e
+            if v > 1000: break
+            o.append(f'<line class="il-grid" x1="{f(X(v))}" y1="{y0}" x2="{f(X(v))}" y2="{y1}"' + ('' if m == 1 else ' opacity=".45"') + '/>')
+        o.append(f'<text class="il-small" x="{f(X(10 ** e))}" y="{y1 + 18}" text-anchor="middle">{10 ** e}</text>')
+    for e in range(0, 3):
+        o.append(f'<line class="il-grid" x1="{x0}" y1="{f(Y(10 ** e))}" x2="{x1}" y2="{f(Y(10 ** e))}"/><text class="il-small" x="{x0 - 8}" y="{f(Y(10 ** e) + 4)}" text-anchor="end">{10 ** e}</text>')
+    o.append(f'<line class="il-axis" x1="{x0}" y1="{y1}" x2="{x1}" y2="{y1}"/><line class="il-axis" x1="{x0}" y1="{y0}" x2="{x0}" y2="{y1}"/>')
+    def ra(s):  # smooth H–K type curve, 20 → 8 → 40 → 3 ohm-m
+        l = math.log10(s)
+        return 10 ** (math.log10(20) - 0.55 * (1 / (1 + math.exp(-(l - 0.75) * 4))) + 0.75 * (1 / (1 + math.exp(-(l - 1.55) * 4))) - 1.05 * (1 / (1 + math.exp(-(l - 2.35) * 4))))
+    pts = [10 ** (k / 40) for k in range(0, 116)]
+    o.append('<path class="il-curve" d="M' + 'L'.join(f'{f(X(s))} {f(Y(ra(s)))}' for s in pts) + '"/>')
+    rnd = random.Random(4)
+    for k in range(0, 116, 6):
+        s = 10 ** (k / 40); o.append(f'<circle class="il-sample" cx="{f(X(s))}" cy="{f(Y(ra(s) * (1 + rnd.gauss(0, 0.03))))}" r="4.2"/>')
+    st = [(1, 20), (2, 20), (2, 8), (12, 8), (12, 40), (37, 40), (37, 3), (900, 3)]
+    o.append('<path class="il-dash" fill="none" d="M' + 'L'.join(f'{f(X(a))} {f(Y(b))}' for a, b in st) + '"/>')
+    o.append(f'<g class="il-chip" transform="translate(300 40)"><rect width="146" height="50" rx="8"/><text x="12" y="20" class="il-small">Curve type · RMS</text><text x="12" y="40" class="il-value">HK · 1.8 %</text></g>')
+    o.append(f'<text class="il-small" x="{(x0 + x1) / 2}" y="{y1 + 34}" text-anchor="middle">AB/2 (m)</text>')
+    o.append(f'<text class="il-small" transform="translate(20 {(y0 + y1) / 2}) rotate(-90)" text-anchor="middle">ρa (Ω·m)</text>')
+    return svg(''.join(o), uid, label)
+
+REG.update({'ves': ves})

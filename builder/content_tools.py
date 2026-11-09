@@ -492,7 +492,7 @@ CATS = ['geology', 'terrain', 'remote', 'geophysics', 'engineering', 'water', 'a
 ORDER = ['unit-converter', 'iraq-time-machine', 'iraq-timelapse', 'site-report', 'field-companion', 'quarry-survey', 'structural-geotechnical', 'stereonet-lab', 'rockmass-lab', 'strata', 'faults-plates', 'geologic-unit', 'fossils', 'geoheritage',
          'dem-studio', 'contour-lab', 'geomorphology-contour',
          'spectral-indices', 'lineament-extraction', 'mineral-prospectivity', 'archaeo-potential',
-         'magnetic-lab', 'well-log-lab', 'geothermal-lab',
+         'magnetic-lab', 'well-log-lab', 'geothermal-lab', 'ves-lab',
          'seismic-evaluation', 'seismic-hazard', 'soil-properties', 'bearing-capacity', 'pile-capacity', 'settlement', 'slope-stability', 'retaining-wall', 'liquefaction', 'mohr-circle', 'atterberg-limits', 'grain-size', 'soil-classification', 'compaction-cbr', 'surface-3d',
          'water-lab', 'hydro-alert', 'potential-zones',
          'air-quality',

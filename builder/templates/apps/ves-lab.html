@@ -1,0 +1,90 @@
+{% extends "app_base.html" %}
+{% import "apps/_m.html" as m with context %}
+{% block apphead %}
+<style>
+.vs-pas{width:100%;min-height:110px;border:1px solid var(--line-2);border-radius:10px;background:var(--bg);color:var(--text);font:inherit;font-size:.8rem;padding:8px;direction:ltr}
+.vs-st{display:grid;gap:6px}
+.vs-st .it{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:6px;align-items:center;border:1px solid var(--line);border-radius:10px;padding:7px 9px;background:var(--surface-2);font-size:.82rem}
+.vs-st .it b{display:block}
+.vs-st .it small{color:var(--text-3)}
+.vs-btns{display:flex;gap:6px;flex-wrap:wrap}
+.vs-seg{font-size:.78rem;color:var(--text-3);margin:0}
+</style>
+{% endblock %}
+{% block ws %}
+<div class="ws-wrap">
+<div class="ws wide-side">
+  <aside class="ws-side">
+    {{ m.panel_open(1, 'Field readings', 'القراءات الحقلية') }}
+      <div class="row2">
+        {{ m.sel('vsArr', 'Array', 'الترتيب', [('sch', 'Schlumberger', 'شلمبرجر', true), ('wen', 'Wenner', 'فينر')]) }}
+        {{ m.sel('vsMode', 'Readings are', 'القراءات', [('rho', 'Apparent resistivity ρa (Ω·m)', 'مقاومة ظاهرية ρa (أوم·م)', true), ('R', 'Resistance ΔV/I (Ω)', 'مقاومة ΔV/I (أوم)'), ('VI', 'Voltage ΔV (mV) and current I (mA)', 'جهد ΔV (ملي فولت) وتيار I (ملي أمبير)')]) }}
+      </div>
+      <div id="vsRows" style="display:grid;gap:5px"></div>
+      <p class="xsmall muted" style="margin:0" id="vsColHelp">{{ m.L('Schlumberger: AB/2 and MN/2 in metres. Wenner: put the spacing a in the first column and leave MN/2 empty. I is needed only when readings are voltage and current.', 'شلمبرجر: AB/2 وMN/2 بالأمتار. فينر: ضع المسافة a في العمود الأول واترك MN/2 فارغاً. ولا يلزم I إلا حين تكون القراءات جهداً وتياراً.') }}</p>
+      <div class="vs-btns">
+        <button class="btn btn-line btn-sm" id="vsAdd" type="button">{{ icon('plus', 'ico ico-sm') }}{{ m.L('Add reading', 'أضف قراءة') }}</button>
+        <button class="btn btn-line btn-sm" id="vsPasteBtn" type="button">{{ icon('clipboard-paste', 'ico ico-sm') }}{{ m.L('Paste from a spreadsheet', 'الصق من جدول بيانات') }}</button>
+        <button class="btn btn-line btn-sm" id="vsClear" type="button">{{ icon('x', 'ico ico-sm') }}{{ m.L('Clear', 'امسح') }}</button>
+      </div>
+      <div id="vsPasteBox" hidden style="display:grid;gap:6px">
+        <textarea class="vs-pas" id="vsPaste" placeholder="AB/2  MN/2  reading  [I]&#10;1.5   0.5   19.5&#10;2     0.5   18.6"></textarea>
+        <div class="vs-btns"><button class="btn btn-gold btn-sm" id="vsPasteOk" type="button">{{ m.L('Use these readings', 'استعمل هذه القراءات') }}</button><span class="xsmall muted" style="align-self:center">{{ m.L('Columns separated by spaces, tabs, commas or semicolons; a header line is skipped.', 'أعمدة مفصولة بمسافات أو جدولة أو فواصل؛ ويُتجاوز سطر العناوين.') }}</span></div>
+      </div>
+      <label class="chk"><input type="checkbox" id="vsJoin" checked> {{ m.L('Join the segments measured with different MN', 'صِل القطع المقيسة بقيم MN مختلفة') }}</label>
+      <p class="vs-seg" id="vsSegInfo"></p>
+    {{ m.panel_close() }}
+    {{ m.panel_open(2, 'Layered model', 'النموذج الطبقي') }}
+      <div class="row2">
+        {{ m.sel('vsN', 'Number of layers', 'عدد الطبقات', [('auto', 'Automatic', 'تلقائي', true), ('2', '2', '2'), ('3', '3', '3'), ('4', '4', '4'), ('5', '5', '5'), ('6', '6', '6')], 'Automatic tries 2 to 6 layers and keeps the simplest model that fits nearly as well as the best one.', 'يجرب الخيار التلقائي من 2 إلى 6 طبقات ويُبقي أبسط نموذج يطابق تقريباً بقدر أفضلها.') }}
+        {{ m.fld('vsWt', 'Groundwater resistivity ρw', 'مقاومة المياه الجوفية ρw', 'number', '', 'Ω·m', 'Optional, from a nearby well. ρw = 10 000 / EC (µS/cm). Used for porosity and salinity of water-bearing layers.', 'اختياري، من بئر قريبة. ρw = 10000 / EC (مايكروسيمنز/سم). يُستعمل لمسامية الطبقات الحاملة للماء وملوحتها.', '', '0.1', 'min="0"') }}
+      </div>
+      <div class="vs-btns">
+        <button class="btn btn-gold btn-sm" id="vsAuto" type="button">{{ icon('wand-sparkles', 'ico ico-sm') }}{{ m.L('Interpret automatically', 'فسّر تلقائياً') }}</button>
+        <button class="btn btn-line btn-sm" id="vsRef" type="button">{{ icon('refresh-cw', 'ico ico-sm') }}{{ m.L('Refine the model below', 'حسّن النموذج أدناه') }}</button>
+      </div>
+      <div id="vsMod" style="display:grid;gap:5px"></div>
+      <p class="xsmall muted" style="margin:0">{{ m.L('ρ true resistivity (Ω·m) · h thickness (m), empty for the last layer. Editing a value redraws the curve at once; “Fix” keeps a value known from a borehole during refinement.', 'ρ المقاومة الحقيقية (أوم·م) · h السمك (م)، فارغ للطبقة الأخيرة. تعديل أي قيمة يعيد رسم المنحنى فوراً؛ و«ثبّت» يُبقي القيمة المعروفة من بئر أثناء التحسين.') }}</p>
+      <button class="btn btn-line btn-xs" id="vsAddL" type="button">{{ icon('plus', 'ico ico-sm') }}{{ m.L('Add layer', 'أضف طبقة') }}</button>
+    {{ m.panel_close() }}
+    {{ m.panel_open(3, 'Station and geoelectric section', 'المحطة والمقطع الجيوكهربائي') }}
+      <div class="row3">
+        {{ m.fld('vsName', 'Station', 'المحطة', 'text', 'VES-1', '', '', '', '', 'any', '', 'ltr') }}
+        {{ m.fld('vsX', 'Distance on line', 'المسافة على الخط', 'number', '0', 'm', 'Position of the sounding centre along the profile.', 'موقع مركز السبر على امتداد المقطع.', '', '1') }}
+        {{ m.fld('vsZ', 'Ground elevation', 'ارتفاع الأرض', 'number', '', 'm', 'Optional. When every station has it, the section is drawn against elevation.', 'اختياري. حين يتوفر لكل المحطات يُرسم المقطع بدلالة الارتفاع.', '', '0.1') }}
+      </div>
+      <div class="vs-btns">
+        <button class="btn btn-line btn-sm" id="vsGps" type="button">{{ icon('locate-fixed', 'ico ico-sm') }}<span>{{ m.L('Take position', 'خذ الموقع') }}</span></button>
+        <button class="btn btn-gold btn-sm" id="vsSave" type="button">{{ icon('save', 'ico ico-sm') }}{{ m.L('Save station', 'احفظ المحطة') }}</button>
+      </div>
+      <p class="xsmall muted" id="vsPos" style="margin:0"></p>
+      <div class="vs-st" id="vsStations"></div>
+      <div class="vs-btns">
+        <button class="btn btn-line btn-xs" id="vsStCsv" type="button">{{ icon('download', 'ico ico-sm') }}{{ m.L('Stations CSV', 'المحطات CSV') }}</button>
+        <button class="btn btn-line btn-xs" id="vsBak" type="button">{{ icon('download', 'ico ico-sm') }}{{ m.L('Project backup', 'نسخة المشروع') }}</button>
+        <label class="btn btn-line btn-xs" style="cursor:pointer">{{ icon('file-up', 'ico ico-sm') }}{{ m.L('Open backup', 'افتح نسخة') }}<input type="file" id="vsRes" accept=".json,application/json" hidden></label>
+      </div>
+    {{ m.panel_close() }}
+    <button class="btn btn-line btn-xs" id="vsDemo" type="button">{{ m.L('Example: alluvial aquifer in central Iraq', 'مثال: خزان رسوبي في وسط العراق') }}</button>
+  </aside>
+  <div class="ws-main">
+    <div class="kpis" id="vsKpis"></div>
+    <div id="vsVerd" style="display:grid;gap:10px"></div>
+    {{ m.fig_open('fvs1', '1', 'Sounding curve and interpreted model', 'منحنى السبر والنموذج المفسَّر', '<span data-egfig="vsCur"></span>') }}
+      <div class="fig-b"><svg class="chart" id="vsCur" viewBox="0 0 760 520" role="img"></svg></div>
+      <div class="fig-cap" id="vsCurCap"></div>
+    {{ m.fig_close() }}
+    {{ m.fig_open('fvs2', '2', 'Geoelectric column', 'العمود الجيوكهربائي', '<span data-egfig="vsCol"></span>') }}
+      <div class="fig-b"><svg class="chart" id="vsCol" viewBox="0 0 760 520" role="img"></svg></div>
+      <div class="fig-cap" id="vsColCap"></div>
+    {{ m.fig_close() }}
+    <section class="pn"><div class="pn-h">{{ icon('layers') }}<h2>{{ m.L('Layers and interpretation', 'الطبقات والتفسير') }}</h2><div class="sp no-print"><button class="btn btn-line btn-xs" id="vsModCsv" type="button">{{ icon('download', 'ico ico-sm') }}CSV</button></div></div><div class="pn-b flush tbl-wrap"><table class="tbl" id="vsLay"></table></div></section>
+    {{ m.fig_open('fvs3', '3', 'Geoelectric section', 'المقطع الجيوكهربائي', '<span data-egfig="vsSec"></span>') }}
+      <div class="fig-b"><svg class="chart" id="vsSec" viewBox="0 0 760 520" role="img"></svg><p class="xsmall muted" id="vsSecEmpty" style="margin:0">{{ m.L('Save two or more stations on the same line to draw the section.', 'احفظ محطتين أو أكثر على الخط نفسه لرسم المقطع.') }}</p></div>
+      <div class="fig-cap" id="vsSecCap"></div>
+    {{ m.fig_close() }}
+    <section class="pn"><div class="pn-h">{{ icon('table') }}<h2>{{ m.L('Readings, fit and residuals', 'القراءات والمطابقة والفروق') }}</h2><div class="sp no-print"><button class="btn btn-line btn-xs" id="vsCsv" type="button">{{ icon('download', 'ico ico-sm') }}CSV</button></div></div><div class="pn-b flush tbl-wrap"><table class="tbl" id="vsTbl"></table></div></section>
+  </div>
+</div>
+</div>
+{% endblock %}
