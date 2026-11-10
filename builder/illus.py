@@ -1048,3 +1048,20 @@ def landcover(uid, label):
     return svg(''.join(o), uid, label)
 
 REG.update({'landcover': landcover})
+
+
+def asterminerals(uid, label):
+    import random as _r
+    _r.seed(5)
+    o = ['<rect x="20" y="30" width="300" height="240" rx="10" fill="#D8C7A8"/>']
+    cols = ['#2B3AA8', '#00A0DC', '#5AC85A', '#FAD228', '#DC281E']
+    for i in range(30):
+        for j in range(24):
+            v = 0.5 + 0.5 * __import__('math').sin(i / 4.0) * __import__('math').cos(j / 5.0) + _r.random() * 0.2
+            o.append('<rect x="%d" y="%d" width="10" height="10" fill="%s"/>' % (20 + i * 10, 30 + j * 10, cols[max(0, min(4, int(v * 4)))]))
+    o.append('<path d="M60 90c30-20 70-10 80 20s-30 50-60 40-40-40-20-60z" fill="none" stroke="#FFE600" stroke-width="3"/>')
+    o.append('<g class="il-chip" transform="translate(340 70)"><rect width="140" height="50" rx="8"/><text x="12" y="20" class="il-small">AlOH (B5+B7)/B6</text><text x="12" y="40" class="il-value">2.21</text></g>')
+    o.append('<g class="il-chip" transform="translate(340 134)"><rect width="140" height="50" rx="8"/><text x="12" y="20" class="il-small">Anomaly top 5 %</text><text x="12" y="40" class="il-value">3.8 km²</text></g>')
+    return svg(''.join(o), uid, label)
+
+REG.update({'asterminerals': asterminerals})

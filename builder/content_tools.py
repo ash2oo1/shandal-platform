@@ -491,7 +491,7 @@ from content_tools2 import NEW_TOOLS
 CATS = ['geology', 'terrain', 'remote', 'geophysics', 'engineering', 'water', 'atmosphere', 'climate', 'hazards', 'labs']
 ORDER = ['unit-converter', 'iraq-time-machine', 'iraq-timelapse', 'landcover-change', 'site-report', 'field-station', 'outcrop-sketch', 'field-companion', 'field-trips', 'geo-eye', 'quarry-survey', 'structural-geotechnical', 'stereonet-lab', 'rockmass-lab', 'strata', 'faults-plates', 'geologic-unit', 'geo-section', 'iraq-resources', 'fossils', 'geoheritage',
          'dem-studio', 'contour-lab', 'geomorphology-contour',
-         'spectral-indices', 'lineament-extraction', 'mineral-prospectivity', 'archaeo-potential',
+         'spectral-indices', 'lineament-extraction', 'mineral-prospectivity', 'aster-minerals', 'archaeo-potential',
          'magnetic-lab', 'well-log-lab', 'geothermal-lab', 'ves-lab',
          'seismic-evaluation', 'seismic-hazard', 'soil-properties', 'bearing-capacity', 'pile-capacity', 'settlement', 'slope-stability', 'retaining-wall', 'liquefaction', 'mohr-circle', 'atterberg-limits', 'grain-size', 'soil-classification', 'compaction-cbr', 'surface-3d',
          'water-lab', 'hydro-alert', 'watershed-lab', 'potential-zones',
