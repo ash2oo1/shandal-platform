@@ -986,3 +986,17 @@ def geoeye(uid, label):
     return svg(''.join(o), uid, label)
 
 REG.update({'geoeye': geoeye})
+
+
+def fieldstation(uid, label):
+    o = ['<path d="M20 290L200 200L480 250L480 310H20Z" fill="#CDBA92"/><path d="M20 290L200 200L200 220L20 310Z" fill="#B49A68"/>']
+    o.append('<g transform="translate(120 232) rotate(-27)"><rect x="-42" y="-20" width="84" height="40" rx="6" fill="#141C24"/><rect x="-36" y="-15" width="72" height="30" rx="3" fill="#2A3742"/><text x="0" y="5" text-anchor="middle" class="il-small" style="fill:#FFD666;font-weight:800">225/32</text></g>')
+    o.append('<circle cx="250" cy="110" r="78" fill="#141C24"/><circle cx="250" cy="110" r="66" fill="none" stroke="#d8dee4" stroke-width="1.5"/>')
+    o.append(''.join('<line x1="%.1f" y1="%.1f" x2="%.1f" y2="%.1f" stroke="#d8dee4" stroke-width="%s"/>' % (250 + 66 * __import__('math').sin(a * 0.0174533), 110 - 66 * __import__('math').cos(a * 0.0174533), 250 + (66 - (10 if a % 90 == 0 else 5)) * __import__('math').sin(a * 0.0174533), 110 - (66 - (10 if a % 90 == 0 else 5)) * __import__('math').cos(a * 0.0174533), 2 if a % 90 == 0 else 1) for a in range(0, 360, 30)))
+    o.append('<text x="250" y="66" text-anchor="middle" class="il-small" style="fill:#FF6B5B;font-weight:800">N</text><path d="M250 110L262 70L250 80L238 70Z" fill="#FFD666" transform="rotate(35 250 110)"/><circle cx="250" cy="110" r="5" fill="#fff"/>')
+    o.append('<g class="il-chip" transform="translate(352 40)"><rect width="128" height="50" rx="8"/><text x="12" y="20" class="il-small">35.5571 N 45.4351 E</text><text x="12" y="40" class="il-value">812 m</text></g>')
+    o.append('<g class="il-chip" transform="translate(352 104)"><rect width="128" height="50" rx="8"/><text x="12" y="20" class="il-small">Rain from 14:00</text><text x="12" y="40" class="il-value">18 °C</text></g>')
+    o.append('<g class="il-chip" transform="translate(20 40)"><rect width="128" height="50" rx="8"/><text x="12" y="20" class="il-small">Unit underfoot</text><text x="12" y="40" class="il-value">Pila Spi</text></g>')
+    return svg(''.join(o), uid, label)
+
+REG.update({'fieldstation': fieldstation})

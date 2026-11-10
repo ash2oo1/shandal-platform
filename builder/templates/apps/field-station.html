@@ -1,0 +1,79 @@
+{% extends "app_base.html" %}
+{% import "apps/_m.html" as m with context %}
+{% block apphead %}
+<style>
+#fsMap{height:340px}
+.fs-pos{font-variant-numeric:tabular-nums;display:grid;gap:4px;font-size:.88rem}
+.fs-pos b{font-size:1.05rem}
+.fs-modes{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.fs-modes button{appearance:none;border:1px solid var(--line-2);background:var(--surface-2);color:var(--text);font:inherit;font-size:.78rem;font-weight:700;padding:8px 6px;border-radius:12px;cursor:pointer;display:grid;gap:4px;justify-items:center}
+.fs-modes button svg{width:48px;height:40px}
+.fs-modes button[aria-pressed=true]{border-color:#B08A3E;background:color-mix(in srgb,#B08A3E 16%,var(--surface))}
+.fs-dial{display:grid;place-items:center}
+.fs-dial svg{width:min(260px,72vw);height:auto}
+.fs-read{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;text-align:center}
+.fs-read div{border:1px solid var(--line);border-radius:10px;padding:6px 4px;background:var(--surface-2)}
+.fs-read small{display:block;color:var(--text-3);font-size:.7rem}
+.fs-read b{font-size:1.15rem;font-variant-numeric:tabular-nums}
+.fs-btns{display:flex;gap:6px;flex-wrap:wrap}
+.fs-hint{font-size:.8rem;line-height:1.7;color:var(--text-2);background:var(--surface-2);border-radius:10px;padding:8px 10px;margin:0}
+.fs-near{display:grid;gap:6px}
+.fs-near div{display:grid;grid-template-columns:28px minmax(0,1fr) auto;gap:8px;align-items:center;border:1px solid var(--line);border-radius:10px;padding:7px 9px;background:var(--surface-2)}
+.fs-near svg{width:26px;height:26px}
+.fs-near small{color:var(--text-3)}
+.fs-two{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media (max-width:760px){.fs-two{grid-template-columns:1fr}}
+.fs-list{margin:0;padding-inline-start:18px;display:grid;gap:5px;font-size:.9rem;line-height:1.65}
+</style>
+{% endblock %}
+{% block ws %}
+<div class="ws-wrap">
+<div class="ws wide-side">
+  <aside class="ws-side">
+    {{ m.panel_open(1, 'Your position', 'موقعك') }}
+      <button class="btn btn-gold btn-block" id="fsGps" type="button">{{ icon('locate-fixed', 'ico ico-sm') }}<span>{{ m.L('Fix my position accurately', 'حدّد موقعي بدقة') }}</span></button>
+      <div class="fs-pos" id="fsPos"><span class="muted xsmall">{{ m.L('The phone takes readings for up to 30 seconds and averages the best of them. Stand still in the open, away from walls and cliffs.', 'يأخذ الهاتف قراءات حتى 30 ثانية ويحسب متوسط أفضلها. قف ثابتاً في مكان مكشوف بعيداً عن الجدران والجروف.') }}</span></div>
+      <div class="fs-btns"><button class="btn btn-line btn-xs" id="fsCopy" type="button" disabled>{{ m.L('Copy / share my location', 'انسخ أو شارك موقعي') }}</button></div>
+    {{ m.panel_close() }}
+    {{ m.panel_open(2, 'Compass and clinometer', 'البوصلة ومقياس الميل') }}
+      <div class="fs-modes" id="fsModes">
+        <button type="button" data-m="flat" aria-pressed="true"><svg viewBox="0 0 48 40"><ellipse cx="24" cy="30" rx="20" ry="6" fill="#E3E7EA"/><rect x="10" y="20" width="28" height="9" rx="2" transform="skewX(-20)" fill="#141C24"/><path d="M24 4l4 8h-8z" fill="#C0392B"/></svg>{{ m.L('Flat', 'أفقي') }}</button>
+        <button type="button" data-m="up" aria-pressed="false"><svg viewBox="0 0 48 40"><rect x="18" y="4" width="12" height="32" rx="2" fill="#141C24"/><circle cx="24" cy="10" r="2.5" fill="#9CC5E8"/><path d="M32 20h12M40 16l4 4-4 4" stroke="#C0392B" stroke-width="2" fill="none"/></svg>{{ m.L('Upright', 'قائم') }}</button>
+        <button type="button" data-m="plane" aria-pressed="false"><svg viewBox="0 0 48 40"><path d="M4 34L36 14L46 22L14 40Z" fill="#CDBA92"/><rect x="18" y="20" width="16" height="8" rx="1.5" transform="rotate(-32 26 24)" fill="#141C24"/></svg>{{ m.L('On the bed', 'على الطبقة') }}</button>
+      </div>
+      <p class="fs-hint" id="fsHow"></p>
+      <div class="fs-dial"><svg id="fsDial" viewBox="0 0 260 260" role="img" aria-label="{{ m.L('Compass', 'البوصلة') }}"></svg></div>
+      <div class="fs-read" id="fsRead"></div>
+      <div class="fs-btns">
+        <button class="btn btn-gold btn-sm" id="fsStart" type="button">{{ icon('compass', 'ico ico-sm') }}{{ m.L('Start the compass', 'شغّل البوصلة') }}</button>
+        <button class="btn btn-ink btn-sm" id="fsLock" type="button" disabled>{{ icon('lock', 'ico ico-sm') }}<span>{{ m.L('Lock and record', 'ثبّت وسجّل') }}</span></button>
+      </div>
+      <p class="xsmall muted" id="fsCal" style="margin:0"></p>
+    {{ m.panel_close() }}
+    {{ m.panel_open(3, 'Recorded readings', 'القراءات المسجلة') }}
+      <div id="fsRecs" class="xsmall"></div>
+      <div class="fs-btns"><button class="btn btn-line btn-xs" id="fsNet" type="button">{{ m.L('Send planes to the stereonet', 'أرسل المستويات إلى المسقط') }}</button><button class="btn btn-line btn-xs" id="fsRecCsv" type="button">CSV</button><button class="btn btn-line btn-xs" id="fsRecClr" type="button">{{ m.L('Clear', 'امسح') }}</button></div>
+    {{ m.panel_close() }}
+  </aside>
+  <div class="ws-main">
+    <div id="fsEmpty" class="pn">{{ m.empty('compass', 'Your field station', 'محطتك الحقلية', 'Fix your position: the system then tells you the elevation, the weather and the rain to expect, the nearest road, stream, spring, village and named peak, the geological unit under your feet and around you with its colours, rocks, fossils and features, the nearest active fault and what the ground says about groundwater. The compass and the clinometer work without a network.', 'حدّد موقعك: فيخبرك النظام بالارتفاع والطقس والمطر المتوقع، وأقرب طريق ومجرى ونبع وقرية وقمة معروفة، والوحدة الجيولوجية تحت قدميك ومن حولك بألوانها وصخورها ومتحجراتها وظواهرها، وأقرب فالق نشط وما تقوله الأرض عن المياه الجوفية. وتعمل البوصلة ومقياس الميل دون شبكة.') }}</div>
+    <div id="fsOut" hidden style="display:grid;gap:18px">
+      <div class="kpis" id="fsKpis"></div>
+      <div id="fsAlerts" style="display:grid;gap:10px"></div>
+      <section class="pn"><div class="pn-h">{{ icon('cloud-sun') }}<h2>{{ m.L('Weather for the next 24 hours', 'الطقس للساعات الـ24 القادمة') }}</h2></div><div class="pn-b"><svg class="chart" id="fsWx" viewBox="0 0 760 330" role="img"></svg></div></section>
+      <section class="pn"><div class="pn-h">{{ icon('navigation') }}<h2>{{ m.L('Nearest to you', 'الأقرب إليك') }}</h2></div><div class="pn-b fs-near" id="fsNear"></div></section>
+      <section class="pn"><div class="pn-h">{{ icon('layers') }}<h2>{{ m.L('The rocks here', 'الصخور هنا') }}</h2></div><div class="pn-b" id="fsGeo"></div></section>
+      <div class="fs-two">
+        <section class="pn"><div class="pn-h">{{ icon('search') }}<h2>{{ m.L('What to look for', 'ما تبحث عنه') }}</h2></div><div class="pn-b"><ul class="fs-list" id="fsLook"></ul></div></section>
+        <section class="pn"><div class="pn-h">{{ icon('droplets') }}<h2>{{ m.L('Water and faults', 'الماء والفوالق') }}</h2></div><div class="pn-b"><ul class="fs-list" id="fsWater"></ul></div></section>
+      </div>
+      <section class="pn" data-rp-skip><div class="pn-h">{{ icon('map') }}<h2>{{ m.L('Map: geology, faults and nearest features', 'الخريطة: الجيولوجيا والفوالق وأقرب المعالم') }}</h2></div><div class="pn-b"><div class="map" id="fsMap"></div><label class="chk" style="margin-top:8px"><input type="checkbox" id="fsGeoOv" checked> {{ m.L('Geological map layer', 'طبقة الخريطة الجيولوجية') }}</label></div></section>
+      {{ m.fig_open('ffs1', '1', 'Field station card', 'بطاقة المحطة الحقلية', '<span data-egfig="fsCard"></span>') }}
+        <div class="fig-b"><svg class="chart" id="fsCard" viewBox="0 0 760 640" role="img"></svg></div>
+        <div class="fig-cap">{{ m.L('A one-page record of the station for the field notebook or the report: position, elevation, time, weather, geology, nearest features and the compass readings taken here.', 'سجل من صفحة واحدة للمحطة لدفتر الحقل أو التقرير: الموقع والارتفاع والوقت والطقس والجيولوجيا وأقرب المعالم وقراءات البوصلة المأخوذة هنا.') }}</div>
+      {{ m.fig_close() }}
+    </div>
+  </div>
+</div>
+</div>
+{% endblock %}
