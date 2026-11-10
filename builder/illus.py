@@ -1025,3 +1025,26 @@ def floodradar(uid, label):
     return svg(''.join(o), uid, label)
 
 REG.update({'floodradar': floodradar})
+
+
+def landcover(uid, label):
+    cols = ['#E49635', '#E49635', '#C4281B', '#E3E2C3', '#397D49', '#419BDF']
+    import random as _r
+    _r.seed(11)
+    o = ['<rect x="20" y="30" width="200" height="200" rx="8" fill="#eee"/>', '<rect x="260" y="30" width="200" height="200" rx="8" fill="#eee"/>']
+    cells = []
+    for i in range(20):
+        for j in range(20):
+            d = ((i - 10) ** 2 + (j - 10) ** 2) ** 0.5
+            a = '#C4281B' if d < 4 else '#E49635' if d < 8 else '#E3E2C3'
+            b = '#C4281B' if d < 7 else '#E49635' if d < 9 else '#E3E2C3'
+            if j > 15:
+                a = b = '#419BDF'
+            cells.append('<rect x="%d" y="%d" width="10" height="10" fill="%s"/><rect x="%d" y="%d" width="10" height="10" fill="%s"/>' % (20 + i * 10, 30 + j * 10, a, 260 + i * 10, 30 + j * 10, b))
+    o.append(''.join(cells))
+    o.append('<path d="M228 130h24" stroke="#1B232B" stroke-width="3"/><path d="M252 130l-8-6v12z" fill="#1B232B"/>')
+    o.append('<text x="120" y="252" text-anchor="middle" class="il-small">2017</text><text x="360" y="252" text-anchor="middle" class="il-small">2023</text>')
+    o.append('<g class="il-chip" transform="translate(300 252)"><rect width="170" height="40" rx="8"/><text x="10" y="26" class="il-small">Farmland → built +21 km²</text></g>')
+    return svg(''.join(o), uid, label)
+
+REG.update({'landcover': landcover})
