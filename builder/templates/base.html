@@ -96,6 +96,7 @@
           <a class="mi" href="{{ u('contact/') }}">{{ icon('message-square-text') }}<span>{{ t('menu_contact') }}<small>{{ t('menu_contact_d') }}</small></span></a>
         </div></div></div>
       </li>
+      <li><a class="nav-btn" href="{{ u('field/') }}">{{ tr(FD.nav) }}</a></li>
       <li><a class="nav-btn" href="{{ u('pricing/') }}">{{ t('nav_pricing') }}</a></li>
     </ul>
     <div class="hdr-end">
@@ -120,6 +121,7 @@
     <button class="icon-btn" id="drawerClose" type="button" aria-label="{{ t('nav_close') }}">{{ icon('x', 'ico ico-sm') }}</button>
   </div>
   <div class="wrap drawer-body">
+    <a class="dl" href="{{ u('field/') }}" style="font-weight:800">{{ icon('compass', 'ico ico-sm') }}{{ tr(FD.h) }}</a>
     <details open><summary>{{ t('nav_platform') }} {{ icon('chevron-down', 'ico ico-sm chev') }}</summary>
       {% for tl in tools %}<a class="dl" href="{{ u('tools/' + tl.slug + '/') }}">{{ icon(tl.icon, 'ico ico-sm') }}{{ tr(tl.name) }}</a>{% endfor %}
     </details>

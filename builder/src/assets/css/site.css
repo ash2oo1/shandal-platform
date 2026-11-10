@@ -156,7 +156,7 @@ html[lang="ar"] .brand .wm b{font-weight:700;font-size:1.08rem}
 .nav{display:flex;align-items:center;gap:2px;height:100%}
 .nav>li{list-style:none;height:100%;display:flex;align-items:center;position:relative}
 .nav{margin:0;padding:0}
-.nav-btn{appearance:none;background:none;border:0;font:inherit;color:var(--text);font-size:.93rem;font-weight:600;padding:9px 13px;border-radius:9px;display:inline-flex;align-items:center;gap:6px;cursor:pointer;text-decoration:none}
+.nav-btn{white-space:nowrap;appearance:none;background:none;border:0;font:inherit;color:var(--text);font-size:.93rem;font-weight:600;padding:9px 13px;border-radius:9px;display:inline-flex;align-items:center;gap:6px;cursor:pointer;text-decoration:none}
 .nav-btn:hover,.nav-btn[aria-expanded="true"]{background:var(--surface-2)}
 .nav-btn .chev{width:14px;height:14px;transition:transform .2s}
 .nav-btn[aria-expanded="true"] .chev{transform:rotate(180deg)}
@@ -203,7 +203,8 @@ html[lang="ar"] .mega-col h4{font-size:.85rem;letter-spacing:0}
 .drawer .dlink{display:block;padding:16px 0;border-bottom:1px solid var(--line);font-weight:700;font-size:1.05rem;text-decoration:none}
 .drawer-cta{display:grid;gap:10px;margin-top:24px}
 
-@media (max-width:1100px){ .nav{display:none} .burger{display:inline-grid} .hdr-end .btn-signin{display:none} }
+@media (max-width:1380px){ .nav-btn{padding:9px 8px;font-size:.88rem} }
+@media (max-width:1160px){ .nav{display:none} .burger{display:inline-grid} .hdr-end .btn-signin{display:none} }
 @media (max-width:560px){ .brand .wm span{display:none} .hdr-end .btn-access{display:none} .lang-btn span.lbl{display:none} }
 
 /* search overlay */

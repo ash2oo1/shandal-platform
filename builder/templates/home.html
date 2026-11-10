@@ -44,6 +44,17 @@
   </div>
 </section>
 
+<section class="section alt" id="field">
+  <div class="wrap">
+    <div class="sec-head">
+      <div><span class="kicker"><span class="dot"></span>{{ icon('compass', 'ico ico-sm') }} {{ tr(FD.kicker) }}</span><h2 class="h2">{{ tr(FD.home_h) }}</h2></div>
+      <p class="lead">{{ tr(FD.home_p) }}</p>
+    </div>
+    <div class="tool-grid">{% for s in ['field-station', 'outcrop-sketch', 'geo-eye'] %}{% with tl = tools_by_slug[s] %}{% include "_toolcard.html" %}{% endwith %}{% endfor %}</div>
+    <div style="margin-top:26px"><a class="btn btn-gold btn-lg" href="{{ u('field/') }}">{{ tr(FD.home_cta) }} {{ icon('arrow-right', 'ico ico-sm flip') }}</a></div>
+  </div>
+</section>
+
 <section class="section band-dark lx-home">
   <div class="wrap">
     <div class="sec-head">

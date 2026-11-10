@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+{% block bodyattr %} class="fd-page" data-access="free"{% endblock %}
+{% block head %}<style>
+.fd-stages{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:26px 0 0;padding:0;list-style:none}
+.fd-stages li{border:1px solid rgba(255,255,255,.16);border-radius:14px;padding:14px 16px;color:#d8dee4;line-height:1.7;font-size:.92rem}
+.fd-stages b{display:block;color:#E8C77A;font-size:.8rem;letter-spacing:.04em;margin-bottom:4px}
+@media (max-width:820px){.fd-stages{grid-template-columns:1fr}}
+.fd-jump{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px}
+.fd-holds{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}
+@media (max-width:900px){.fd-holds{grid-template-columns:1fr}}
+.fd-card{border:1px solid var(--line);border-radius:16px;background:var(--surface);padding:18px;display:grid;gap:10px;align-content:start}
+.fd-ill{width:100%;height:auto;max-height:170px;direction:ltr}
+.fd-ill.big{max-height:none}
+.fd-card h3 .ico{vertical-align:-3px}
+.fd-card h3{margin:0;font-size:1.05rem}
+.fd-card p{margin:0;line-height:1.8;color:var(--text-2);font-size:.93rem}
+.fd-two{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:24px;align-items:start}
+@media (max-width:900px){.fd-two{grid-template-columns:1fr}}
+.fd-steps{margin:0;padding-inline-start:22px;display:grid;gap:8px;line-height:1.8}
+.fd-check{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:18px}
+.fd-check label{display:flex;gap:10px;align-items:flex-start;padding:6px 0;border-bottom:1px solid var(--line);line-height:1.6;cursor:pointer;font-size:.93rem}
+.fd-check input{width:18px;height:18px;margin-top:4px;accent-color:#B08A3E;flex:none}
+.fd-check label:has(input:checked){color:var(--text-3);text-decoration:line-through}
+.fd-prog{height:8px;border-radius:99px;background:var(--surface-2);overflow:hidden;margin:10px 0 18px}
+.fd-prog i{display:block;height:100%;background:#B08A3E;width:0;transition:width .2s}
+</style>{% endblock %}
+{% block main %}
+<section class="page-hero band-dark">
+  <div class="contour-bg" aria-hidden="true">{{ bgcontours }}</div>
+  <div class="wrap">
+    <nav class="crumbs" aria-label="Breadcrumb"><a href="{{ u('') }}">{{ t('home') }}</a>{{ icon('chevron-right', 'ico flip') }}<span>{{ tr(FD.h) }}</span></nav>
+    <span class="kicker"><span class="dot"></span>{{ icon('compass', 'ico ico-sm') }} {{ tr(FD.kicker) }}</span>
+    <h1 class="h1" style="max-width:22ch;margin-top:10px">{{ tr(FD.h) }}</h1>
+    <p class="lead" style="margin-top:18px;max-width:66ch">{{ tr(FD.p) }}</p>
+    <ol class="fd-stages">{% for s in FD.stages %}<li><b>{{ loop.index }}</b>{{ tr(s) }}</li>{% endfor %}</ol>
+    <div class="fd-jump">
+      <a class="btn btn-gold" href="{{ u('tools/field-station/app/') }}">{{ icon('compass', 'ico ico-sm') }}{{ tr(tools_by_slug['field-station'].name) }}</a>
+      <a class="btn btn-line" href="#holds">{{ tr(FD.hold_h) }}</a>
+      <a class="btn btn-line" href="#dipstrike">{{ tr(FD.ds_h) }}</a>
+      <a class="btn btn-line" href="#safety">{{ tr(FD.safe_h) }}</a>
+    </div>
+  </div>
+</section>
+
+{% for g in FD.groups %}
+<section class="section{% if loop.index is even %} alt{% endif %}" id="{{ g.key }}">
+  <div class="wrap">
+    <div class="sec-head"><div><span class="kicker"><span class="dot"></span>{{ icon(g.icon, 'ico ico-sm') }} {{ tr(FD.kicker) }}</span><h2 class="h2">{{ tr(g.name) }}</h2></div><p class="lead">{{ tr(g.p) }}</p></div>
+    <div class="tool-grid">{% for s in g.tools if s in tools_by_slug %}{% with tl = tools_by_slug[s] %}{% include "_toolcard.html" %}{% endwith %}{% endfor %}</div>
+  </div>
+</section>
+{% endfor %}
+
+<section class="section" id="holds">
+  <div class="wrap">
+    <div class="sec-head"><div><span class="kicker"><span class="dot"></span>{{ icon('smartphone', 'ico ico-sm') }} {{ tr(FD.kicker) }}</span><h2 class="h2">{{ tr(FD.hold_h) }}</h2></div><p class="lead">{{ tr(FD.hold_p) }}</p></div>
+    <div class="fd-holds">
+      {% for h in FD.holds %}
+      <div class="fd-card">
+        {% if h.k == 'flat' %}<svg class="fd-ill" viewBox="0 0 300 170" role="img" aria-label="{{ tr(h.h) }}"><ellipse cx="150" cy="140" rx="130" ry="22" fill="#EFE7D6"/><path d="M60 140L240 140" stroke="#C9B48A" stroke-width="2" stroke-dasharray="6 5"/><g transform="translate(150 104)"><path d="M-70 10L40 10L70 -14L-40 -14Z" fill="#141C24"/><path d="M-62 6L36 6L60 -10L-36 -10Z" fill="#2A3742"/><circle cx="0" cy="-2" r="8" fill="none" stroke="#2E8B57" stroke-width="2"/><circle cx="0" cy="-2" r="3" fill="#2E8B57"/></g><path d="M215 92L262 58" stroke="#C0392B" stroke-width="3"/><path d="M262 58l-4 12-8-8z" fill="#C0392B"/><text x="232" y="48" font-size="13" font-weight="800" fill="#C0392B" font-family="Manrope,system-ui,sans-serif">Bearing</text><text x="40" y="40" font-size="12" fill="#55616B" font-family="Manrope,system-ui,sans-serif">Screen up · level bubble</text></svg>
+        {% elif h.k == 'up' %}<svg class="fd-ill" viewBox="0 0 300 170" role="img" aria-label="{{ tr(h.h) }}"><path d="M150 150L210 60L250 90L290 150Z" fill="#CDBA92"/><path d="M190 90L210 60L230 75Z" fill="#fff" fill-opacity=".5"/><rect x="40" y="40" width="44" height="86" rx="7" fill="#141C24"/><rect x="45" y="47" width="34" height="72" rx="3" fill="#BFD3E2"/><circle cx="62" cy="83" r="6" fill="none" stroke="#fff" stroke-width="1.6"/><path d="M84 80L205 64" stroke="#C0392B" stroke-width="2.4" stroke-dasharray="7 5"/><path d="M205 64l-12 -2 4 10z" fill="#C0392B"/><text x="96" y="58" font-size="12" font-weight="800" fill="#C0392B" font-family="Manrope,system-ui,sans-serif">Line of sight</text><text x="20" y="150" font-size="12" fill="#55616B" font-family="Manrope,system-ui,sans-serif">Camera to target · bearing + tilt</text></svg>
+        {% else %}<svg class="fd-ill" viewBox="0 0 300 170" role="img" aria-label="{{ tr(h.h) }}"><path d="M10 150L190 60L290 110L110 170Z" fill="#CDBA92"/><path d="M10 150L110 170V160L10 140Z" fill="#B49A68"/><g transform="rotate(-26 150 112)"><rect x="104" y="96" width="92" height="34" rx="6" fill="#141C24"/><rect x="110" y="101" width="80" height="24" rx="3" fill="#2A3742"/><text x="150" y="118" text-anchor="middle" font-size="12" font-weight="800" fill="#FFD666" font-family="Manrope,system-ui,sans-serif">225/30</text></g><path d="M60 60L240 60" stroke="#1B232B" stroke-width="2"/><text x="60" y="52" font-size="12" font-weight="700" fill="#1B232B" font-family="Manrope,system-ui,sans-serif">Back of phone on the bed</text></svg>{% endif %}
+        <h3>{{ tr(h.h) }}</h3><p>{{ tr(h.p) }}</p>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<section class="section alt" id="dipstrike">
+  <div class="wrap">
+    <div class="sec-head"><div><span class="kicker"><span class="dot"></span>{{ icon('compass', 'ico ico-sm') }} {{ tr(FD.kicker) }}</span><h2 class="h2">{{ tr(FD.ds_h) }}</h2></div><p class="lead">{{ tr(FD.ds_p) }}</p></div>
+    <div class="fd-two">
+      <div class="fd-card">
+        <svg class="fd-ill big" viewBox="0 0 520 360" role="img" aria-label="{{ tr(FD.ds_h) }}">
+          <path d="M30 240L280 290L490 200L240 150Z" fill="#E9E3D6" stroke="#9AA3AB"/>
+          <path d="M50 190L290 110L480 150L240 230Z" fill="#CDBA92" stroke="#1B232B" stroke-width="1.5"/>
+          <path d="M50 190L240 230L240 254L50 214Z" fill="#B49A68"/><path d="M240 230L480 150L480 174L240 254Z" fill="#A88B57"/>
+          <path d="M95 175L335 95" stroke="#1B232B" stroke-width="3.5"/>
+          <text x="342" y="92" font-size="14" font-weight="800" fill="#1B232B" font-family="Manrope,system-ui,sans-serif">Strike</text>
+          <path d="M215 135L262 192" stroke="#C0392B" stroke-width="3.5"/><path d="M262 192l-13-3 8-9z" fill="#C0392B"/>
+          <text x="258" y="216" font-size="14" font-weight="800" fill="#C0392B" stroke="#fff" stroke-width="3" paint-order="stroke" font-family="Manrope,system-ui,sans-serif">Dip direction</text>
+          <g transform="translate(470 42)"><circle r="20" fill="#fff" stroke="#1B232B"/><path d="M0-16l6 14h-12z" fill="#1B232B"/><text y="-25" text-anchor="middle" font-size="12" font-weight="800" fill="#1B232B" font-family="Manrope,system-ui,sans-serif">N</text></g>
+          <g transform="translate(30 30)"><rect width="170" height="96" rx="8" fill="#fff" stroke="#D5DADF"/><text x="10" y="18" font-size="11.5" font-weight="800" fill="#1B232B" font-family="Manrope,system-ui,sans-serif">Section across strike</text><path d="M14 80H156" stroke="#2E6FBF" stroke-width="1.6" stroke-dasharray="5 4"/><path d="M14 80L130 34" stroke="#1B232B" stroke-width="3"/><path d="M90 80A76 76 0 0 0 85 52" fill="none" stroke="#2E6FBF" stroke-width="2"/><text x="96" y="70" font-size="12" font-weight="800" fill="#2E6FBF" font-family="Manrope,system-ui,sans-serif">Dip 30°</text><text x="122" y="92" font-size="10" fill="#55616B" font-family="Manrope,system-ui,sans-serif">horizontal</text></g>
+          <text x="30" y="300" font-size="13" fill="#55616B" font-family="Manrope,system-ui,sans-serif">Written as dip direction / dip: 225/30</text>
+          <text x="30" y="320" font-size="13" fill="#55616B" font-family="Manrope,system-ui,sans-serif">or strike / dip, right-hand rule: 135/30</text>
+        </svg>
+        <h3>{{ tr(FD.ds_tips_h) }}</h3>
+        <ul class="fd-steps">{% for s in FD.ds_tips %}<li>{{ tr(s) }}</li>{% endfor %}</ul>
+      </div>
+      <div style="display:grid;gap:18px">
+        <div class="fd-card"><h3>{{ icon('smartphone', 'ico ico-sm') }} {{ tr(FD.ds_phone_h) }}</h3><ol class="fd-steps">{% for s in FD.ds_phone %}<li>{{ tr(s) }}</li>{% endfor %}</ol><a class="btn btn-gold btn-sm" href="{{ u('tools/field-station/app/') }}" style="justify-self:start">{{ tr(tools_by_slug['field-station'].name) }} {{ icon('arrow-right', 'ico ico-sm flip') }}</a></div>
+        <div class="fd-card"><h3>{{ icon('compass', 'ico ico-sm') }} {{ tr(FD.ds_comp_h) }}</h3><ol class="fd-steps">{% for s in FD.ds_comp %}<li>{{ tr(s) }}</li>{% endfor %}</ol></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="safety">
+  <div class="wrap">
+    <div class="sec-head"><div><span class="kicker"><span class="dot"></span>{{ icon('shield-check', 'ico ico-sm') }} {{ tr(FD.kicker) }}</span><h2 class="h2">{{ tr(FD.safe_h) }}</h2></div><p class="lead">{{ tr(FD.safe_p) }}</p></div>
+    <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap"><b id="fdCount" class="ltr"></b><button class="btn btn-line btn-sm" type="button" id="fdReset">{{ tr(FD.safe_reset) }}</button></div>
+    <div class="fd-prog"><i id="fdBar"></i></div>
+    <div class="fd-check" id="fdCheck">
+      {% for g in FD.safe %}{% set gi = loop.index %}<div class="fd-card"><h3>{{ tr(g.h) }}</h3><div>{% for it in g['items'] %}<label><input type="checkbox" data-id="{{ gi }}-{{ loop.index }}"><span>{{ tr(it) }}</span></label>{% endfor %}</div></div>{% endfor %}
+    </div>
+  </div>
+</section>
+{% endblock %}
+{% block scripts %}
+<script>
+(function(){var K='shandal_field_kit',S={};try{S=JSON.parse(localStorage.getItem(K)||'{}')||{};}catch(e){}
+var box=document.getElementById('fdCheck'),ins=box.querySelectorAll('input');
+function upd(){var n=0;ins.forEach(function(i){if(i.checked)n++;});document.getElementById('fdCount').textContent=n+' / '+ins.length;document.getElementById('fdBar').style.width=(100*n/ins.length)+'%';}
+ins.forEach(function(i){i.checked=!!S[i.getAttribute('data-id')];});
+box.addEventListener('change',function(e){var i=e.target;if(!i.matches('input'))return;S[i.getAttribute('data-id')]=i.checked?1:0;try{localStorage.setItem(K,JSON.stringify(S));}catch(x){}upd();});
+document.getElementById('fdReset').addEventListener('click',function(){S={};try{localStorage.removeItem(K);}catch(x){}ins.forEach(function(i){i.checked=false;});upd();});
+upd();})();
+</script>
+{% endblock %}

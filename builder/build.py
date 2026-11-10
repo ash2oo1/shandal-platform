@@ -10,6 +10,7 @@ from content_tools import TOOLS, CATS
 import content_pages as CP
 import content_extra as CX
 import content_learn as CL
+import content_field as CFD
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 OUT = os.path.join(os.path.dirname(ROOT), 'docs')
@@ -67,6 +68,7 @@ def pages():
     for key, path in [('data', 'data/'), ('earth', 'earth-now/'), ('heritage', 'geoheritage/'), ('academy', 'academy/'), ('library', 'library/'),
                       ('about', 'about/'), ('pricing', 'pricing/'), ('contact', 'contact/'), ('verify', 'verify/'), ('account', 'account/')]:
         P.append(dict(path=path, tpl='pages.html', key=key))
+    P.append(dict(path='field/', tpl='field.html', key='field'))
     P.append(dict(path='learn/', tpl='learn.html', key='learn'))
     for i, l in enumerate(CL.LESSONS):
         P.append(dict(path=f'learn/{l["slug"]}/', tpl='lesson.html', key='lesson', lesson=l, prev=CL.LESSONS[i - 1] if i else None, nxt=CL.LESSONS[i + 1] if i + 1 < len(CL.LESSONS) else None))
@@ -247,7 +249,7 @@ def build():
                        tools=TOOLS, cats=CATS, cat_icons=CAT_ICONS, home=CP.HOME, H=CP.HOME, P=CP, ai={k: (v[lang] if isinstance(v, dict) else [i[lang] for i in v]) for k, v in CX.AI.items()},
                        version=VERSION, search_index=Markup(json.dumps(index, ensure_ascii=False)), bgcontours=bgc, coverlines=covl,
                        sources=CP.DATA_SOURCES, sites=CP.SITES, more_sites=CP.MORE_SITES, courses=CP.COURSES, books=CP.BOOKS,
-                       plans=CP.PLANS, plan_features=CP.PLAN_FEATURES, faq=CP.FAQ, A=CP.ABOUT, PG=CX.PLATFORM, page=pg['key'], learn_lessons=CL.LESSONS, LXG=CL.LEARN)
+                       plans=CP.PLANS, plan_features=CP.PLAN_FEATURES, faq=CP.FAQ, A=CP.ABOUT, PG=CX.PLATFORM, page=pg['key'], learn_lessons=CL.LESSONS, LXG=CL.LEARN, FD=CFD.FIELD, tools_by_slug={x['slug']: x for x in TOOLS})
             key = pg['key']
             if key == 'home':
                 ctx.update(title=CP.HOME['title'][lang], desc=CP.HOME['desc'][lang], featured=[x for s in FEATURED for x in TOOLS if x['slug'] == s])
@@ -266,6 +268,8 @@ def build():
                            title=f"{tl['name'][lang]} — {UI['brand'][lang]}", desc=tl['summary'][lang])
             elif key == 'about':
                 ctx.update(title=CP.ABOUT['title'][lang], desc=CP.ABOUT['lead'][lang], crumb=CP.ABOUT['title'][lang], h1=Markup(CP.ABOUT['title'][lang]), lead=Markup(CP.ABOUT['lead'][lang]))
+            elif key == 'field':
+                ctx.update(title=CFD.FIELD['title'][lang], desc=CFD.FIELD['p'][lang])
             elif key == 'learn':
                 ctx.update(LX=CL.LEARN, disciplines=CL.DISCIPLINES, lessons=CL.LESSONS, title=CL.LEARN['title'][lang], desc=CL.LEARN['p'][lang])
             elif key == 'lesson':

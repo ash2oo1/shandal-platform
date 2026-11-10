@@ -36,6 +36,7 @@
 - [مرافق المسح الحقلي](https://geologicalfieldsurvey.com/ar/tools/field-companion/) — دفتر الجيولوجي الحقلي على الهاتف: المحطات والقياسات والعينات والصور، حتى دون اتصال.
 - [الرحلات الجيولوجية الحقلية](https://geologicalfieldsurvey.com/ar/tools/field-trips/) — رحلات جاهزة بمحطات متحقق منها: المنكشف والقياسات والمتحجرات والسلامة، وأولها بغداد–السليمانية.
 - [ماذا أمامي؟ الكاميرا الجيولوجية](https://geologicalfieldsurvey.com/ar/tools/geo-eye/) — وجّه الهاتف نحو الجبل فتُسمّى الوحدات على الصورة والفيديو، مع بطاقة الموقع والعمل دون شبكة.
+- [قسم الاستكشاف الجيولوجي الحقلي](https://geologicalfieldsurvey.com/ar/field/) — كل أدوات الحقل في مكان واحد، مع دليل وضعيات الهاتف وقياس الميل والمضرب وقائمة السلامة والعُدّة.
 - [المحطة الحقلية](https://geologicalfieldsurvey.com/ar/tools/field-station/) — موقع دقيق وبوصلة ومقياس ميل بثلاث وضعيات، والطقس وتنبيه المطر، وأقرب طريق ونهر ونبع وقرية وقمة، والتكوين تحت قدميك وأقرب فالق.
 - [رسم المنكشف والوصف الحقلي](https://geologicalfieldsurvey.com/ar/tools/outcrop-sketch/) — ارسم حدود الطبقات على صورة المنكشف بإصبعك، وصِف كل طبقة، واحصل على رسم مُعلَّم وعمود طباقي مقيس.
 - [آلة الزمن للعراق](https://geologicalfieldsurvey.com/ar/tools/iraq-time-machine/) — 540 مليون سنة: أين كان العراق على الكرة الأرضية وما الذي غطاه وأي صخور تركها.
@@ -131,6 +132,7 @@ The system now has 57 tools for geology, terrain, remote sensing, geophysics, en
 - [Field Survey Companion](https://geologicalfieldsurvey.com/tools/field-companion/) — The geologist’s field notebook on the phone: stations, measurements, samples and photos, even without a connection.
 - [Geological Field Trips](https://geologicalfieldsurvey.com/tools/field-trips/) — Ready excursions with verified stops: outcrops, measurements, fossils and safety; first trip Baghdad–Sulaymaniyah.
 - [What Is in Front of Me? Geology Camera](https://geologicalfieldsurvey.com/tools/geo-eye/) — Point the phone at a mountain: units named on the picture and video, location sheet, works offline.
+- [Geological Field Exploration section](https://geologicalfieldsurvey.com/field/) — All field tools in one place, with guides to holding the phone, measuring dip and strike, and a safety and kit checklist.
 - [Field Station](https://geologicalfieldsurvey.com/tools/field-station/) — Precise position, compass and clinometer in three holds, weather and rain alert, nearest road, river, spring, village and peak, the formation underfoot and the nearest fault.
 - [Outcrop Sketch and Field Description](https://geologicalfieldsurvey.com/tools/outcrop-sketch/) — Draw bed boundaries on a photo of the face with a finger, describe each bed, and get an annotated sketch and a measured section.
 - [Iraq Time Machine](https://geologicalfieldsurvey.com/tools/iraq-time-machine/) — 540 million years: where Iraq lay on the globe, what covered it and which rocks it left.
