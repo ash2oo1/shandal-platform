@@ -974,3 +974,15 @@ def fieldtrip(uid, label):
     return svg(''.join(o), uid, label)
 
 REG.update({'fieldtrip': fieldtrip})
+
+# ---------------------------------------------------------------- geology camera (phone frame over a ridge, crosshair, label)
+def geoeye(uid, label):
+    o = ['<rect x="150" y="18" width="200" height="290" rx="22" fill="#141C24"/>', '<rect x="160" y="34" width="180" height="258" rx="8" fill="#BFD3E2"/>']
+    o.append('<path d="M160 170C190 120 220 110 250 130S310 100 340 140V292H160Z" fill="#CDBA92"/><path d="M160 215C200 190 250 200 340 185V292H160Z" fill="#8E3B2E"/><path d="M160 250C210 240 260 245 340 235V292H160Z" fill="#9AA58A"/>')
+    o.append('<path d="M160 170C190 120 220 110 250 130S310 100 340 140" fill="none" stroke="#FFD666" stroke-width="2.5" stroke-dasharray="7 5"/>')
+    o.append('<circle cx="250" cy="165" r="10" fill="none" stroke="#fff" stroke-width="2"/><path d="M232 165h10M258 165h10M250 147v10M250 173v10" stroke="#fff" stroke-width="2"/>')
+    o.append('<rect x="262" y="178" width="72" height="34" rx="4" fill="rgba(15,23,32,.8)"/><text x="268" y="192" class="il-small" style="fill:#fff;font-weight:700">Pila Spi</text><text x="268" y="206" class="il-small" style="fill:#d8dee4">1.2 km</text>')
+    o.append('<g class="il-chip" transform="translate(360 236)"><rect width="120" height="50" rx="8"/><text x="12" y="20" class="il-small">Heading · tilt</text><text x="12" y="40" class="il-value">047° · +4°</text></g>')
+    return svg(''.join(o), uid, label)
+
+REG.update({'geoeye': geoeye})

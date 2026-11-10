@@ -1,0 +1,83 @@
+{% extends "app_base.html" %}
+{% import "apps/_m.html" as m with context %}
+{% block apphead %}
+<style>
+#eyMap{height:260px}
+.ey-cam{position:relative;background:#0F1720;border-radius:14px;overflow:hidden;aspect-ratio:3/4;max-height:78vh;margin-inline:auto;width:100%}
+.ey-cam.land{aspect-ratio:16/9}
+.ey-cam video,.ey-cam canvas{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.ey-cam .ey-ph{position:absolute;inset:0;display:grid;place-items:center;color:#cfd6dc;text-align:center;padding:20px;font-size:.9rem}
+.ey-cam.fs{position:fixed;inset:0;z-index:9999;max-height:none;border-radius:0;aspect-ratio:auto}
+.ey-bar{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:10px}
+.ey-rec{background:#C0392B!important;color:#fff!important;border:0!important}
+.ey-fs-close{position:absolute;top:12px;inset-inline-end:12px;z-index:3;display:none}
+.ey-cam.fs .ey-fs-close{display:inline-flex}
+.ey-cam.fs .ey-fs-bar{position:absolute;bottom:14px;left:0;right:0;z-index:3;display:flex;justify-content:center;gap:10px}
+.ey-fs-bar{display:none}
+.ey-big{width:62px;height:62px;border-radius:50%;border:3px solid #fff;background:rgba(255,255,255,.15);color:#fff;display:grid;place-items:center;cursor:pointer}
+.ey-big.r{background:#C0392B}
+.ey-cols{display:grid;gap:4px}
+.ey-cols div{display:grid;grid-template-columns:12px minmax(0,1fr) auto;gap:8px;font-size:.85rem;align-items:start}
+.ey-cols i{width:12px;height:12px;border-radius:3px;margin-top:5px}
+.ey-packs{font-size:.8rem;color:var(--text-3)}
+</style>
+{% endblock %}
+{% block ws %}
+<div class="ws-wrap">
+<div class="ws wide-side">
+  <aside class="ws-side">
+    {{ m.panel_open(1, 'Where are you?', 'أين أنت؟') }}
+      <button class="btn btn-gold btn-block" id="eyGps" type="button">{{ icon('locate-fixed', 'ico ico-sm') }}{{ m.L('Use my position', 'استعمل موقعي') }}</button>
+      <p class="xsmall muted" style="margin:0">{{ m.L('Or tap the map to study any place before going.', 'أو انقر الخريطة لدراسة أي مكان قبل الذهاب إليه.') }}</p>
+      <div class="map" id="eyMap" data-rp-skip></div>
+      <p class="xsmall" id="eyPos" style="margin:0"></p>
+    {{ m.panel_close() }}
+    {{ m.panel_open(2, 'Prepare for no network', 'التحضير للعمل دون شبكة') }}
+      <p class="xsmall muted" style="margin:0">{{ m.L('Saves the elevations, geological units, column and faults of an area of about 8 km around a point on this phone, so the camera and the location sheet work in the mountains.', 'يحفظ الارتفاعات والوحدات الجيولوجية والعمود الطباقي والفوالق لمنطقة نحو 8 كم حول نقطة على هذا الهاتف، فتعمل الكاميرا وبطاقة الموقع في الجبال.') }}</p>
+      <div class="ey-bar" style="margin:0">
+        <button class="btn btn-line btn-sm" id="eyPack" type="button">{{ icon('download', 'ico ico-sm') }}{{ m.L('This place', 'هذا المكان') }}</button>
+        <button class="btn btn-line btn-sm" id="eyPackTrip" type="button">{{ icon('route', 'ico ico-sm') }}{{ m.L('All stops of the Sulaymaniyah trip', 'كل محطات رحلة السليمانية') }}</button>
+      </div>
+      <p class="ey-packs" id="eyPacks"></p>
+    {{ m.panel_close() }}
+    {{ m.panel_open(3, 'Camera settings', 'إعدادات الكاميرا') }}
+      <div class="row2">
+        {{ m.sel('eyFov', 'Camera field of view', 'زاوية رؤية الكاميرا', [('50', '50° (zoomed main camera)', '50° (كاميرا رئيسية مقرّبة)'), ('63', '63° (most phones)', '63° (معظم الهواتف)', true), ('75', '75°', '75°'), ('100', '100° (wide camera)', '100° (كاميرا واسعة)')], 'Horizontal angle of the picture when the phone is held upright. If the skyline drawn on the picture is wider or narrower than the real one, change it.', 'الزاوية الأفقية للصورة حين يكون الهاتف قائماً. إذا كان خط الأفق المرسوم أعرض أو أضيق من الحقيقي فغيّرها.') }}
+        {{ m.fld('eyOff', 'Heading correction', 'تصحيح الاتجاه', 'number', '0', '°', 'Compasses in phones are often off by a few degrees near cars and metal. Turn this until the drawn skyline sits on the real one.', 'كثيراً ما تنحرف بوصلة الهاتف بضع درجات قرب السيارات والمعادن. غيّر القيمة حتى ينطبق خط الأفق المرسوم على الحقيقي.', '', '1', 'min="-45" max="45"') }}
+      </div>
+      <input type="range" id="eyOffR" min="-45" max="45" step="1" value="0" style="width:100%;accent-color:#B08A3E" aria-label="{{ m.L('Heading correction', 'تصحيح الاتجاه') }}">
+      <div class="row2">
+        {{ m.fld('eyDip', 'Dip shown on video', 'الميل الظاهر على الفيديو', 'text', '', '', 'Optional, as dip direction / dip, for example 225/30. It is written on the picture and the video.', 'اختياري، بصيغة اتجاه الميل / الميل، مثل 225/30. يُكتب على الصورة والفيديو.', '225/30', 'any', '', 'ltr') }}
+        {{ m.fld('eyNote', 'Note on video', 'ملاحظة على الفيديو', 'text', '', '', '', '', '', 'any') }}
+      </div>
+    {{ m.panel_close() }}
+  </aside>
+  <div class="ws-main">
+    <section class="pn" data-rp-skip><div class="pn-h">{{ icon('camera') }}<h2>{{ m.L('What is in front of me?', 'ماذا أمامي؟') }}</h2></div><div class="pn-b">
+      <div class="ey-cam" id="eyCam"><video id="eyVid" playsinline muted></video><canvas id="eyCv"></canvas><div class="ey-ph" id="eyPh">{{ m.L('Fix your position, then start the camera and point it at the slope or the mountain.', 'حدّد موقعك ثم شغّل الكاميرا ووجّهها نحو المنحدر أو الجبل.') }}</div>
+        <button class="btn btn-ink btn-sm ey-fs-close" id="eyFsX" type="button">×</button>
+        <div class="ey-fs-bar"><button class="ey-big" id="eyFsShot" type="button" aria-label="{{ m.L('Photo', 'صورة') }}">{{ icon('camera') }}</button><button class="ey-big r" id="eyFsRec" type="button" aria-label="{{ m.L('Record', 'سجّل') }}">●</button></div>
+      </div>
+      <div class="ey-bar">
+        <button class="btn btn-gold btn-sm" id="eyStart" type="button">{{ icon('camera', 'ico ico-sm') }}{{ m.L('Start the camera', 'شغّل الكاميرا') }}</button>
+        <button class="btn btn-line btn-sm" id="eyShot" type="button" disabled>{{ m.L('Photo with labels', 'صورة مع التسميات') }}</button>
+        <button class="btn btn-line btn-sm" id="eyRec" type="button" disabled>● {{ m.L('Record video', 'سجّل فيديو') }}</button>
+        <button class="btn btn-line btn-sm" id="eyFs" type="button" disabled>{{ m.L('Full screen', 'ملء الشاشة') }}</button>
+        <span class="xsmall muted" id="eyStat"></span>
+      </div>
+    </div></section>
+    <div id="eyEmpty" class="pn">{{ m.empty('scan-eye', 'Geology around you', 'الجيولوجيا من حولك', 'Use your position or tap the map. The system reads the ground, the geological units and the faults around the point and builds a location sheet: elevation, slope, landform, the unit under your feet and around you, the local succession, the fossils to expect and the nearest active fault. The camera then names the units you are looking at.', 'استعمل موقعك أو انقر الخريطة. يقرأ النظام الأرض والوحدات الجيولوجية والفوالق حول النقطة ويبني بطاقة للموقع: الارتفاع والانحدار والشكل الأرضي والوحدة تحت قدميك ومن حولك والتتابع المحلي والمتحجرات المتوقعة وأقرب فالق نشط. ثم تسمّي الكاميرا الوحدات التي تنظر إليها.') }}</div>
+    <div id="eyOut" hidden style="display:grid;gap:18px">
+      <div class="kpis" id="eyKpis"></div>
+      <div id="eyVerd" style="display:grid;gap:10px"></div>
+      {{ m.fig_open('fey1', '1', 'Panorama of the units on the skyline', 'بانوراما الوحدات على خط الأفق', '<span data-egfig="eyPan"></span>') }}
+        <div class="fig-b"><svg class="chart" id="eyPan" viewBox="0 0 760 420" role="img"></svg></div>
+        <div class="fig-cap" id="eyPanCap"></div>
+      {{ m.fig_close() }}
+      <section class="pn"><div class="pn-h">{{ icon('layers') }}<h2>{{ m.L('Units around you', 'الوحدات من حولك') }}</h2></div><div class="pn-b ey-cols" id="eyUnits"></div></section>
+      <section class="pn"><div class="pn-h">{{ icon('table') }}<h2>{{ m.L('Local succession', 'التتابع الطباقي المحلي') }}</h2></div><div class="pn-b flush tbl-wrap"><table class="tbl" id="eyCol"></table></div></section>
+    </div>
+  </div>
+</div>
+</div>
+{% endblock %}
