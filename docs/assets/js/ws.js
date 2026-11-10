@@ -511,6 +511,63 @@
     d.addEventListener('click', function (e) { var t = e.target.closest && e.target.closest('.tip'); if (t) { e.preventDefault(); if (cur === t) hide(); else show(t); } else if (cur) hide(); });
     w.addEventListener('scroll', function () { if (cur) { var r = cur.getBoundingClientRect(); if (r.bottom < 0 || r.top > w.innerHeight) hide(); else show(cur); } }, true); w.addEventListener('resize', hide);
   })();
+
+  /* Frame-exact video: every frame is drawn and encoded one by one with WebCodecs and written into a standard MP4,
+     so the length is always right and does not depend on the speed of the device or on the tab staying visible.
+     SH.videoMp4({ W, H, fps, n, draw(k, canvas, ctx), progress(p) }) → Promise<{ blob, codec }> ; rejects when unsupported. */
+  SH.videoMp4 = function (o) {
+    if (!w.VideoEncoder || !w.VideoFrame) return Promise.reject(new Error('nowebcodecs'));
+    var W = o.W, H = o.H, fps = o.fps || 30, TS = fps * 1000, DUR = 1000;
+    var tries = [['avc1.640034', 'avc'], ['avc1.640033', 'avc'], ['avc1.640028', 'avc'], ['avc1.4d0034', 'avc'], ['avc1.42003e', 'avc'], ['vp09.00.40.08', 'vp9']];
+    function pickCfg(i) { if (i >= tries.length) return Promise.reject(new Error('nocodec')); var c = { codec: tries[i][0], width: W, height: H, bitrate: o.bitrate || 10e6, framerate: fps }; if (tries[i][1] === 'avc') c.avc = { format: 'avc' };
+      return VideoEncoder.isConfigSupported(c).then(function (r) { return r.supported ? { cfg: c, kind: tries[i][1] } : pickCfg(i + 1); }, function () { return pickCfg(i + 1); }); }
+    return pickCfg(0).then(function (P) {
+      var chunks = [], sizes = [], keys = [], desc = null, err = null;
+      var enc = new VideoEncoder({ output: function (ch, meta) { var b = new Uint8Array(ch.byteLength); ch.copyTo(b); chunks.push(b); sizes.push(b.length); if (ch.type === 'key') keys.push(sizes.length); if (meta && meta.decoderConfig && meta.decoderConfig.description && !desc) desc = new Uint8Array(meta.decoderConfig.description.buffer ? meta.decoderConfig.description.buffer.slice(meta.decoderConfig.description.byteOffset || 0, (meta.decoderConfig.description.byteOffset || 0) + meta.decoderConfig.description.byteLength) : meta.decoderConfig.description); }, error: function (e) { err = e; } });
+      enc.configure(P.cfg);
+      var cv = d.createElement('canvas'); cv.width = W; cv.height = H; var g = cv.getContext('2d'), k = 0;
+      function step() {
+        if (err) return Promise.reject(err);
+        if (k >= o.n) return enc.flush();
+        o.draw(k, cv, g); var vf = new VideoFrame(cv, { timestamp: Math.round(k * 1e6 / fps), duration: Math.round(1e6 / fps) }); enc.encode(vf, { keyFrame: k % (fps * 2) === 0 }); vf.close(); k++;
+        if (o.progress && k % 5 === 0) o.progress(k / o.n);
+        var wait = enc.encodeQueueSize > 6 ? new Promise(function (r) { setTimeout(r, 15); }) : (k % 10 ? Promise.resolve() : new Promise(function (r) { setTimeout(r, 0); }));
+        return wait.then(function () { return enc.encodeQueueSize > 6 ? new Promise(function (r) { var c0 = 0; (function poll() { if (enc.encodeQueueSize <= 3 || ++c0 > 400) r(); else setTimeout(poll, 10); })(); }) : null; }).then(step);
+      }
+      return step().then(function () {
+        enc.close(); if (err) throw err;
+        return { blob: new Blob([mux(P.kind, W, H, TS, DUR, chunks, sizes, keys, desc)], { type: 'video/mp4' }), codec: P.kind };
+      });
+    });
+    function mux(kind, W, H, TS, DUR, chunks, sizes, keys, desc) {
+      var n = sizes.length, dur = n * DUR, durMs = Math.round(dur * 1000 / TS);
+      function u32(v) { return [(v >>> 24) & 255, (v >>> 16) & 255, (v >>> 8) & 255, v & 255]; }
+      function u16(v) { return [(v >>> 8) & 255, v & 255]; }
+      function str(x) { return x.split('').map(function (c) { return c.charCodeAt(0); }); }
+      function box(type, parts) { var body = [].concat.apply([], parts.map(function (p) { return Array.isArray(p) ? p : Array.prototype.slice.call(p); })); return u32(body.length + 8).concat(str(type), body); }
+      function full(type, ver, flags, parts) { return box(type, [[ver].concat(u32(flags).slice(1))].concat(parts)); }
+      var MAT = [].concat(u32(0x10000), u32(0), u32(0), u32(0), u32(0x10000), u32(0), u32(0), u32(0), u32(0x40000000));
+      var codecBox = kind === 'avc' ? box('avcC', [desc || []]) : full('vpcC', 1, 0, [[0, 40, (8 << 4) | (1 << 1) | 0, 1, 1, 1], u16(0)]);
+      var entry = box(kind === 'avc' ? 'avc1' : 'vp09', [[0, 0, 0, 0, 0, 0], u16(1), u16(0), u16(0), u32(0), u32(0), u32(0), u16(W), u16(H), u32(0x480000), u32(0x480000), u32(0), u16(1), new Array(32).fill(0), u16(0x18), u16(0xffff), codecBox]);
+      var stsd = full('stsd', 0, 0, [u32(1), entry]), stts = full('stts', 0, 0, [u32(1), u32(n), u32(DUR)]);
+      var stss = full('stss', 0, 0, [u32(keys.length)].concat(keys.map(u32))), stsc = full('stsc', 0, 0, [u32(1), u32(1), u32(n), u32(1)]);
+      var stsz = full('stsz', 0, 0, [u32(0), u32(n)].concat(sizes.map(u32)));
+      function build(off) {
+        var stco = full('stco', 0, 0, [u32(1), u32(off)]), stbl = box('stbl', [stsd, stts, stss, stsc, stsz, stco]);
+        var minf = box('minf', [full('vmhd', 0, 1, [u16(0), u16(0), u16(0), u16(0)]), box('dinf', [full('dref', 0, 0, [u32(1), full('url ', 0, 1, [])])]), stbl]);
+        var mdia = box('mdia', [full('mdhd', 0, 0, [u32(0), u32(0), u32(TS), u32(dur), u16(0x55c4), u16(0)]), full('hdlr', 0, 0, [u32(0), str('vide'), u32(0), u32(0), u32(0), str('Shandal video'), [0]]), minf]);
+        var tkhd = full('tkhd', 0, 3, [u32(0), u32(0), u32(1), u32(0), u32(durMs), u32(0), u32(0), u16(0), u16(0), u16(0), u16(0), MAT, u32(W * 65536), u32(H * 65536)]);
+        var mvhd = full('mvhd', 0, 0, [u32(0), u32(0), u32(1000), u32(durMs), u32(0x10000), u16(0x100), u16(0), u32(0), u32(0), MAT, new Array(24).fill(0), u32(2)]);
+        return box('moov', [mvhd, box('trak', [tkhd, mdia])]);
+      }
+      var ftyp = box('ftyp', [str('isom'), u32(512), str('isom'), str('iso2'), str(kind === 'avc' ? 'avc1' : 'vp09'), str('mp41')]);
+      var moov = build(0), off = ftyp.length + moov.length + 8; moov = build(off);
+      var total = sizes.reduce(function (a, b) { return a + b; }, 0), out = new Uint8Array(ftyp.length + moov.length + 8 + total), p = 0;
+      out.set(ftyp, p); p += ftyp.length; out.set(moov, p); p += moov.length; out.set(u32(total + 8), p); out.set(str('mdat'), p + 4); p += 8;
+      chunks.forEach(function (c) { out.set(c, p); p += c.length; });
+      return out;
+    }
+  };
   /* offline shell: keep the last good copy of pages and assets for use in the field without a connection */
   if ('serviceWorker' in navigator && location.protocol === 'https:') w.addEventListener('load', function () { navigator.serviceWorker.register(SH.base + 'sw.js').catch(function () {}); });
 })(window);

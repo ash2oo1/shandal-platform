@@ -347,11 +347,23 @@
 
   /* ------------------------------------------------------------------ video */
   $('#tlVid').addEventListener('click', function () {
-    if (!frames.length) return; if (!window.MediaRecorder || !HTMLCanvasElement.prototype.captureStream) { SH.toast(t('This browser cannot record video. Use Chrome, Edge or a recent Safari.', 'هذا المتصفح لا يستطيع تسجيل الفيديو. استعمل كروم أو إيدج أو سفاري حديثاً.'), 'bad'); return; }
+    if (!frames.length) return; if (!window.VideoEncoder && (!window.MediaRecorder || !HTMLCanvasElement.prototype.captureStream)) { SH.toast(t('This browser cannot record video. Use Chrome, Edge or a recent Safari.', 'هذا المتصفح لا يستطيع تسجيل الفيديو. استعمل كروم أو إيدج أو سفاري حديثاً.'), 'bad'); return; }
     stop(); VL = $('#tlVL').value === 'en' ? 'en' : 'ar'; persist.save(); var self = this;
     var ready = Promise.all([emblem().then(function (i) { EMBI = i; }), document.fonts && document.fonts.load ? Promise.all(['800 30px "Plex Arabic"', '700 20px "Plex Arabic"', '600 14px "Plex Arabic"', '800 30px Manrope'].map(function (q) { return document.fonts.load(q, 'نظام Shandal'); })).catch(function () {}) : null]);
-    ready.then(function () { recordVid(self); });
+    ready.then(function () { encodeVid(self).catch(function (e) { if (e && /nowebcodecs|nocodec/.test(e.message)) return recordVid(self); SH.toast((e && e.message) || String(e), 'bad'); self.disabled = false; VL = null; }); });
   });
+  /* frame-exact MP4: one frame drawn and encoded at a time, so the film always has its full length */
+  function encodeVid(btn) {
+    var fmt = $('#tlFmt').value, sz = fmt === 'reel' ? [1080, 1920] : fmt === 'sq' ? [1080, 1080] : [1920, 1080], old = btn.innerHTML;
+    var fps = 30, hold = 0.9 * (+$('#tlSp').value || 1), fade = 0.35, endHold = 2.2, N = frames.length, total = N * hold + endHold, nF = Math.round(total * fps);
+    btn.disabled = true; btn.textContent = t('Making the video… 0 %', 'جارٍ صنع الفيديو… 0 %');
+    return SH.videoMp4({ W: sz[0], H: sz[1], fps: fps, n: nF, bitrate: 10e6,
+      draw: function (k, cv, g) { var s = k / fps, i = Math.min(N - 1, Math.floor(s / hold)), into = s - i * hold, f = frames[i], prev = i > 0 && into < fade ? frames[i - 1] : null; drawMap(g, cv.width, cv.height, f, { year: String(f.y), vid: true, idx: i, prev: prev, mix: prev ? into / fade : 1 }); },
+      progress: function (p) { btn.textContent = t('Making the video… ', 'جارٍ صنع الفيديو… ') + Math.round(p * 100) + ' %'; } }).then(function (r) {
+      SH.download('shandal-' + (aoi.key || 'area') + '-' + frames[0].y + '-' + frames[N - 1].y + '.mp4', r.blob);
+      if (r.codec !== 'avc') SH.toast(t('This browser has no H.264 encoder, so the MP4 uses VP9: most platforms accept it; if one does not, make the video in Chrome or Edge.', 'لا يوجد في هذا المتصفح مرمّز H.264، فاستُعمل VP9 داخل MP4: تقبله معظم المنصات، وإن رفضته منصة فاصنع الفيديو في كروم أو إيدج.'), 'warn');
+    }).then(function () { btn.disabled = false; btn.innerHTML = old; VL = null; show(cur); }, function (e) { btn.disabled = false; btn.innerHTML = old; throw e; });
+  }
   function recordVid(btnEl) {
     var fmt = $('#tlFmt').value, sz = fmt === 'reel' ? [1080, 1920] : fmt === 'sq' ? [1080, 1080] : [1920, 1080], cv = document.createElement('canvas'); cv.width = sz[0]; cv.height = sz[1]; var g = cv.getContext('2d');
     var btn = btnEl, old = btn.innerHTML; btn.disabled = true; btn.textContent = t('Recording…', 'جارٍ التسجيل…');
