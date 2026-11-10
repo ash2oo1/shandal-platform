@@ -8,7 +8,7 @@
   var t = SH.t, $ = SH.$, $$ = SH.$$, F = SH.fmt, E = SH.esc, L = window.L, G = window.EG, AR = SH.lang === 'ar';
   var PC = 'https://planetarycomputer.microsoft.com/api/', COL = 'landsat-c2-l2', MS = 720, K = 14545.4545;
   var PF = 'Manrope, Arial, sans-serif', INK = '#1B232B', MUT = '#55616B';
-  var IDS = ['tlY0', 'tlY1', 'tlStep', 'tlSea', 'tlCl', 'tlTw', 'tlTv', 'tlTwM', 'tlTvM', 'tlOw', 'tlOv', 'tlFmt', 'tlSp', 'tlSrc', 'tlEnh', 'tlMode', 'tlVL', 'tlNmAr', 'tlNmEn'], persist = SH.persist('timelapse', IDS);
+  var IDS = ['tlY0', 'tlY1', 'tlStep', 'tlSea', 'tlCl', 'tlTw', 'tlTv', 'tlTwM', 'tlTvM', 'tlOw', 'tlOv', 'tlFmt', 'tlSp', 'tlName', 'tlSrc', 'tlEnh', 'tlMode', 'tlVL', 'tlNmAr', 'tlNmEn'], persist = SH.persist('timelapse', IDS);
   var PRE = [
     ['central', 'Central Marshes', 'الأهوار الوسطى', [46.45, 30.85, 47.05, 31.25]], ['hammar', 'Hammar Marsh', 'هور الحمّار', [46.6, 30.6, 47.4, 30.98]], ['hawizeh', 'Hawizeh Marsh', 'هور الحويزة', [47.45, 31.2, 47.85, 31.75]],
     ['sawa', 'Lake Sawa', 'بحيرة ساوة', [44.96, 31.28, 45.06, 31.35]], ['razzaza', 'Razzaza Lake', 'بحيرة الرزازة', [43.55, 32.45, 44.05, 32.9]], ['mosul', 'Mosul Dam Lake', 'بحيرة سد الموصل', [42.55, 36.6, 43.0, 36.95]],
@@ -28,6 +28,7 @@
     var w = Math.min(b[0], b[2]), e = Math.max(b[0], b[2]), s = Math.min(b[1], b[3]), n = Math.max(b[1], b[3]), kx = 111.32 * Math.cos(SH.rad((s + n) / 2)), wk = (e - w) * kx, hk = (n - s) * 110.57;
     if (wk > 150 || hk > 150) { SH.toast(t('The area must fit in one Landsat scene: at most about 150 × 150 km.', 'يجب أن تتسع المنطقة في مشهد لاندسات واحد: نحو 150 × 150 كم كحد أقصى.'), 'warn'); return; }
     if (wk < 1.5 || hk < 1.5) { SH.toast(t('The area is too small for 30 m pixels.', 'المنطقة أصغر من أن تُقاس ببكسلات 30 م.'), 'warn'); return; }
+    if (aoi && (Math.abs(aoi.w - w) > 1e-6 || Math.abs(aoi.n - n) > 1e-6) && $('#tlName')) { $('#tlName').value = ''; $('#tlName').placeholder = AR ? (ar || en || '') : (en || ''); }
     aoi = { w: w, s: s, e: e, n: n, en: en || 'Selected area', ar: ar || t('Selected area', 'المنطقة المختارة'), key: key || '', km2: wk * hk };
     $('#tlAoi').innerHTML = '<span class="ltr">' + F(wk, 0) + ' × ' + F(hk, 0) + ' km</span>';
     $$('#tlPre button').forEach(function (x) { x.setAttribute('aria-pressed', x.getAttribute('data-k') === key ? 'true' : 'false'); });
@@ -170,6 +171,7 @@
   }
   (function () { var g0 = SH.geologist(); if (g0) { if (isAr(g0)) { if (!$('#tlNmAr').value) $('#tlNmAr').value = g0; } else if (!$('#tlNmEn').value) $('#tlNmEn').value = g0; } if (!$('#tlVL').dataset.set) $('#tlVL').value = $('#tlVL').value || (AR ? 'ar' : 'en'); })();
   ['tlNmAr', 'tlNmEn', 'tlVL'].forEach(function (id) { $('#' + id).addEventListener('change', function () { persist.save(); }); });
+  $('#tlName').addEventListener('input', function () { persist.save(); if (frames.length) render(); });
   $('#tlMode').addEventListener('change', function () { persist.save(); applyMode(); });
   $('#tlRun').addEventListener('click', run);
   function MSSW() { var v = G.v('tlTwM'); return isNaN(v) ? 0.1 : v; } function MSSV() { var v = G.v('tlTvM'); return isNaN(v) ? 0.2 : v; }
@@ -210,11 +212,12 @@
   function tw(g, s, size, wt) { var A = isAr(s); g.font = (wt || 500) + ' ' + size + 'px ' + (A ? AF : PF); return g.measureText(s).width; }
   function rr(g, x, y, w, h, r) { g.beginPath(); g.moveTo(x + r, y); g.arcTo(x + w, y, x + w, y + h, r); g.arcTo(x + w, y + h, x, y + h, r); g.arcTo(x, y + h, x, y, r); g.arcTo(x, y, x + w, y, r); g.closePath(); }
   function km2(v) { return F(v, v < 10 ? 1 : 0) + ' ' + T('km²', 'كم²'); }
+  function placeName(lang) { var v = ($('#tlName').value || '').trim(); return v || (lang === 'ar' ? (aoi.ar || aoi.en) : aoi.en); }
   function vidHeader(g, W, Lt) {
-    var s = Lt.s, x = Lt.pad, y = 22 * s, L0 = 54 * s;
-    if (EMBI) g.drawImage(EMBI, x, y, L0, L0);
-    txt(g, T('Shandal System', 'نظام شندل'), W - x, y + L0 / 2 + 8 * s, 22 * s, 800, INK, 'right');
-    var title = VL === 'ar' ? (aoi.ar || aoi.en) : aoi.en; txt(g, title, W / 2, Lt.head - 26 * s, (Lt.reel ? 34 : 32) * s, 800, INK, 'center');
+    var s = Lt.s, x = Lt.pad, L0 = (Lt.reel ? 92 : 74) * s, y = (Lt.reel ? 14 : 12) * s, nm0 = '© ' + T('Shandal System', 'نظام شندل');
+    if (EMBI) g.drawImage(EMBI, W - x - L0, y, L0, L0);
+    txt(g, nm0, W - x - L0 - 10 * s, y + L0 / 2 + 9 * s, (Lt.reel ? 26 : 24) * s, 800, INK, 'right');
+    var title = placeName(VL); txt(g, title, W / 2, Lt.head - 26 * s, (Lt.reel ? 34 : 32) * s, 800, INK, 'center');
   }
   function vidFooter(g, W, H, Lt) {
     var s = Lt.s, y = H - 22 * s, nm = VL === 'ar' ? ($('#tlNmAr').value.trim() || $('#tlNmEn').value.trim()) : ($('#tlNmEn').value.trim() || $('#tlNmAr').value.trim());
@@ -225,7 +228,7 @@
     o = o || {}; var Lt = layout(W, H, o.vid, o.foot), s = Lt.s;
     g.fillStyle = '#fff'; g.fillRect(0, 0, W, H); g.save(); g.translate(0, Lt.dy);
     if (o.vid) vidHeader(g, W, Lt); else {
-      txt(g, o.title || aoi.en, Lt.pad, 44 * s, 30 * s, 800);
+      txt(g, o.title || placeName(), Lt.pad, 44 * s, 30 * s, 800);
       txt(g, o.sub || ((f.it.dates ? f.it.n + ' scenes ' + f.it.dates.slice().sort()[0] + ' to ' + f.it.dates.slice().sort().pop() : f.it.date) + ' · ' + f.it.sat + (f.it.mss ? ' · 60 m, colour approximated (no blue band)' : f.it.s2 ? ' · 10 m surface reflectance, true colour' : ' · 30 m surface reflectance, true colour') + ($('#tlOw').checked || $('#tlOv').checked ? ' with measured classes' : '')), Lt.pad, 74 * s, 17 * s, 500, MUT);
     }
     if (o.base) g.drawImage(o.base, Lt.x, Lt.y, Lt.w, Lt.h); else { g.fillStyle = '#E9ECEF'; g.fillRect(Lt.x, Lt.y, Lt.w, Lt.h); g.globalAlpha = o.alpha == null ? 1 : o.alpha; g.drawImage(f.rgb, Lt.x, Lt.y, Lt.w, Lt.h); g.drawImage(overlay(f), Lt.x, Lt.y, Lt.w, Lt.h); g.globalAlpha = 1; }
@@ -306,7 +309,7 @@
   function chart() {
     var P = good(); if (!P.length) { $('#tlChart').innerHTML = ''; return; } var x0 = P[0].y, x1 = Math.max(P[P.length - 1].y, x0 + 1);
     var mk = function (key, col, title) { var r = G.span(P.map(function (f) { return f[key]; }).concat([0]), { zero: true }); return G.panel({ W: 760, H: 230, m: { l: 72, r: 20, t: 26, b: 34 }, x: { lo: x0, hi: x1, plain: true, st: EG.step(x0, x1, 8) < 1 ? 1 : EG.step(x0, x1, 8) }, y: { lo: 0, hi: r.hi, title: title }, series: [{ pts: P.map(function (f) { return [f.y, f[key]]; }), col: col, w: 2.4, mark: 'o', r: 3.5, area: true, fillOp: .12 }], top: function (fx, fy) { return EG.tx(fx(x0) + 6, 18, key === 'water' ? 'Open water (MNDWI' + (P.some(function (f) { return f.it.mss; }) ? '; NDWI for MSS years' : '') + ')' : 'Green vegetation (NDVI)', { fs: 12.5, fw: 800, fill: col }); } }); };
-    var s = '<rect width="760" height="540" fill="#fff"/><g>' + mk('water', '#2E6FBF', 'Area (km²)') + '</g><g transform="translate(0 240)">' + mk('veg', '#2E8B57', 'Area (km²)') + '</g>' + EG.tx(380, 500, 'Year', { anchor: 'middle', fw: 700, fs: 12.5 }) + EG.tx(72, 526, aoi.en + ' · ' + seasonEn() + ' scenes · Landsat ' + (frames.some(function (f) { return f.it.mss; }) ? '1–9 (MSS 60 m before 1982, hollow points)' : '4–9 surface reflectance, 30 m') + ' · scenes covering ≥ 90 % of the area', { fs: 11, fill: EG.MUT });
+    var s = '<rect width="760" height="540" fill="#fff"/><g>' + mk('water', '#2E6FBF', 'Area (km²)') + '</g><g transform="translate(0 240)">' + mk('veg', '#2E8B57', 'Area (km²)') + '</g>' + EG.tx(380, 500, 'Year', { anchor: 'middle', fw: 700, fs: 12.5 }) + EG.tx(72, 526, placeName() + ' · ' + seasonEn() + ' scenes · Landsat ' + (frames.some(function (f) { return f.it.mss; }) ? '1–9 (MSS 60 m before 1982, hollow points)' : '4–9 surface reflectance, 30 m') + ' · scenes covering ≥ 90 % of the area', { fs: 11, fill: EG.MUT });
     $('#tlChart').setAttribute('viewBox', '0 0 760 540'); $('#tlChart').innerHTML = s;
     $('#tlChartCap').textContent = t('Area of open water and of green vegetation measured on each year’s scene. Sudden drops show droughts, drainage or upstream dams; sudden rises show floods, new reservoirs or irrigation.', 'مساحة المياه المكشوفة والنبات الأخضر المقيسة على مشهد كل سنة. الانخفاضات المفاجئة تدل على الجفاف أو التجفيف أو السدود في أعالي الأنهار، والارتفاعات المفاجئة على الفيضانات أو الخزانات الجديدة أو الري.');
   }
@@ -321,7 +324,7 @@
       if (k < 0) continue; var ar = dlon * 111.32 * Math.cos(SH.rad(aoi.n - (Math.floor(i / a.w) + 0.5) * dlat)) * dlat * 110.574; A[k] += ar; base.data[o] = CH[k][1][0]; base.data[o + 1] = CH[k][1][1]; base.data[o + 2] = CH[k][1][2]; }
     g.putImageData(base, 0, 0);
     var cv = $('#tlChg'), legend = CH.map(function (q, k) { return [q[0] + ' ' + F(A[k], A[k] < 10 ? 1 : 0) + ' km²', 'rgb(' + q[1].join(',') + ')']; });
-    drawMap(cv.getContext('2d'), cv.width, cv.height, b, { foot: 210, base: c, title: aoi.en + ': change ' + a.y + ' → ' + b.y, sub: a.it.date + ' (' + a.it.sat + ') compared with ' + b.it.date + ' (' + b.it.sat + ')', legend: [], stats: 'Water lost ' + F(A[1], 1) + ' km² · new water ' + F(A[2], 1) + ' km² · vegetation lost ' + F(A[3], 1) + ' km² · new vegetation ' + F(A[4], 1) + ' km²' });
+    drawMap(cv.getContext('2d'), cv.width, cv.height, b, { foot: 210, base: c, title: placeName() + ': change ' + a.y + ' → ' + b.y, sub: a.it.date + ' (' + a.it.sat + ') compared with ' + b.it.date + ' (' + b.it.sat + ')', legend: [], stats: 'Water lost ' + F(A[1], 1) + ' km² · new water ' + F(A[2], 1) + ' km² · vegetation lost ' + F(A[3], 1) + ' km² · new vegetation ' + F(A[4], 1) + ' km²' });
     var g2 = cv.getContext('2d'), Lt = layout(cv.width, cv.height, false, 210), s = Lt.s, ly = Lt.y + Lt.h + 120 * s; CH.forEach(function (q, k) { var x = Lt.x + (k % 3) * (Lt.w / 3), y = ly + Math.floor(k / 3) * 26 * s; g2.fillStyle = legend[k][1]; g2.fillRect(x, y - 12 * s, 18 * s, 14 * s); g2.strokeStyle = INK; g2.lineWidth = .8; g2.strokeRect(x, y - 12 * s, 18 * s, 14 * s); txt(g2, legend[k][0], x + 26 * s, y, 13 * s, 500); });
     chgCanvas = cv;
     $('#tlChgCap').textContent = t('Every pixel of the later year compared with the earlier one: red is water that disappeared, cyan is new water, orange is vegetation lost and green is new vegetation. Grey is unchanged ground.', 'كل بكسل في السنة اللاحقة مقارناً بالسابقة: الأحمر مياه اختفت، والسماوي مياه جديدة، والبرتقالي نبات فُقد، والأخضر نبات جديد. والرمادي أرض لم تتغير.') + ' ' + t('Water lost: ', 'المياه المفقودة: ') + F(A[1], 1) + t(' km²; new water: ', ' كم²؛ المياه الجديدة: ') + F(A[2], 1) + t(' km².', ' كم².');

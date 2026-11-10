@@ -31,6 +31,7 @@
       <div class="row2"><button class="btn btn-ink btn-sm" id="tlDraw" type="button">{{ icon('square-dashed', 'ico ico-sm') }}{{ m.L('Draw your own area', 'ارسم منطقتك') }}</button><span class="xsmall muted" id="tlAoi" style="align-self:center"></span></div>
       <p class="xsmall muted" id="tlHint" hidden style="margin:0">{{ m.L('Drag a rectangle on the map, or tap two opposite corners.', 'اسحب مستطيلاً على الخريطة، أو انقر ركنين متقابلين.') }}</p>
       <div class="map" id="tlMap" data-rp-skip></div>
+      {{ m.fld('tlName', 'Place name on the film and video', 'اسم المنطقة على الفيلم والفيديو', 'text', '', '', 'Leave empty to use the name of the chosen place, or write your own (for example Al-Shuala, Baghdad).', 'اتركه فارغاً لاستعمال اسم المكان المختار، أو اكتب اسمك الخاص (مثل الشعلة، بغداد).', '', 'any') }}
     {{ m.panel_close() }}
     {{ m.panel_open(2, 'Period and season', 'الفترة والموسم') }}
       <div class="row3">
