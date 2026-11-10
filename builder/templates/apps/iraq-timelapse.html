@@ -74,11 +74,16 @@
             <span class="tl-yr ltr" id="tlYr">—</span>
           </div>
           <div class="tl-dl no-print">
+            <input id="tlNmAr" type="text" dir="rtl" placeholder="{{ m.L('Your name in Arabic (on the video)', 'اسمك بالعربية (على الفيديو)') }}" style="height:30px;border-radius:8px;border:1px solid var(--line-2);background:var(--surface-2);color:var(--text);font:inherit;font-size:.8rem;padding:0 8px;min-width:0;flex:1 1 180px">
+            <input id="tlNmEn" type="text" dir="ltr" placeholder="{{ m.L('Your name in English (on the video)', 'اسمك بالإنجليزية (على الفيديو)') }}" style="height:30px;border-radius:8px;border:1px solid var(--line-2);background:var(--surface-2);color:var(--text);font:inherit;font-size:.8rem;padding:0 8px;min-width:0;flex:1 1 180px">
+          </div>
+          <div class="tl-dl no-print">
             <span class="xsmall muted">{{ m.L('This frame', 'هذا الإطار') }}</span><button class="btn btn-line btn-xs" type="button" data-fr="png">PNG</button><button class="btn btn-line btn-xs" type="button" data-fr="jpg">JPG</button><button class="btn btn-line btn-xs" type="button" data-fr="pdf">PDF</button>
             <span class="xsmall muted" style="margin-inline-start:8px">{{ m.L('Film', 'الفيلم') }}</span>
             <select id="tlFmt" class="ltr" style="height:30px;border-radius:8px;border:1px solid var(--line-2);background:var(--surface-2);color:var(--text);font:inherit;font-size:.8rem"><option value="land">16:9</option><option value="reel">{{ m.L('9:16 reel', '9:16 ريلز') }}</option><option value="sq">1:1</option></select>
             <select id="tlSp" style="height:30px;border-radius:8px;border:1px solid var(--line-2);background:var(--surface-2);color:var(--text);font:inherit;font-size:.8rem"><option value="0.6">{{ m.L('fast', 'سريع') }}</option><option value="1" selected>{{ m.L('normal', 'عادي') }}</option><option value="1.6">{{ m.L('slow', 'بطيء') }}</option></select>
             <select id="tlMode" style="height:30px;border-radius:8px;border:1px solid var(--line-2);background:var(--surface-2);color:var(--text);font:inherit;font-size:.8rem" aria-label="{{ m.L('Years in the film', 'السنوات في الفيلم') }}"><option value="full" selected>{{ m.L('Complete years only', 'السنوات الكاملة فقط') }}</option><option value="all">{{ m.L('Every year, even partial', 'كل السنوات حتى الناقصة') }}</option></select>
+            <select id="tlVL" style="height:30px;border-radius:8px;border:1px solid var(--line-2);background:var(--surface-2);color:var(--text);font:inherit;font-size:.8rem" aria-label="{{ m.L('Video language', 'لغة الفيديو') }}"><option value="ar"{% if lang == 'ar' %} selected{% endif %}>{{ m.L('Video in Arabic', 'فيديو بالعربية') }}</option><option value="en"{% if lang != 'ar' %} selected{% endif %}>{{ m.L('Video in English', 'فيديو بالإنجليزية') }}</option></select>
             <button class="btn btn-gold btn-xs" type="button" id="tlVid">{{ icon('film', 'ico ico-sm') }}{{ m.L('Download video', 'نزّل الفيديو') }}</button>
           </div>
         </div>
