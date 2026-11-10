@@ -1,0 +1,65 @@
+{% extends "app_base.html" %}
+{% import "apps/_m.html" as m with context %}
+{% block apphead %}
+<style>
+#xsMap{height:320px}
+.xs-prog{height:8px;border-radius:99px;background:var(--surface-2);overflow:hidden;border:1px solid var(--line)}
+.xs-prog i{display:block;height:100%;width:0;background:linear-gradient(90deg,#B08A3E,#2E8B57);transition:width .3s}
+.xs-btns{display:flex;gap:6px;flex-wrap:wrap}
+.xs-pas{width:100%;min-height:90px;border:1px solid var(--line-2);border-radius:10px;background:var(--bg);color:var(--text);font:inherit;font-size:.8rem;padding:8px;direction:ltr}
+</style>
+{% endblock %}
+{% block ws %}
+<div class="ws-wrap">
+<div class="ws wide-side">
+  <aside class="ws-side">
+    {{ m.panel_open(1, 'Section line', 'خط المقطع') }}
+      <p class="xsmall muted" style="margin:0" id="xsHint">{{ m.L('Tap the start A, then the end A′. A third tap starts a new line. For a clear section draw it across the strike of the beds.', 'انقر البداية A ثم النهاية A′، والنقرة الثالثة تبدأ خطاً جديداً. وللحصول على مقطع واضح ارسمه عمودياً على مضرب الطبقات.') }}</p>
+      <div class="map" id="xsMap" data-rp-skip></div>
+      <div class="row2">
+        {{ m.fld('xsA', 'Start A (lat, lon)', 'البداية A (عرض، طول)', 'text', '', '', '', '', '35.95, 44.60', 'any', '', 'ltr') }}
+        {{ m.fld('xsB', 'End A′ (lat, lon)', 'النهاية A′ (عرض، طول)', 'text', '', '', '', '', '35.80, 44.95', 'any', '', 'ltr') }}
+      </div>
+      <p class="xsmall muted" id="xsLen" style="margin:0"></p>
+    {{ m.panel_close() }}
+    {{ m.panel_open(2, 'Dips of beds and faults', 'ميول الطبقات والفوالق') }}
+      <div id="xsMeas" style="display:grid;gap:5px"></div>
+      <p class="xsmall muted" style="margin:0">{{ m.L('Dip direction and dip in degrees (for example 225 / 30). Bedding builds the section; faults are drawn as red lines.', 'اتجاه الميل والميل بالدرجات (مثلاً 225 / 30). يبني التطبق المقطع، وتُرسم الفوالق خطوطاً حمراء.') }}</p>
+      <div class="xs-btns">
+        <button class="btn btn-line btn-sm" id="xsAddM" type="button">{{ icon('plus', 'ico ico-sm') }}{{ m.L('Add', 'أضف') }}</button>
+        <button class="btn btn-line btn-sm" id="xsFc" type="button">{{ icon('download', 'ico ico-sm') }}{{ m.L('From the field companion', 'من مرافق المسح الحقلي') }}</button>
+        <button class="btn btn-line btn-sm" id="xsPasteBtn" type="button">{{ icon('clipboard-paste', 'ico ico-sm') }}{{ m.L('Paste', 'الصق') }}</button>
+      </div>
+      <div id="xsPasteBox" hidden style="display:grid;gap:6px"><textarea class="xs-pas" id="xsPaste" placeholder="lat  lon  dipdir  dip  [F]&#10;35.91 44.68 220 25&#10;35.88 44.74 40 32 F"></textarea><button class="btn btn-gold btn-sm" id="xsPasteOk" type="button">{{ m.L('Use these measurements', 'استعمل هذه القياسات') }}</button></div>
+      <div class="row2">
+        {{ m.fld('xsBuf', 'Project measurements within', 'أسقط القياسات ضمن', 'number', '1500', 'm', 'Measurements farther than this from the line are ignored.', 'تُهمل القياسات الأبعد من هذه المسافة عن الخط.', '', '50', 'min="0"') }}
+        {{ m.fld('xsDef', 'Default dip of contacts', 'الميل الافتراضي للحدود', 'number', '10', '°', 'Used where no bedding measurement lies near a contact; the contact dips towards the younger unit. 0 gives flat-lying beds.', 'يُستعمل حيث لا يوجد قياس تطبق قرب الحد؛ ويميل الحد نحو الوحدة الأحدث. القيمة 0 تعطي طبقات أفقية.', '', '1', 'min="0" max="89"') }}
+      </div>
+    {{ m.panel_close() }}
+    {{ m.panel_open(3, 'Drawing', 'الرسم') }}
+      <div class="row3">
+        {{ m.sel('xsSrc', 'Elevation model', 'نموذج الارتفاع', [('aws', 'SRTM composite', 'SRTM المركّب', true), ('cop30', 'Copernicus GLO-30', 'Copernicus GLO-30')]) }}
+        {{ m.sel('xsVE', 'Vertical exaggeration', 'المبالغة الرأسية', [('auto', 'Automatic', 'تلقائي', true), ('1', '× 1 (true scale)', '× 1 (مقياس حقيقي)'), ('2', '× 2', '× 2'), ('5', '× 5', '× 5'), ('10', '× 10', '× 10'), ('20', '× 20', '× 20')]) }}
+        {{ m.fld('xsDep', 'Depth below lowest point', 'العمق تحت أدنى نقطة', 'number', '', 'm', 'Empty = automatic. Ignored when a fixed vertical exaggeration is chosen.', 'فارغ = تلقائي. يُهمل حين تُختار مبالغة رأسية ثابتة.', '', '10', 'min="0"') }}
+      </div>
+    {{ m.panel_close() }}
+    <button class="btn btn-gold btn-block" id="xsRun" type="button">{{ icon('mountain', 'ico ico-sm') }}{{ m.L('Build the section', 'ابنِ المقطع') }}</button>
+    <section class="sec" data-rp-skip><div class="xs-prog"><i id="xsBar"></i></div><p class="xsmall muted" id="xsMsg" style="margin:6px 0 0"></p></section>
+  </aside>
+  <div class="ws-main">
+    <div id="xsEmpty" class="pn">{{ m.empty('mountain', 'A section from one line', 'مقطع من خط واحد', 'Draw a line across the folds or valleys you want to explain. The system reads the ground surface, the geological units the line crosses and the dips you measured nearby, and constructs the section below the surface. Every unit, age and dip can then be corrected.', 'ارسم خطاً عبر الطيات أو الوديان التي تريد تفسيرها. يقرأ النظام سطح الأرض والوحدات الجيولوجية التي يقطعها الخط والميول التي قستها بالقرب منه، وينشئ المقطع تحت السطح. ثم يمكن تصحيح كل وحدة وعمر وميل.') }}</div>
+    <div id="xsOut" hidden style="display:grid;gap:18px">
+      <div class="kpis" id="xsKpis"></div>
+      <div id="xsVerd" style="display:grid;gap:10px"></div>
+      {{ m.fig_open('fxs1', '1', 'Geological cross-section', 'المقطع الجيولوجي', '<span data-egfig="xsSvg"></span>') }}
+        <div class="fig-b" style="overflow:auto"><svg class="chart" id="xsSvg" viewBox="0 0 1000 600" role="img" style="min-width:620px"></svg></div>
+        <div class="fig-cap" id="xsCap"></div>
+      {{ m.fig_close() }}
+      <section class="pn"><div class="pn-h">{{ icon('layers') }}<h2>{{ m.L('Units along the section', 'الوحدات على امتداد المقطع') }}</h2><div class="sp no-print"><button class="btn btn-line btn-xs" id="xsUCsv" type="button">{{ icon('download', 'ico ico-sm') }}CSV</button></div></div><div class="pn-b" style="display:grid;gap:6px"><div id="xsUnits" style="display:grid;gap:5px"></div><p class="xsmall muted no-print" style="margin:0">{{ m.L('From and to in km from A. Edit names, ages (Ma, used to order the units) or colours from your own map; the section is redrawn at once.', 'من وإلى بالكيلومتر من A. عدّل الأسماء والأعمار (مليون سنة، وتُستعمل لترتيب الوحدات) أو الألوان من خريطتك؛ ويُعاد رسم المقطع فوراً.') }}</p></div></section>
+      <section class="pn"><div class="pn-h">{{ icon('table') }}<h2>{{ m.L('Projected measurements', 'القياسات المسقطة') }}</h2><div class="sp no-print"><button class="btn btn-line btn-xs" id="xsMCsv" type="button">{{ icon('download', 'ico ico-sm') }}CSV</button></div></div><div class="pn-b flush tbl-wrap"><table class="tbl" id="xsTbl"></table></div></section>
+      <section class="pn no-print"><div class="pn-h">{{ icon('download') }}<h2>{{ m.L('Export', 'التصدير') }}</h2></div><div class="pn-b xs-btns"><button class="btn btn-line btn-sm" id="xsGeo" type="button">GeoJSON</button><button class="btn btn-line btn-sm" id="xsKml" type="button">KML</button><button class="btn btn-line btn-sm" id="xsPCsv" type="button">{{ m.L('Profile CSV', 'المقطع الطبوغرافي CSV') }}</button></div></section>
+    </div>
+  </div>
+</div>
+</div>
+{% endblock %}

@@ -489,7 +489,7 @@ TOOLS = [
 
 from content_tools2 import NEW_TOOLS
 CATS = ['geology', 'terrain', 'remote', 'geophysics', 'engineering', 'water', 'atmosphere', 'climate', 'hazards', 'labs']
-ORDER = ['unit-converter', 'iraq-time-machine', 'iraq-timelapse', 'site-report', 'field-companion', 'quarry-survey', 'structural-geotechnical', 'stereonet-lab', 'rockmass-lab', 'strata', 'faults-plates', 'geologic-unit', 'fossils', 'geoheritage',
+ORDER = ['unit-converter', 'iraq-time-machine', 'iraq-timelapse', 'site-report', 'field-companion', 'quarry-survey', 'structural-geotechnical', 'stereonet-lab', 'rockmass-lab', 'strata', 'faults-plates', 'geologic-unit', 'geo-section', 'fossils', 'geoheritage',
          'dem-studio', 'contour-lab', 'geomorphology-contour',
          'spectral-indices', 'lineament-extraction', 'mineral-prospectivity', 'archaeo-potential',
          'magnetic-lab', 'well-log-lab', 'geothermal-lab', 'ves-lab',

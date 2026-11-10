@@ -912,3 +912,29 @@ def watershed(uid, label):
     return svg(''.join(o), uid, label)
 
 REG.update({'watershed': watershed})
+
+# ---------------------------------------------------------------- geological cross-section
+def geosection(uid, label):
+    o = []
+    X0, X1, top, base = 40, 470, 60, 300
+    def surf(x):
+        return 150 - 55 * math.exp(-((x - 200) / 85) ** 2) - 25 * math.exp(-((x - 380) / 60) ** 2) + 12 * math.sin(x / 31)
+    cols = ['#E8D5A4', '#C9A86A', '#9FB98A', '#D98C6A', '#8FA9C9']
+    # anticline: layer boundaries z = c + 0.0022*(x-230)^2
+    def bnd(k, x): return 120 + 38 * k + 0.0019 * (x - 230) ** 2
+    xs = [X0 + i * 5 for i in range(int((X1 - X0) / 5) + 1)]
+    for k in range(len(cols) - 1, -1, -1):
+        upper = [max(surf(x), bnd(k - 1, x) if k else surf(x)) for x in xs]
+        o.append('<path fill="' + cols[k] + '" stroke="#5B4A2E" stroke-width=".8" d="M' + 'L'.join(f'{x} {f(min(base, u))}' for x, u in zip(xs, upper)) + f'L{X1} {base}L{X0} {base}Z"/>')
+    sky = 'M' + f'{X0} {top - 10}' + ''.join(f'L{x} {f(surf(x))}' for x in xs) + f'L{X1} {top - 10}Z'
+    o.append(f'<path d="{sky}" fill="var(--il-bg, #fff)"/>')
+    o.append('<path fill="none" stroke="#1B232B" stroke-width="2.4" d="M' + 'L'.join(f'{x} {f(surf(x))}' for x in xs) + '"/>')
+    o.append(f'<rect x="{X0}" y="{top - 10}" width="{X1 - X0}" height="{base - top + 10}" fill="none" stroke="#1B232B" stroke-width="1.2"/>')
+    for x, a in [(120, 32), (330, -28)]:
+        y = surf(x); dx = 22 * math.cos(math.radians(abs(a))); dy = 22 * math.sin(math.radians(abs(a)))
+        o.append(f'<line x1="{x}" y1="{f(y)}" x2="{f(x + (dx if a < 0 else -dx))}" y2="{f(y + dy)}" stroke="#C0392B" stroke-width="2.4"/><text class="il-small" x="{x}" y="{f(y - 8)}" text-anchor="middle">{abs(a)}°</text>')
+    o.append(f'<text class="il-value" x="{X0}" y="{top - 18}">A</text><text class="il-value" x="{X1}" y="{top - 18}" text-anchor="end">A′</text>')
+    o.append(f'<line x1="{X0}" x2="{X0 + 100}" y1="{base + 14}" y2="{base + 14}" stroke="#1B232B" stroke-width="3"/><text class="il-small" x="{X0 + 108}" y="{base + 18}">1 km · VE ×2</text>')
+    return svg(''.join(o), uid, label)
+
+REG.update({'geosection': geosection})

@@ -106,7 +106,7 @@
           '<button type="button" class="btn btn-line btn-xs" data-del style="padding:0;width:26px;height:26px" aria-label="' + t('Delete row', 'احذف الصف') + '">×</button></div>'; }).join('');
     }
     function save() { SH.store.set(key, rows); onChange(rows); }
-    host.addEventListener('input', function (e) { var r = e.target.closest('[data-i]'), k = e.target.getAttribute('data-k'); if (!r || !k) return; var c = cols.filter(function (q) { return q.k === k; })[0], v = e.target.value; rows[+r.getAttribute('data-i')][k] = c.type === 'select' || c.type === 'text' ? v : (v === '' ? null : parseFloat(v)); save(); });
+    host.addEventListener('input', function (e) { var r = e.target.closest('[data-i]'), k = e.target.getAttribute('data-k'); if (!r || !k) return; var c = cols.filter(function (q) { return q.k === k; })[0], v = e.target.value; rows[+r.getAttribute('data-i')][k] = c.type === 'select' || c.type === 'text' || c.type === 'color' ? v : (v === '' ? null : parseFloat(v)); save(); });
     host.addEventListener('change', function (e) { if (e.target.tagName === 'SELECT') { var r = e.target.closest('[data-i]'); rows[+r.getAttribute('data-i')][e.target.getAttribute('data-k')] = e.target.value; save(); } });
     host.addEventListener('click', function (e) { if (!e.target.closest('[data-del]')) return; rows.splice(+e.target.closest('[data-i]').getAttribute('data-i'), 1); draw(); save(); });
     draw();
