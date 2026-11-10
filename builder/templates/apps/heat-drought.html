@@ -1,0 +1,63 @@
+{% extends "app_base.html" %}
+{% import "apps/_m.html" as m with context %}
+{% block apphead %}
+<style>
+#hdMap{height:300px}
+.eo-chips{display:flex;gap:6px;flex-wrap:wrap}
+.eo-chips button{appearance:none;border:1px solid var(--line-2);background:var(--surface-2);color:var(--text);font:inherit;font-size:.8rem;padding:5px 10px;border-radius:999px;cursor:pointer}
+.eo-chips button[aria-pressed=true]{border-color:#B08A3E;background:color-mix(in srgb,#B08A3E 16%,var(--surface))}
+.eo-in{height:38px;border:1px solid var(--line-2);border-radius:10px;padding:0 10px;background:var(--bg);color:var(--text);font:inherit;width:100%}
+.eo-view{background:#fff;border-radius:12px;overflow:hidden;border:1px solid var(--line)}
+.eo-view canvas{width:100%;height:auto;display:block}
+.eo-two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media (max-width:760px){.eo-two{grid-template-columns:1fr}}
+.eo-prog{height:8px;border-radius:99px;background:var(--surface-2);overflow:hidden;border:1px solid var(--line)}
+.eo-prog i{display:block;height:100%;width:0;background:linear-gradient(90deg,#F39C12,#C0392B);transition:width .3s}
+.eo-dl{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:8px}
+</style>
+{% endblock %}
+{% block ws %}
+<div class="ws-wrap">
+<div class="ws wide-side">
+  <aside class="ws-side">
+    {{ m.panel_open(1, 'What to study', 'ما تدرسه') }}
+      <div class="seg" id="hdMode" role="group"><button type="button" data-v="heat" aria-pressed="true">{{ icon('thermometer-sun', 'ico ico-sm') }}{{ m.L('Urban heat island', 'جزيرة الحرارة الحضرية') }}</button><button type="button" data-v="drought" aria-pressed="false">{{ icon('cloud-sun', 'ico ico-sm') }}{{ m.L('Drought of vegetation', 'جفاف الغطاء النباتي') }}</button></div>
+    {{ m.panel_close() }}
+    {{ m.panel_open(2, 'Place', 'المكان') }}
+      <div class="row2" style="grid-template-columns:minmax(0,1fr) auto;align-items:end"><div class="fg"><label for="hdQ">{{ m.L('Search any place on Earth', 'ابحث عن أي مكان في العالم') }}</label><input id="hdQ" class="eo-in" type="search" placeholder="{{ m.L('Baghdad, Basra, Nineveh plains…', 'بغداد، البصرة، سهل نينوى…') }}"></div><button class="btn btn-ink btn-sm" id="hdGo" type="button">{{ icon('search', 'ico ico-sm') }}{{ m.L('Find', 'ابحث') }}</button></div>
+      <div class="eo-chips" id="hdRes"></div>
+      <div class="eo-chips" id="hdPre"></div>
+      <div class="row2"><button class="btn btn-ink btn-sm" id="hdDraw" type="button">{{ icon('square-dashed', 'ico ico-sm') }}{{ m.L('Draw your own area', 'ارسم منطقتك') }}</button><span class="xsmall muted" id="hdAoi" style="align-self:center"></span></div>
+      <p class="xsmall muted" id="hdHint" hidden style="margin:0">{{ m.L('Drag a rectangle on the map, or tap two opposite corners.', 'اسحب مستطيلاً على الخريطة، أو انقر ركنين متقابلين.') }}</p>
+      <div class="map" id="hdMap" data-rp-skip></div>
+      {{ m.fld('hdName', 'Place name on the maps', 'اسم المنطقة على الخرائط', 'text', '', '', '', '', '', 'any') }}
+    {{ m.panel_close() }}
+    {{ m.panel_open(3, 'Period', 'الفترة') }}
+      <div class="row2">
+        {{ m.sel('hdYear', 'Year', 'السنة', [('2001', '2001', '2001'), ('2002', '2002', '2002'), ('2003', '2003', '2003'), ('2004', '2004', '2004'), ('2005', '2005', '2005'), ('2006', '2006', '2006'), ('2007', '2007', '2007'), ('2008', '2008', '2008'), ('2009', '2009', '2009'), ('2010', '2010', '2010'), ('2011', '2011', '2011'), ('2012', '2012', '2012'), ('2013', '2013', '2013'), ('2014', '2014', '2014'), ('2015', '2015', '2015'), ('2016', '2016', '2016'), ('2017', '2017', '2017'), ('2018', '2018', '2018'), ('2019', '2019', '2019'), ('2020', '2020', '2020'), ('2021', '2021', '2021'), ('2022', '2022', '2022'), ('2023', '2023', '2023'), ('2024', '2024', '2024', true), ('2025', '2025', '2025'), ('2026', '2026', '2026')]) }}
+        {{ m.sel('hdMonth', 'Month', 'الشهر', [('1', 'January', 'كانون الثاني'), ('2', 'February', 'شباط'), ('3', 'March', 'آذار'), ('4', 'April', 'نيسان', true), ('5', 'May', 'أيار'), ('6', 'June', 'حزيران'), ('7', 'July', 'تموز'), ('8', 'August', 'آب'), ('9', 'September', 'أيلول'), ('10', 'October', 'تشرين الأول'), ('11', 'November', 'تشرين الثاني'), ('12', 'December', 'كانون الأول')], 'Urban heat: the hottest month (July or August) shows the island best. Drought: the month when crops and pastures should be green (March or April in Iraq).', 'جزيرة الحرارة: يُظهرها الشهر الأحر (تموز أو آب) أفضل. الجفاف: الشهر الذي يُفترض أن تكون فيه المحاصيل والمراعي خضراء (آذار أو نيسان في العراق).') }}
+      </div>
+      <p class="xsmall muted" id="hdNote" style="margin:0"></p>
+    {{ m.panel_close() }}
+    <button class="btn btn-gold btn-block" id="hdRun" type="button">{{ icon('thermometer-sun', 'ico ico-sm') }}{{ m.L('Analyse', 'حلّل') }}</button>
+    <section class="sec" data-rp-skip><div class="eo-prog"><i id="hdBar"></i></div><p class="xsmall muted" id="hdMsg" style="margin:6px 0 0"></p></section>
+  </aside>
+  <div class="ws-main">
+    <div id="hdEmpty" class="pn">{{ m.empty('thermometer-sun', 'Heat of cities and thirst of fields', 'حرارة المدن وعطش الحقول', 'Urban heat island: the MODIS land-surface temperature of the chosen month, day and night, compared between the built-up area and the countryside around it. Drought: the greenness of the chosen month compared with the same month in every year since 2001, as the vegetation condition index, so that a dry year shows at once.', 'جزيرة الحرارة الحضرية: درجة حرارة سطح الأرض من MODIS للشهر المختار نهاراً وليلاً، مقارنة بين المنطقة المبنية والريف حولها. والجفاف: اخضرار الشهر المختار مقارناً بالشهر نفسه في كل سنة منذ 2001، بمؤشر حالة النبات، فتظهر السنة الجافة فوراً.') }}</div>
+    <div id="hdOut" hidden style="display:grid;gap:18px">
+      <div class="kpis" id="hdKpis"></div>
+      <div id="hdVerd" style="display:grid;gap:10px"></div>
+      {{ m.fig_open('fhd1', '1', 'Map', 'الخريطة') }}
+        <div class="fig-b"><div class="eo-view"><canvas id="hdCv" width="1200" height="1000"></canvas></div>
+          <div class="eo-dl no-print"><select id="hdView" class="eo-in" style="height:30px;width:auto;font-size:.8rem"></select><button class="btn btn-line btn-xs" type="button" data-cv="hdCv" data-fmt="png">PNG</button><button class="btn btn-line btn-xs" type="button" data-cv="hdCv" data-fmt="jpg">JPG</button><button class="btn btn-line btn-xs" type="button" data-cv="hdCv" data-fmt="pdf">PDF</button><button class="btn btn-line btn-xs" type="button" id="hdCsv">CSV</button></div></div>
+        <div class="fig-cap" id="hdCap"></div>
+      {{ m.fig_close() }}
+      {{ m.fig_open('fhd2', '2', 'Chart', 'المخطط', '<span data-egfig="hdChart"></span>') }}
+        <div class="fig-b"><svg class="chart" id="hdChart" viewBox="0 0 760 400" role="img"></svg></div>
+        <div class="fig-cap" id="hdChartCap"></div>
+      {{ m.fig_close() }}
+    </div>
+  </div>
+</div>
+</div>
+{% endblock %}

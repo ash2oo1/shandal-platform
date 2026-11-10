@@ -496,7 +496,7 @@ ORDER = ['unit-converter', 'iraq-time-machine', 'iraq-timelapse', 'landcover-cha
          'seismic-evaluation', 'seismic-hazard', 'soil-properties', 'bearing-capacity', 'pile-capacity', 'settlement', 'slope-stability', 'retaining-wall', 'liquefaction', 'mohr-circle', 'atterberg-limits', 'grain-size', 'soil-classification', 'compaction-cbr', 'surface-3d',
          'water-lab', 'hydro-alert', 'water-occurrence', 'watershed-lab', 'potential-zones',
          'air-quality',
-         'env-monitoring',
+         'env-monitoring', 'heat-drought',
          'hazards-monitor', 'flood-radar', 'landslide-susceptibility', 'volcanoes',
          'kerogen-lab', 'palynofacies-lab']
 _all = {t['slug']: t for t in TOOLS + NEW_TOOLS}

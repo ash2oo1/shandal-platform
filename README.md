@@ -12,7 +12,7 @@
 
 جاء نظام شندل ليجمع هذا العمل في أداة محمولة واحدة، من القراءة الأولى حتى التقرير النهائي، دون مغادرة الموقع. والاسم يعبّر عن جوهره: «المسح» لجمع البيانات المكانية بدقة، و«الميداني» لأنه يرافق الجيولوجي حيث يعمل.
 
-يضم النظام اليوم 61 أداة في الجيولوجيا والتضاريس والتحسس النائي والجيوفيزياء والهندسة والمياه والبيئة والمخاطر الطبيعية والمختبرات البترولية، تعمل في المتصفح على الهاتف والجهاز اللوحي والحاسوب دون تثبيت، وتصدر خرائط مُخرجة وتقارير PDF.
+يضم النظام اليوم 62 أداة في الجيولوجيا والتضاريس والتحسس النائي والجيوفيزياء والهندسة والمياه والبيئة والمخاطر الطبيعية والمختبرات البترولية، تعمل في المتصفح على الهاتف والجهاز اللوحي والحاسوب دون تثبيت، وتصدر خرائط مُخرجة وتقارير PDF.
 
 - **المؤسس والمصمم:** الجيولوجي علي شندل الجنابي، متخصص في التحسس النائي والجيوفيزياء، بغداد، العراق.
 - **التأسيس:** 2025 · **الإطلاق الرسمي:** 5 نيسان 2026.
@@ -45,6 +45,7 @@
 - [تغير الغطاء الأرضي والتوسع العمراني](https://geologicalfieldsurvey.com/ar/tools/landcover-change/) — كم من الأرض الزراعية صار مباني؟ خرائط سنوية بدقة 10 م من 2017 إلى 2023 لأي مدينة.
 - [الكشف المعدني الطيفي بصور ASTER](https://geologicalfieldsurvey.com/ar/tools/aster-minerals/) — الأطيان والكربونات والجبس وأكاسيد الحديد والكوارتز من الفضاء، مع تحديد الشذوذات للحقل.
 - [المياه عبر العقود](https://geologicalfieldsurvey.com/ar/tools/water-occurrence/) — أين كانت المياه وبقيت وظهرت واختفت منذ 1984 من كل صورة لاندسات، لأي بحيرة أو نهر أو هور.
+- [حرارة المدن ومراقبة الجفاف](https://geologicalfieldsurvey.com/ar/tools/heat-drought/) — جزيرة الحرارة الحضرية نهاراً وليلاً، ومؤشر حالة النبات لكشف السنوات الجافة منذ 2001.
 - [محوّل الوحدات](https://geologicalfieldsurvey.com/ar/tools/unit-converter/) — كل وحدات العلوم والهندسة والحقل.
 
 **الهندسة والجيوتقنية**
@@ -112,7 +113,7 @@ For decades, field geology meant scattered tools: readings taken by hand, long c
 
 The Shandal System brings that work into one portable tool, from the first reading to the final report, without leaving the site. The name says what it does: survey, to collect spatial data precisely; field, because it goes where the geologist goes.
 
-The system now has 61 tools for geology, terrain, remote sensing, geophysics, engineering, water, environment, natural hazards and petroleum laboratories. They run in the browser on phones, tablets and computers with nothing to install, and export finished map sheets and PDF reports.
+The system now has 62 tools for geology, terrain, remote sensing, geophysics, engineering, water, environment, natural hazards and petroleum laboratories. They run in the browser on phones, tablets and computers with nothing to install, and export finished map sheets and PDF reports.
 
 - **Founder and designer:** Ali Shandal Al-Janabi, Iraqi geologist (remote sensing and geophysics), Baghdad, Iraq.
 - **Founded:** 2025 · **Official launch:** 5 April 2026.
@@ -145,6 +146,7 @@ The system now has 61 tools for geology, terrain, remote sensing, geophysics, en
 - [Land Cover Change and Urban Growth](https://geologicalfieldsurvey.com/tools/landcover-change/) — How much farmland became buildings? Annual 10 m maps, 2017–2023, for any city.
 - [ASTER Mineral Mapping](https://geologicalfieldsurvey.com/tools/aster-minerals/) — Clays, carbonates, gypsum, iron oxides and quartz from space, with anomalies outlined for the field.
 - [Water Through the Decades](https://geologicalfieldsurvey.com/tools/water-occurrence/) — Where water was, stayed, appeared and disappeared since 1984, from every Landsat image.
+- [Urban Heat and Drought Watch](https://geologicalfieldsurvey.com/tools/heat-drought/) — Urban heat island by day and night, and the vegetation condition index for dry years since 2001.
 - [Unit Converter](https://geologicalfieldsurvey.com/tools/unit-converter/) — Every unit of science, engineering and the field.
 
 **Engineering & geotechnics**

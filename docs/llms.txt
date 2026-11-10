@@ -11,12 +11,12 @@ Contact: WhatsApp +9647739949727 · Facebook https://www.facebook.com/Shandalsys
 Updated: 2026-11-10
 
 ## What it is
-Sixty-one professional tools for Earth scientists: digital compass, stereonets, RMR and SMR, global contour maps, seismic hazard statistics, soil mechanics, Sentinel-2 indices, live hazard feeds and petroleum labs, with PDF reports and an AI assistant.
+Sixty-two professional tools for Earth scientists: digital compass, stereonets, RMR and SMR, global contour maps, seismic hazard statistics, soil mechanics, Sentinel-2 indices, live hazard feeds and petroleum labs, with PDF reports and an AI assistant.
 For decades, field geology meant scattered tools: readings taken by hand, long calculations, then a return to the office to draw columns, stereonets and contour maps in separate software. Every step cost time and added room for error.
 The Shandal System brings that work into one portable tool, from the first reading to the final report, without leaving the site. The name says what it does: survey, to collect spatial data precisely; field, because it goes where the geologist goes.
 
 ## ما هو
-إحدى وستون أداة احترافية لعلماء الأرض: بوصلة رقمية ومساقط ستيريوغرافية وRMR وخرائط كنتورية وأطياف تصميم زلزالي وإنذار من الانزلاقات ورصد بيئي ومختبرات بترولية، مع تقارير PDF ومساعد ذكي.
+اثنتان وستون أداة احترافية لعلماء الأرض: بوصلة رقمية ومساقط ستيريوغرافية وRMR وخرائط كنتورية وأطياف تصميم زلزالي وإنذار من الانزلاقات ورصد بيئي ومختبرات بترولية، مع تقارير PDF ومساعد ذكي.
 لعقود طويلة كان العمل الجيولوجي الميداني يعتمد على أدوات متفرقة: قياسات يدوية وحسابات طويلة ثم العودة إلى المكتب لرسم الأعمدة الطباقية والمساقط والخرائط الكنتورية ببرامج منفصلة. كل خطوة تستهلك الوقت وتزيد احتمال الخطأ.
 جاء نظام شندل ليجمع هذا العمل في أداة محمولة واحدة، من القراءة الأولى حتى التقرير النهائي، دون مغادرة الموقع. والاسم يعبّر عن جوهره: «المسح» لجمع البيانات المكانية بدقة، و«الميداني» لأنه يرافق الجيولوجي حيث يعمل.
 
@@ -28,7 +28,7 @@ The Shandal System brings that work into one portable tool, from the first readi
 - [Academy](https://geologicalfieldsurvey.com/academy/) and [Library](https://geologicalfieldsurvey.com/library/)
 - [Geo-heritage](https://geologicalfieldsurvey.com/geoheritage/): geological and archaeological sites of Iraq
 
-## Tools (61)
+## Tools (62)
 ### Field geology · الجيولوجيا الميدانية
 - [Unit Converter · محوّل الوحدات](https://geologicalfieldsurvey.com/tools/unit-converter/): Converts between all common units of 30 quantities with the exact factors of the international standards: length, area (including the Iraqi dunam and olk), volume and barrels, mass and carats, density, API gravity and mud weight, pressure and stress, pressure and geothermal gradients, temperature, angle, dip and slope in percent and ratio, time and geological time, speed and sonic slowness, gravity in milligal, force, energy, power, flow, permeability in darcy, hydraulic conductivity, viscosity, concentration, resistivity, conductivity and salinity, magnetic field in nanotesla, radioactivity and dose, frequency, data and fuel. It also converts coordinates between decimal degrees, degrees–minutes–seconds and UTM, works out map scales, and turns ions between mg/L and meq/L with the ionic balance. Free for everyone.
 - [Iraq Time Machine · آلة الزمن للعراق](https://geologicalfieldsurvey.com/tools/iraq-time-machine/): Travel from the Cambrian to today and watch the plates move Iraq from near the South Pole to its place now. At every moment the tool shows the latitude of Baghdad, the climate belt and the distance travelled since, the setting that covered Iraq (sea, reef, lagoon, delta, river or ice), the story of that interval and the formations being laid down. An interactive stratigraphic column of more than ninety formations links each one to its age, rocks, setting, importance (oil reservoir, source, seal, aquifer, mineral resource) and the places where it can be seen.
@@ -99,6 +99,7 @@ The Shandal System brings that work into one portable tool, from the first readi
 
 ### Climate & emissions · المناخ والانبعاثات
 - [Environmental Monitoring & Modelling · الرصد الفضائي والنمذجة البيئية](https://geologicalfieldsurvey.com/tools/env-monitoring/): Live weather and air quality for the site turned into field guidance: WBGT heat stress, atmospheric stability, a Gaussian plume model for a nearby source, a weighted water-quality index with concrete sulfate class, and the MEDALUS desertification index.
+- [Urban Heat and Drought Watch · حرارة المدن ومراقبة الجفاف](https://geologicalfieldsurvey.com/tools/heat-drought/): Two studies from the MODIS sensor on Terra. Urban heat island: the land-surface temperature of a chosen month at 1 km, day and night, averaged over its 8-day composites and compared between the built-up area and the countryside around it, which are taken from the annual 10 m land-cover map; with the heat-island intensity, the hottest built-up places and temperature against the share of buildings. Drought: the 250 m greenness (NDVI) of a chosen month in every year since 2001, turned into the vegetation condition index, with drought classes and their areas, the anomaly from the usual greenness, and the greenness of that month year by year.
 
 ### Natural hazards · المخاطر الطبيعية
 - [Natural Hazards Monitor · مراقب المخاطر الطبيعية](https://geologicalfieldsurvey.com/tools/hazards-monitor/): Shows live earthquakes, tsunami-flagged shocks, volcanic unrest, wildfires, storms and tropical cyclones, floods, drought, dust storms, landslides, sea and lake ice, heavy snow, temperature extremes, water-colour events and human-caused events, with daily satellite images of active fires, dust and smoke, rain rate, flood water and land-surface temperature, over plate boundaries, active faults and Holocene volcanoes.

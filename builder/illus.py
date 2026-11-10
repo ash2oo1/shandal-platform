@@ -1078,3 +1078,15 @@ def wateroccurrence(uid, label):
     return svg(''.join(o), uid, label)
 
 REG.update({'wateroccurrence': wateroccurrence})
+
+
+def heatdrought(uid, label):
+    o = ['<rect x="20" y="30" width="220" height="220" rx="10" fill="#74ADD1"/>']
+    o.append('<circle cx="130" cy="140" r="80" fill="#FEE090"/><circle cx="130" cy="140" r="52" fill="#F46D43"/><circle cx="125" cy="135" r="24" fill="#A50026"/>')
+    o.append('<rect x="260" y="30" width="220" height="220" rx="10" fill="#E6E64F"/>')
+    o.append('<path d="M260 160C320 120 380 200 480 150V250H260Z" fill="#D73C28"/><path d="M260 70C320 50 400 90 480 60V30H260Z" fill="#78BE50"/>')
+    o.append('<g class="il-chip" transform="translate(40 256)"><rect width="180" height="34" rx="8"/><text x="10" y="22" class="il-small">Night heat island +3.4 °C</text></g>')
+    o.append('<g class="il-chip" transform="translate(280 256)"><rect width="180" height="34" rx="8"/><text x="10" y="22" class="il-small">VCI 18 · severe drought</text></g>')
+    return svg(''.join(o), uid, label)
+
+REG.update({'heatdrought': heatdrought})
