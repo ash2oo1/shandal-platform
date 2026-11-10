@@ -1,0 +1,54 @@
+{% extends "app_base.html" %}
+{% import "apps/_m.html" as m with context %}
+{% block apphead %}
+<style>
+#irMap{height:380px}
+.ir-chips{display:grid;grid-template-columns:repeat(auto-fill,minmax(118px,1fr));gap:6px}
+.ir-chips button{appearance:none;display:flex;align-items:center;gap:8px;border:1px solid var(--line-2);background:var(--surface-2);color:var(--text);font:inherit;font-size:.85rem;font-weight:600;padding:9px 10px;border-radius:12px;cursor:pointer;text-align:start}
+.ir-chips button i{width:12px;height:12px;border-radius:50%;flex:none}
+.ir-chips button[aria-pressed=true]{border-color:#B08A3E;background:color-mix(in srgb,#B08A3E 16%,var(--surface))}
+.ir-sites{display:grid;gap:5px;max-height:320px;overflow:auto}
+.ir-sites button{appearance:none;border:1px solid var(--line);background:var(--surface-2);color:var(--text);font:inherit;font-size:.8rem;text-align:start;padding:7px 9px;border-radius:10px;cursor:pointer}
+.ir-sites button small{display:block;color:var(--text-3)}
+.ir-two{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media (max-width:760px){.ir-two{grid-template-columns:1fr}}
+.ir-list{margin:0;padding-inline-start:18px;display:grid;gap:6px;font-size:.9rem;line-height:1.6}
+.ir-geo p{margin:0 0 8px;line-height:1.8}
+</style>
+{% endblock %}
+{% block ws %}
+<div class="ws-wrap">
+<div class="ws wide-side">
+  <aside class="ws-side">
+    {{ m.panel_open(1, 'Resource', 'الثروة') }}
+      <div class="ir-chips" id="irChips"></div>
+    {{ m.panel_close() }}
+    {{ m.panel_open(2, 'Map', 'الخريطة') }}
+      <div class="map" id="irMap" data-rp-skip></div>
+      <p class="xsmall muted" style="margin:0">{{ m.L('Dashed circles are approximate areas; points are fields, mines and plants at their published positions.', 'الدوائر المتقطعة مناطق تقريبية، والنقاط حقول ومناجم ومصانع على مواقعها المنشورة.') }}</p>
+    {{ m.panel_close() }}
+    {{ m.panel_open(3, 'Sites', 'المواقع') }}
+      <div class="ir-sites" id="irSites"></div>
+    {{ m.panel_close() }}
+  </aside>
+  <div class="ws-main">
+    <div class="kpis" id="irKpis"></div>
+    <section class="pn"><div class="pn-h">{{ icon('layers') }}<h2 id="irGeoH"></h2></div><div class="pn-b ir-geo" id="irGeo"></div></section>
+    <div class="ir-two">
+      <section class="pn"><div class="pn-h">{{ icon('factory') }}<h2>{{ m.L('Uses in Iraq', 'الاستعمالات في العراق') }}</h2></div><div class="pn-b"><ul class="ir-list" id="irLoc"></ul></div></section>
+      <section class="pn"><div class="pn-h">{{ icon('globe') }}<h2>{{ m.L('Uses in the world', 'الاستعمالات في العالم') }}</h2></div><div class="pn-b"><ul class="ir-list" id="irGlo"></ul></div></section>
+    </div>
+    {{ m.fig_open('fir1', '1', 'Map', 'الخريطة', '<span data-egfig="irSvg"></span>') }}
+      <div class="fig-b"><svg class="chart" id="irSvg" viewBox="0 0 760 700" role="img"></svg></div>
+      <div class="fig-cap" id="irCap"></div>
+    {{ m.fig_close() }}
+    {{ m.fig_open('fir2', '2', 'In numbers', 'بالأرقام', '<span data-egfig="irBar"></span>') }}
+      <div class="fig-b"><svg class="chart" id="irBar" viewBox="0 0 760 400" role="img"></svg></div>
+      <div class="fig-cap" id="irBarCap"></div>
+    {{ m.fig_close() }}
+    <div id="irVerd" style="display:grid;gap:10px"></div>
+    <section class="pn"><div class="pn-h">{{ icon('table') }}<h2>{{ m.L('Sites', 'المواقع') }}</h2><div class="sp no-print"><button class="btn btn-line btn-xs" id="irCsv" type="button">{{ icon('download', 'ico ico-sm') }}CSV</button></div></div><div class="pn-b flush tbl-wrap"><table class="tbl" id="irTbl"></table></div></section>
+  </div>
+</div>
+</div>
+{% endblock %}

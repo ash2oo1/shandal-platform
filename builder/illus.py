@@ -938,3 +938,25 @@ def geosection(uid, label):
     return svg(''.join(o), uid, label)
 
 REG.update({'geosection': geosection})
+
+# ---------------------------------------------------------------- Iraq resources atlas
+def resources(uid, label):
+    import json, os
+    ring = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'src', 'assets', 'data', 'iraq-outline.json')))
+    W0, E0, S0, N0 = 38.7, 48.7, 28.9, 37.5
+    kx = math.cos(math.radians(33.2))
+    sc = min(330 / ((E0 - W0) * kx), 290 / (N0 - S0))
+    def P(lon, lat): return (90 + (lon - W0) * kx * sc, 20 + (N0 - lat) * sc)
+    o = ['<path class="il-land" d="M' + 'L'.join('%s %s' % tuple(f(v) for v in P(q[0], q[1])) for q in ring) + 'Z"/>']
+    pts = [(30.24, 47.42, '#1B232B', 'o'), (30.89, 47.29, '#1B232B', 'o'), (31.22, 47.56, '#1B232B', 'o'), (31.55, 47.45, '#1B232B', 'o'), (35.83, 44.19, '#1B232B', 'o'), (30.42, 47.61, '#1B232B', 'o'),
+           (34.12, 41.18, '#C0392B', 'o'), (34.11, 44.98, '#C0392B', 'o'), (33.67, 39.97, '#2E8B57', 's'), (32.93, 39.74, '#2E8B57', 's'), (35.98, 43.31, '#D4AC0D', 'd'), (33.45, 40.45, '#2E6FBF', 'c')]
+    for lat, lon, col, k in pts:
+        x, y = P(lon, lat)
+        if k == 's': o.append(f'<rect x="{f(x - 6)}" y="{f(y - 6)}" width="12" height="12" fill="{col}" stroke="#fff" stroke-width="1.5"/>')
+        elif k == 'd': o.append(f'<path d="M{f(x)} {f(y - 8)}L{f(x + 8)} {f(y)}L{f(x)} {f(y + 8)}L{f(x - 8)} {f(y)}Z" fill="{col}" stroke="#fff" stroke-width="1.5"/>')
+        elif k == 'c': o.append(f'<circle cx="{f(x)}" cy="{f(y)}" r="22" fill="{col}" fill-opacity=".22" stroke="{col}" stroke-dasharray="4 3"/>')
+        else: o.append(f'<circle cx="{f(x)}" cy="{f(y)}" r="5.5" fill="{col}" stroke="#fff" stroke-width="1.5"/>')
+    o.append('<g class="il-chip" transform="translate(24 236)"><rect width="150" height="50" rx="8"/><text x="12" y="20" class="il-small">Six resources</text><text x="12" y="40" class="il-value">Oil · P · S · SiO₂</text></g>')
+    return svg(''.join(o), uid, label)
+
+REG.update({'resources': resources})

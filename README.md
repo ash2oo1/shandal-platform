@@ -12,7 +12,7 @@
 
 جاء نظام شندل ليجمع هذا العمل في أداة محمولة واحدة، من القراءة الأولى حتى التقرير النهائي، دون مغادرة الموقع. والاسم يعبّر عن جوهره: «المسح» لجمع البيانات المكانية بدقة، و«الميداني» لأنه يرافق الجيولوجي حيث يعمل.
 
-يضم النظام اليوم 52 أداة في الجيولوجيا والتضاريس والتحسس النائي والجيوفيزياء والهندسة والمياه والبيئة والمخاطر الطبيعية والمختبرات البترولية، تعمل في المتصفح على الهاتف والجهاز اللوحي والحاسوب دون تثبيت، وتصدر خرائط مُخرجة وتقارير PDF.
+يضم النظام اليوم 53 أداة في الجيولوجيا والتضاريس والتحسس النائي والجيوفيزياء والهندسة والمياه والبيئة والمخاطر الطبيعية والمختبرات البترولية، تعمل في المتصفح على الهاتف والجهاز اللوحي والحاسوب دون تثبيت، وتصدر خرائط مُخرجة وتقارير PDF.
 
 - **المؤسس والمصمم:** الجيولوجي علي شندل الجنابي، متخصص في التحسس النائي والجيوفيزياء، بغداد، العراق.
 - **التأسيس:** 2025 · **الإطلاق الرسمي:** 5 نيسان 2026.
@@ -29,6 +29,7 @@
 - [الفوالق والصفائح العالمية](https://geologicalfieldsurvey.com/ar/tools/faults-plates/) — كل فالق نشط وحد صفيحة مرسوم على الأرض، بنوعه ومعدل حركته واسمه بالعربية والإنجليزية.
 - [مستكشف الوحدات الجيولوجية](https://geologicalfieldsurvey.com/ar/tools/geologic-unit/) — أي نقطة على الأرض: الوحدة الصخرية وعمرها وتتابعها ومصادرها.
 - [المقطع الجيولوجي الآلي](https://geologicalfieldsurvey.com/ar/tools/geo-section/) — ارسم خطاً: المقطع الطبوغرافي والجيولوجيا السطحية والميول المسقطة ومقطع مُنشأ جاهز للتقرير.
+- [ثروات العراق](https://geologicalfieldsurvey.com/ar/tools/iraq-resources/) — النفط والغاز والفوسفات والكبريت والرمل الزجاجي والأطيان: المواقع والجيولوجيا والكميات والاستعمالات محلياً وعالمياً.
 - [مستكشف مواقع الأحافير](https://geologicalfieldsurvey.com/ar/tools/fossils/) — كل موقع أحفوري على خريطتك، مقروءاً ومفسَّراً.
 - [السياحة الجيولوجية والآثارية](https://geologicalfieldsurvey.com/ar/tools/geoheritage/) — أماكن العراق الطبيعية والجيولوجية والأثرية، مقروءة على الأرض التي تقوم عليها.
 - [التقرير الشامل للموقع](https://geologicalfieldsurvey.com/ar/tools/site-report/) — أي نقطة على الأرض: تضاريسها وصخورها وصدوعها وزلازلها ومناخها وتربتها وأنهارها، مفحوصة للمخاطر في تقرير واحد.
@@ -102,7 +103,7 @@ For decades, field geology meant scattered tools: readings taken by hand, long c
 
 The Shandal System brings that work into one portable tool, from the first reading to the final report, without leaving the site. The name says what it does: survey, to collect spatial data precisely; field, because it goes where the geologist goes.
 
-The system now has 52 tools for geology, terrain, remote sensing, geophysics, engineering, water, environment, natural hazards and petroleum laboratories. They run in the browser on phones, tablets and computers with nothing to install, and export finished map sheets and PDF reports.
+The system now has 53 tools for geology, terrain, remote sensing, geophysics, engineering, water, environment, natural hazards and petroleum laboratories. They run in the browser on phones, tablets and computers with nothing to install, and export finished map sheets and PDF reports.
 
 - **Founder and designer:** Ali Shandal Al-Janabi, Iraqi geologist (remote sensing and geophysics), Baghdad, Iraq.
 - **Founded:** 2025 · **Official launch:** 5 April 2026.
@@ -119,6 +120,7 @@ The system now has 52 tools for geology, terrain, remote sensing, geophysics, en
 - [World Faults and Plates](https://geologicalfieldsurvey.com/tools/faults-plates/) — Every mapped active fault and plate boundary on Earth, with its type, rate and name in Arabic and English.
 - [Geological Unit Finder](https://geologicalfieldsurvey.com/tools/geologic-unit/) — Any point on Earth: rock unit, age, succession and sources.
 - [Automatic Geological Cross-Section](https://geologicalfieldsurvey.com/tools/geo-section/) — Draw a line: topographic profile, surface geology, projected dips and a constructed section.
+- [Iraq’s Mineral Wealth](https://geologicalfieldsurvey.com/tools/iraq-resources/) — Oil, gas, phosphate, sulphur, silica sand and clays: sites, geology, quantities and uses in Iraq and the world.
 - [Fossil Sites Explorer](https://geologicalfieldsurvey.com/tools/fossils/) — Every fossil site on your map, read and interpreted.
 - [Geo-Heritage & Archaeological Tourism](https://geologicalfieldsurvey.com/tools/geoheritage/) — Iraq’s natural, geological and archaeological places, read on the ground they stand on.
 - [Site Report](https://geologicalfieldsurvey.com/tools/site-report/) — Any point on Earth: terrain, rocks, faults, earthquakes, climate, soil and rivers, screened for hazards in one report.
