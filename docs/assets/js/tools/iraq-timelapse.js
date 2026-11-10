@@ -214,9 +214,9 @@
   function km2(v) { return F(v, v < 10 ? 1 : 0) + ' ' + T('km²', 'كم²'); }
   function placeName(lang) { var v = ($('#tlName').value || '').trim(); return v || (lang === 'ar' ? (aoi.ar || aoi.en) : aoi.en); }
   function vidHeader(g, W, Lt) {
-    var s = Lt.s, x = Lt.pad, L0 = (Lt.reel ? 92 : 74) * s, y = (Lt.reel ? 14 : 12) * s, nm0 = '© ' + T('Shandal System', 'نظام شندل');
-    if (EMBI) g.drawImage(EMBI, W - x - L0, y, L0, L0);
-    txt(g, nm0, W - x - L0 - 10 * s, y + L0 / 2 + 9 * s, (Lt.reel ? 26 : 24) * s, 800, INK, 'right');
+    var s = Lt.s, x = Lt.pad, L0 = (Lt.reel ? 92 : 74) * s, y = (Lt.reel ? 26 : 16) * s - Lt.dy, nm0 = '© ' + T('Shandal System', 'نظام شندل');
+    if (EMBI) g.drawImage(EMBI, x, y, L0, L0);
+    txt(g, nm0, x + L0 + 10 * s, y + L0 / 2 + 7 * s, (Lt.reel ? 19 : 17) * s, 800, INK, 'left');
     var title = placeName(VL); txt(g, title, W / 2, Lt.head - 26 * s, (Lt.reel ? 34 : 32) * s, 800, INK, 'center');
   }
   function vidFooter(g, W, H, Lt) {
