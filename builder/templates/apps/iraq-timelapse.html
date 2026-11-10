@@ -39,6 +39,9 @@
         {{ m.sel('tlStep', 'Every', 'كل', [('1', 'year', 'سنة', true), ('2', '2 years', 'سنتين'), ('3', '3 years', '3 سنوات'), ('5', '5 years', '5 سنوات')]) }}
       </div>
       <div class="row2">
+        {{ m.sel('tlSrc', 'Images from 2017', 'الصور منذ 2017', [('best', 'Sentinel-2, 10 m (sharpest)', 'سنتينل-2 بدقة 10 م (الأوضح)', true), ('landsat', 'Landsat only, 30 m', 'لاندسات فقط بدقة 30 م')], 'From 2017 Sentinel-2 shows three times more detail than Landsat; keep Landsat only if you need one sensor for the whole series.', 'منذ 2017 يُظهر سنتينل-2 تفاصيل أكثر بثلاث مرات من لاندسات؛ اختر لاندسات فقط إن أردت متحسساً واحداً للسلسلة كلها.') }}
+      </div>
+      <div class="row2">
         {{ m.sel('tlSea', 'Season', 'الموسم', [('mam', 'Spring (Mar–May)', 'الربيع (آذار–أيار)', true), ('jja', 'Summer (Jun–Aug)', 'الصيف (حزيران–آب)'), ('son', 'Autumn (Sep–Nov)', 'الخريف (أيلول–تشرين الثاني)'), ('djf', 'Winter (Dec–Feb)', 'الشتاء (كانون الأول–شباط)'), ('all', 'Whole year', 'السنة كلها')], 'The same season every year keeps water and vegetation comparable.', 'الموسم نفسه كل سنة يجعل المياه والنبات قابلة للمقارنة.') }}
         {{ m.fld('tlCl', 'Cloud limit', 'حد الغيوم', 'number', '20', '%', 'Scenes with more cloud are skipped; the clearest scene of each season is used.', 'تُستبعد المشاهد ذات الغيوم الأكثر، ويُستعمل أصفى مشهد في كل موسم.', '', '1', 'min="1" max="80"') }}
       </div>
@@ -53,6 +56,7 @@
         {{ m.fld('tlTvM', 'MSS years: vegetation when NDVI above', 'سنوات MSS: نبات حين يتجاوز NDVI', 'number', '0.2', '', 'MSS values are uncalibrated digital numbers, so NDVI is lower than from surface reflectance.', 'قيم MSS أرقام رقمية غير معايرة، فيكون NDVI أقل منه في الانعكاسية السطحية.', '', '0.05', 'min="0" max="0.8"') }}
       </div>
       <div class="chks" style="grid-template-columns:1fr 1fr">
+        <label class="chk" style="grid-column:1/-1"><input type="checkbox" id="tlEnh" checked> {{ m.L('Improve contrast (removes the grey haze)', 'حسّن التباين (يزيل الضباب الرمادي)') }}</label>
         <label class="chk"><input type="checkbox" id="tlOw" checked> {{ m.L('Show water', 'أظهر المياه') }}</label>
         <label class="chk"><input type="checkbox" id="tlOv"> {{ m.L('Show vegetation', 'أظهر النبات') }}</label>
       </div>

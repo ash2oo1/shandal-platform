@@ -8,7 +8,7 @@
   var t = SH.t, $ = SH.$, $$ = SH.$$, F = SH.fmt, E = SH.esc, L = window.L, G = window.EG, AR = SH.lang === 'ar';
   var PC = 'https://planetarycomputer.microsoft.com/api/', COL = 'landsat-c2-l2', MS = 720, K = 14545.4545;
   var PF = 'Manrope, Arial, sans-serif', INK = '#1B232B', MUT = '#55616B';
-  var IDS = ['tlY0', 'tlY1', 'tlStep', 'tlSea', 'tlCl', 'tlTw', 'tlTv', 'tlTwM', 'tlTvM', 'tlOw', 'tlOv', 'tlFmt', 'tlSp', 'tlMode', 'tlVL', 'tlNmAr', 'tlNmEn'], persist = SH.persist('timelapse', IDS);
+  var IDS = ['tlY0', 'tlY1', 'tlStep', 'tlSea', 'tlCl', 'tlTw', 'tlTv', 'tlTwM', 'tlTvM', 'tlOw', 'tlOv', 'tlFmt', 'tlSp', 'tlSrc', 'tlEnh', 'tlMode', 'tlVL', 'tlNmAr', 'tlNmEn'], persist = SH.persist('timelapse', IDS);
   var PRE = [
     ['central', 'Central Marshes', 'الأهوار الوسطى', [46.45, 30.85, 47.05, 31.25]], ['hammar', 'Hammar Marsh', 'هور الحمّار', [46.6, 30.6, 47.4, 30.98]], ['hawizeh', 'Hawizeh Marsh', 'هور الحويزة', [47.45, 31.2, 47.85, 31.75]],
     ['sawa', 'Lake Sawa', 'بحيرة ساوة', [44.96, 31.28, 45.06, 31.35]], ['razzaza', 'Razzaza Lake', 'بحيرة الرزازة', [43.55, 32.45, 44.05, 32.9]], ['mosul', 'Mosul Dam Lake', 'بحيرة سد الموصل', [42.55, 36.6, 43.0, 36.95]],
@@ -65,14 +65,26 @@
       var it = (j.features || []).filter(function (f) { return NM[f.properties.platform] && (!mss || !f.properties.instruments || f.properties.instruments.indexOf('mss') >= 0); }).map(function (f) { var p = f.properties, slc = p.platform === 'landsat-7' && p.datetime >= '2003-05-31', cv = covers(f.geometry); return { id: f.id, geom: f.geometry, date: p.datetime.slice(0, 10), plat: p.platform, sat: NM[p.platform], mss: !!mss, col: mss ? COL1 : COL, cloud: p['eo:cloud_cover'], slc: slc, cv: cv, score: (p['eo:cloud_cover'] || 0) + (slc ? 60 : 0) + (5 - cv) * 40 }; });
       it.sort(function (a, b) { return a.score - b.score; }); return it.length ? it : null; });
   }
+  /* Sentinel-2 L2A (10 m) from 2017: sharper for small areas; reflectance ×10000, with +1000 offset from processing baseline 04.00 (January 2022) */
+  var COL2 = 'sentinel-2-l2a';
+  function search2(y, sea, cl) {
+    var r = range(y, sea), poly = { type: 'Polygon', coordinates: [[[aoi.w, aoi.s], [aoi.e, aoi.s], [aoi.e, aoi.n], [aoi.w, aoi.n], [aoi.w, aoi.s]]] };
+    return ff(PC + 'stac/v1/search', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ collections: [COL2], intersects: poly, datetime: r[0] + 'T00:00:00Z/' + r[1] + 'T23:59:59Z', query: { 'eo:cloud_cover': { lt: cl } }, limit: 200 }) }).then(function (x) { return x.json(); }).then(function (j) {
+      var it = (j.features || []).map(function (f) { var p = f.properties, cv = covers(f.geometry), bl = parseFloat(p['s2:processing_baseline'] || '0'), off = bl >= 4 || (!p['s2:processing_baseline'] && p.datetime >= '2022-01-25') ? 1000 : 0; return { id: f.id, geom: f.geometry, date: p.datetime.slice(0, 10), plat: p.platform, sat: (p.platform || 'Sentinel-2').replace(/^sentinel/i, 'Sentinel'), s2: true, off: off, col: COL2, cloud: p['eo:cloud_cover'], cv: cv, score: (p['eo:cloud_cover'] || 0) + (5 - cv) * 40 }; });
+      it.sort(function (a, b) { return a.score - b.score; }); return it.length ? it : null; });
+  }
+  function s2q(off) { var o = off || 0, d = function (a, b) { return '(' + a + '-' + b + ')/(' + a + '+' + b + '-' + 2 * o + ')'; }; return ['&assets=B04&assets=B03&assets=B02&nodata=0&rescale=' + o + ',' + (o + 3200) + '&color_formula=' + encodeURIComponent('Gamma RGB 1.25 Saturation 1.15'), Q_IX(d('B03', 'B11')), Q_IX(d('B08', 'B04'))]; }
   function img(url) { return ff(url).then(function (r) { return r.blob(); }).then(function (b) { return createImageBitmap(b); }); }
   function bboxUrl(id, q, col) { return PC + 'data/v1/item/bbox/' + [aoi.w, aoi.s, aoi.e, aoi.n].map(function (v) { return v.toFixed(5); }).join(',') + '.png?collection=' + (col || COL) + '&item=' + encodeURIComponent(id) + '&max_size=' + MS + q; }
   var Q_RGB = '&assets=red&assets=green&assets=blue&nodata=0&rescale=7300,19500&color_formula=' + encodeURIComponent('Gamma RGB 1.25 Saturation 1.2');
   var Q_IX = function (ex) { return '&expression=' + encodeURIComponent(ex) + '&asset_as_band=true&nodata=0&rescale=-1,1'; };
   var EX_W = '(green-swir16)/(green+swir16-' + K.toFixed(2) + ')', EX_V = '(nir08-red)/(nir08+red-' + K.toFixed(2) + ')';
   /* MSS (Level-1 digital numbers, no blue or short-wave infrared band): water by NDWI (McFeeters 1996), vegetation by NDVI, colour approximated */
-  var M_RGB = '&expression=' + encodeURIComponent('red;0.7*green+0.3*nir08;green') + '&asset_as_band=true&nodata=0&rescale=0,255', M_W = '(green-nir08)/(green+nir08)', M_V = '(nir08-red)/(nir08+red)';
-  function stretch(c) { var g = c.getContext('2d'), d = g.getImageData(0, 0, c.width, c.height), D = d.data; for (var ch = 0; ch < 3; ch++) { var H = new Uint32Array(256), n = 0; for (var i = 0; i < D.length; i += 4) if (D[i + 3] > 127) { H[D[i + ch]]++; n++; } if (!n) return; var lo = 0, hi = 255, a = 0; for (var v = 0; v < 256; v++) { a += H[v]; if (a >= n * 0.02) { lo = v; break; } } a = 0; for (v = 255; v >= 0; v--) { a += H[v]; if (a >= n * 0.02) { hi = v; break; } } var k = 255 / Math.max(1, hi - lo); for (i = 0; i < D.length; i += 4) D[i + ch] = Math.max(0, Math.min(255, Math.pow((D[i + ch] - lo) * k / 255, 0.85) * 255)); } g.putImageData(d, 0, 0); }
+  var M_RGB = '&expression=' + encodeURIComponent('red;green;0.45*green+0.4*red') + '&asset_as_band=true&nodata=0&rescale=0,255', M_W = '(green-nir08)/(green+nir08)', M_V = '(nir08-red)/(nir08+red)';
+  /* one contrast stretch for the three channels together (2–98 %), so colours keep their balance; removes most of the grey haze of small areas */
+  function stretch(c, lo0, hi0) { var g = c.getContext('2d'), d = g.getImageData(0, 0, c.width, c.height), D = d.data, H = new Uint32Array(256), n = 0, i; for (i = 0; i < D.length; i += 4) if (D[i + 3] > 127) { H[D[i]]++; H[D[i + 1]]++; H[D[i + 2]]++; n += 3; } if (!n) return; var lo = 0, hi = 255, a = 0, v; for (v = 0; v < 256; v++) { a += H[v]; if (a >= n * (lo0 || 0.02)) { lo = v; break; } } a = 0; for (v = 255; v >= 0; v--) { a += H[v]; if (a >= n * (hi0 || 0.02)) { hi = v; break; } } if (hi - lo < 12) return; var k = 255 / (hi - lo); for (i = 0; i < D.length; i += 4) for (var ch = 0; ch < 3; ch++) D[i + ch] = Math.max(0, Math.min(255, Math.pow(Math.max(0, (D[i + ch] - lo) * k) / 255, 0.9) * 255)); g.putImageData(d, 0, 0); }
+  function contrast(c) { var g = c.getContext('2d'), D = g.getImageData(0, 0, c.width, c.height).data, s1 = 0, s2 = 0, n = 0; for (var i = 0; i < D.length; i += 16) if (D[i + 3] > 127) { var L0 = 0.3 * D[i] + 0.59 * D[i + 1] + 0.11 * D[i + 2]; s1 += L0; s2 += L0 * L0; n++; } return n ? Math.sqrt(Math.max(0, s2 / n - (s1 / n) * (s1 / n))) : 0; }
+  function minSideKm() { return Math.min((aoi.e - aoi.w) * 111.32 * Math.cos(SH.rad((aoi.s + aoi.n) / 2)), (aoi.n - aoi.s) * 110.57); }
   function pix(bm, w, h) { var c = document.createElement('canvas'); c.width = w || bm.width; c.height = h || bm.height; var g = c.getContext('2d'); g.imageSmoothingEnabled = false; g.drawImage(bm, 0, 0, c.width, c.height); return g.getImageData(0, 0, c.width, c.height); }
   /* choose the scenes of the season that together cover the area: the best scene first, then the scenes closest in date
      that fill what it misses (neighbouring paths and rows), at most four */
@@ -88,12 +100,24 @@
     }
     return out;
   }
+  /* the scene with the least local haze: among the best candidates that each cover the whole area, keep the one with most contrast */
+  function clearest(its) {
+    var full = its.filter(function (x) { return x.cv === 5 && !x.slc; }).slice(0, 3); if (full.length < 2 || minSideKm() > 60) return Promise.resolve(its);
+    return Promise.all(full.map(function (x) { var q = x.mss ? M_RGB : x.s2 ? s2q(x.off)[0] : Q_RGB; return img(bboxUrl(x.id, q, x.col)).then(function (bm) { var c = document.createElement('canvas'); c.width = Math.min(bm.width, 240); c.height = Math.round(bm.height * c.width / bm.width); c.getContext('2d').drawImage(bm, 0, 0, c.width, c.height); return contrast(c) - (x.cloud || 0) * 0.15; }).catch(function () { return -1; }); })).then(function (sc) {
+      var k = 0; sc.forEach(function (v, i) { if (v > sc[k]) k = i; }); if (!k) return its; var b = full[k]; return [b].concat(its.filter(function (x) { return x !== b; }));
+    });
+  }
   function frame(y, sea, cl) {
-    var useMss = y < 1982 || MSSONLY;
-    return search(y, sea, cl, useMss).then(function (it) { return it || (!useMss && y <= 2012 ? search(y, sea, cl, true) : null); }).then(function (its) {
+    var useMss = y < 1982 || MSSONLY, small = minSideKm() < 15, s2 = y >= 2017 && $('#tlSrc').value !== 'landsat';
+    if (useMss && small) return Promise.resolve({ y: y, none: true, small: true });
+    var first = s2 ? search2(y, sea, cl).then(function (it) { return it || search(y, sea, cl, false); }) : search(y, sea, cl, useMss).then(function (it) { return it || (!useMss && !small && y <= 2012 ? search(y, sea, cl, true) : null); });
+    return first.then(function (its) {
       if (!its) return { y: y, none: true };
-      var use = pick(its), mss = use[0].mss, q = mss ? [M_RGB, Q_IX(M_W), Q_IX(M_V)] : [Q_RGB, Q_IX(EX_W), Q_IX(EX_V)];
-      return Promise.all(use.map(function (it, k) { return Promise.all(q.map(function (x) { return img(bboxUrl(it.id, x, it.col)); })).catch(function (e) { if (!k) throw e; return null; }); })).then(function (RR) {
+      return clearest(its).then(function (its2) { return its2; });
+    }).then(function (its) {
+      if (!its || its.none) return its && its.none ? its : { y: y, none: true };
+      var use = pick(its), mss = use[0].mss, q = mss ? [M_RGB, Q_IX(M_W), Q_IX(M_V)] : use[0].s2 ? s2q(use[0].off) : [Q_RGB, Q_IX(EX_W), Q_IX(EX_V)];
+      return Promise.all(use.map(function (it, k) { var q1 = it.s2 ? s2q(it.off) : q; return Promise.all(q1.map(function (x) { return img(bboxUrl(it.id, x, it.col)); })).catch(function (e) { if (!k) throw e; return null; }); })).then(function (RR) {
         var r0 = RR[0], w = r0[1].width, h = r0[1].height, n = w * h, W = new Uint8Array(n), V = new Uint8Array(n), M = new Uint8Array(n);
         var rgb = document.createElement('canvas'); rgb.width = w; rgb.height = h; var g = rgb.getContext('2d'), out = g.createImageData(w, h), used = [];
         RR.forEach(function (r, k) {
@@ -101,7 +125,7 @@
           for (var i = 0; i < n; i++) { if (M[i] || a.data[4 * i + 3] <= 127) continue; M[i] = 1; W[i] = a.data[4 * i]; V[i] = b.data[4 * i]; var o = 4 * i; out.data[o] = c.data[o]; out.data[o + 1] = c.data[o + 1]; out.data[o + 2] = c.data[o + 2]; out.data[o + 3] = 255; add++; }
           if (add > n * 0.002 || !k) used.push(use[k]);
         });
-        g.putImageData(out, 0, 0); if (mss) stretch(rgb);
+        g.putImageData(out, 0, 0); if (mss || $('#tlEnh').checked) stretch(rgb, mss ? 0.02 : 0.01, mss ? 0.02 : 0.01);
         var it = used[0]; if (used.length > 1) { it = Object.assign({}, it, { n: used.length, ids: used.map(function (x) { return x.id; }), dates: used.map(function (x) { return x.date; }), cloud: Math.max.apply(null, used.map(function (x) { return x.cloud || 0; })) }); }
         return { y: y, it: it, rgb: rgb, W: W, V: V, M: M, w: w, h: h };
       });
@@ -123,7 +147,7 @@
     persist.save(); busy = true; stop(); var btn = $('#tlRun'); btn.disabled = true; frames = []; var done = 0, out = [], q = ys.slice();
     var msg = function () { $('#tlBar').style.width = (100 * done / ys.length) + '%'; $('#tlMsg').textContent = t('Satellite scenes: ', 'المشاهد الفضائية: ') + done + ' / ' + ys.length; };
     msg();
-    var worker = function () { if (!q.length) return Promise.resolve(); var yy = q.shift(); return frame(yy, sea, cl).then(function (f) { out.push(f); done++; msg(); return worker(); }); };
+    var worker = function () { if (!q.length) return Promise.resolve(); var yy = q.shift(); return Promise.resolve().then(function () { return frame(yy, sea, cl); }).catch(function (e) { return { y: yy, err: e.message }; }).then(function (f) { out.push(f); done++; msg(); return worker(); }); };
     Promise.all([worker(), worker(), worker()]).then(function () {
       out.sort(function (a, b) { return a.y - b.y; }); ALLF = out.filter(function (f) { return f.W; }); MISS = out.filter(function (f) { return !f.W; });
       if (!ALLF.length) { SH.toast(t('No clear scene was found. Widen the cloud limit or choose the whole year.', 'لم يُعثر على مشهد صافٍ. وسّع حد الغيوم أو اختر السنة كلها.'), 'bad'); return; }
@@ -135,7 +159,7 @@
     if (!ALLF.length) return; stop(); var full = $('#tlMode').value !== 'all', cut = ALLF.filter(function (f) { return f.cov < FULL; });
     frames = full ? ALLF.filter(function (f) { return f.cov >= FULL; }) : ALLF.slice();
     if (!frames.length) { frames = ALLF.slice(); SH.toast(t('No year covers the whole area: showing every year. Draw a smaller area.', 'لا توجد سنة تغطي المنطقة كلها: تُعرض كل السنوات. ارسم منطقة أصغر.'), 'warn'); }
-    $('#tlMsg').textContent = t('Ready: ', 'جاهز: ') + frames.length + t(' years in the film', ' سنة في الفيلم') + (full && cut.length && frames.length < ALLF.length ? t(' · left out (area not fully covered): ', ' · استُبعدت (تغطية ناقصة): ') + cut.map(function (f) { return f.y + ' (' + Math.round(f.cov * 100) + '%)'; }).join(', ') : '') + (MISS.length ? t(' · no clear scene in ', ' · لا مشهد صافٍ في ') + MISS.map(function (f) { return f.y; }).join(', ') : '');
+    $('#tlMsg').textContent = t('Ready: ', 'جاهز: ') + frames.length + t(' years in the film', ' سنة في الفيلم') + (full && cut.length && frames.length < ALLF.length ? t(' · left out (area not fully covered): ', ' · استُبعدت (تغطية ناقصة): ') + cut.map(function (f) { return f.y + ' (' + Math.round(f.cov * 100) + '%)'; }).join(', ') : '') + (MISS.filter(function (f) { return !f.small; }).length ? t(' · no clear scene in ', ' · لا مشهد صافٍ في ') + MISS.filter(function (f) { return !f.small; }).map(function (f) { return f.y; }).join(', ') : '') + (MISS.some(function (f) { return f.small; }) ? t(' · years before 1982 left out: the area is too small for their 60 m pixels (draw at least 15 km)', ' · استُبعدت السنوات قبل 1982: المنطقة أصغر من أن تُرى ببكسلات 60 م (ارسم 15 كم على الأقل)') : '');
     $('#tlEmpty').hidden = true; $('#tlOut').hidden = false; $('#tlSl').max = frames.length - 1; cur = frames.length - 1; $('#tlSl').value = cur;
     var opts = frames.map(function (f, i) { return '<option value="' + i + '">' + f.y + '</option>'; }).join(''); $('#tlA').innerHTML = opts; $('#tlB').innerHTML = opts; $('#tlA').value = 0; $('#tlB').value = frames.length - 1;
     render();
@@ -201,7 +225,7 @@
     g.fillStyle = '#fff'; g.fillRect(0, 0, W, H); g.save(); g.translate(0, Lt.dy);
     if (o.vid) vidHeader(g, W, Lt); else {
       txt(g, o.title || aoi.en, Lt.pad, 44 * s, 30 * s, 800);
-      txt(g, o.sub || ((f.it.dates ? f.it.n + ' scenes ' + f.it.dates.slice().sort()[0] + ' to ' + f.it.dates.slice().sort().pop() : f.it.date) + ' · ' + f.it.sat + (f.it.mss ? ' · 60 m, colour approximated (no blue band)' : ' · surface reflectance, true colour') + ($('#tlOw').checked || $('#tlOv').checked ? ' with measured classes' : '')), Lt.pad, 74 * s, 17 * s, 500, MUT);
+      txt(g, o.sub || ((f.it.dates ? f.it.n + ' scenes ' + f.it.dates.slice().sort()[0] + ' to ' + f.it.dates.slice().sort().pop() : f.it.date) + ' · ' + f.it.sat + (f.it.mss ? ' · 60 m, colour approximated (no blue band)' : f.it.s2 ? ' · 10 m surface reflectance, true colour' : ' · 30 m surface reflectance, true colour') + ($('#tlOw').checked || $('#tlOv').checked ? ' with measured classes' : '')), Lt.pad, 74 * s, 17 * s, 500, MUT);
     }
     if (o.base) g.drawImage(o.base, Lt.x, Lt.y, Lt.w, Lt.h); else { g.fillStyle = '#E9ECEF'; g.fillRect(Lt.x, Lt.y, Lt.w, Lt.h); g.globalAlpha = o.alpha == null ? 1 : o.alpha; g.drawImage(f.rgb, Lt.x, Lt.y, Lt.w, Lt.h); g.drawImage(overlay(f), Lt.x, Lt.y, Lt.w, Lt.h); g.globalAlpha = 1; }
     if (o.prev) { g.globalAlpha = 1 - o.mix; g.drawImage(o.prev.rgb, Lt.x, Lt.y, Lt.w, Lt.h); g.drawImage(overlay(o.prev), Lt.x, Lt.y, Lt.w, Lt.h); g.globalAlpha = 1; }
@@ -306,7 +330,7 @@
       frames.map(function (f, i) { return '<tr data-go="' + i + '" style="cursor:pointer"><td><b>' + f.y + '</b></td><td class="ltr">' + (f.it.dates ? f.it.dates.join(' + ') : f.it.date) + '</td><td class="ltr">' + f.it.sat + (f.it.n ? ' <span class="badge">' + t('mosaic of ', 'فسيفساء ') + f.it.n + '</span>' : '') + (f.it.slc ? ' <span class="badge warn">SLC-off</span>' : '') + '</td><td class="num">' + F(f.it.cloud, 0) + '</td><td class="num">' + F(f.cov * 100, 0) + '</td><td class="num">' + F(f.water, f.water < 10 ? 2 : 1) + '</td><td class="num">' + F(f.veg, 1) + '</td></tr>'; }).join('') + '</tbody>';
   }
   $('#tlTbl').addEventListener('click', function (e) { var r = e.target.closest('[data-go]'); if (r) { stop(); show(+r.getAttribute('data-go')); } });
-  $('#tlCsv').addEventListener('click', function () { if (!frames.length) return; SH.csv('shandal-timelapse-' + (aoi.key || 'area') + '.csv', [['area', aoi.en], ['bbox_w_s_e_n', [aoi.w, aoi.s, aoi.e, aoi.n].join(' ')], ['season', seasonEn()], ['mndwi_threshold', G.v('tlTw')], ['ndvi_threshold', G.v('tlTv')], [], ['year', 'scene_id', 'date', 'satellite', 'sensor_resolution_m', 'cloud_pct', 'coverage_pct', 'water_km2', 'vegetation_km2']].concat(frames.map(function (f) { return [f.y, f.it.ids ? f.it.ids.join(' + ') : f.it.id, f.it.date, f.it.sat, f.it.mss ? 60 : 30, F(f.it.cloud, 1), (f.cov * 100).toFixed(1), f.water.toFixed(3), f.veg.toFixed(3)]; }))); });
+  $('#tlCsv').addEventListener('click', function () { if (!frames.length) return; SH.csv('shandal-timelapse-' + (aoi.key || 'area') + '.csv', [['area', aoi.en], ['bbox_w_s_e_n', [aoi.w, aoi.s, aoi.e, aoi.n].join(' ')], ['season', seasonEn()], ['mndwi_threshold', G.v('tlTw')], ['ndvi_threshold', G.v('tlTv')], [], ['year', 'scene_id', 'date', 'satellite', 'sensor_resolution_m', 'cloud_pct', 'coverage_pct', 'water_km2', 'vegetation_km2']].concat(frames.map(function (f) { return [f.y, f.it.ids ? f.it.ids.join(' + ') : f.it.id, f.it.date, f.it.sat, f.it.mss ? 60 : f.it.s2 ? 10 : 30, F(f.it.cloud, 1), (f.cov * 100).toFixed(1), f.water.toFixed(3), f.veg.toFixed(3)]; }))); });
 
   /* ------------------------------------------------------------------ playback */
   function stop() { if (playing) { clearInterval(playing); playing = null; } var b = $('#tlPlay'); if (b) { b.querySelector('.i-play').style.display = ''; b.querySelector('.i-pause').style.display = 'none'; } }
