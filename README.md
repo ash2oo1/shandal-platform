@@ -40,7 +40,7 @@
 - [المحطة الحقلية](https://geologicalfieldsurvey.com/ar/tools/field-station/) — موقع دقيق وبوصلة ومقياس ميل بثلاث وضعيات، والطقس وتنبيه المطر، وأقرب طريق ونهر ونبع وقرية وقمة، والتكوين تحت قدميك وأقرب فالق.
 - [رسم المنكشف والوصف الحقلي](https://geologicalfieldsurvey.com/ar/tools/outcrop-sketch/) — ارسم حدود الطبقات على صورة المنكشف بإصبعك، وصِف كل طبقة، واحصل على رسم مُعلَّم وعمود طباقي مقيس.
 - [آلة الزمن للعراق](https://geologicalfieldsurvey.com/ar/tools/iraq-time-machine/) — 540 مليون سنة: أين كان العراق على الكرة الأرضية وما الذي غطاه وأي صخور تركها.
-- [العراق عبر 40 سنة](https://geologicalfieldsurvey.com/ar/tools/iraq-timelapse/) — أربعون سنة من صور لاندسات فوق أهوار العراق وبحيراته وأنهاره ومدنه: مقيسة ومقارنة ومعروضة فيلماً.
+- [الأرض عبر الزمن: كل سنة منذ 1972](https://geologicalfieldsurvey.com/ar/tools/iraq-timelapse/) — كل سنة من صور لاندسات منذ 1972 فوق أي مكان في العالم: مقيسة ومقارنة ومعروضة فيلماً.
 - [محوّل الوحدات](https://geologicalfieldsurvey.com/ar/tools/unit-converter/) — كل وحدات العلوم والهندسة والحقل.
 
 **الهندسة والجيوتقنية**
@@ -136,7 +136,7 @@ The system now has 57 tools for geology, terrain, remote sensing, geophysics, en
 - [Field Station](https://geologicalfieldsurvey.com/tools/field-station/) — Precise position, compass and clinometer in three holds, weather and rain alert, nearest road, river, spring, village and peak, the formation underfoot and the nearest fault.
 - [Outcrop Sketch and Field Description](https://geologicalfieldsurvey.com/tools/outcrop-sketch/) — Draw bed boundaries on a photo of the face with a finger, describe each bed, and get an annotated sketch and a measured section.
 - [Iraq Time Machine](https://geologicalfieldsurvey.com/tools/iraq-time-machine/) — 540 million years: where Iraq lay on the globe, what covered it and which rocks it left.
-- [Iraq Through 40 Years](https://geologicalfieldsurvey.com/tools/iraq-timelapse/) — Forty years of Landsat over the marshes, the lakes, the rivers and the cities of Iraq: measured, compared and played as a film.
+- [Earth Through Time: Every Year Since 1972](https://geologicalfieldsurvey.com/tools/iraq-timelapse/) — Every year of Landsat since 1972 over any place on Earth: measured, compared and played as a film.
 - [Unit Converter](https://geologicalfieldsurvey.com/tools/unit-converter/) — Every unit of science, engineering and the field.
 
 **Engineering & geotechnics**

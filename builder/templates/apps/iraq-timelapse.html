@@ -25,6 +25,8 @@
 <div class="ws wide-side">
   <aside class="ws-side">
     {{ m.panel_open(1, 'Place', 'المكان') }}
+      <div class="row2" style="grid-template-columns:minmax(0,1fr) auto;align-items:end"><div class="fg"><label for="tlQ">{{ m.L('Search any place on Earth', 'ابحث عن أي مكان في العالم') }}</label><input id="tlQ" type="search" placeholder="{{ m.L('Lake Urmia, Aral Sea, Dubai…', 'بحيرة أورمية، بحر آرال، دبي…') }}" style="height:38px;border:1px solid var(--line-2);border-radius:10px;padding:0 10px;background:var(--bg);color:var(--text);font:inherit;width:100%"></div><button class="btn btn-ink btn-sm" id="tlGo" type="button">{{ icon('search', 'ico ico-sm') }}{{ m.L('Find', 'ابحث') }}</button></div>
+      <div class="tl-chips" id="tlRes"></div>
       <div class="tl-chips" id="tlPre"></div>
       <div class="row2"><button class="btn btn-ink btn-sm" id="tlDraw" type="button">{{ icon('square-dashed', 'ico ico-sm') }}{{ m.L('Draw your own area', 'ارسم منطقتك') }}</button><span class="xsmall muted" id="tlAoi" style="align-self:center"></span></div>
       <p class="xsmall muted" id="tlHint" hidden style="margin:0">{{ m.L('Drag a rectangle on the map, or tap two opposite corners.', 'اسحب مستطيلاً على الخريطة، أو انقر ركنين متقابلين.') }}</p>
@@ -32,9 +34,9 @@
     {{ m.panel_close() }}
     {{ m.panel_open(2, 'Period and season', 'الفترة والموسم') }}
       <div class="row3">
-        {{ m.fld('tlY0', 'From', 'من', 'number', '1985', '', '', '', '', '1', 'min="1984" max="2026"') }}
-        {{ m.fld('tlY1', 'To', 'إلى', 'number', '2025', '', '', '', '', '1', 'min="1984" max="2026"') }}
-        {{ m.sel('tlStep', 'Every', 'كل', [('1', 'year', 'سنة'), ('2', '2 years', 'سنتين', true), ('3', '3 years', '3 سنوات'), ('5', '5 years', '5 سنوات')]) }}
+        {{ m.fld('tlY0', 'From', 'من', 'number', '1985', '', 'Landsat imagery starts in 1972. Before 1982 the older MSS sensor is used (60 m, no blue band).', 'تبدأ صور لاندسات سنة 1972. وقبل 1982 يُستعمل المتحسس الأقدم MSS (60 م، دون نطاق أزرق).', '', '1', 'min="1972" max="2026"') }}
+        {{ m.fld('tlY1', 'To', 'إلى', 'number', '2026', '', '', '', '', '1', 'min="1972" max="2026"') }}
+        {{ m.sel('tlStep', 'Every', 'كل', [('1', 'year', 'سنة', true), ('2', '2 years', 'سنتين'), ('3', '3 years', '3 سنوات'), ('5', '5 years', '5 سنوات')]) }}
       </div>
       <div class="row2">
         {{ m.sel('tlSea', 'Season', 'الموسم', [('mam', 'Spring (Mar–May)', 'الربيع (آذار–أيار)', true), ('jja', 'Summer (Jun–Aug)', 'الصيف (حزيران–آب)'), ('son', 'Autumn (Sep–Nov)', 'الخريف (أيلول–تشرين الثاني)'), ('djf', 'Winter (Dec–Feb)', 'الشتاء (كانون الأول–شباط)'), ('all', 'Whole year', 'السنة كلها')], 'The same season every year keeps water and vegetation comparable.', 'الموسم نفسه كل سنة يجعل المياه والنبات قابلة للمقارنة.') }}
@@ -46,6 +48,10 @@
         {{ m.fld('tlTw', 'Water when MNDWI above', 'ماء حين يتجاوز MNDWI', 'number', '0', '', 'Modified normalised difference water index (green and short-wave infrared). 0 is the usual threshold; raise it to 0.1–0.2 if dark soil or shadow is taken as water.', 'مؤشر الفرق المعياري المعدل للمياه (الأخضر والأشعة تحت الحمراء القصيرة). 0 هو الحد المعتاد؛ ارفعه إلى 0.1–0.2 إذا عُدّت التربة الداكنة أو الظل ماءً.', '', '0.05', 'min="-0.5" max="0.6"') }}
         {{ m.fld('tlTv', 'Green vegetation when NDVI above', 'نبات أخضر حين يتجاوز NDVI', 'number', '0.3', '', 'Crops, orchards and reeds are usually above 0.3; sparse desert plants stay below.', 'المحاصيل والبساتين والقصب عادة فوق 0.3، ويبقى النبات الصحراوي المتناثر دونها.', '', '0.05', 'min="0.1" max="0.8"') }}
       </div>
+      <div class="row2">
+        {{ m.fld('tlTwM', 'MSS years: water when NDWI above', 'سنوات MSS: ماء حين يتجاوز NDWI', 'number', '0.1', '', 'Before 1982 there is no short-wave infrared band, so water is found with the green and near-infrared bands (NDWI). Look at the early frames and adjust.', 'قبل 1982 لا يوجد نطاق تحت أحمر قصير، فتُحدد المياه بالنطاقين الأخضر وتحت الأحمر القريب (NDWI). انظر إلى الإطارات الأولى وعدّل.', '', '0.05', 'min="-0.5" max="0.6"') }}
+        {{ m.fld('tlTvM', 'MSS years: vegetation when NDVI above', 'سنوات MSS: نبات حين يتجاوز NDVI', 'number', '0.2', '', 'MSS values are uncalibrated digital numbers, so NDVI is lower than from surface reflectance.', 'قيم MSS أرقام رقمية غير معايرة، فيكون NDVI أقل منه في الانعكاسية السطحية.', '', '0.05', 'min="0" max="0.8"') }}
+      </div>
       <div class="chks" style="grid-template-columns:1fr 1fr">
         <label class="chk"><input type="checkbox" id="tlOw" checked> {{ m.L('Show water', 'أظهر المياه') }}</label>
         <label class="chk"><input type="checkbox" id="tlOv"> {{ m.L('Show vegetation', 'أظهر النبات') }}</label>
@@ -55,7 +61,7 @@
     <section class="sec" data-rp-skip><div class="tl-prog"><i id="tlBar"></i></div><p class="xsmall muted" id="tlMsg" style="margin:6px 0 0"></p></section>
   </aside>
   <div class="ws-main">
-    <div id="tlEmpty" class="pn">{{ m.empty('satellite', 'Forty years of Iraq seen from space', 'أربعون سنة من العراق كما تُرى من الفضاء', 'Choose a place such as the marshes, Lake Sawa, Razzaza, the Mosul Dam lake or Baghdad, or draw your own. The system takes the clearest Landsat scene of the same season in every year since 1984, measures water and green vegetation, and plays the change as a film you can download.', 'اختر مكاناً مثل الأهوار أو بحيرة ساوة أو الرزازة أو بحيرة سد الموصل أو بغداد، أو ارسم منطقتك. يأخذ النظام أصفى مشهد لاندسات في الموسم نفسه من كل سنة منذ 1984، ويقيس المياه والنبات الأخضر، ويعرض التغير فيلماً يمكنك تنزيله.') }}</div>
+    <div id="tlEmpty" class="pn">{{ m.empty('satellite', 'The Earth seen from space since 1972', 'الأرض كما تُرى من الفضاء منذ 1972', 'Choose a place in Iraq or in the world, such as the marshes, Lake Sawa, the Aral Sea, Lake Urmia or Dubai, search any place by name, or draw your own area. The system takes the clearest Landsat scene of the same season in every year since 1972, measures water and green vegetation, and plays the change as a film you can download.', 'اختر مكاناً في العراق أو في العالم، مثل الأهوار أو بحيرة ساوة أو بحر آرال أو بحيرة أورمية أو دبي، أو ابحث عن أي مكان باسمه، أو ارسم منطقتك. يأخذ النظام أصفى مشهد لاندسات في الموسم نفسه من كل سنة منذ 1972، ويقيس المياه والنبات الأخضر، ويعرض التغير فيلماً يمكنك تنزيله.') }}</div>
     <div id="tlOut" hidden style="display:grid;gap:18px">
       <div class="kpis" id="tlKpis"></div>
       <div id="tlVerd" style="display:grid;gap:10px"></div>

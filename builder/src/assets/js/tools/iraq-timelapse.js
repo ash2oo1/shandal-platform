@@ -1,4 +1,5 @@
-/* Iraq Through 40 Years — Landsat Collection 2 Level-2 surface reflectance (Landsat 4/5 TM, 7 ETM+, 8/9 OLI) from 1984:
+/* Earth Through Time — any place on Earth, every year since 1972. Landsat Collection 2 Level-2 surface reflectance
+   (Landsat 4/5 TM, 7 ETM+, 8/9 OLI, 1982 onward) and, before that or where none exists up to 2012, Level-1 Landsat 1–5 MSS (60 m):
    the clearest scene of the same season in every chosen year, cropped to the area; water by MNDWI (Xu 2006) and green vegetation
    by NDVI measured on every pixel with true ground area; framed map frames (graticule, north arrow, scale, legend), a time
    series, a change map between two years, and a time-lapse video in 16:9, 9:16 or 1:1. */
@@ -7,13 +8,19 @@
   var t = SH.t, $ = SH.$, $$ = SH.$$, F = SH.fmt, E = SH.esc, L = window.L, G = window.EG, AR = SH.lang === 'ar';
   var PC = 'https://planetarycomputer.microsoft.com/api/', COL = 'landsat-c2-l2', MS = 720, K = 14545.4545;
   var PF = 'Manrope, Arial, sans-serif', INK = '#1B232B', MUT = '#55616B';
-  var IDS = ['tlY0', 'tlY1', 'tlStep', 'tlSea', 'tlCl', 'tlTw', 'tlTv', 'tlOw', 'tlOv', 'tlFmt', 'tlSp'], persist = SH.persist('timelapse', IDS);
+  var IDS = ['tlY0', 'tlY1', 'tlStep', 'tlSea', 'tlCl', 'tlTw', 'tlTv', 'tlTwM', 'tlTvM', 'tlOw', 'tlOv', 'tlFmt', 'tlSp'], persist = SH.persist('timelapse', IDS);
   var PRE = [
     ['central', 'Central Marshes', 'الأهوار الوسطى', [46.45, 30.85, 47.05, 31.25]], ['hammar', 'Hammar Marsh', 'هور الحمّار', [46.6, 30.6, 47.4, 30.98]], ['hawizeh', 'Hawizeh Marsh', 'هور الحويزة', [47.45, 31.2, 47.85, 31.75]],
     ['sawa', 'Lake Sawa', 'بحيرة ساوة', [44.96, 31.28, 45.06, 31.35]], ['razzaza', 'Razzaza Lake', 'بحيرة الرزازة', [43.55, 32.45, 44.05, 32.9]], ['mosul', 'Mosul Dam Lake', 'بحيرة سد الموصل', [42.55, 36.6, 43.0, 36.95]],
     ['haditha', 'Haditha (Qadisiyah) Lake', 'بحيرة حديثة (القادسية)', [41.9, 34.1, 42.45, 34.55]], ['dukan', 'Dukan Lake', 'بحيرة دوكان', [44.85, 35.9, 45.2, 36.2]], ['baghdad', 'Baghdad', 'بغداد', [44.2, 33.15, 44.6, 33.5]],
     ['erbil', 'Erbil', 'أربيل', [43.88, 36.08, 44.15, 36.32]], ['basra', 'Basra and the Shatt al-Arab', 'البصرة وشط العرب', [47.7, 30.35, 48.05, 30.65]]];
-  var aoi = null, rect = null, frames = [], cur = 0, playing = null, busy = false;
+  var WORLD = [
+    ['aral', 'Aral Sea (south)', 'بحر آرال (الجنوبي)', [58.2, 43.6, 59.9, 44.9]], ['urmia', 'Lake Urmia', 'بحيرة أورمية', [44.9, 37.0, 46.0, 38.3]], ['deadsea', 'Dead Sea', 'البحر الميت', [35.3, 31.0, 35.65, 31.85]],
+    ['ataturk', 'Atatürk Dam Lake (Euphrates)', 'بحيرة سد أتاتورك (الفرات)', [38.2, 37.3, 39.0, 37.9]], ['dubai', 'Dubai coast and the Palm islands', 'ساحل دبي وجزر النخلة', [54.95, 24.95, 55.4, 25.3]], ['cairo', 'Cairo and the New Capital', 'القاهرة والعاصمة الإدارية', [31.2, 29.9, 31.9, 30.2]],
+    ['mead', 'Lake Mead (USA)', 'بحيرة ميد (أمريكا)', [-114.9, 35.95, -114.0, 36.55]], ['columbia', 'Columbia Glacier (Alaska)', 'نهر كولومبيا الجليدي (ألاسكا)', [-147.3, 60.9, -146.7, 61.3]], ['rondonia', 'Rondônia forest (Brazil)', 'غابات روندونيا (البرازيل)', [-63.5, -10.5, -62.5, -9.5]],
+    ['shanghai', 'Shanghai', 'شنغهاي', [121.2, 30.9, 121.95, 31.45]], ['poopo', 'Lake Poopó (Bolivia)', 'بحيرة بوبو (بوليفيا)', [-67.3, -19.0, -66.8, -18.5]]];
+  var ALLP = PRE.concat(WORLD);
+  var MSSONLY = false, aoi = null, rect = null, frames = [], cur = 0, playing = null, busy = false;
   var map = SH.map('tlMap', { zoom: 6, base: 'satellite', center: [33, 44] });
 
   /* ------------------------------------------------------------------ area */
@@ -27,9 +34,22 @@
     if (map) { if (rect) map.removeLayer(rect); rect = L.rectangle([[s, w], [n, e]], { color: '#E2C27A', weight: 2, fill: false }).addTo(map); map.fitBounds(rect.getBounds(), { padding: [20, 20], maxZoom: 11 }); }
     try { localStorage.setItem('shandal_tl_aoi', JSON.stringify(aoi)); } catch (er) {}
   }
-  $('#tlPre').innerHTML = PRE.map(function (p) { return '<button type="button" data-k="' + p[0] + '" aria-pressed="false">' + (AR ? p[2] : p[1]) + '</button>'; }).join('');
-  $('#tlPre').addEventListener('click', function (e) { var b = e.target.closest('[data-k]'); if (!b) return; var p = PRE.filter(function (q) { return q[0] === b.getAttribute('data-k'); })[0]; setAoi(p[3], p[1], p[2], p[0]); });
+  var chips = function (L0) { return L0.map(function (p) { return '<button type="button" data-k="' + p[0] + '" aria-pressed="false">' + (AR ? p[2] : p[1]) + '</button>'; }).join(''); };
+  $('#tlPre').innerHTML = '<b class="xsmall muted" style="width:100%">' + t('Iraq', 'العراق') + '</b>' + chips(PRE) + '<b class="xsmall muted" style="width:100%;margin-top:4px">' + t('The world', 'العالم') + '</b>' + chips(WORLD);
+  $('#tlPre').addEventListener('click', function (e) { var b = e.target.closest('[data-k]'); if (!b) return; var p = ALLP.filter(function (q) { return q[0] === b.getAttribute('data-k'); })[0]; setAoi(p[3], p[1], p[2], p[0]); });
   $('#tlDraw').addEventListener('click', function () { if (!map) return; SH.drawRect(map, function (bb, r) { if (r) map.removeLayer(r); setAoi([bb.getWest(), bb.getSouth(), bb.getEast(), bb.getNorth()], 'Area ' + F(bb.getCenter().lat, 2) + '° N, ' + F(bb.getCenter().lng, 2) + '° E', t('المنطقة المرسومة', 'المنطقة المرسومة'), ''); }, $('#tlHint')); });
+  /* search a place anywhere by name */
+  function findPlace() {
+    var q = ($('#tlQ').value || '').trim(), box = $('#tlRes'); if (q.length < 2) return; box.innerHTML = '<span class="xsmall muted">' + t('Searching…', 'جارٍ البحث…') + '</span>';
+    fetch('https://nominatim.openstreetmap.org/search?format=jsonv2&limit=6&q=' + encodeURIComponent(q) + '&accept-language=' + (AR ? 'ar,en' : 'en')).then(function (r) { return r.json(); }).then(function (R0) {
+      if (!R0.length) { box.innerHTML = '<span class="xsmall muted">' + t('Nothing found. Try another spelling or draw the area.', 'لم يُعثر على شيء. جرّب كتابة أخرى أو ارسم المنطقة.') + '</span>'; return; }
+      box.innerHTML = R0.map(function (r, i) { return '<button type="button" data-i="' + i + '">' + E(r.display_name.split(',').slice(0, 3).join('،')) + '</button>'; }).join('');
+      box.onclick = function (e) { var b = e.target.closest('[data-i]'); if (!b) return; var r = R0[+b.getAttribute('data-i')], bb = r.boundingbox.map(Number), la = +r.lat, lo = +r.lon, s0 = bb[0], n0 = bb[1], w0 = bb[2], e0 = bb[3], kx = 111.32 * Math.cos(SH.rad(la)), half = function (km) { return [lo - km / kx, la - km / 110.57, lo + km / kx, la + km / 110.57]; };
+        var wk = (e0 - w0) * kx, hk = (n0 - s0) * 110.57, b2 = wk > 140 || hk > 140 ? half(50) : wk < 8 && hk < 8 ? half(6) : [w0 - (e0 - w0) * 0.08, s0 - (n0 - s0) * 0.08, e0 + (e0 - w0) * 0.08, n0 + (n0 - s0) * 0.08];
+        var nm = r.display_name.split(',')[0]; setAoi(b2, r.name && /^[\x00-\x7F]+$/.test(r.name) ? r.name : nm, nm, ''); box.innerHTML = ''; };
+    }).catch(function () { box.innerHTML = '<span class="xsmall muted">' + t('Search needs a connection.', 'البحث يحتاج اتصالاً.') + '</span>'; });
+  }
+  $('#tlGo').addEventListener('click', findPlace); $('#tlQ').addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); findPlace(); } });
   (function () { var s = null; try { s = JSON.parse(localStorage.getItem('shandal_tl_aoi') || 'null'); } catch (er) {} if (s && s.w != null) setAoi([s.w, s.s, s.e, s.n], s.en, s.ar, s.key); else { var p = PRE[0]; setAoi(p[3], p[1], p[2], p[0]); } })();
 
   /* ------------------------------------------------------------------ network */
@@ -38,24 +58,29 @@
     return sea === 'mam' ? [d(y, 3, 1), d(y, 5, 31)] : sea === 'jja' ? [d(y, 6, 1), d(y, 8, 31)] : sea === 'son' ? [d(y, 9, 1), d(y, 11, 30)] : sea === 'djf' ? [d(y - 1, 12, 1), d(y, 2, last(y, 2))] : [d(y, 1, 1), d(y, 12, 31)]; }
   function inPoly(x, y, ring) { var c = false; for (var i = 0, j = ring.length - 1; i < ring.length; j = i++) { var xi = ring[i][0], yi = ring[i][1], xj = ring[j][0], yj = ring[j][1]; if (((yi > y) !== (yj > y)) && (x < (xj - xi) * (y - yi) / (yj - yi) + xi)) c = !c; } return c; }
   function covers(g) { var rings = g.type === 'Polygon' ? [g.coordinates[0]] : g.type === 'MultiPolygon' ? g.coordinates.map(function (p) { return p[0]; }) : []; var pts = [[aoi.w, aoi.s], [aoi.e, aoi.s], [aoi.e, aoi.n], [aoi.w, aoi.n], [(aoi.w + aoi.e) / 2, (aoi.s + aoi.n) / 2]]; return pts.filter(function (p) { return rings.some(function (r) { return inPoly(p[0], p[1], r); }); }).length; }
-  var SAT = { 'landsat-4': 'Landsat 4 TM', 'landsat-5': 'Landsat 5 TM', 'landsat-7': 'Landsat 7 ETM+', 'landsat-8': 'Landsat 8 OLI', 'landsat-9': 'Landsat 9 OLI-2' };
-  function search(y, sea, cl) {
-    var r = range(y, sea), poly = { type: 'Polygon', coordinates: [[[aoi.w, aoi.s], [aoi.e, aoi.s], [aoi.e, aoi.n], [aoi.w, aoi.n], [aoi.w, aoi.s]]] };
-    return ff(PC + 'stac/v1/search', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ collections: [COL], intersects: poly, datetime: r[0] + 'T00:00:00Z/' + r[1] + 'T23:59:59Z', query: { 'eo:cloud_cover': { lt: cl } }, limit: 100 }) }).then(function (x) { return x.json(); }).then(function (j) {
-      var it = (j.features || []).filter(function (f) { return SAT[f.properties.platform]; }).map(function (f) { var p = f.properties, slc = p.platform === 'landsat-7' && p.datetime >= '2003-05-31', cv = covers(f.geometry); return { id: f.id, date: p.datetime.slice(0, 10), plat: p.platform, cloud: p['eo:cloud_cover'], slc: slc, cv: cv, score: (p['eo:cloud_cover'] || 0) + (slc ? 60 : 0) + (5 - cv) * 40 }; });
+  var SAT = { 'landsat-4': 'Landsat 4 TM', 'landsat-5': 'Landsat 5 TM', 'landsat-7': 'Landsat 7 ETM+', 'landsat-8': 'Landsat 8 OLI', 'landsat-9': 'Landsat 9 OLI-2' }, MSSN = { 'landsat-1': 'Landsat 1 MSS', 'landsat-2': 'Landsat 2 MSS', 'landsat-3': 'Landsat 3 MSS', 'landsat-4': 'Landsat 4 MSS', 'landsat-5': 'Landsat 5 MSS' }, COL1 = 'landsat-c2-l1';
+  function search(y, sea, cl, mss) {
+    var r = range(y, sea), poly = { type: 'Polygon', coordinates: [[[aoi.w, aoi.s], [aoi.e, aoi.s], [aoi.e, aoi.n], [aoi.w, aoi.n], [aoi.w, aoi.s]]] }, NM = mss ? MSSN : SAT;
+    return ff(PC + 'stac/v1/search', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ collections: [mss ? COL1 : COL], intersects: poly, datetime: r[0] + 'T00:00:00Z/' + r[1] + 'T23:59:59Z', query: { 'eo:cloud_cover': { lt: cl } }, limit: 100 }) }).then(function (x) { return x.json(); }).then(function (j) {
+      var it = (j.features || []).filter(function (f) { return NM[f.properties.platform] && (!mss || !f.properties.instruments || f.properties.instruments.indexOf('mss') >= 0); }).map(function (f) { var p = f.properties, slc = p.platform === 'landsat-7' && p.datetime >= '2003-05-31', cv = covers(f.geometry); return { id: f.id, date: p.datetime.slice(0, 10), plat: p.platform, sat: NM[p.platform], mss: !!mss, col: mss ? COL1 : COL, cloud: p['eo:cloud_cover'], slc: slc, cv: cv, score: (p['eo:cloud_cover'] || 0) + (slc ? 60 : 0) + (5 - cv) * 40 }; });
       it.sort(function (a, b) { return a.score - b.score; }); return it[0] || null; });
   }
   function img(url) { return ff(url).then(function (r) { return r.blob(); }).then(function (b) { return createImageBitmap(b); }); }
-  function bboxUrl(id, q) { return PC + 'data/v1/item/bbox/' + [aoi.w, aoi.s, aoi.e, aoi.n].map(function (v) { return v.toFixed(5); }).join(',') + '.png?collection=' + COL + '&item=' + encodeURIComponent(id) + '&max_size=' + MS + q; }
+  function bboxUrl(id, q, col) { return PC + 'data/v1/item/bbox/' + [aoi.w, aoi.s, aoi.e, aoi.n].map(function (v) { return v.toFixed(5); }).join(',') + '.png?collection=' + (col || COL) + '&item=' + encodeURIComponent(id) + '&max_size=' + MS + q; }
   var Q_RGB = '&assets=red&assets=green&assets=blue&nodata=0&rescale=7300,19500&color_formula=' + encodeURIComponent('Gamma RGB 1.25 Saturation 1.2');
   var Q_IX = function (ex) { return '&expression=' + encodeURIComponent(ex) + '&asset_as_band=true&nodata=0&rescale=-1,1'; };
   var EX_W = '(green-swir16)/(green+swir16-' + K.toFixed(2) + ')', EX_V = '(nir08-red)/(nir08+red-' + K.toFixed(2) + ')';
+  /* MSS (Level-1 digital numbers, no blue or short-wave infrared band): water by NDWI (McFeeters 1996), vegetation by NDVI, colour approximated */
+  var M_RGB = '&expression=' + encodeURIComponent('red;0.7*green+0.3*nir08;green') + '&asset_as_band=true&nodata=0&rescale=0,255', M_W = '(green-nir08)/(green+nir08)', M_V = '(nir08-red)/(nir08+red)';
+  function stretch(c) { var g = c.getContext('2d'), d = g.getImageData(0, 0, c.width, c.height), D = d.data; for (var ch = 0; ch < 3; ch++) { var H = new Uint32Array(256), n = 0; for (var i = 0; i < D.length; i += 4) if (D[i + 3] > 127) { H[D[i + ch]]++; n++; } if (!n) return; var lo = 0, hi = 255, a = 0; for (var v = 0; v < 256; v++) { a += H[v]; if (a >= n * 0.02) { lo = v; break; } } a = 0; for (v = 255; v >= 0; v--) { a += H[v]; if (a >= n * 0.02) { hi = v; break; } } var k = 255 / Math.max(1, hi - lo); for (i = 0; i < D.length; i += 4) D[i + ch] = Math.max(0, Math.min(255, Math.pow((D[i + ch] - lo) * k / 255, 0.85) * 255)); } g.putImageData(d, 0, 0); }
   function pix(bm) { var c = document.createElement('canvas'); c.width = bm.width; c.height = bm.height; var g = c.getContext('2d'); g.drawImage(bm, 0, 0); return g.getImageData(0, 0, c.width, c.height); }
   function frame(y, sea, cl) {
-    return search(y, sea, cl).then(function (it) {
+    var useMss = y < 1982 || MSSONLY;
+    return search(y, sea, cl, useMss).then(function (it) { return it || (!useMss && y <= 2012 ? search(y, sea, cl, true) : null); }).then(function (it) {
       if (!it) return { y: y, none: true };
-      return Promise.all([img(bboxUrl(it.id, Q_RGB)), img(bboxUrl(it.id, Q_IX(EX_W))), img(bboxUrl(it.id, Q_IX(EX_V)))]).then(function (r) {
-        var rgb = document.createElement('canvas'); rgb.width = r[0].width; rgb.height = r[0].height; rgb.getContext('2d').drawImage(r[0], 0, 0);
+      var q = it.mss ? [M_RGB, Q_IX(M_W), Q_IX(M_V)] : [Q_RGB, Q_IX(EX_W), Q_IX(EX_V)];
+      return Promise.all(q.map(function (x) { return img(bboxUrl(it.id, x, it.col)); })).then(function (r) {
+        var rgb = document.createElement('canvas'); rgb.width = r[0].width; rgb.height = r[0].height; rgb.getContext('2d').drawImage(r[0], 0, 0); if (it.mss) stretch(rgb);
         var a = pix(r[1]), b = pix(r[2]), n = a.width * a.height, W = new Uint8Array(n), V = new Uint8Array(n), M = new Uint8Array(n);
         for (var i = 0; i < n; i++) { W[i] = a.data[4 * i]; M[i] = a.data[4 * i + 3] > 127 ? 1 : 0; V[i] = b.data[4 * i]; }
         return { y: y, it: it, rgb: rgb, W: W, V: V, M: M, w: a.width, h: a.height };
@@ -64,7 +89,7 @@
   }
   /* true ground area of each pixel row of the geographic (equal-angle) crop */
   function measure(f, tw, tv) {
-    if (!f.W) return; var rowA = [], dlon = (aoi.e - aoi.w) / f.w, dlat = (aoi.n - aoi.s) / f.h, cw = Math.round((tw + 1) / 2 * 255), cvv = Math.round((tv + 1) / 2 * 255), wa = 0, va = 0, valid = 0, tot = 0;
+    if (!f.W) return; if (f.it.mss) { tw = MSSW(); tv = MSSV(); } var rowA = [], dlon = (aoi.e - aoi.w) / f.w, dlat = (aoi.n - aoi.s) / f.h, cw = Math.round((tw + 1) / 2 * 255), cvv = Math.round((tv + 1) / 2 * 255), wa = 0, va = 0, valid = 0, tot = 0;
     for (var r = 0; r < f.h; r++) rowA.push(dlon * 111.32 * Math.cos(SH.rad(aoi.n - (r + 0.5) * dlat)) * dlat * 110.574);
     for (var i = 0; i < f.W.length; i++) { var A = rowA[Math.floor(i / f.w)]; tot += A; if (!f.M[i]) continue; valid += A; if (f.W[i] > cw) wa += A; else if (f.V[i] > cvv) va += A; }
     f.water = wa; f.veg = va; f.cov = tot ? valid / tot : 0; f.cw = cw; f.cv = cvv;
@@ -73,7 +98,7 @@
   /* ------------------------------------------------------------------ run */
   function run() {
     if (busy) return; if (!aoi) { SH.toast(t('Choose a place first.', 'اختر مكاناً أولاً.'), 'warn'); return; }
-    var y0 = Math.max(1984, Math.round(G.v('tlY0') || 1985)), y1 = Math.min(new Date().getUTCFullYear(), Math.round(G.v('tlY1') || 2025)), st = +$('#tlStep').value || 2, sea = $('#tlSea').value, cl = G.v('tlCl') || 20;
+    var y0 = Math.max(1972, Math.round(G.v('tlY0') || 1985)), y1 = Math.min(new Date().getUTCFullYear(), Math.round(G.v('tlY1') || 2025)), st = +$('#tlStep').value || 2, sea = $('#tlSea').value, cl = G.v('tlCl') || 20;
     if (y1 < y0) { var tmp = y0; y0 = y1; y1 = tmp; } var ys = []; for (var y = y0; y <= y1; y += st) ys.push(y); if (ys[ys.length - 1] !== y1) ys.push(y1);
     persist.save(); busy = true; stop(); var btn = $('#tlRun'); btn.disabled = true; frames = []; var done = 0, out = [], q = ys.slice();
     var msg = function () { $('#tlBar').style.width = (100 * done / ys.length) + '%'; $('#tlMsg').textContent = t('Satellite scenes: ', 'المشاهد الفضائية: ') + done + ' / ' + ys.length; };
@@ -90,6 +115,7 @@
     }).catch(function (e) { SH.toast(e.message, 'bad'); }).then(function () { busy = false; btn.disabled = false; });
   }
   $('#tlRun').addEventListener('click', run);
+  function MSSW() { var v = G.v('tlTwM'); return isNaN(v) ? 0.1 : v; } function MSSV() { var v = G.v('tlTvM'); return isNaN(v) ? 0.2 : v; }
   function remeasure() { var tw = G.v('tlTw'), tv = G.v('tlTv'); tw = isNaN(tw) ? 0 : tw; tv = isNaN(tv) ? 0.3 : tv; frames.forEach(function (f) { measure(f, tw, tv); }); }
   var good = function () { return frames.filter(function (f) { return f.cov >= 0.9; }); };
 
@@ -113,7 +139,7 @@
     o = o || {}; var Lt = layout(W, H, o.vid, o.foot), s = Lt.s;
     g.fillStyle = '#fff'; g.fillRect(0, 0, W, H); g.save(); g.translate(0, Lt.dy);
     txt(g, o.title || aoi.en, Lt.pad, 44 * s, 30 * s, 800);
-    txt(g, o.sub || (f.it.date + ' · ' + SAT[f.it.plat] + ' · surface reflectance, true colour' + ($('#tlOw').checked || $('#tlOv').checked ? ' with measured classes' : '')), Lt.pad, 74 * s, 17 * s, 500, MUT);
+    txt(g, o.sub || (f.it.date + ' · ' + f.it.sat + (f.it.mss ? ' · 60 m, colour approximated (no blue band)' : ' · surface reflectance, true colour') + ($('#tlOw').checked || $('#tlOv').checked ? ' with measured classes' : '')), Lt.pad, 74 * s, 17 * s, 500, MUT);
     if (o.base) g.drawImage(o.base, Lt.x, Lt.y, Lt.w, Lt.h); else { g.fillStyle = '#E9ECEF'; g.fillRect(Lt.x, Lt.y, Lt.w, Lt.h); g.globalAlpha = o.alpha == null ? 1 : o.alpha; g.drawImage(f.rgb, Lt.x, Lt.y, Lt.w, Lt.h); g.drawImage(overlay(f), Lt.x, Lt.y, Lt.w, Lt.h); g.globalAlpha = 1; }
     if (o.prev) { g.globalAlpha = 1 - o.mix; g.drawImage(o.prev.rgb, Lt.x, Lt.y, Lt.w, Lt.h); g.drawImage(overlay(o.prev), Lt.x, Lt.y, Lt.w, Lt.h); g.globalAlpha = 1; }
     /* neat line and graticule ticks */
@@ -130,7 +156,7 @@
     for (var i = 0; i < 4; i++) { g.fillStyle = i % 2 ? '#fff' : INK; g.fillRect(sx + i * sp / 4, sy, sp / 4, 8 * s); } g.strokeStyle = INK; g.lineWidth = s; g.strokeRect(sx, sy, sp, 8 * s);
     [0, 0.5, 1].forEach(function (k) { txt(g, F(len * k, len * k % 1 ? 1 : 0), sx + sp * k, sy - 5 * s, 12 * s, 600, INK, 'center'); }); txt(g, 'km', sx + sp + 10 * s, sy + 9 * s, 13 * s, 700);
     /* legend below the map */
-    var items = o.legend || [].concat($('#tlOw').checked ? [['Water (MNDWI > ' + F(G.v('tlTw') || 0, 2) + ')', 'rgba(0,150,255,.75)']] : []).concat($('#tlOv').checked ? [['Green vegetation (NDVI > ' + F(G.v('tlTv') || 0.3, 2) + ')', 'rgba(40,200,70,.7)']] : []);
+    var items = o.legend || [].concat($('#tlOw').checked ? [[(f && f.it && f.it.mss ? 'Water (NDWI > ' + F(MSSW(), 2) : 'Water (MNDWI > ' + F(G.v('tlTw') || 0, 2)) + ')', 'rgba(0,150,255,.75)']] : []).concat($('#tlOv').checked ? [['Green vegetation (NDVI > ' + F(f && f.it && f.it.mss ? MSSV() : G.v('tlTv') || 0.3, 2) + ')', 'rgba(40,200,70,.7)']] : []);
     var lx = Lt.x + Lt.w, ly = sy + 6 * s; g.textAlign = 'right'; items.slice().reverse().forEach(function (q) { g.font = '500 ' + 13 * s + 'px ' + PF; var tw = g.measureText(q[0]).width; txt(g, q[0], lx, ly + 3 * s, 13 * s, 500, INK, 'right'); g.fillStyle = q[1]; g.fillRect(lx - tw - 26 * s, ly - 9 * s, 18 * s, 13 * s); g.strokeStyle = INK; g.lineWidth = .8 * s; g.strokeRect(lx - tw - 26 * s, ly - 9 * s, 18 * s, 13 * s); lx -= tw + 46 * s; });
     if (o.stats !== false) txt(g, o.stats || ('Water ' + F(f.water, f.water < 10 ? 1 : 0) + ' km²  ·  Green vegetation ' + F(f.veg, f.veg < 10 ? 1 : 0) + ' km²  ·  Area ' + F(aoi.km2, 0) + ' km²' + (f.cov < 0.9 ? '  ·  scene covers ' + F(f.cov * 100, 0) + ' %' : '')), Lt.x, sy + 40 * s, 15 * s, 700, INK);
     if (o.vid) spark(g, Lt.x, sy + 58 * s, Lt.w, 70 * s, o.idx);
@@ -170,8 +196,8 @@
   }
   function chart() {
     var P = good(); if (!P.length) { $('#tlChart').innerHTML = ''; return; } var x0 = P[0].y, x1 = Math.max(P[P.length - 1].y, x0 + 1);
-    var mk = function (key, col, title) { var r = G.span(P.map(function (f) { return f[key]; }).concat([0]), { zero: true }); return G.panel({ W: 760, H: 230, m: { l: 72, r: 20, t: 26, b: 34 }, x: { lo: x0, hi: x1, plain: true, st: EG.step(x0, x1, 8) < 1 ? 1 : EG.step(x0, x1, 8) }, y: { lo: 0, hi: r.hi, title: title }, series: [{ pts: P.map(function (f) { return [f.y, f[key]]; }), col: col, w: 2.4, mark: 'o', r: 3.5, area: true, fillOp: .12 }], top: function (fx, fy) { return EG.tx(fx(x0) + 6, 18, key === 'water' ? 'Open water (MNDWI)' : 'Green vegetation (NDVI)', { fs: 12.5, fw: 800, fill: col }); } }); };
-    var s = '<rect width="760" height="540" fill="#fff"/><g>' + mk('water', '#2E6FBF', 'Area (km²)') + '</g><g transform="translate(0 240)">' + mk('veg', '#2E8B57', 'Area (km²)') + '</g>' + EG.tx(380, 500, 'Year', { anchor: 'middle', fw: 700, fs: 12.5 }) + EG.tx(72, 526, aoi.en + ' · ' + seasonEn() + ' scenes, Landsat 4–9 surface reflectance, 30 m · only scenes covering ≥ 90 % of the area', { fs: 11, fill: EG.MUT });
+    var mk = function (key, col, title) { var r = G.span(P.map(function (f) { return f[key]; }).concat([0]), { zero: true }); return G.panel({ W: 760, H: 230, m: { l: 72, r: 20, t: 26, b: 34 }, x: { lo: x0, hi: x1, plain: true, st: EG.step(x0, x1, 8) < 1 ? 1 : EG.step(x0, x1, 8) }, y: { lo: 0, hi: r.hi, title: title }, series: [{ pts: P.map(function (f) { return [f.y, f[key]]; }), col: col, w: 2.4, mark: 'o', r: 3.5, area: true, fillOp: .12 }], top: function (fx, fy) { return EG.tx(fx(x0) + 6, 18, key === 'water' ? 'Open water (MNDWI' + (P.some(function (f) { return f.it.mss; }) ? '; NDWI for MSS years' : '') + ')' : 'Green vegetation (NDVI)', { fs: 12.5, fw: 800, fill: col }); } }); };
+    var s = '<rect width="760" height="540" fill="#fff"/><g>' + mk('water', '#2E6FBF', 'Area (km²)') + '</g><g transform="translate(0 240)">' + mk('veg', '#2E8B57', 'Area (km²)') + '</g>' + EG.tx(380, 500, 'Year', { anchor: 'middle', fw: 700, fs: 12.5 }) + EG.tx(72, 526, aoi.en + ' · ' + seasonEn() + ' scenes · Landsat ' + (frames.some(function (f) { return f.it.mss; }) ? '1–9 (MSS 60 m before 1982, hollow points)' : '4–9 surface reflectance, 30 m') + ' · scenes covering ≥ 90 % of the area', { fs: 11, fill: EG.MUT });
     $('#tlChart').setAttribute('viewBox', '0 0 760 540'); $('#tlChart').innerHTML = s;
     $('#tlChartCap').textContent = t('Area of open water and of green vegetation measured on each year’s scene. Sudden drops show droughts, drainage or upstream dams; sudden rises show floods, new reservoirs or irrigation.', 'مساحة المياه المكشوفة والنبات الأخضر المقيسة على مشهد كل سنة. الانخفاضات المفاجئة تدل على الجفاف أو التجفيف أو السدود في أعالي الأنهار، والارتفاعات المفاجئة على الفيضانات أو الخزانات الجديدة أو الري.');
   }
@@ -186,7 +212,7 @@
       if (k < 0) continue; var ar = dlon * 111.32 * Math.cos(SH.rad(aoi.n - (Math.floor(i / a.w) + 0.5) * dlat)) * dlat * 110.574; A[k] += ar; base.data[o] = CH[k][1][0]; base.data[o + 1] = CH[k][1][1]; base.data[o + 2] = CH[k][1][2]; }
     g.putImageData(base, 0, 0);
     var cv = $('#tlChg'), legend = CH.map(function (q, k) { return [q[0] + ' ' + F(A[k], A[k] < 10 ? 1 : 0) + ' km²', 'rgb(' + q[1].join(',') + ')']; });
-    drawMap(cv.getContext('2d'), cv.width, cv.height, b, { foot: 210, base: c, title: aoi.en + ': change ' + a.y + ' → ' + b.y, sub: a.it.date + ' (' + SAT[a.it.plat] + ') compared with ' + b.it.date + ' (' + SAT[b.it.plat] + ')', legend: [], stats: 'Water lost ' + F(A[1], 1) + ' km² · new water ' + F(A[2], 1) + ' km² · vegetation lost ' + F(A[3], 1) + ' km² · new vegetation ' + F(A[4], 1) + ' km²' });
+    drawMap(cv.getContext('2d'), cv.width, cv.height, b, { foot: 210, base: c, title: aoi.en + ': change ' + a.y + ' → ' + b.y, sub: a.it.date + ' (' + a.it.sat + ') compared with ' + b.it.date + ' (' + b.it.sat + ')', legend: [], stats: 'Water lost ' + F(A[1], 1) + ' km² · new water ' + F(A[2], 1) + ' km² · vegetation lost ' + F(A[3], 1) + ' km² · new vegetation ' + F(A[4], 1) + ' km²' });
     var g2 = cv.getContext('2d'), Lt = layout(cv.width, cv.height, false, 210), s = Lt.s, ly = Lt.y + Lt.h + 120 * s; CH.forEach(function (q, k) { var x = Lt.x + (k % 3) * (Lt.w / 3), y = ly + Math.floor(k / 3) * 26 * s; g2.fillStyle = legend[k][1]; g2.fillRect(x, y - 12 * s, 18 * s, 14 * s); g2.strokeStyle = INK; g2.lineWidth = .8; g2.strokeRect(x, y - 12 * s, 18 * s, 14 * s); txt(g2, legend[k][0], x + 26 * s, y, 13 * s, 500); });
     chgCanvas = cv;
     $('#tlChgCap').textContent = t('Every pixel of the later year compared with the earlier one: red is water that disappeared, cyan is new water, orange is vegetation lost and green is new vegetation. Grey is unchanged ground.', 'كل بكسل في السنة اللاحقة مقارناً بالسابقة: الأحمر مياه اختفت، والسماوي مياه جديدة، والبرتقالي نبات فُقد، والأخضر نبات جديد. والرمادي أرض لم تتغير.') + ' ' + t('Water lost: ', 'المياه المفقودة: ') + F(A[1], 1) + t(' km²; new water: ', ' كم²؛ المياه الجديدة: ') + F(A[2], 1) + t(' km².', ' كم².');
@@ -194,16 +220,16 @@
   ['tlA', 'tlB'].forEach(function (id) { $('#' + id).addEventListener('change', change); });
   function table() {
     $('#tlTbl').innerHTML = '<thead><tr><th>' + t('Year', 'السنة') + '</th><th>' + t('Scene date', 'تاريخ المشهد') + '</th><th>' + t('Satellite', 'القمر') + '</th><th class="num">' + t('Cloud %', 'الغيوم %') + '</th><th class="num">' + t('Coverage %', 'التغطية %') + '</th><th class="num">' + t('Water km²', 'المياه كم²') + '</th><th class="num">' + t('Vegetation km²', 'النبات كم²') + '</th></tr></thead><tbody>' +
-      frames.map(function (f, i) { return '<tr data-go="' + i + '" style="cursor:pointer"><td><b>' + f.y + '</b></td><td class="ltr">' + f.it.date + '</td><td class="ltr">' + SAT[f.it.plat] + (f.it.slc ? ' <span class="badge warn">SLC-off</span>' : '') + '</td><td class="num">' + F(f.it.cloud, 0) + '</td><td class="num">' + F(f.cov * 100, 0) + '</td><td class="num">' + F(f.water, f.water < 10 ? 2 : 1) + '</td><td class="num">' + F(f.veg, 1) + '</td></tr>'; }).join('') + '</tbody>';
+      frames.map(function (f, i) { return '<tr data-go="' + i + '" style="cursor:pointer"><td><b>' + f.y + '</b></td><td class="ltr">' + f.it.date + '</td><td class="ltr">' + f.it.sat + (f.it.slc ? ' <span class="badge warn">SLC-off</span>' : '') + '</td><td class="num">' + F(f.it.cloud, 0) + '</td><td class="num">' + F(f.cov * 100, 0) + '</td><td class="num">' + F(f.water, f.water < 10 ? 2 : 1) + '</td><td class="num">' + F(f.veg, 1) + '</td></tr>'; }).join('') + '</tbody>';
   }
   $('#tlTbl').addEventListener('click', function (e) { var r = e.target.closest('[data-go]'); if (r) { stop(); show(+r.getAttribute('data-go')); } });
-  $('#tlCsv').addEventListener('click', function () { if (!frames.length) return; SH.csv('shandal-iraq-timelapse-' + (aoi.key || 'area') + '.csv', [['area', aoi.en], ['bbox_w_s_e_n', [aoi.w, aoi.s, aoi.e, aoi.n].join(' ')], ['season', seasonEn()], ['mndwi_threshold', G.v('tlTw')], ['ndvi_threshold', G.v('tlTv')], [], ['year', 'scene_id', 'date', 'satellite', 'cloud_pct', 'coverage_pct', 'water_km2', 'vegetation_km2']].concat(frames.map(function (f) { return [f.y, f.it.id, f.it.date, SAT[f.it.plat], F(f.it.cloud, 1), (f.cov * 100).toFixed(1), f.water.toFixed(3), f.veg.toFixed(3)]; }))); });
+  $('#tlCsv').addEventListener('click', function () { if (!frames.length) return; SH.csv('shandal-timelapse-' + (aoi.key || 'area') + '.csv', [['area', aoi.en], ['bbox_w_s_e_n', [aoi.w, aoi.s, aoi.e, aoi.n].join(' ')], ['season', seasonEn()], ['mndwi_threshold', G.v('tlTw')], ['ndvi_threshold', G.v('tlTv')], [], ['year', 'scene_id', 'date', 'satellite', 'sensor_resolution_m', 'cloud_pct', 'coverage_pct', 'water_km2', 'vegetation_km2']].concat(frames.map(function (f) { return [f.y, f.it.id, f.it.date, f.it.sat, f.it.mss ? 60 : 30, F(f.it.cloud, 1), (f.cov * 100).toFixed(1), f.water.toFixed(3), f.veg.toFixed(3)]; }))); });
 
   /* ------------------------------------------------------------------ playback */
   function stop() { if (playing) { clearInterval(playing); playing = null; } var b = $('#tlPlay'); if (b) { b.querySelector('.i-play').style.display = ''; b.querySelector('.i-pause').style.display = 'none'; } }
   $('#tlPlay').addEventListener('click', function () { if (!frames.length) return; if (playing) return stop(); this.querySelector('.i-play').style.display = 'none'; this.querySelector('.i-pause').style.display = ''; if (cur >= frames.length - 1) show(0); playing = setInterval(function () { if (cur >= frames.length - 1) return stop(); show(cur + 1); }, 900 * (+$('#tlSp').value || 1)); });
   $('#tlSl').addEventListener('input', function () { stop(); show(+this.value); });
-  ['tlTw', 'tlTv', 'tlOw', 'tlOv'].forEach(function (id) { $('#' + id).addEventListener('change', function () { persist.save(); if (!frames.length) return; remeasure(); render(); }); });
+  ['tlTw', 'tlTv', 'tlTwM', 'tlTvM', 'tlOw', 'tlOv'].forEach(function (id) { $('#' + id).addEventListener('change', function () { persist.save(); if (!frames.length) return; remeasure(); render(); }); });
   $$('[data-fr]').forEach(function (b) { b.addEventListener('click', function () { if (!frames.length) return; SH.exportCanvas($('#tlCv'), 'shandal-' + (aoi.key || 'area') + '-' + frames[cur].y, b.getAttribute('data-fr')); }); });
   $$('[data-ch]').forEach(function (b) { b.addEventListener('click', function () { if (!chgCanvas) return; SH.exportCanvas(chgCanvas, 'shandal-' + (aoi.key || 'area') + '-change-' + frames[+$('#tlA').value].y + '-' + frames[+$('#tlB').value].y, b.getAttribute('data-ch')); }); });
 
