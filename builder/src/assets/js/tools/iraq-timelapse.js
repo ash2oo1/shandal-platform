@@ -209,16 +209,13 @@
   function vidHeader(g, W, Lt) {
     var s = Lt.s, x = Lt.pad, y = 22 * s, L0 = 54 * s;
     if (EMBI) g.drawImage(EMBI, x, y, L0, L0);
-    txt(g, T('Shandal System', 'نظام شندل'), x + L0 + 12 * s, y + 25 * s, 21 * s, 800, INK, 'left');
-    txt(g, T('Geological Field Survey', 'للمسح الميداني الجيولوجي'), x + L0 + 12 * s, y + 48 * s, 14 * s, 600, '#8A6D1F', 'left');
-    g.fillStyle = '#B08A3E'; g.fillRect(x, y + L0 + 14 * s, W - 2 * x, 2 * s);
+    txt(g, T('Shandal System', 'نظام شندل'), W - x, y + L0 / 2 + 8 * s, 22 * s, 800, INK, 'right');
     var title = VL === 'ar' ? (aoi.ar || aoi.en) : aoi.en; txt(g, title, W / 2, Lt.head - 26 * s, (Lt.reel ? 34 : 32) * s, 800, INK, 'center');
   }
   function vidFooter(g, W, H, Lt) {
     var s = Lt.s, y = H - 22 * s, nm = VL === 'ar' ? ($('#tlNmAr').value.trim() || $('#tlNmEn').value.trim()) : ($('#tlNmEn').value.trim() || $('#tlNmAr').value.trim());
-    g.fillStyle = '#E3E7EA'; g.fillRect(Lt.pad, y - 26 * s, W - 2 * Lt.pad, 1.5 * s);
-    txt(g, T('© Shandal System · geologicalfieldsurvey.com', '© نظام شندل · geologicalfieldsurvey.com'), Lt.pad, y, 14 * s, 600, MUT, 'left');
-    if (nm) txt(g, (VL === 'ar' ? 'الجيولوجي ' : 'Geologist ') + nm, W - Lt.pad, y, 15 * s, 800, INK, 'right');
+    txt(g, 'geologicalfieldsurvey.com', Lt.pad, y, 14 * s, 600, MUT, 'left');
+    if (nm) txt(g, nm, W - Lt.pad, y, 15 * s, 800, INK, 'right');
   }
   function drawMap(g, W, H, f, o) {
     o = o || {}; var Lt = layout(W, H, o.vid, o.foot), s = Lt.s;
