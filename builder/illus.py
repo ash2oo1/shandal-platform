@@ -886,3 +886,29 @@ def ves(uid, label):
     return svg(''.join(o), uid, label)
 
 REG.update({'ves': ves})
+
+# ---------------------------------------------------------------- watershed (basin, ordered streams, outlet)
+def watershed(uid, label):
+    o = []
+    rnd = random.Random(11)
+    cx, cy, pts = 250, 150, []
+    for k in range(48):
+        a = 2 * math.pi * k / 48
+        r = 118 + 22 * math.sin(3 * a + .6) + 12 * math.sin(5 * a) + rnd.uniform(-5, 5)
+        pts.append((cx + 1.45 * r * math.cos(a), cy + 0.95 * r * math.sin(a)))
+    ox, oy = 250, 268
+    o.append('<path class="il-land" d="M' + 'L'.join(f'{f(x)} {f(y)}' for x, y in pts) + 'Z"/>')
+    for k in range(1, 5):
+        o.append('<path class="il-contour" d="M' + 'L'.join(f'{f(cx + (x - cx) * k / 5)} {f(cy + (y - cy) * k / 5 + 22 * (1 - k / 5))}' for x, y in pts) + 'Z"/>')
+    def br(x, y, ang, ln, order, depth):
+        x2, y2 = x + ln * math.cos(ang), y + ln * math.sin(ang)
+        o.append(f'<path class="il-river" style="stroke-width:{0.9 + order * 0.9}" d="M{f(x)} {f(y)}Q{f((x + x2) / 2 + rnd.uniform(-8, 8))} {f((y + y2) / 2 + rnd.uniform(-8, 8))} {f(x2)} {f(y2)}"/>')
+        if depth:
+            br(x2, y2, ang - 0.55 + rnd.uniform(-.15, .15), ln * 0.68, order - 1 if order > 1 else 1, depth - 1)
+            br(x2, y2, ang + 0.55 + rnd.uniform(-.15, .15), ln * 0.68, order - 1 if order > 1 else 1, depth - 1)
+    br(ox, oy, -math.pi / 2, 62, 3, 3)
+    o.append(f'<g class="il-pin"><circle class="il-pinhalo" cx="{ox}" cy="{oy}" r="13"/><circle cx="{ox}" cy="{oy}" r="6"/></g><text class="il-small il-pinlabel" x="{ox + 14}" y="{oy + 18}">Outlet</text>')
+    o.append('<g class="il-chip" transform="translate(338 236)"><rect width="128" height="50" rx="8"/><text x="12" y="20" class="il-small">Area · order</text><text x="12" y="40" class="il-value">248 km² · 4</text></g>')
+    return svg(''.join(o), uid, label)
+
+REG.update({'watershed': watershed})

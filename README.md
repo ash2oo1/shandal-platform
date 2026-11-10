@@ -12,7 +12,7 @@
 
 جاء نظام شندل ليجمع هذا العمل في أداة محمولة واحدة، من القراءة الأولى حتى التقرير النهائي، دون مغادرة الموقع. والاسم يعبّر عن جوهره: «المسح» لجمع البيانات المكانية بدقة، و«الميداني» لأنه يرافق الجيولوجي حيث يعمل.
 
-يضم النظام اليوم 50 أداة في الجيولوجيا والتضاريس والتحسس النائي والجيوفيزياء والهندسة والمياه والبيئة والمخاطر الطبيعية والمختبرات البترولية، تعمل في المتصفح على الهاتف والجهاز اللوحي والحاسوب دون تثبيت، وتصدر خرائط مُخرجة وتقارير PDF.
+يضم النظام اليوم 51 أداة في الجيولوجيا والتضاريس والتحسس النائي والجيوفيزياء والهندسة والمياه والبيئة والمخاطر الطبيعية والمختبرات البترولية، تعمل في المتصفح على الهاتف والجهاز اللوحي والحاسوب دون تثبيت، وتصدر خرائط مُخرجة وتقارير PDF.
 
 - **المؤسس والمصمم:** الجيولوجي علي شندل الجنابي، متخصص في التحسس النائي والجيوفيزياء، بغداد، العراق.
 - **التأسيس:** 2025 · **الإطلاق الرسمي:** 5 نيسان 2026.
@@ -74,6 +74,7 @@
 **المياه والأنهار**
 - [مختبر هيدروكيمياء المياه](https://geologicalfieldsurvey.com/ar/tools/water-lab/) — التوازن الأيوني ونوع المياه وصلاحيتها للشرب والري لأي عدد من العينات.
 - [الإنذار الهيدرولوجي المبكر](https://geologicalfieldsurvey.com/ar/tools/hydro-alert/) — أمطار ساعية تُختبر مقابل عتبات الانزلاق، الآن وللأسبوع القادم.
+- [مختبر الأحواض المائية والتحليل المورفومتري](https://geologicalfieldsurvey.com/ar/tools/watershed-lab/) — انقر مصب أي وادٍ: حدود الحوض والمجاري بمراتبها والتحليل المورفومتري الكامل وفيضان التصميم.
 - [مناطق احتمالية المياه الجوفية](https://geologicalfieldsurvey.com/ar/tools/potential-zones/) — عشر طبقات أدلة موزونة بطريقة التحليل الهرمي، ومتحقق منها بآبارك.
 
 **الغلاف الجوي وجودة الهواء**
@@ -100,7 +101,7 @@ For decades, field geology meant scattered tools: readings taken by hand, long c
 
 The Shandal System brings that work into one portable tool, from the first reading to the final report, without leaving the site. The name says what it does: survey, to collect spatial data precisely; field, because it goes where the geologist goes.
 
-The system now has 50 tools for geology, terrain, remote sensing, geophysics, engineering, water, environment, natural hazards and petroleum laboratories. They run in the browser on phones, tablets and computers with nothing to install, and export finished map sheets and PDF reports.
+The system now has 51 tools for geology, terrain, remote sensing, geophysics, engineering, water, environment, natural hazards and petroleum laboratories. They run in the browser on phones, tablets and computers with nothing to install, and export finished map sheets and PDF reports.
 
 - **Founder and designer:** Ali Shandal Al-Janabi, Iraqi geologist (remote sensing and geophysics), Baghdad, Iraq.
 - **Founded:** 2025 · **Official launch:** 5 April 2026.
@@ -162,6 +163,7 @@ The system now has 50 tools for geology, terrain, remote sensing, geophysics, en
 **Water & rivers**
 - [Hydrochemistry Water Lab](https://geologicalfieldsurvey.com/tools/water-lab/) — Ionic balance, water type, drinking and irrigation quality for any number of samples.
 - [Hydrological Early Warning](https://geologicalfieldsurvey.com/tools/hydro-alert/) — Hourly rainfall tested against landslide thresholds, now and for the week ahead.
+- [Watershed and Morphometry Lab](https://geologicalfieldsurvey.com/tools/watershed-lab/) — Tap a valley outlet: basin boundary, ordered streams, full morphometry and the design flood.
 - [Groundwater Potential Zones](https://geologicalfieldsurvey.com/tools/potential-zones/) — Ten evidence layers weighed by the analytic hierarchy process, checked against your wells.
 
 **Atmosphere & air quality**

@@ -1,0 +1,82 @@
+{% extends "app_base.html" %}
+{% import "apps/_m.html" as m with context %}
+{% block apphead %}
+<style>
+#wsMap{height:340px}
+.ws-prog{height:8px;border-radius:99px;background:var(--surface-2);overflow:hidden;border:1px solid var(--line)}
+.ws-prog i{display:block;height:100%;width:0;background:linear-gradient(90deg,#2E6FBF,#2E8B57);transition:width .3s}
+.ws-btns{display:flex;gap:6px;flex-wrap:wrap}
+.ws-cl{color:var(--text-3);font-size:.78rem}
+</style>
+{% endblock %}
+{% block ws %}
+<div class="ws-wrap">
+<div class="ws wide-side">
+  <aside class="ws-side">
+    {{ m.panel_open(1, 'Outlet of the valley', 'مصب الوادي') }}
+      <p class="xsmall muted" style="margin:0">{{ m.L('Tap the map on the valley where the basin should end: a bridge, a culvert, a dam site or the junction with a river.', 'انقر الخريطة على الوادي حيث ينتهي الحوض: جسر أو عبّارة أو موقع سد أو ملتقى مع نهر.') }}</p>
+      <div class="map" id="wsMap" data-rp-skip></div>
+      <div class="row3">
+        {{ m.fld('wsLat', 'Latitude', 'دائرة العرض', 'number', '', '°', '', '', '', 'any', '', 'ltr') }}
+        {{ m.fld('wsLon', 'Longitude', 'خط الطول', 'number', '', '°', '', '', '', 'any', '', 'ltr') }}
+        {{ m.fld('wsSnap', 'Move to stream within', 'انقل إلى مجرى ضمن', 'number', '300', 'm', 'The outlet is moved to the cell with the largest drainage area within this distance, so a tap beside the channel still finds it. Set 0 to keep the exact point.', 'تُنقل نقطة المصب إلى الخلية ذات أكبر مساحة تصريف ضمن هذه المسافة، فتجد النقرة القريبة من المجرى مكانها الصحيح. ضع 0 لإبقاء النقطة كما هي.', '', '10', 'min="0" max="3000"') }}
+      </div>
+      <div class="ws-btns"><button class="btn btn-line btn-sm" id="wsGps" type="button">{{ icon('locate-fixed', 'ico ico-sm') }}{{ m.L('My position', 'موقعي') }}</button></div>
+    {{ m.panel_close() }}
+    {{ m.panel_open(2, 'Elevation model and network', 'نموذج الارتفاع والشبكة') }}
+      <div class="row2">
+        {{ m.sel('wsSrc', 'Elevation model', 'نموذج الارتفاع', [('aws', 'SRTM composite (30 m)', 'نموذج SRTM المركّب (30 م)', true), ('cop30', 'Copernicus GLO-30 (30 m)', 'Copernicus GLO-30 (30 م)')], 'Copernicus is cleaner on low relief but is limited to an area of about three degrees; the analysis falls back to SRTM for larger basins.', 'نموذج كوبرنيكوس أنظف في التضاريس المنخفضة لكنه محدود بمساحة نحو ثلاث درجات؛ ويعود التحليل إلى SRTM للأحواض الأكبر.') }}
+        {{ m.sel('wsDet', 'Detail', 'التفصيل', [('0.45', 'Fast', 'سريع'), ('1', 'Standard', 'قياسي', true), ('2.2', 'Fine (computers)', 'دقيق (للحاسوب)')], 'Maximum number of grid cells, about 0.45, 1 or 2.2 million. Small basins are always analysed at full resolution.', 'أقصى عدد لخلايا الشبكة، نحو 0.45 أو 1 أو 2.2 مليون. وتُحلل الأحواض الصغيرة دائماً بالدقة الكاملة.') }}
+      </div>
+      {{ m.fld('wsThr', 'Stream threshold area', 'مساحة عتبة المجرى', 'number', '', 'km²', 'A cell becomes a stream when this area drains to it. Empty = automatic (0.2 % of the basin, at least 25 cells). Smaller values give more first-order streams and a higher drainage density.', 'تصبح الخلية مجرى حين تصرف إليها هذه المساحة. فارغ = تلقائي (0.2 % من الحوض، 25 خلية على الأقل). القيم الأصغر تعطي مجاري أكثر من المرتبة الأولى وكثافة تصريف أعلى.', '', 'any', 'min="0"') }}
+    {{ m.panel_close() }}
+    {{ m.panel_open(3, 'Design storm', 'العاصفة التصميمية') }}
+      <div class="row2">
+        {{ m.fld('wsP', 'Storm rainfall', 'مطر العاصفة', 'number', '40', 'mm', 'Rainfall depth of the design storm, ideally from a frequency analysis of the nearest station for the return period needed (for example 50 or 100 years).', 'عمق مطر العاصفة التصميمية، ويُفضل أخذه من التحليل التكراري لأقرب محطة لفترة الرجوع المطلوبة (مثلاً 50 أو 100 سنة).', '', '1', 'min="0"') }}
+        {{ m.fld('wsD', 'Storm duration', 'مدة العاصفة', 'number', '3', 'h', 'Flash floods in dry regions usually come from storms of one to six hours.', 'تأتي السيول الوامضة في المناطق الجافة عادة من عواصف بين ساعة وست ساعات.', '', '0.25', 'min="0.25" max="72"') }}
+      </div>
+      <div class="row2">
+        {{ m.sel('wsLc', 'Surface of the basin', 'سطح الحوض', [('88', 'Bare rock and desert pavement', 'صخر عارٍ وسطح صحراوي مرصوف'), ('84', 'Desert and sparse shrubs on thin soil', 'صحراء وشجيرات متفرقة على تربة رقيقة', true), ('79', 'Rangeland in poor condition', 'مراعٍ في حالة رديئة'), ('70', 'Rangeland and scrub in fair condition', 'مراعٍ وأحراش في حالة متوسطة'), ('60', 'Oak forest and good pasture (mountains)', 'غابات بلوط ومراعٍ جيدة (جبلية)'), ('78', 'Rain-fed farmland', 'أراضٍ زراعية ديمية'), ('92', 'Towns and paved areas', 'مدن ومساحات معبدة'), ('', 'My own curve number', 'رقم منحنى أحدده بنفسي')]) }}
+        {{ m.fld('wsCN', 'Curve number CN', 'رقم المنحنى CN', 'number', '84', '', 'From 30 (deep sand, forest) to 98 (paved). Values above are for soil of hydrologic group C–D in average wetness.', 'من 30 (رمل عميق، غابات) إلى 98 (معبد). والقيم أعلاه لتربة من المجموعة الهيدرولوجية C–D برطوبة متوسطة.', '', '1', 'min="30" max="98"') }}
+      </div>
+    {{ m.panel_close() }}
+    <button class="btn btn-gold btn-block" id="wsRun" type="button">{{ icon('scan-search', 'ico ico-sm') }}{{ m.L('Delineate the basin', 'حدّد الحوض') }}</button>
+    <section class="sec" data-rp-skip><div class="ws-prog"><i id="wsBar"></i></div><p class="xsmall muted" id="wsMsg" style="margin:6px 0 0"></p></section>
+  </aside>
+  <div class="ws-main">
+    <div id="wsEmpty" class="pn">{{ m.empty('git-fork', 'Any valley, one tap', 'أي وادٍ بنقرة واحدة', 'Tap the outlet of a valley on the map, or enter its coordinates, then press “Delineate the basin”. The system finds the whole area that drains to that point, its streams and their orders, measures its shape and relief, and estimates the flood of a design storm.', 'انقر مصب وادٍ على الخريطة أو أدخل إحداثياته، ثم اضغط «حدّد الحوض». يجد النظام كل المساحة التي تصرف إلى تلك النقطة ومجاريها ومراتبها، ويقيس شكلها وتضاريسها، ويقدّر فيضان العاصفة التصميمية.') }}</div>
+    <div id="wsOut" hidden style="display:grid;gap:18px">
+      <div class="kpis" id="wsKpis"></div>
+      <div id="wsVerd" style="display:grid;gap:10px"></div>
+      {{ m.fig_open('fws1', '1', 'Drainage basin map', 'خريطة الحوض المائي', '<span data-egfig="wsSvg"></span>') }}
+        <div class="fig-b" style="overflow:auto"><svg class="chart" id="wsSvg" viewBox="0 0 1120 800" role="img" style="min-width:640px;background:#fff"></svg></div>
+        <div class="fig-cap" id="wsCap"></div>
+      {{ m.fig_close() }}
+      <section class="pn"><div class="pn-h">{{ icon('table') }}<h2>{{ m.L('Morphometric parameters', 'المعاملات المورفومترية') }}</h2><div class="sp no-print"><button class="btn btn-line btn-xs" id="wsCsv" type="button">{{ icon('download', 'ico ico-sm') }}CSV</button></div></div><div class="pn-b flush tbl-wrap"><table class="tbl" id="wsPar"></table></div></section>
+      <section class="pn"><div class="pn-h">{{ icon('table') }}<h2>{{ m.L('Stream orders', 'مراتب المجاري') }}</h2></div><div class="pn-b flush tbl-wrap"><table class="tbl" id="wsOrd"></table></div></section>
+      {{ m.fig_open('fws2', '2', 'Horton’s laws of stream numbers and lengths', 'قانونا هورتن لأعداد المجاري وأطوالها', '<span data-egfig="wsHor"></span>') }}
+        <div class="fig-b"><svg class="chart" id="wsHor" viewBox="0 0 760 460" role="img"></svg></div>
+        <div class="fig-cap" id="wsHorCap"></div>
+      {{ m.fig_close() }}
+      {{ m.fig_open('fws3', '3', 'Hypsometric curve', 'المنحنى الهبسومتري', '<span data-egfig="wsHyp"></span>') }}
+        <div class="fig-b"><svg class="chart" id="wsHyp" viewBox="0 0 760 500" role="img"></svg></div>
+        <div class="fig-cap" id="wsHypCap"></div>
+      {{ m.fig_close() }}
+      {{ m.fig_open('fws4', '4', 'Longitudinal profile of the longest flow path', 'المقطع الطولي لأطول مسار للجريان', '<span data-egfig="wsPro"></span>') }}
+        <div class="fig-b"><svg class="chart" id="wsPro" viewBox="0 0 760 440" role="img"></svg></div>
+        <div class="fig-cap" id="wsProCap"></div>
+      {{ m.fig_close() }}
+      {{ m.fig_open('fws5', '5', 'Flood hydrograph of the design storm', 'الهيدروغراف الفيضاني للعاصفة التصميمية', '<span data-egfig="wsHyd"></span>') }}
+        <div class="fig-b"><svg class="chart" id="wsHyd" viewBox="0 0 760 460" role="img"></svg></div>
+        <div class="fig-cap" id="wsHydCap"></div>
+      {{ m.fig_close() }}
+      <section class="pn no-print"><div class="pn-h">{{ icon('download') }}<h2>{{ m.L('Export and continue', 'التصدير والمتابعة') }}</h2></div><div class="pn-b ws-btns">
+        <button class="btn btn-line btn-sm" id="wsGeo" type="button">GeoJSON</button><button class="btn btn-line btn-sm" id="wsKml" type="button">KML</button><button class="btn btn-line btn-sm" id="wsOrdCsv" type="button">{{ m.L('Stream orders CSV', 'المراتب CSV') }}</button>
+        <button class="btn btn-ink btn-sm" id="wsToHydro" type="button">{{ icon('cloud-rain', 'ico ico-sm') }}{{ m.L('Rain watch at the outlet', 'رصد المطر عند المصب') }}</button>
+        <button class="btn btn-ink btn-sm" id="wsToPz" type="button">{{ icon('droplets', 'ico ico-sm') }}{{ m.L('Groundwater zones of the basin', 'مناطق المياه الجوفية في الحوض') }}</button>
+      </div></section>
+    </div>
+  </div>
+</div>
+</div>
+{% endblock %}
