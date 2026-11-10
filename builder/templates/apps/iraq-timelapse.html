@@ -78,6 +78,7 @@
             <span class="xsmall muted" style="margin-inline-start:8px">{{ m.L('Film', 'الفيلم') }}</span>
             <select id="tlFmt" class="ltr" style="height:30px;border-radius:8px;border:1px solid var(--line-2);background:var(--surface-2);color:var(--text);font:inherit;font-size:.8rem"><option value="land">16:9</option><option value="reel">{{ m.L('9:16 reel', '9:16 ريلز') }}</option><option value="sq">1:1</option></select>
             <select id="tlSp" style="height:30px;border-radius:8px;border:1px solid var(--line-2);background:var(--surface-2);color:var(--text);font:inherit;font-size:.8rem"><option value="0.6">{{ m.L('fast', 'سريع') }}</option><option value="1" selected>{{ m.L('normal', 'عادي') }}</option><option value="1.6">{{ m.L('slow', 'بطيء') }}</option></select>
+            <select id="tlMode" style="height:30px;border-radius:8px;border:1px solid var(--line-2);background:var(--surface-2);color:var(--text);font:inherit;font-size:.8rem" aria-label="{{ m.L('Years in the film', 'السنوات في الفيلم') }}"><option value="full" selected>{{ m.L('Complete years only', 'السنوات الكاملة فقط') }}</option><option value="all">{{ m.L('Every year, even partial', 'كل السنوات حتى الناقصة') }}</option></select>
             <button class="btn btn-gold btn-xs" type="button" id="tlVid">{{ icon('film', 'ico ico-sm') }}{{ m.L('Download video', 'نزّل الفيديو') }}</button>
           </div>
         </div>
