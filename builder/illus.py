@@ -1011,3 +1011,17 @@ def outcropsketch(uid, label):
     return svg(''.join(o), uid, label)
 
 REG.update({'outcropsketch': outcropsketch})
+
+
+def floodradar(uid, label):
+    o = ['<rect x="20" y="20" width="300" height="260" rx="10" fill="#3A3F45"/>']
+    import random as _r
+    _r.seed(7)
+    o.append(''.join('<rect x="%d" y="%d" width="10" height="10" fill="#%02x%02x%02x"/>' % (20 + i * 10, 20 + j * 10, v, v, v) for i in range(30) for j in range(26) for v in [_r.randint(70, 170)]))
+    o.append('<path d="M20 170C80 150 120 190 180 160S280 130 320 150V200C260 190 220 230 160 215S60 200 20 220Z" fill="#FF3B30" fill-opacity=".85"/><path d="M20 190C90 180 130 200 190 185S290 170 320 178V190C280 186 230 205 180 200S80 205 20 205Z" fill="#1F4E9C"/>')
+    o.append('<g fill="#fff" opacity=".9"><ellipse cx="90" cy="60" rx="50" ry="20"/><ellipse cx="240" cy="80" rx="60" ry="22"/></g>')
+    o.append('<g class="il-chip" transform="translate(340 60)"><rect width="140" height="50" rx="8"/><text x="12" y="20" class="il-small">Flooded</text><text x="12" y="40" class="il-value">184 km²</text></g>')
+    o.append('<g class="il-chip" transform="translate(340 124)"><rect width="140" height="50" rx="8"/><text x="12" y="20" class="il-small">Water below</text><text x="12" y="40" class="il-value">−18.4 dB</text></g>')
+    return svg(''.join(o), uid, label)
+
+REG.update({'floodradar': floodradar})

@@ -497,7 +497,7 @@ ORDER = ['unit-converter', 'iraq-time-machine', 'iraq-timelapse', 'site-report',
          'water-lab', 'hydro-alert', 'watershed-lab', 'potential-zones',
          'air-quality',
          'env-monitoring',
-         'hazards-monitor', 'landslide-susceptibility', 'volcanoes',
+         'hazards-monitor', 'flood-radar', 'landslide-susceptibility', 'volcanoes',
          'kerogen-lab', 'palynofacies-lab']
 _all = {t['slug']: t for t in TOOLS + NEW_TOOLS}
 TOOLS = [_all[k] for k in ORDER]

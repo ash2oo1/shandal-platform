@@ -1,0 +1,78 @@
+{% extends "app_base.html" %}
+{% import "apps/_m.html" as m with context %}
+{% block apphead %}
+<style>
+#frMap{height:300px}
+.eo-chips{display:flex;gap:6px;flex-wrap:wrap}
+.eo-chips button{appearance:none;border:1px solid var(--line-2);background:var(--surface-2);color:var(--text);font:inherit;font-size:.8rem;padding:5px 10px;border-radius:999px;cursor:pointer}
+.eo-chips button[aria-pressed=true]{border-color:#B08A3E;background:color-mix(in srgb,#B08A3E 16%,var(--surface))}
+.eo-in{height:38px;border:1px solid var(--line-2);border-radius:10px;padding:0 10px;background:var(--bg);color:var(--text);font:inherit;width:100%}
+.eo-view{background:#fff;border-radius:12px;overflow:hidden;border:1px solid var(--line)}
+.eo-view canvas{width:100%;height:auto;display:block}
+.eo-two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media (max-width:760px){.eo-two{grid-template-columns:1fr}}
+.eo-prog{height:8px;border-radius:99px;background:var(--surface-2);overflow:hidden;border:1px solid var(--line)}
+.eo-prog i{display:block;height:100%;width:0;background:linear-gradient(90deg,#2E6FBF,#33C2FF);transition:width .3s}
+.eo-dl{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:8px}
+</style>
+{% endblock %}
+{% block ws %}
+<div class="ws-wrap">
+<div class="ws wide-side">
+  <aside class="ws-side">
+    {{ m.panel_open(1, 'Place', 'المكان') }}
+      <div class="row2" style="grid-template-columns:minmax(0,1fr) auto;align-items:end"><div class="fg"><label for="frQ">{{ m.L('Search any place on Earth', 'ابحث عن أي مكان في العالم') }}</label><input id="frQ" class="eo-in" type="search" placeholder="{{ m.L('Amarah, Dadu, Valencia…', 'العمارة، دادو، فالنسيا…') }}"></div><button class="btn btn-ink btn-sm" id="frGo" type="button">{{ icon('search', 'ico ico-sm') }}{{ m.L('Find', 'ابحث') }}</button></div>
+      <div class="eo-chips" id="frRes"></div>
+      <div class="eo-chips" id="frPre"></div>
+      <div class="row2"><button class="btn btn-ink btn-sm" id="frDraw" type="button">{{ icon('square-dashed', 'ico ico-sm') }}{{ m.L('Draw your own area', 'ارسم منطقتك') }}</button><span class="xsmall muted" id="frAoi" style="align-self:center"></span></div>
+      <p class="xsmall muted" id="frHint" hidden style="margin:0">{{ m.L('Drag a rectangle on the map, or tap two opposite corners.', 'اسحب مستطيلاً على الخريطة، أو انقر ركنين متقابلين.') }}</p>
+      <div class="map" id="frMap" data-rp-skip></div>
+      {{ m.fld('frName', 'Place name on the maps', 'اسم المنطقة على الخرائط', 'text', '', '', '', '', '', 'any') }}
+    {{ m.panel_close() }}
+    {{ m.panel_open(2, 'The flood', 'الفيضان') }}
+      <div class="row2">
+        {{ m.fld('frDate', 'Date of the flood', 'تاريخ الفيضان', 'date', '', '', 'The radar image after the flood is the first one taken on or after this day.', 'صورة الرادار بعد الفيضان هي أول صورة مأخوذة في هذا اليوم أو بعده.', '', '', '', 'ltr') }}
+        {{ m.sel('frAfter', 'Look for the after image within', 'ابحث عن صورة ما بعد الفيضان خلال', [('6', '6 days', '6 أيام'), ('12', '12 days', '12 يوماً', true), ('24', '24 days', '24 يوماً')]) }}
+      </div>
+      <div class="row2">
+        {{ m.sel('frBefore', 'Reference before the flood', 'المرجع قبل الفيضان', [('45', '45 days before', '45 يوماً قبله'), ('90', '90 days before', '90 يوماً قبله', true), ('365', 'Same season, previous year', 'الموسم نفسه في السنة السابقة')], 'The dry reference is the average of up to three radar images from the same orbit before the flood.', 'المرجع الجاف هو متوسط حتى ثلاث صور رادار من المدار نفسه قبل الفيضان.') }}
+        {{ m.fld('frTh', 'Water below (dB)', 'ماء دون (ديسيبل)', 'number', '', 'dB', 'Leave empty for an automatic threshold from the image (minimum error). Calm open water is usually below −18 dB in VV.', 'اتركه فارغاً لحد تلقائي من الصورة (أقل خطأ). المياه الهادئة المكشوفة عادة دون −18 ديسيبل في VV.', 'auto', '0.5', 'min="-30" max="-8"') }}
+      </div>
+      <div class="chks" style="grid-template-columns:1fr">
+        <label class="chk"><input type="checkbox" id="frChg" checked> {{ m.L('New water must also darken by 3 dB or more', 'يجب أن تعتم المياه الجديدة 3 ديسيبل أو أكثر') }}</label>
+        <label class="chk"><input type="checkbox" id="frSlope" checked> {{ m.L('Leave out slopes steeper than 5° (radar shadow)', 'استبعد المنحدرات الأشد من 5° (ظل الرادار)') }}</label>
+        <label class="chk"><input type="checkbox" id="frSpk" checked> {{ m.L('Reduce speckle (3 × 3 median)', 'قلّل التبقّع (وسيط 3 × 3)') }}</label>
+      </div>
+    {{ m.panel_close() }}
+    <button class="btn btn-gold btn-block" id="frRun" type="button">{{ icon('radar', 'ico ico-sm') }}{{ m.L('Map the flood', 'خرّط الفيضان') }}</button>
+    <section class="sec" data-rp-skip><div class="eo-prog"><i id="frBar"></i></div><p class="xsmall muted" id="frMsg" style="margin:6px 0 0"></p></section>
+  </aside>
+  <div class="ws-main">
+    <div id="frEmpty" class="pn">{{ m.empty('radar', 'Floods seen through the clouds', 'الفيضان من خلال الغيوم', 'Choose a place and the day of the flood. The system takes the Sentinel-1 radar images from before and after, which see through cloud and at night, finds the water in both, and maps the area flooded, the permanent water and the water that went back, with their areas in km².', 'اختر مكاناً ويوم الفيضان. يأخذ النظام صور رادار سنتينل-1 قبل الفيضان وبعده، وهي ترى من خلال الغيوم وفي الليل، ويحدد المياه في كلتيهما، ويخرّط المساحة التي غمرها الفيضان والمياه الدائمة والمياه التي انحسرت، مع مساحاتها بالكيلومتر المربع.') }}</div>
+    <div id="frOut" hidden style="display:grid;gap:18px">
+      <div class="kpis" id="frKpis"></div>
+      <div id="frVerd" style="display:grid;gap:10px"></div>
+      {{ m.fig_open('ffr1', '1', 'Flood map', 'خريطة الفيضان') }}
+        <div class="fig-b"><div class="eo-view"><canvas id="frCv" width="1200" height="1000"></canvas></div>
+          <div class="eo-dl no-print"><button class="btn btn-line btn-xs" type="button" data-cv="frCv" data-fmt="png">PNG</button><button class="btn btn-line btn-xs" type="button" data-cv="frCv" data-fmt="jpg">JPG</button><button class="btn btn-line btn-xs" type="button" data-cv="frCv" data-fmt="pdf">PDF</button><button class="btn btn-line btn-xs" type="button" id="frGeo">GeoJSON</button><button class="btn btn-line btn-xs" type="button" id="frCsv">CSV</button></div></div>
+        <div class="fig-cap" id="frCap"></div>
+      {{ m.fig_close() }}
+      {{ m.fig_open('ffr2', '2', 'Radar before and after, and change', 'الرادار قبل الفيضان وبعده، والتغير') }}
+        <div class="fig-b"><div class="eo-view"><canvas id="frCv2" width="1200" height="1000"></canvas></div>
+          <div class="eo-dl no-print"><select id="frView" class="eo-in" style="height:30px;width:auto;font-size:.8rem"><option value="chg">{{ m.L('Change composite', 'التركيب اللوني للتغير') }}</option><option value="before">{{ m.L('Before', 'قبل') }}</option><option value="after">{{ m.L('After', 'بعد') }}</option></select><button class="btn btn-line btn-xs" type="button" data-cv="frCv2" data-fmt="png">PNG</button><button class="btn btn-line btn-xs" type="button" data-cv="frCv2" data-fmt="jpg">JPG</button><button class="btn btn-line btn-xs" type="button" data-cv="frCv2" data-fmt="pdf">PDF</button></div></div>
+        <div class="fig-cap" id="frCap2"></div>
+      {{ m.fig_close() }}
+      {{ m.fig_open('ffr3', '3', 'Radar backscatter and the water threshold', 'الإشارة الراجعة وحد الماء', '<span data-egfig="frHist"></span>') }}
+        <div class="fig-b"><svg class="chart" id="frHist" viewBox="0 0 760 380" role="img"></svg></div>
+        <div class="fig-cap" id="frHistCap"></div>
+      {{ m.fig_close() }}
+      {{ m.fig_open('ffr4', '4', 'Water through the weeks around the flood', 'المياه عبر الأسابيع حول الفيضان', '<span data-egfig="frTrack"></span>') }}
+        <div class="fig-b"><div class="eo-dl no-print" style="margin:0 0 8px"><button class="btn btn-line btn-sm" type="button" id="frTrackGo">{{ icon('activity', 'ico ico-sm') }}{{ m.L('Follow the flood (all radar passes, 30 days before to 45 after)', 'تتبّع الفيضان (كل مرور رادار، من 30 يوماً قبله إلى 45 بعده)') }}</button></div><svg class="chart" id="frTrack" viewBox="0 0 760 380" role="img"></svg></div>
+        <div class="fig-cap" id="frTrackCap"></div>
+      {{ m.fig_close() }}
+      <section class="pn"><div class="pn-h">{{ icon('table') }}<h2>{{ m.L('Radar scenes used', 'صور الرادار المستعملة') }}</h2></div><div class="pn-b flush tbl-wrap"><table class="tbl" id="frTbl"></table></div></section>
+    </div>
+  </div>
+</div>
+</div>
+{% endblock %}

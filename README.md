@@ -12,7 +12,7 @@
 
 جاء نظام شندل ليجمع هذا العمل في أداة محمولة واحدة، من القراءة الأولى حتى التقرير النهائي، دون مغادرة الموقع. والاسم يعبّر عن جوهره: «المسح» لجمع البيانات المكانية بدقة، و«الميداني» لأنه يرافق الجيولوجي حيث يعمل.
 
-يضم النظام اليوم 57 أداة في الجيولوجيا والتضاريس والتحسس النائي والجيوفيزياء والهندسة والمياه والبيئة والمخاطر الطبيعية والمختبرات البترولية، تعمل في المتصفح على الهاتف والجهاز اللوحي والحاسوب دون تثبيت، وتصدر خرائط مُخرجة وتقارير PDF.
+يضم النظام اليوم 58 أداة في الجيولوجيا والتضاريس والتحسس النائي والجيوفيزياء والهندسة والمياه والبيئة والمخاطر الطبيعية والمختبرات البترولية، تعمل في المتصفح على الهاتف والجهاز اللوحي والحاسوب دون تثبيت، وتصدر خرائط مُخرجة وتقارير PDF.
 
 - **المؤسس والمصمم:** الجيولوجي علي شندل الجنابي، متخصص في التحسس النائي والجيوفيزياء، بغداد، العراق.
 - **التأسيس:** 2025 · **الإطلاق الرسمي:** 5 نيسان 2026.
@@ -41,6 +41,7 @@
 - [رسم المنكشف والوصف الحقلي](https://geologicalfieldsurvey.com/ar/tools/outcrop-sketch/) — ارسم حدود الطبقات على صورة المنكشف بإصبعك، وصِف كل طبقة، واحصل على رسم مُعلَّم وعمود طباقي مقيس.
 - [آلة الزمن للعراق](https://geologicalfieldsurvey.com/ar/tools/iraq-time-machine/) — 540 مليون سنة: أين كان العراق على الكرة الأرضية وما الذي غطاه وأي صخور تركها.
 - [الأرض عبر الزمن: كل سنة منذ 1972](https://geologicalfieldsurvey.com/ar/tools/iraq-timelapse/) — كل سنة من صور لاندسات منذ 1972 فوق أي مكان في العالم: مقيسة ومقارنة ومعروضة فيلماً.
+- [رادار الفيضانات](https://geologicalfieldsurvey.com/ar/tools/flood-radar/) — رادار سنتينل-1 يرى من خلال الغيوم وفي الليل: خريطة الأرض المغمورة بعد أي فيضان منذ 2014 ومساحتها.
 - [محوّل الوحدات](https://geologicalfieldsurvey.com/ar/tools/unit-converter/) — كل وحدات العلوم والهندسة والحقل.
 
 **الهندسة والجيوتقنية**
@@ -108,7 +109,7 @@ For decades, field geology meant scattered tools: readings taken by hand, long c
 
 The Shandal System brings that work into one portable tool, from the first reading to the final report, without leaving the site. The name says what it does: survey, to collect spatial data precisely; field, because it goes where the geologist goes.
 
-The system now has 57 tools for geology, terrain, remote sensing, geophysics, engineering, water, environment, natural hazards and petroleum laboratories. They run in the browser on phones, tablets and computers with nothing to install, and export finished map sheets and PDF reports.
+The system now has 58 tools for geology, terrain, remote sensing, geophysics, engineering, water, environment, natural hazards and petroleum laboratories. They run in the browser on phones, tablets and computers with nothing to install, and export finished map sheets and PDF reports.
 
 - **Founder and designer:** Ali Shandal Al-Janabi, Iraqi geologist (remote sensing and geophysics), Baghdad, Iraq.
 - **Founded:** 2025 · **Official launch:** 5 April 2026.
@@ -137,6 +138,7 @@ The system now has 57 tools for geology, terrain, remote sensing, geophysics, en
 - [Outcrop Sketch and Field Description](https://geologicalfieldsurvey.com/tools/outcrop-sketch/) — Draw bed boundaries on a photo of the face with a finger, describe each bed, and get an annotated sketch and a measured section.
 - [Iraq Time Machine](https://geologicalfieldsurvey.com/tools/iraq-time-machine/) — 540 million years: where Iraq lay on the globe, what covered it and which rocks it left.
 - [Earth Through Time: Every Year Since 1972](https://geologicalfieldsurvey.com/tools/iraq-timelapse/) — Every year of Landsat since 1972 over any place on Earth: measured, compared and played as a film.
+- [Flood Radar](https://geologicalfieldsurvey.com/tools/flood-radar/) — Sentinel-1 radar sees through cloud and at night: map the land under new water after any flood since 2014, with its area.
 - [Unit Converter](https://geologicalfieldsurvey.com/tools/unit-converter/) — Every unit of science, engineering and the field.
 
 **Engineering & geotechnics**
