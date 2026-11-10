@@ -1,0 +1,92 @@
+{% extends "app_base.html" %}
+{% import "apps/_m.html" as m with context %}
+{% block apphead %}
+<style>
+.os-stage{position:relative;background:#F4EFE4;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.os-stage svg{display:block;width:100%;height:auto;user-select:none;-webkit-user-select:none}
+.os-stage.draw svg{touch-action:none;cursor:crosshair}
+.os-tools{display:grid;grid-template-columns:repeat(auto-fill,minmax(78px,1fr));gap:6px}
+.os-tools button{appearance:none;border:1px solid var(--line-2);background:var(--surface-2);color:var(--text);font:inherit;font-size:.74rem;font-weight:700;padding:7px 4px;border-radius:10px;cursor:pointer;display:grid;gap:3px;justify-items:center;line-height:1.25}
+.os-tools button svg{width:26px;height:20px}
+.os-tools button[aria-pressed=true]{border-color:#B08A3E;background:color-mix(in srgb,#B08A3E 18%,var(--surface))}
+.os-bar{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.os-beds{display:grid;gap:12px}
+.os-bed{border:1px solid var(--line);border-radius:12px;background:var(--surface-2);padding:10px 12px;display:grid;gap:8px}
+.os-bed h4{margin:0;display:flex;gap:8px;align-items:center;font-size:.95rem}
+.os-bed h4 i{display:inline-grid;place-items:center;width:26px;height:26px;border-radius:50%;background:#141C24;color:#fff;font-style:normal;font-size:.8rem}
+.os-g{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px}
+.os-g label{display:grid;gap:3px;font-size:.74rem;color:var(--text-3)}
+.os-g input,.os-g select,.os-bed textarea{height:34px;border:1px solid var(--line-2);border-radius:8px;padding:0 6px;background:var(--bg);color:var(--text);font:inherit;font-size:.84rem;min-width:0;width:100%}
+.os-g input[type=color]{padding:2px}
+.os-bed textarea{height:54px;padding:6px}
+.os-chips{display:flex;flex-wrap:wrap;gap:5px}
+.os-chips label{display:inline-flex;gap:4px;align-items:center;border:1px solid var(--line-2);border-radius:999px;padding:3px 9px;font-size:.76rem;cursor:pointer;background:var(--bg)}
+.os-chips input{accent-color:#B08A3E}
+.os-chips b{font-size:.72rem;color:var(--text-3);width:100%;font-weight:700}
+</style>
+{% endblock %}
+{% block ws %}
+<div class="ws-wrap">
+<div class="ws wide-side">
+  <aside class="ws-side">
+    {{ m.panel_open(1, 'The outcrop', 'المنكشف') }}
+      <div class="os-bar">
+        <label class="btn btn-gold btn-sm" style="cursor:pointer">{{ icon('image', 'ico ico-sm') }}{{ m.L('Photo of the outcrop', 'صورة المنكشف') }}<input type="file" id="osPhoto" accept="image/*" capture="environment" hidden></label>
+        <button class="btn btn-line btn-sm" id="osBlank" type="button">{{ icon('pencil', 'ico ico-sm') }}{{ m.L('Blank sheet', 'ورقة فارغة') }}</button>
+      </div>
+      <p class="xsmall muted" style="margin:0">{{ m.L('Take the photo square to the face, from a distance where the whole section fits, with a hammer, a staff or a person in the picture for scale.', 'التقط الصورة مواجهاً للواجهة، من مسافة يظهر فيها المقطع كله، مع مطرقة أو مسطرة أو شخص في الصورة كمقياس.') }}</p>
+      <div class="row2">
+        {{ m.fld('osTitle', 'Station or outcrop name', 'اسم المحطة أو المنكشف', 'text', '', '', '', '', '', 'any') }}
+        {{ m.fld('osFace', 'Looking toward', 'اتجاه النظر', 'number', '', '°', 'Direction you face when looking at the outcrop, from the compass of the field station.', 'الاتجاه الذي تنظر إليه نحو المنكشف، من بوصلة المحطة الحقلية.', '045', '1', 'min="0" max="360"') }}
+      </div>
+      <div class="row2">
+        {{ m.fld('osPlace', 'Position', 'الموقع', 'text', '', '', '', '', '35.5571, 45.4351', 'any', '', 'ltr') }}
+        <div class="fld" style="align-self:end"><button class="btn btn-line btn-sm btn-block" id="osGps" type="button">{{ icon('locate-fixed', 'ico ico-sm') }}{{ m.L('My position', 'موقعي') }}</button></div>
+      </div>
+    {{ m.panel_close() }}
+    {{ m.panel_open(2, 'Save and share', 'الحفظ والمشاركة') }}
+      <div class="os-bar">
+        <button class="btn btn-line btn-xs" id="osCsv" type="button">{{ m.L('Beds (CSV)', 'الطبقات (CSV)') }}</button>
+        <button class="btn btn-line btn-xs" id="osJson" type="button">{{ icon('save', 'ico ico-sm') }}{{ m.L('Project file', 'ملف المشروع') }}</button>
+        <label class="btn btn-line btn-xs" style="cursor:pointer">{{ icon('file-up', 'ico ico-sm') }}{{ m.L('Open project', 'افتح مشروعاً') }}<input type="file" id="osOpen" accept=".json,application/json" hidden></label>
+      </div>
+      <p class="xsmall muted" style="margin:0">{{ m.L('The sketch is kept on this device as you work.', 'يُحفظ الرسم على هذا الجهاز أثناء العمل.') }}</p>
+    {{ m.panel_close() }}
+  </aside>
+  <div class="ws-main">
+    <section class="pn" data-rp-skip><div class="pn-h">{{ icon('pencil') }}<h2>{{ m.L('Sketch', 'الرسم') }}</h2></div><div class="pn-b" style="display:grid;gap:10px">
+      <div class="os-tools" id="osTools">
+        <button type="button" data-t="b" aria-pressed="true"><svg viewBox="0 0 26 20"><path d="M1 13C7 9 13 14 25 7" stroke="#141C24" stroke-width="2.4" fill="none"/></svg>{{ m.L('Bed boundary', 'حد طبقة') }}</button>
+        <button type="button" data-t="fault"><svg viewBox="0 0 26 20"><path d="M6 19L20 1" stroke="#C0392B" stroke-width="2.4"/><path d="M9 9l4-1M15 13l4-1" stroke="#C0392B" stroke-width="1.6"/></svg>{{ m.L('Fault', 'فالق') }}</button>
+        <button type="button" data-t="joint"><svg viewBox="0 0 26 20"><path d="M8 19L12 1M16 19L20 1" stroke="#2E6FBF" stroke-width="1.8" stroke-dasharray="3 2"/></svg>{{ m.L('Joint', 'فاصل') }}</button>
+        <button type="button" data-t="vein"><svg viewBox="0 0 26 20"><path d="M2 16L8 6L13 14L19 4L24 12" stroke="#E0E0E0" stroke-width="3.4" fill="none"/><path d="M2 16L8 6L13 14L19 4L24 12" stroke="#8A6D1F" stroke-width="1" fill="none"/></svg>{{ m.L('Vein', 'عرق') }}</button>
+        <button type="button" data-t="fossil"><svg viewBox="0 0 26 20"><path d="M13 3a8 8 0 1 0 8 8c0-3-2-5-5-5s-4 2-4 4" stroke="#2E8B57" stroke-width="2" fill="none"/></svg>{{ m.L('Fossil', 'متحجرة') }}</button>
+        <button type="button" data-t="sample"><svg viewBox="0 0 26 20"><rect x="7" y="4" width="12" height="12" fill="#7A4F9A"/></svg>{{ m.L('Sample', 'عينة') }}</button>
+        <button type="button" data-t="dip"><svg viewBox="0 0 26 20"><path d="M3 10h20M13 10v7" stroke="#141C24" stroke-width="2.2"/></svg>{{ m.L('Dip / note', 'ميل أو ملاحظة') }}</button>
+        <button type="button" data-t="scale"><svg viewBox="0 0 26 20"><path d="M2 10h22M2 6v8M24 6v8" stroke="#B08A3E" stroke-width="2.2"/></svg>{{ m.L('Scale', 'المقياس') }}</button>
+        <button type="button" data-t="erase">{{ icon('eraser', 'ico ico-sm') }}{{ m.L('Erase', 'امسح') }}</button>
+        <button type="button" data-t="view">{{ icon('hand', 'ico ico-sm') }}{{ m.L('Scroll', 'تمرير') }}</button>
+        <button type="button" id="osUndo">{{ icon('undo-2', 'ico ico-sm') }}{{ m.L('Undo', 'تراجع') }}</button>
+        <button type="button" id="osClear">{{ icon('x', 'ico ico-sm') }}{{ m.L('Clear', 'امسح الكل') }}</button>
+      </div>
+      <p class="fs-hint xsmall" id="osHow" style="margin:0;line-height:1.7;color:var(--text-2);background:var(--surface-2);border-radius:10px;padding:8px 10px"></p>
+      <div class="row2">
+        {{ m.fld('osRef', 'Length of the scale line', 'طول خط المقياس', 'number', '1', 'm', 'Draw the scale line over something of known length (a 1 m staff, a 33 cm hammer, a 1.7 m person), then enter its length.', 'ارسم خط المقياس فوق شيء معروف الطول (مسطرة 1 م أو مطرقة 33 سم أو شخص 1.7 م)، ثم أدخل طوله.', '', '0.01', 'min="0.01"') }}
+        {{ m.fld('osTxt', 'Text for dip or note', 'نص الميل أو الملاحظة', 'text', '', '', 'Written where you tap with the dip or note tool, for example 225/30.', 'يُكتب حيث تنقر بأداة الميل أو الملاحظة، مثل 225/30.', '225/30', 'any', '', 'ltr') }}
+      </div>
+      <div class="os-stage draw" id="osStage"><svg id="osSvg" viewBox="0 0 1200 800" role="img" aria-label="{{ m.L('Outcrop sketch', 'رسم المنكشف') }}"></svg></div>
+      <p class="xsmall muted" id="osStat" style="margin:0"></p>
+    </div></section>
+    <section class="pn"><div class="pn-h">{{ icon('layers') }}<h2>{{ m.L('Bed descriptions', 'وصف الطبقات') }}</h2></div><div class="pn-b"><p class="xsmall muted" style="margin:0 0 10px">{{ m.L('Beds are numbered from the bottom (oldest) upward. Describe each one; the log and the sketch update as you type.', 'تُرقّم الطبقات من الأسفل (الأقدم) إلى الأعلى. صِف كل طبقة؛ ويتحدث العمود والرسم أثناء الكتابة.') }}</p><div class="os-beds" id="osBeds"></div></div></section>
+    {{ m.fig_open('fos1', '1', 'Annotated outcrop sketch', 'رسم المنكشف المُعلَّم', '<span data-egfig="osFig"></span>') }}
+      <div class="fig-b"><svg class="chart" id="osFig" viewBox="0 0 760 600" role="img"></svg></div>
+      <div class="fig-cap">{{ m.L('The outcrop with the bed boundaries, bed numbers, faults, joints, veins, fossils, samples and notes, the scale bar and the viewing direction.', 'المنكشف مع حدود الطبقات وأرقامها والفوالق والفواصل والعروق والمتحجرات والعينات والملاحظات، ومقياس الرسم واتجاه النظر.') }}</div>
+    {{ m.fig_close() }}
+    {{ m.fig_open('fos2', '2', 'Measured section (log) derived from the sketch', 'العمود الطباقي المشتق من الرسم', '<span data-egfig="osLog"></span>') }}
+      <div class="fig-b"><svg class="chart" id="osLog" viewBox="0 0 760 600" role="img"></svg></div>
+      <div class="fig-cap">{{ m.L('Beds drawn to their thickness, with the width showing the grain size, the pattern the lithology and the fill the colour described in the field.', 'الطبقات مرسومة بسمكها، ويبيّن العرض الحجم الحبيبي والنقش الصخارية والتعبئة اللون الموصوف في الحقل.') }}</div>
+    {{ m.fig_close() }}
+  </div>
+</div>
+</div>
+{% endblock %}

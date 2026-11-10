@@ -1000,3 +1000,14 @@ def fieldstation(uid, label):
     return svg(''.join(o), uid, label)
 
 REG.update({'fieldstation': fieldstation})
+
+
+def outcropsketch(uid, label):
+    o = ['<rect x="30" y="30" width="300" height="250" rx="10" fill="#D9CBAA"/>']
+    o.append('<path d="M30 110C110 95 200 120 330 98V30H30Z" fill="#E6E0C8"/><path d="M30 170C120 160 220 175 330 158V98C200 120 110 95 30 110Z" fill="#A9B39A"/><path d="M30 230C120 222 230 236 330 220V158C220 175 120 160 30 170Z" fill="#E8C98E"/><path d="M30 280H330V220C230 236 120 222 30 230Z" fill="#C8CFAE"/>')
+    o.append('<g fill="none" stroke="#141C24" stroke-width="3"><path d="M30 110C110 95 200 120 330 98"/><path d="M30 170C120 160 220 175 330 158"/><path d="M30 230C120 222 230 236 330 220"/></g><path d="M240 40L200 270" stroke="#C0392B" stroke-width="3.5"/>')
+    o.append(''.join('<circle cx="52" cy="%d" r="11" fill="#141C24"/><text x="52" y="%d" text-anchor="middle" class="il-small" style="fill:#fff;font-weight:800">%d</text>' % (y, y + 4, n) for y, n in ((70, 4), (138, 3), (198, 2), (254, 1))))
+    o.append('<g class="il-chip" transform="translate(350 50)"><rect width="130" height="230" rx="8"/>' + ''.join('<rect x="14" y="%d" width="%d" height="%d" fill="%s" stroke="#141C24"/>' % (y, w, h, c) for y, w, h, c in ((20, 70, 50, '#E6E0C8'), (70, 46, 60, '#A9B39A'), (130, 86, 50, '#E8C98E'), (180, 56, 36, '#C8CFAE'))) + '</g>')
+    return svg(''.join(o), uid, label)
+
+REG.update({'outcropsketch': outcropsketch})

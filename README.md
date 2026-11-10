@@ -12,7 +12,7 @@
 
 جاء نظام شندل ليجمع هذا العمل في أداة محمولة واحدة، من القراءة الأولى حتى التقرير النهائي، دون مغادرة الموقع. والاسم يعبّر عن جوهره: «المسح» لجمع البيانات المكانية بدقة، و«الميداني» لأنه يرافق الجيولوجي حيث يعمل.
 
-يضم النظام اليوم 56 أداة في الجيولوجيا والتضاريس والتحسس النائي والجيوفيزياء والهندسة والمياه والبيئة والمخاطر الطبيعية والمختبرات البترولية، تعمل في المتصفح على الهاتف والجهاز اللوحي والحاسوب دون تثبيت، وتصدر خرائط مُخرجة وتقارير PDF.
+يضم النظام اليوم 57 أداة في الجيولوجيا والتضاريس والتحسس النائي والجيوفيزياء والهندسة والمياه والبيئة والمخاطر الطبيعية والمختبرات البترولية، تعمل في المتصفح على الهاتف والجهاز اللوحي والحاسوب دون تثبيت، وتصدر خرائط مُخرجة وتقارير PDF.
 
 - **المؤسس والمصمم:** الجيولوجي علي شندل الجنابي، متخصص في التحسس النائي والجيوفيزياء، بغداد، العراق.
 - **التأسيس:** 2025 · **الإطلاق الرسمي:** 5 نيسان 2026.
@@ -37,6 +37,7 @@
 - [الرحلات الجيولوجية الحقلية](https://geologicalfieldsurvey.com/ar/tools/field-trips/) — رحلات جاهزة بمحطات متحقق منها: المنكشف والقياسات والمتحجرات والسلامة، وأولها بغداد–السليمانية.
 - [ماذا أمامي؟ الكاميرا الجيولوجية](https://geologicalfieldsurvey.com/ar/tools/geo-eye/) — وجّه الهاتف نحو الجبل فتُسمّى الوحدات على الصورة والفيديو، مع بطاقة الموقع والعمل دون شبكة.
 - [المحطة الحقلية](https://geologicalfieldsurvey.com/ar/tools/field-station/) — موقع دقيق وبوصلة ومقياس ميل بثلاث وضعيات، والطقس وتنبيه المطر، وأقرب طريق ونهر ونبع وقرية وقمة، والتكوين تحت قدميك وأقرب فالق.
+- [رسم المنكشف والوصف الحقلي](https://geologicalfieldsurvey.com/ar/tools/outcrop-sketch/) — ارسم حدود الطبقات على صورة المنكشف بإصبعك، وصِف كل طبقة، واحصل على رسم مُعلَّم وعمود طباقي مقيس.
 - [آلة الزمن للعراق](https://geologicalfieldsurvey.com/ar/tools/iraq-time-machine/) — 540 مليون سنة: أين كان العراق على الكرة الأرضية وما الذي غطاه وأي صخور تركها.
 - [العراق عبر 40 سنة](https://geologicalfieldsurvey.com/ar/tools/iraq-timelapse/) — أربعون سنة من صور لاندسات فوق أهوار العراق وبحيراته وأنهاره ومدنه: مقيسة ومقارنة ومعروضة فيلماً.
 - [محوّل الوحدات](https://geologicalfieldsurvey.com/ar/tools/unit-converter/) — كل وحدات العلوم والهندسة والحقل.
@@ -106,7 +107,7 @@ For decades, field geology meant scattered tools: readings taken by hand, long c
 
 The Shandal System brings that work into one portable tool, from the first reading to the final report, without leaving the site. The name says what it does: survey, to collect spatial data precisely; field, because it goes where the geologist goes.
 
-The system now has 56 tools for geology, terrain, remote sensing, geophysics, engineering, water, environment, natural hazards and petroleum laboratories. They run in the browser on phones, tablets and computers with nothing to install, and export finished map sheets and PDF reports.
+The system now has 57 tools for geology, terrain, remote sensing, geophysics, engineering, water, environment, natural hazards and petroleum laboratories. They run in the browser on phones, tablets and computers with nothing to install, and export finished map sheets and PDF reports.
 
 - **Founder and designer:** Ali Shandal Al-Janabi, Iraqi geologist (remote sensing and geophysics), Baghdad, Iraq.
 - **Founded:** 2025 · **Official launch:** 5 April 2026.
@@ -131,6 +132,7 @@ The system now has 56 tools for geology, terrain, remote sensing, geophysics, en
 - [Geological Field Trips](https://geologicalfieldsurvey.com/tools/field-trips/) — Ready excursions with verified stops: outcrops, measurements, fossils and safety; first trip Baghdad–Sulaymaniyah.
 - [What Is in Front of Me? Geology Camera](https://geologicalfieldsurvey.com/tools/geo-eye/) — Point the phone at a mountain: units named on the picture and video, location sheet, works offline.
 - [Field Station](https://geologicalfieldsurvey.com/tools/field-station/) — Precise position, compass and clinometer in three holds, weather and rain alert, nearest road, river, spring, village and peak, the formation underfoot and the nearest fault.
+- [Outcrop Sketch and Field Description](https://geologicalfieldsurvey.com/tools/outcrop-sketch/) — Draw bed boundaries on a photo of the face with a finger, describe each bed, and get an annotated sketch and a measured section.
 - [Iraq Time Machine](https://geologicalfieldsurvey.com/tools/iraq-time-machine/) — 540 million years: where Iraq lay on the globe, what covered it and which rocks it left.
 - [Iraq Through 40 Years](https://geologicalfieldsurvey.com/tools/iraq-timelapse/) — Forty years of Landsat over the marshes, the lakes, the rivers and the cities of Iraq: measured, compared and played as a film.
 - [Unit Converter](https://geologicalfieldsurvey.com/tools/unit-converter/) — Every unit of science, engineering and the field.
