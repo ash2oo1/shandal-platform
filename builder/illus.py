@@ -960,3 +960,17 @@ def resources(uid, label):
     return svg(''.join(o), uid, label)
 
 REG.update({'resources': resources})
+
+# ---------------------------------------------------------------- field trip (route with numbered stops over folded ridges)
+def fieldtrip(uid, label):
+    o = []
+    for k, (y, c) in enumerate([(70, '#E8D5A4'), (120, '#C9A86A'), (170, '#9FB98A'), (220, '#D98C6A')]):
+        o.append(f'<path d="M30 {y + 40}C140 {y - 10} 260 {y + 70} 470 {y}" fill="none" stroke="{c}" stroke-width="26" stroke-linecap="round" opacity=".75"/>')
+    pts = [(60, 270), (150, 215), (225, 175), (300, 140), (380, 95), (440, 60)]
+    o.append('<path d="M' + 'L'.join(f'{x} {y}' for x, y in pts) + '" fill="none" stroke="#1B232B" stroke-width="3" stroke-dasharray="8 6"/>')
+    for i, (x, y) in enumerate(pts):
+        o.append(f'<circle cx="{x}" cy="{y}" r="13" fill="#B08A3E" stroke="#fff" stroke-width="2.5"/><text x="{x}" y="{y + 4.5}" text-anchor="middle" class="il-small" style="fill:#141C24;font-weight:800">{i + 1}</text>')
+    o.append('<g class="il-chip" transform="translate(300 230)"><rect width="164" height="50" rx="8"/><text x="12" y="20" class="il-small">Next stop · bearing</text><text x="12" y="40" class="il-value">3.2 km · 047°</text></g>')
+    return svg(''.join(o), uid, label)
+
+REG.update({'fieldtrip': fieldtrip})
