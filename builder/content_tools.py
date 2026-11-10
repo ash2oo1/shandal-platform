@@ -494,7 +494,7 @@ ORDER = ['unit-converter', 'iraq-time-machine', 'iraq-timelapse', 'landcover-cha
          'spectral-indices', 'lineament-extraction', 'mineral-prospectivity', 'aster-minerals', 'archaeo-potential',
          'magnetic-lab', 'well-log-lab', 'geothermal-lab', 'ves-lab',
          'seismic-evaluation', 'seismic-hazard', 'soil-properties', 'bearing-capacity', 'pile-capacity', 'settlement', 'slope-stability', 'retaining-wall', 'liquefaction', 'mohr-circle', 'atterberg-limits', 'grain-size', 'soil-classification', 'compaction-cbr', 'surface-3d',
-         'water-lab', 'hydro-alert', 'watershed-lab', 'potential-zones',
+         'water-lab', 'hydro-alert', 'water-occurrence', 'watershed-lab', 'potential-zones',
          'air-quality',
          'env-monitoring',
          'hazards-monitor', 'flood-radar', 'landslide-susceptibility', 'volcanoes',

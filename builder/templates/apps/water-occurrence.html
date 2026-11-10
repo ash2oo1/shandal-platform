@@ -1,0 +1,54 @@
+{% extends "app_base.html" %}
+{% import "apps/_m.html" as m with context %}
+{% block apphead %}
+<style>
+#woMap{height:300px}
+.eo-chips{display:flex;gap:6px;flex-wrap:wrap}
+.eo-chips button{appearance:none;border:1px solid var(--line-2);background:var(--surface-2);color:var(--text);font:inherit;font-size:.8rem;padding:5px 10px;border-radius:999px;cursor:pointer}
+.eo-chips button[aria-pressed=true]{border-color:#B08A3E;background:color-mix(in srgb,#B08A3E 16%,var(--surface))}
+.eo-in{height:38px;border:1px solid var(--line-2);border-radius:10px;padding:0 10px;background:var(--bg);color:var(--text);font:inherit;width:100%}
+.eo-view{background:#fff;border-radius:12px;overflow:hidden;border:1px solid var(--line)}
+.eo-view canvas{width:100%;height:auto;display:block}
+.eo-two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media (max-width:760px){.eo-two{grid-template-columns:1fr}}
+.eo-prog{height:8px;border-radius:99px;background:var(--surface-2);overflow:hidden;border:1px solid var(--line)}
+.eo-prog i{display:block;height:100%;width:0;background:linear-gradient(90deg,#2E6FBF,#33C2FF);transition:width .3s}
+.eo-dl{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:8px}
+</style>
+{% endblock %}
+{% block ws %}
+<div class="ws-wrap">
+<div class="ws wide-side">
+  <aside class="ws-side">
+    {{ m.panel_open(1, 'Place', 'المكان') }}
+      <div class="row2" style="grid-template-columns:minmax(0,1fr) auto;align-items:end"><div class="fg"><label for="woQ">{{ m.L('Search any place on Earth', 'ابحث عن أي مكان في العالم') }}</label><input id="woQ" class="eo-in" type="search" placeholder="{{ m.L('Lake Sawa, Hammar Marsh, Aral Sea…', 'بحيرة ساوة، هور الحمّار، بحر آرال…') }}"></div><button class="btn btn-ink btn-sm" id="woGo" type="button">{{ icon('search', 'ico ico-sm') }}{{ m.L('Find', 'ابحث') }}</button></div>
+      <div class="eo-chips" id="woRes"></div>
+      <div class="eo-chips" id="woPre"></div>
+      <div class="row2"><button class="btn btn-ink btn-sm" id="woDraw" type="button">{{ icon('square-dashed', 'ico ico-sm') }}{{ m.L('Draw your own area', 'ارسم منطقتك') }}</button><span class="xsmall muted" id="woAoi" style="align-self:center"></span></div>
+      <p class="xsmall muted" id="woHint" hidden style="margin:0">{{ m.L('Drag a rectangle on the map, or tap two opposite corners.', 'اسحب مستطيلاً على الخريطة، أو انقر ركنين متقابلين.') }}</p>
+      <div class="map" id="woMap" data-rp-skip></div>
+      {{ m.fld('woName', 'Place name on the maps', 'اسم المنطقة على الخرائط', 'text', '', '', '', '', '', 'any') }}
+    {{ m.panel_close() }}
+    <button class="btn btn-gold btn-block" id="woRun" type="button">{{ icon('droplets', 'ico ico-sm') }}{{ m.L('Read 37 years of water', 'اقرأ 37 سنة من المياه') }}</button>
+    <section class="sec" data-rp-skip><div class="eo-prog"><i id="woBar"></i></div><p class="xsmall muted" id="woMsg" style="margin:6px 0 0"></p></section>
+    <button class="btn btn-line btn-sm btn-block" id="woTl" type="button">{{ icon('clapperboard', 'ico ico-sm') }}{{ m.L('Open this area in Earth Through Time', 'افتح هذه المنطقة في الأرض عبر الزمن') }}</button>
+  </aside>
+  <div class="ws-main">
+    <div id="woEmpty" class="pn">{{ m.empty('droplets', 'Every lake, river and marsh since 1984', 'كل بحيرة ونهر وهور منذ 1984', 'Choose a place. The system reads the global surface-water atlas, built from every Landsat image from March 1984 to 2020, and shows how often each pixel was water, where water became permanent, appeared, disappeared or turned seasonal, how water occurrence changed between the 1980s–90s and the 2000s–2010s, and how many months water was present in 2020.', 'اختر مكاناً. يقرأ النظام أطلس المياه السطحية العالمي المبني من كل صورة لاندسات من آذار 1984 إلى 2020، ويُظهر كم مرة كان كل بكسل ماءً، وأين صارت المياه دائمة أو ظهرت أو اختفت أو صارت موسمية، وكيف تغير تكرار المياه بين الثمانينيات والتسعينيات والعقدين التاليين، وكم شهراً وُجدت المياه سنة 2020.') }}</div>
+    <div id="woOut" hidden style="display:grid;gap:18px">
+      <div class="kpis" id="woKpis"></div>
+      <div id="woVerd" style="display:grid;gap:10px"></div>
+      {{ m.fig_open('fwo1', '1', 'Water map', 'خريطة المياه') }}
+        <div class="fig-b"><div class="eo-view"><canvas id="woCv" width="1200" height="1000"></canvas></div>
+          <div class="eo-dl no-print"><select id="woView" class="eo-in" style="height:30px;width:auto;font-size:.8rem"><option value="tr">{{ m.L('What happened to the water (1984–2020)', 'ماذا حدث للمياه (1984–2020)') }}</option><option value="occ">{{ m.L('How often it was water', 'كم مرة كان ماءً') }}</option><option value="chg">{{ m.L('Change: 1984–1999 vs 2000–2020', 'التغير: 1984–1999 مقابل 2000–2020') }}</option><option value="sea">{{ m.L('Months with water in 2020', 'أشهر وجود المياه في 2020') }}</option></select><button class="btn btn-line btn-xs" type="button" data-cv="woCv" data-fmt="png">PNG</button><button class="btn btn-line btn-xs" type="button" data-cv="woCv" data-fmt="jpg">JPG</button><button class="btn btn-line btn-xs" type="button" data-cv="woCv" data-fmt="pdf">PDF</button><button class="btn btn-line btn-xs" type="button" id="woCsv">CSV</button></div></div>
+        <div class="fig-cap" id="woCap"></div>
+      {{ m.fig_close() }}
+      {{ m.fig_open('fwo2', '2', 'Area of each kind of change', 'مساحة كل نوع من التغير', '<span data-egfig="woChart"></span>') }}
+        <div class="fig-b"><svg class="chart" id="woChart" viewBox="0 0 760 440" role="img"></svg></div>
+        <div class="fig-cap" id="woChartCap"></div>
+      {{ m.fig_close() }}
+    </div>
+  </div>
+</div>
+</div>
+{% endblock %}

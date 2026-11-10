@@ -1065,3 +1065,16 @@ def asterminerals(uid, label):
     return svg(''.join(o), uid, label)
 
 REG.update({'asterminerals': asterminerals})
+
+
+def wateroccurrence(uid, label):
+    o = ['<rect x="20" y="30" width="300" height="240" rx="10" fill="#EEEEEE"/>']
+    o.append('<path d="M60 120C90 70 190 60 250 100S290 210 220 230 60 200 60 120Z" fill="#D1102D"/>')
+    o.append('<path d="M90 130C110 95 180 90 220 115S240 190 200 200 95 180 90 130Z" fill="#FFC90E"/>')
+    o.append('<path d="M115 140C130 115 170 112 195 128S205 175 180 180 118 168 115 140Z" fill="#0000FF"/>')
+    o.append('<path d="M20 250C120 235 220 260 320 240" stroke="#99D9EA" stroke-width="10" fill="none"/>')
+    o.append('<g class="il-chip" transform="translate(340 70)"><rect width="140" height="50" rx="8"/><text x="12" y="20" class="il-small">Lost permanent</text><text x="12" y="40" class="il-value">412 km²</text></g>')
+    o.append('<g class="il-chip" transform="translate(340 134)"><rect width="140" height="50" rx="8"/><text x="12" y="20" class="il-small">1984 → 2020</text><text x="12" y="40" class="il-value">−61 %</text></g>')
+    return svg(''.join(o), uid, label)
+
+REG.update({'wateroccurrence': wateroccurrence})
