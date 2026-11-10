@@ -11,12 +11,12 @@ Contact: WhatsApp +9647739949727 · Facebook https://www.facebook.com/Shandalsys
 Updated: 2026-11-10
 
 ## What it is
-Sixty-two professional tools for Earth scientists: digital compass, stereonets, RMR and SMR, global contour maps, seismic hazard statistics, soil mechanics, Sentinel-2 indices, live hazard feeds and petroleum labs, with PDF reports and an AI assistant.
+Sixty-three professional tools for Earth scientists: digital compass, stereonets, RMR and SMR, global contour maps, seismic hazard statistics, soil mechanics, Sentinel-2 indices, live hazard feeds and petroleum labs, with PDF reports and an AI assistant.
 For decades, field geology meant scattered tools: readings taken by hand, long calculations, then a return to the office to draw columns, stereonets and contour maps in separate software. Every step cost time and added room for error.
 The Shandal System brings that work into one portable tool, from the first reading to the final report, without leaving the site. The name says what it does: survey, to collect spatial data precisely; field, because it goes where the geologist goes.
 
 ## ما هو
-اثنتان وستون أداة احترافية لعلماء الأرض: بوصلة رقمية ومساقط ستيريوغرافية وRMR وخرائط كنتورية وأطياف تصميم زلزالي وإنذار من الانزلاقات ورصد بيئي ومختبرات بترولية، مع تقارير PDF ومساعد ذكي.
+ثلاث وستون أداة احترافية لعلماء الأرض: بوصلة رقمية ومساقط ستيريوغرافية وRMR وخرائط كنتورية وأطياف تصميم زلزالي وإنذار من الانزلاقات ورصد بيئي ومختبرات بترولية، مع تقارير PDF ومساعد ذكي.
 لعقود طويلة كان العمل الجيولوجي الميداني يعتمد على أدوات متفرقة: قياسات يدوية وحسابات طويلة ثم العودة إلى المكتب لرسم الأعمدة الطباقية والمساقط والخرائط الكنتورية ببرامج منفصلة. كل خطوة تستهلك الوقت وتزيد احتمال الخطأ.
 جاء نظام شندل ليجمع هذا العمل في أداة محمولة واحدة، من القراءة الأولى حتى التقرير النهائي، دون مغادرة الموقع. والاسم يعبّر عن جوهره: «المسح» لجمع البيانات المكانية بدقة، و«الميداني» لأنه يرافق الجيولوجي حيث يعمل.
 
@@ -28,7 +28,7 @@ The Shandal System brings that work into one portable tool, from the first readi
 - [Academy](https://geologicalfieldsurvey.com/academy/) and [Library](https://geologicalfieldsurvey.com/library/)
 - [Geo-heritage](https://geologicalfieldsurvey.com/geoheritage/): geological and archaeological sites of Iraq
 
-## Tools (62)
+## Tools (63)
 ### Field geology · الجيولوجيا الميدانية
 - [Unit Converter · محوّل الوحدات](https://geologicalfieldsurvey.com/tools/unit-converter/): Converts between all common units of 30 quantities with the exact factors of the international standards: length, area (including the Iraqi dunam and olk), volume and barrels, mass and carats, density, API gravity and mud weight, pressure and stress, pressure and geothermal gradients, temperature, angle, dip and slope in percent and ratio, time and geological time, speed and sonic slowness, gravity in milligal, force, energy, power, flow, permeability in darcy, hydraulic conductivity, viscosity, concentration, resistivity, conductivity and salinity, magnetic field in nanotesla, radioactivity and dose, frequency, data and fuel. It also converts coordinates between decimal degrees, degrees–minutes–seconds and UTM, works out map scales, and turns ions between mg/L and meq/L with the ionic balance. Free for everyone.
 - [Iraq Time Machine · آلة الزمن للعراق](https://geologicalfieldsurvey.com/tools/iraq-time-machine/): Travel from the Cambrian to today and watch the plates move Iraq from near the South Pole to its place now. At every moment the tool shows the latitude of Baghdad, the climate belt and the distance travelled since, the setting that covered Iraq (sea, reef, lagoon, delta, river or ice), the story of that interval and the formations being laid down. An interactive stratigraphic column of more than ninety formations links each one to its age, rocks, setting, importance (oil reservoir, source, seal, aquifer, mineral resource) and the places where it can be seen.
@@ -96,6 +96,7 @@ The Shandal System brings that work into one portable tool, from the first readi
 
 ### Atmosphere & air quality · الغلاف الجوي وجودة الهواء
 - [Air Quality Monitor · مراقب جودة الهواء](https://geologicalfieldsurvey.com/tools/air-quality/): Shows current and forecast air quality for any point from the Copernicus Atmosphere Monitoring Service: US and European AQI, PM2.5, PM10, dust, NO₂, SO₂, O₃, CO and aerosol optical depth, compared with the WHO 2021 guidelines, plus a regional AQI map.
+- [Gas Flaring and Air over Oil Fields · حرق الغاز والهواء فوق حقول النفط](https://geologicalfieldsurvey.com/tools/gas-flaring/): Iraq burns more of the gas that comes up with its oil than almost any other country. This tool reads the VIIRS thermal anomalies of every day of a chosen month at 375 m, counts how many days each pixel was hot, and keeps as gas flares the hot spots that burned on a chosen share of the days, which separates them from passing crop and reed fires. Neighbouring flare pixels are grouped into sites with their position, nearest known field and number of days burning. The daily OMI images of tropospheric nitrogen dioxide of the month are turned back into values with their published colour map and averaged, and the air above the flares is compared with the whole region. Maps, a table, GeoJSON and CSV are exported.
 
 ### Climate & emissions · المناخ والانبعاثات
 - [Environmental Monitoring & Modelling · الرصد الفضائي والنمذجة البيئية](https://geologicalfieldsurvey.com/tools/env-monitoring/): Live weather and air quality for the site turned into field guidance: WBGT heat stress, atmospheric stability, a Gaussian plume model for a nearby source, a weighted water-quality index with concrete sulfate class, and the MEDALUS desertification index.

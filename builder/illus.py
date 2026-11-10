@@ -1090,3 +1090,15 @@ def heatdrought(uid, label):
     return svg(''.join(o), uid, label)
 
 REG.update({'heatdrought': heatdrought})
+
+
+def gasflaring(uid, label):
+    o = ['<rect x="20" y="30" width="300" height="240" rx="10" fill="#2B2F36"/>']
+    o.append('<ellipse cx="170" cy="150" rx="140" ry="100" fill="#F03B20" fill-opacity=".25"/><ellipse cx="170" cy="150" rx="80" ry="60" fill="#F03B20" fill-opacity=".3"/>')
+    for x, y, r in ((120, 120, 9), (160, 150, 12), (200, 130, 7), (230, 180, 10), (140, 190, 6), (90, 160, 5)):
+        o.append('<circle cx="%d" cy="%d" r="%d" fill="#FFB000"/><circle cx="%d" cy="%d" r="%d" fill="#C80000"/>' % (x, y, r + 5, x, y, r))
+    o.append('<g class="il-chip" transform="translate(340 70)"><rect width="140" height="50" rx="8"/><text x="12" y="20" class="il-small">Flare sites</text><text x="12" y="40" class="il-value">143</text></g>')
+    o.append('<g class="il-chip" transform="translate(340 134)"><rect width="140" height="50" rx="8"/><text x="12" y="20" class="il-small">NO₂ over flares</text><text x="12" y="40" class="il-value">×1.8</text></g>')
+    return svg(''.join(o), uid, label)
+
+REG.update({'gasflaring': gasflaring})
