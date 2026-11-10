@@ -74,6 +74,8 @@
       it.sort(function (a, b) { return a.score - b.score; }); return it.length ? it : null; });
   }
   function s2q(off) { var o = off || 0, d = function (a, b) { return '(' + a + '-' + b + ')/(' + a + '+' + b + '-' + 2 * o + ')'; }; return ['&assets=B04&assets=B03&assets=B02&nodata=0&rescale=' + o + ',' + (o + 3200) + '&color_formula=' + encodeURIComponent('Gamma RGB 1.25 Saturation 1.15'), Q_IX(d('B03', 'B11')), Q_IX(d('B08', 'B04'))]; }
+  /* cloud and cloud-shadow mask: Landsat QA_PIXEL bits 3 (cloud) and 4 (shadow); Sentinel-2 scene classes 3, 8, 9, 10 */
+  var Q_CL = '&expression=' + encodeURIComponent('(qa_pixel % 32) >= 8') + '&asset_as_band=true&rescale=0,1', Q_CL2 = '&expression=' + encodeURIComponent('(SCL==3)|(SCL==8)|(SCL==9)|(SCL==10)') + '&asset_as_band=true&rescale=0,1';
   function img(url) { return ff(url).then(function (r) { return r.blob(); }).then(function (b) { return createImageBitmap(b); }); }
   function bboxUrl(id, q, col) { return PC + 'data/v1/item/bbox/' + [aoi.w, aoi.s, aoi.e, aoi.n].map(function (v) { return v.toFixed(5); }).join(',') + '.png?collection=' + (col || COL) + '&item=' + encodeURIComponent(id) + '&max_size=' + MS + q; }
   var Q_RGB = '&assets=red&assets=green&assets=blue&nodata=0&rescale=7300,19500&color_formula=' + encodeURIComponent('Gamma RGB 1.25 Saturation 1.2');
@@ -103,7 +105,7 @@
   /* the scene with the least local haze: among the best candidates that each cover the whole area, keep the one with most contrast */
   function clearest(its) {
     var full = its.filter(function (x) { return x.cv === 5 && !x.slc; }).slice(0, 3); if (full.length < 2 || minSideKm() > 60) return Promise.resolve(its);
-    return Promise.all(full.map(function (x) { var q = x.mss ? M_RGB : x.s2 ? s2q(x.off)[0] : Q_RGB; return img(bboxUrl(x.id, q, x.col)).then(function (bm) { var c = document.createElement('canvas'); c.width = Math.min(bm.width, 240); c.height = Math.round(bm.height * c.width / bm.width); c.getContext('2d').drawImage(bm, 0, 0, c.width, c.height); return contrast(c) - (x.cloud || 0) * 0.15; }).catch(function () { return -1; }); })).then(function (sc) {
+    return Promise.all(full.map(function (x) { var q = x.mss ? M_RGB : x.s2 ? s2q(x.off)[0] : Q_RGB; return img(bboxUrl(x.id, q, x.col)).then(function (bm) { var c = document.createElement('canvas'); c.width = Math.min(bm.width, 240); c.height = Math.round(bm.height * c.width / bm.width); c.getContext('2d').drawImage(bm, 0, 0, c.width, c.height); var D = c.getContext('2d').getImageData(0, 0, c.width, c.height).data, wh = 0, nn = 0; for (var i = 0; i < D.length; i += 4) if (D[i + 3] > 127) { nn++; if (Math.min(D[i], D[i + 1], D[i + 2]) > 190) wh++; } return contrast(c) - (x.cloud || 0) * 0.15 - (nn ? wh / nn : 0) * 400; }).catch(function () { return -1; }); })).then(function (sc) {
       var k = 0; sc.forEach(function (v, i) { if (v > sc[k]) k = i; }); if (!k) return its; var b = full[k]; return [b].concat(its.filter(function (x) { return x !== b; }));
     });
   }
@@ -117,26 +119,28 @@
     }).then(function (its) {
       if (!its || its.none) return its && its.none ? its : { y: y, none: true };
       var use = pick(its), mss = use[0].mss, q = mss ? [M_RGB, Q_IX(M_W), Q_IX(M_V)] : use[0].s2 ? s2q(use[0].off) : [Q_RGB, Q_IX(EX_W), Q_IX(EX_V)];
-      return Promise.all(use.map(function (it, k) { var q1 = it.s2 ? s2q(it.off) : q; return Promise.all(q1.map(function (x) { return img(bboxUrl(it.id, x, it.col)); })).catch(function (e) { if (!k) throw e; return null; }); })).then(function (RR) {
-        var r0 = RR[0], w = r0[1].width, h = r0[1].height, n = w * h, W = new Uint8Array(n), V = new Uint8Array(n), M = new Uint8Array(n);
+      return Promise.all(use.map(function (it, k) { var q1 = it.s2 ? s2q(it.off) : q; return Promise.all(q1.map(function (x) { return img(bboxUrl(it.id, x, it.col)); }).concat([img(bboxUrl(it.id, it.s2 ? Q_CL2 : Q_CL, it.col)).catch(function () { return null; })])).catch(function (e) { if (!k) throw e; return null; }); })).then(function (RR) {
+        var r0 = RR[0], w = r0[1].width, h = r0[1].height, n = w * h, W = new Uint8Array(n), V = new Uint8Array(n), M = new Uint8Array(n), C = new Uint8Array(n), qaOk = false;
         var rgb = document.createElement('canvas'); rgb.width = w; rgb.height = h; var g = rgb.getContext('2d'), out = g.createImageData(w, h), used = [];
         RR.forEach(function (r, k) {
-          if (!r) return; var a = pix(r[1], w, h), b = pix(r[2], w, h), c = pix(r[0], w, h), add = 0;
-          for (var i = 0; i < n; i++) { if (M[i] || a.data[4 * i + 3] <= 127) continue; M[i] = 1; W[i] = a.data[4 * i]; V[i] = b.data[4 * i]; var o = 4 * i; out.data[o] = c.data[o]; out.data[o + 1] = c.data[o + 1]; out.data[o + 2] = c.data[o + 2]; out.data[o + 3] = 255; add++; }
+          if (!r) return; var a = pix(r[1], w, h), b = pix(r[2], w, h), c = pix(r[0], w, h), q4 = r[3] ? pix(r[3], w, h) : null, add = 0; if (q4) qaOk = true;
+          for (var i = 0; i < n; i++) { if (M[i] || a.data[4 * i + 3] <= 127) continue; M[i] = 1; W[i] = a.data[4 * i]; V[i] = b.data[4 * i]; var o = 4 * i; C[i] = q4 ? (q4.data[o + 3] > 127 && q4.data[o] > 127 ? 1 : 0) : (Math.min(c.data[o], c.data[o + 1], c.data[o + 2]) > 190 ? 1 : 0); out.data[o] = c.data[o]; out.data[o + 1] = c.data[o + 1]; out.data[o + 2] = c.data[o + 2]; out.data[o + 3] = 255; add++; }
           if (add > n * 0.002 || !k) used.push(use[k]);
         });
+        /* widen the cloud mask by two pixels to catch thin edges */
+        for (var pass = 0; pass < 2; pass++) { var C2 = C.slice(); for (var yy = 1; yy < h - 1; yy++) for (var xx = 1; xx < w - 1; xx++) { var i0 = yy * w + xx; if (!C[i0] && (C[i0 - 1] || C[i0 + 1] || C[i0 - w] || C[i0 + w])) C2[i0] = 1; } C = C2; }
         g.putImageData(out, 0, 0); if (mss || $('#tlEnh').checked) stretch(rgb, mss ? 0.02 : 0.01, mss ? 0.02 : 0.01);
         var it = used[0]; if (used.length > 1) { it = Object.assign({}, it, { n: used.length, ids: used.map(function (x) { return x.id; }), dates: used.map(function (x) { return x.date; }), cloud: Math.max.apply(null, used.map(function (x) { return x.cloud || 0; })) }); }
-        return { y: y, it: it, rgb: rgb, W: W, V: V, M: M, w: w, h: h };
+        return { y: y, it: it, rgb: rgb, W: W, V: V, M: M, C: C, qa: qaOk, w: w, h: h };
       });
     }).catch(function (e) { return { y: y, err: e.message || String(e) }; });
   }
   /* true ground area of each pixel row of the geographic (equal-angle) crop */
   function measure(f, tw, tv) {
-    if (!f.W) return; if (f.it.mss) { tw = MSSW(); tv = MSSV(); } var rowA = [], dlon = (aoi.e - aoi.w) / f.w, dlat = (aoi.n - aoi.s) / f.h, cw = Math.round((tw + 1) / 2 * 255), cvv = Math.round((tv + 1) / 2 * 255), wa = 0, va = 0, valid = 0, tot = 0;
+    if (!f.W) return; if (f.it.mss) { tw = MSSW(); tv = MSSV(); } var rowA = [], dlon = (aoi.e - aoi.w) / f.w, dlat = (aoi.n - aoi.s) / f.h, cw = Math.round((tw + 1) / 2 * 255), cvv = Math.round((tv + 1) / 2 * 255), wa = 0, va = 0, valid = 0, tot = 0, ca = 0;
     for (var r = 0; r < f.h; r++) rowA.push(dlon * 111.32 * Math.cos(SH.rad(aoi.n - (r + 0.5) * dlat)) * dlat * 110.574);
-    for (var i = 0; i < f.W.length; i++) { var A = rowA[Math.floor(i / f.w)]; tot += A; if (!f.M[i]) continue; valid += A; if (f.W[i] > cw) wa += A; else if (f.V[i] > cvv) va += A; }
-    f.water = wa; f.veg = va; f.cov = tot ? valid / tot : 0; f.cw = cw; f.cv = cvv;
+    for (var i = 0; i < f.W.length; i++) { var A = rowA[Math.floor(i / f.w)]; tot += A; if (!f.M[i]) continue; valid += A; if (f.C && f.C[i]) { ca += A; continue; } if (f.W[i] > cw) wa += A; else if (f.V[i] > cvv) va += A; }
+    f.water = wa; f.veg = va; f.cl = valid ? ca / valid : 0; f.cov = tot ? valid / tot : 0; f.cw = cw; f.cv = cvv;
   }
 
   /* ------------------------------------------------------------------ run */
@@ -170,14 +174,14 @@
   $('#tlRun').addEventListener('click', run);
   function MSSW() { var v = G.v('tlTwM'); return isNaN(v) ? 0.1 : v; } function MSSV() { var v = G.v('tlTvM'); return isNaN(v) ? 0.2 : v; }
   function remeasure() { var tw = G.v('tlTw'), tv = G.v('tlTv'); tw = isNaN(tw) ? 0 : tw; tv = isNaN(tv) ? 0.3 : tv; ALLF.forEach(function (f) { measure(f, tw, tv); }); }
-  var good = function () { return frames.filter(function (f) { return f.cov >= 0.9; }); };
+  var good = function () { return frames.filter(function (f) { return f.cov >= 0.9 && (f.cl || 0) < 0.05; }); };
 
   /* ------------------------------------------------------------------ drawing */
   function dms(v, lat) { var a = Math.abs(v), d = Math.floor(a + 1e-9), m = Math.round((a - d) * 60); if (m === 60) { d++; m = 0; } return d + '°' + (m < 10 ? '0' : '') + m + '′' + (lat ? (v >= 0 ? 'N' : 'S') : (v >= 0 ? 'E' : 'W')); }
   function overlay(f) {
     var key = f.cw + '|' + f.cv + '|' + $('#tlOw').checked + $('#tlOv').checked; if (f._ok === key) return f._ov;
     var c = document.createElement('canvas'); c.width = f.w; c.height = f.h; var g = c.getContext('2d'), d = g.createImageData(f.w, f.h), ow = $('#tlOw').checked, ov = $('#tlOv').checked;
-    for (var i = 0; i < f.W.length; i++) { if (!f.M[i]) continue; var o = 4 * i; if (ow && f.W[i] > f.cw) { d.data[o] = 0; d.data[o + 1] = 150; d.data[o + 2] = 255; d.data[o + 3] = 150; } else if (ov && f.V[i] > f.cv) { d.data[o] = 40; d.data[o + 1] = 200; d.data[o + 2] = 70; d.data[o + 3] = 120; } }
+    for (var i = 0; i < f.W.length; i++) { if (!f.M[i] || (f.C && f.C[i])) continue; var o = 4 * i; if (ow && f.W[i] > f.cw) { d.data[o] = 0; d.data[o + 1] = 150; d.data[o + 2] = 255; d.data[o + 3] = 150; } else if (ov && f.V[i] > f.cv) { d.data[o] = 40; d.data[o + 1] = 200; d.data[o + 2] = 70; d.data[o + 3] = 120; } }
     g.putImageData(d, 0, 0); f._ov = c; f._ok = key; return c;
   }
   /* lay out a framed map: header, image with graticule and north arrow, scale and legend below */
@@ -293,6 +297,7 @@
       var v = [G.verdict(dW < -0.2 * (first.water || 1) ? 'bad' : dW > 0.2 * (first.water || 1) ? 'ok' : 'info', t('How the water changed', 'كيف تغيرت المياه'), t('Measured open water went from ', 'تغيرت المياه المكشوفة المقيسة من ') + F(first.water, 1) + t(' km² in ', ' كم² سنة ') + first.y + t(' to ', ' إلى ') + F(last.water, 1) + t(' km² in ', ' كم² سنة ') + last.y + t('; the highest was in ', '؛ وكانت أعلاها سنة ') + maxW.y + t(' and the lowest in ', ' وأدناها سنة ') + minW.y + t('. One scene per year is a snapshot of that season: a wet or dry month shifts it, so read the trend over several years.', '. المشهد الواحد في السنة لقطة لذلك الموسم، والشهر الرطب أو الجاف يحركها، فاقرأ الاتجاه عبر عدة سنوات.'))];
       if (/central|hammar|hawizeh/.test(aoi.key)) v.push(G.verdict('info', t('Marshes: water under reeds', 'الأهوار: المياه تحت القصب'), t('Water covered by dense reeds is counted as green vegetation, not as water. Read both curves together: when the marshes were drained in the 1990s both fell; after 2003 both returned; in dry years water falls first.', 'تُحسب المياه المغطاة بالقصب الكثيف نباتاً أخضر لا ماءً. فاقرأ المنحنيين معاً: حين جُففت الأهوار في التسعينيات انخفض كلاهما، وبعد 2003 عاد كلاهما، وفي السنوات الجافة تنخفض المياه أولاً.')));
       if (frames.some(function (f) { return f.it.slc; })) v.push(G.verdict('warn', t('Striped scenes', 'مشاهد مخططة'), t('Years marked Landsat 7 after May 2003 have diagonal gaps from a sensor fault; their areas are lower than real.', 'السنوات المعلَّمة بلاندسات 7 بعد أيار 2003 فيها فجوات قطرية بسبب عطل في المتحسس، ومساحاتها أقل من الحقيقة.')));
+      var cy = frames.filter(function (f) { return (f.cl || 0) >= 0.05; }); if (cy.length) v.push(G.verdict('warn', t('Cloudy years left out of the curves', 'سنوات غائمة استُبعدت من المنحنيات'), t('Clouds or their shadows cover 5 % or more of the area in ', 'تغطي الغيوم أو ظلالها 5 % أو أكثر من المنطقة في ') + cy.map(function (f) { return f.y; }).join(', ') + t('. Their cloudy pixels are not counted as water or vegetation, but the totals would be too low, so these years are kept out of the curves and the comparison.', '. لا تُحسب بكسلاتها الغائمة ماءً ولا نباتاً، لكن مجاميعها تكون أقل من الحقيقة، فتُستبعد هذه السنوات من المنحنيات والمقارنة.')));
       $('#tlVerd').innerHTML = v.join('');
     } else { $('#tlKpis').innerHTML = ''; $('#tlVerd').innerHTML = G.verdict('warn', t('Too few complete scenes', 'مشاهد كاملة قليلة'), t('Fewer than two scenes cover the whole area. Draw a smaller area or widen the cloud limit.', 'أقل من مشهدين يغطيان المنطقة كلها. ارسم منطقة أصغر أو وسّع حد الغيوم.')); }
     show(cur); chart(); change(); table();
@@ -323,11 +328,11 @@
   }
   ['tlA', 'tlB'].forEach(function (id) { $('#' + id).addEventListener('change', change); });
   function table() {
-    $('#tlTbl').innerHTML = '<thead><tr><th>' + t('Year', 'السنة') + '</th><th>' + t('Scene date', 'تاريخ المشهد') + '</th><th>' + t('Satellite', 'القمر') + '</th><th class="num">' + t('Cloud %', 'الغيوم %') + '</th><th class="num">' + t('Coverage %', 'التغطية %') + '</th><th class="num">' + t('Water km²', 'المياه كم²') + '</th><th class="num">' + t('Vegetation km²', 'النبات كم²') + '</th></tr></thead><tbody>' +
-      frames.map(function (f, i) { return '<tr data-go="' + i + '" style="cursor:pointer"><td><b>' + f.y + '</b></td><td class="ltr">' + (f.it.dates ? f.it.dates.join(' + ') : f.it.date) + '</td><td class="ltr">' + f.it.sat + (f.it.n ? ' <span class="badge">' + t('mosaic of ', 'فسيفساء ') + f.it.n + '</span>' : '') + (f.it.slc ? ' <span class="badge warn">SLC-off</span>' : '') + '</td><td class="num">' + F(f.it.cloud, 0) + '</td><td class="num">' + F(f.cov * 100, 0) + '</td><td class="num">' + F(f.water, f.water < 10 ? 2 : 1) + '</td><td class="num">' + F(f.veg, 1) + '</td></tr>'; }).join('') + '</tbody>';
+    $('#tlTbl').innerHTML = '<thead><tr><th>' + t('Year', 'السنة') + '</th><th>' + t('Scene date', 'تاريخ المشهد') + '</th><th>' + t('Satellite', 'القمر') + '</th><th class="num">' + t('Cloud %', 'الغيوم %') + '</th><th class="num">' + t('Coverage %', 'التغطية %') + '</th><th class="num">' + t('Local cloud %', 'غيوم المنطقة %') + '</th><th class="num">' + t('Water km²', 'المياه كم²') + '</th><th class="num">' + t('Vegetation km²', 'النبات كم²') + '</th></tr></thead><tbody>' +
+      frames.map(function (f, i) { return '<tr data-go="' + i + '" style="cursor:pointer"><td><b>' + f.y + '</b></td><td class="ltr">' + (f.it.dates ? f.it.dates.join(' + ') : f.it.date) + '</td><td class="ltr">' + f.it.sat + (f.it.n ? ' <span class="badge">' + t('mosaic of ', 'فسيفساء ') + f.it.n + '</span>' : '') + (f.it.slc ? ' <span class="badge warn">SLC-off</span>' : '') + '</td><td class="num">' + F(f.it.cloud, 0) + '</td><td class="num">' + F(f.cov * 100, 0) + '</td><td class="num">' + ((f.cl || 0) >= 0.05 ? '<span class="badge warn">' + F(f.cl * 100, 0) + '</span>' : F((f.cl || 0) * 100, 0)) + '</td><td class="num">' + F(f.water, f.water < 10 ? 2 : 1) + '</td><td class="num">' + F(f.veg, 1) + '</td></tr>'; }).join('') + '</tbody>';
   }
   $('#tlTbl').addEventListener('click', function (e) { var r = e.target.closest('[data-go]'); if (r) { stop(); show(+r.getAttribute('data-go')); } });
-  $('#tlCsv').addEventListener('click', function () { if (!frames.length) return; SH.csv('shandal-timelapse-' + (aoi.key || 'area') + '.csv', [['area', aoi.en], ['bbox_w_s_e_n', [aoi.w, aoi.s, aoi.e, aoi.n].join(' ')], ['season', seasonEn()], ['mndwi_threshold', G.v('tlTw')], ['ndvi_threshold', G.v('tlTv')], [], ['year', 'scene_id', 'date', 'satellite', 'sensor_resolution_m', 'cloud_pct', 'coverage_pct', 'water_km2', 'vegetation_km2']].concat(frames.map(function (f) { return [f.y, f.it.ids ? f.it.ids.join(' + ') : f.it.id, f.it.date, f.it.sat, f.it.mss ? 60 : f.it.s2 ? 10 : 30, F(f.it.cloud, 1), (f.cov * 100).toFixed(1), f.water.toFixed(3), f.veg.toFixed(3)]; }))); });
+  $('#tlCsv').addEventListener('click', function () { if (!frames.length) return; SH.csv('shandal-timelapse-' + (aoi.key || 'area') + '.csv', [['area', aoi.en], ['bbox_w_s_e_n', [aoi.w, aoi.s, aoi.e, aoi.n].join(' ')], ['season', seasonEn()], ['mndwi_threshold', G.v('tlTw')], ['ndvi_threshold', G.v('tlTv')], [], ['year', 'scene_id', 'date', 'satellite', 'sensor_resolution_m', 'cloud_pct', 'coverage_pct', 'local_cloud_pct', 'water_km2', 'vegetation_km2']].concat(frames.map(function (f) { return [f.y, f.it.ids ? f.it.ids.join(' + ') : f.it.id, f.it.date, f.it.sat, f.it.mss ? 60 : f.it.s2 ? 10 : 30, F(f.it.cloud, 1), (f.cov * 100).toFixed(1), ((f.cl || 0) * 100).toFixed(1), f.water.toFixed(3), f.veg.toFixed(3)]; }))); });
 
   /* ------------------------------------------------------------------ playback */
   function stop() { if (playing) { clearInterval(playing); playing = null; } var b = $('#tlPlay'); if (b) { b.querySelector('.i-play').style.display = ''; b.querySelector('.i-pause').style.display = 'none'; } }
