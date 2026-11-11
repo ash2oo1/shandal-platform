@@ -1,0 +1,99 @@
+{% extends "app_base.html" %}
+{% import "apps/_m.html" as m with context %}
+{% block apphead %}
+<style>
+#smMap{height:62vh;min-height:380px;border-radius:12px;border:1px solid var(--line)}
+.sm-chips{display:flex;gap:6px;flex-wrap:wrap}
+.sm-chips button{appearance:none;border:1px solid var(--line-2);background:var(--surface-2);color:var(--text);font:inherit;font-size:.8rem;padding:5px 10px;border-radius:999px;cursor:pointer}
+.sm-chips button[aria-pressed=true]{border-color:#B08A3E;background:color-mix(in srgb,#B08A3E 16%,var(--surface))}
+.sm-in{height:38px;border:1px solid var(--line-2);border-radius:10px;padding:0 10px;background:var(--bg);color:var(--text);font:inherit;width:100%}
+.sm-prog{height:8px;border-radius:99px;background:var(--surface-2);overflow:hidden;border:1px solid var(--line)}
+.sm-prog i{display:block;height:100%;width:0;background:linear-gradient(90deg,#2F7D5B,#B08A3E);transition:width .3s}
+.sm-bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;font-size:.8rem}
+.sm-bar span{border:1px solid var(--line-2);border-radius:999px;padding:3px 10px;background:var(--surface-2)}
+.sm-bar .on{background:#E6F4EC;color:#1F6B45;border-color:#9CCBB0}.sm-bar .off{background:#FDF0E2;color:#8A4B00;border-color:#E8BE8A}
+.sm-act{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px}
+.sm-act .btn[aria-pressed=true]{outline:2px solid #B08A3E;outline-offset:1px}
+.sm-pos{border:1px solid var(--line);border-radius:14px;padding:14px 16px;background:var(--surface-2);display:grid;gap:4px}
+.sm-pos b.big{font-size:1.45rem;font-variant-numeric:tabular-nums;direction:ltr;unicode-bidi:isolate;letter-spacing:.3px}
+.sm-pos small{color:var(--text-3)}
+.sm-near{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px}
+.sm-nc{appearance:none;text-align:start;font:inherit;color:var(--text);border:1px solid var(--line);border-radius:14px;background:var(--surface);padding:12px;display:grid;grid-template-columns:52px 1fr;gap:10px;align-items:center;cursor:pointer}
+.sm-nc[aria-pressed=true]{border-color:#B08A3E;box-shadow:0 0 0 2px color-mix(in srgb,#B08A3E 35%,transparent)}
+.sm-nc .ar{width:52px;height:52px;border-radius:50%;background:var(--surface-2);display:grid;place-items:center;border:1px solid var(--line-2)}
+.sm-nc .ar svg{width:34px;height:34px;transition:transform .25s}
+.sm-nc h4{margin:0;font-size:.78rem;color:var(--text-3);font-weight:700}
+.sm-nc b{display:block;font-size:.98rem;margin:1px 0}
+.sm-nc small{color:var(--text-3);font-size:.76rem}
+.sm-here{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px}
+.sm-hz{border:1px solid var(--line);border-inline-start:5px solid #7A8590;border-radius:12px;padding:10px 12px;background:var(--surface)}
+.sm-hz h4{margin:0 0 4px;font-size:.86rem}.sm-hz p{margin:0;font-size:.82rem;color:var(--text-2)}
+.sm-hz.ok{border-inline-start-color:#2F7D5B}.sm-hz.mid{border-inline-start-color:#E08A00}.sm-hz.hi{border-inline-start-color:#C0392B}
+.sm-tbl{width:100%;border-collapse:collapse;font-size:.82rem}.sm-tbl th,.sm-tbl td{border-bottom:1px solid var(--line);padding:5px 6px;text-align:start}
+.sm-packs{display:grid;gap:8px}
+.sm-pk{border:1px solid var(--line);border-radius:12px;padding:8px 10px;background:var(--surface-2);display:grid;gap:6px}
+.sm-pk[data-cur=true]{border-color:#B08A3E}
+.sm-pk b{font-size:.9rem}.sm-pk small{color:var(--text-3);font-size:.74rem}
+.sm-pk .r{display:flex;gap:6px;flex-wrap:wrap}
+.sm-me{width:22px;height:22px;position:relative}
+.sm-me i{position:absolute;inset:5px;border-radius:50%;background:#1A73E8;border:2px solid #fff;box-shadow:0 0 0 1px rgba(0,0,0,.3)}
+.sm-me svg{position:absolute;left:-14px;top:-14px;width:50px;height:50px;pointer-events:none}
+.sm-lbl{background:rgba(255,255,255,.85);border:0;box-shadow:none;padding:0 4px;font-size:11px;font-weight:700;color:#1d2731;border-radius:4px}
+.sm-lbl:before{display:none}
+.lz-lo .sm-lbl.v{display:none}
+.sm-pk-ic{width:16px;height:16px;display:grid;place-items:center;font-size:10px;font-weight:800;color:#fff;border-radius:50%;border:1.5px solid #fff;box-shadow:0 0 0 1px rgba(0,0,0,.35)}
+.sm-eo{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:8px}
+.sm-season{display:grid;gap:6px;margin:0;padding-inline-start:18px;font-size:.86rem}
+</style>
+{% endblock %}
+{% block ws %}
+<div class="ws-wrap">
+<div class="ws wide-side">
+  <aside class="ws-side">
+    {{ m.panel_open(1, 'Area to keep offline', 'المنطقة التي تُحفظ للعمل دون إنترنت') }}
+      <p class="xsmall muted" style="margin:0">{{ m.L('Do this at home or in the hotel while you have internet. Choose a ready area, or tap the map to set the centre of your own area.', 'افعل هذا في البيت أو الفندق وأنت متصل بالإنترنت. اختر منطقة جاهزة، أو انقر على الخريطة لتحديد مركز منطقتك.') }}</p>
+      <div class="sm-chips" id="smPre"></div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center"><button class="btn btn-line btn-sm" id="smMe" type="button">{{ icon('locate-fixed', 'ico ico-sm') }}{{ m.L('Centre on my location', 'المركز عند موقعي') }}</button><span class="xsmall muted" id="smCtr" style="align-self:center"></span></div>
+      <div class="row2">
+        <div class="fg"><label for="smSize">{{ m.L('Size of the square', 'ضلع المربع') }}</label><select id="smSize" class="sm-in"><option value="10">10 km</option><option value="20">20 km</option><option value="30" selected>30 km</option><option value="40">40 km</option><option value="50">50 km</option></select></div>
+        {{ m.fld('smName', 'Name of the area', 'اسم المنطقة', 'text', '', '', '', '', '', 'any') }}
+      </div>
+      <button class="btn btn-gold btn-block" id="smGet" type="button">{{ icon('download', 'ico ico-sm') }}{{ m.L('Save this area on my phone', 'احفظ هذه المنطقة على هاتفي') }}</button>
+      <div class="sm-prog"><i id="smBarI"></i></div>
+      <p class="xsmall muted" id="smMsg" style="margin:0"></p>
+      <p class="xsmall muted" style="margin:0">{{ m.L('On iPhone and iPad add the system to the home screen (Share → Add to Home Screen) and open it from there, otherwise Safari may delete saved areas that are not opened for some days.', 'على الآيفون والآيباد أضف النظام إلى الشاشة الرئيسية (مشاركة ← إضافة إلى الشاشة الرئيسية) وافتحه منها، وإلا فقد يحذف سفاري المناطق المحفوظة التي لا تُفتح لعدة أيام.') }}</p>
+    {{ m.panel_close() }}
+    {{ m.panel_open(2, 'Saved areas', 'المناطق المحفوظة') }}
+      <div class="sm-packs" id="smPacks"></div>
+      <p class="xsmall muted" id="smStore" style="margin:0"></p>
+    {{ m.panel_close() }}
+  </aside>
+  <div class="ws-main" style="display:grid;gap:16px;align-content:start">
+    <div class="sm-bar" id="smStat"></div>
+    <div class="map" id="smMap" data-rp-skip></div>
+    <div class="sm-chips" id="smLay"></div>
+    <div class="sm-act">
+      <button class="btn btn-ink btn-sm" id="smGps" type="button">{{ icon('crosshair', 'ico ico-sm') }}<span>{{ m.L('Start GPS', 'شغّل تحديد الموقع') }}</span></button>
+      <button class="btn btn-line btn-sm" id="smCmp" type="button">{{ icon('navigation', 'ico ico-sm') }}{{ m.L('Compass arrows', 'أسهم البوصلة') }}</button>
+      <button class="btn btn-line btn-sm" id="smTrk" type="button">{{ icon('footprints', 'ico ico-sm') }}<span>{{ m.L('Record my path', 'سجّل مساري') }}</span></button>
+      <button class="btn btn-line btn-sm" id="smPlan" type="button">{{ icon('map-pinned', 'ico ico-sm') }}{{ m.L('Try a point on the map', 'جرّب نقطة على الخريطة') }}</button>
+      <button class="btn btn-line btn-sm" id="smSms" type="button">{{ icon('message-square-text', 'ico ico-sm') }}{{ m.L('Send my location by SMS', 'أرسل موقعي برسالة SMS') }}</button>
+      <button class="btn btn-line btn-sm" id="smCopy" type="button">{{ icon('copy', 'ico ico-sm') }}{{ m.L('Copy my location', 'انسخ موقعي') }}</button>
+    </div>
+    <div id="smEmpty" class="pn">{{ m.empty('life-buoy', 'Your map when there is no network', 'خريطتك حين لا توجد شبكة', 'Save an area before the trip. In the field, with no internet, the system shows where you are, the nearest water, village, road, clinic and high ground with an arrow, the distance and the walking time, the steep slopes and stream beds to avoid, the rain of the last week, the sunset and the way back along your own path.', 'احفظ المنطقة قبل الرحلة. وفي الميدان ومن دون إنترنت يُظهر النظام أين أنت، وأقرب ماء وقرية وطريق ومستوصف ومرتفع بسهم ومسافة وزمن مشي، والمنحدرات الشديدة وبطون الوديان التي يجب تجنبها، وأمطار الأسبوع الأخير، ووقت الغروب، وطريق العودة على مسارك نفسه.') }}</div>
+    <div id="smOut" hidden style="display:grid;gap:16px">
+      <div class="sm-pos" id="smPos"></div>
+      <section class="pn"><div class="pn-h">{{ icon('droplet') }}<h2>{{ m.L('Nearest to you', 'الأقرب إليك') }}</h2></div><div class="pn-b"><div class="sm-near" id="smNear"></div><p class="xsmall muted" id="smNearN" style="margin:8px 0 0"></p></div></section>
+      <section class="pn"><div class="pn-h">{{ icon('triangle-alert') }}<h2>{{ m.L('The ground where you stand', 'الأرض حيث تقف') }}</h2></div><div class="pn-b"><div class="sm-here" id="smHere"></div></div></section>
+      <section class="pn"><div class="pn-h">{{ icon('cloud-rain') }}<h2>{{ m.L('Rain and temperature', 'المطر والحرارة') }}</h2></div><div class="pn-b" id="smWx"></div></section>
+      <section class="pn"><div class="pn-h">{{ icon('life-buoy') }}<h2>{{ m.L('This season in the field', 'هذا الموسم في الحقل') }}</h2></div><div class="pn-b" id="smSeason"></div></section>
+      {{ m.fig_open('fsm1', '1', 'Offline field map sheet', 'لوحة الخريطة الميدانية') }}
+        <div class="fig-b"><div style="background:#fff;border-radius:12px;overflow:hidden;border:1px solid var(--line)"><canvas id="smCv" width="1500" height="1400" style="width:100%;height:auto;display:block"></canvas></div>
+          <div class="sm-eo no-print"><button class="btn btn-line btn-xs" type="button" data-cv="smCv" data-fmt="png">PNG</button><button class="btn btn-line btn-xs" type="button" data-cv="smCv" data-fmt="jpg">JPG</button><button class="btn btn-line btn-xs" type="button" data-cv="smCv" data-fmt="pdf">PDF</button><button class="btn btn-line btn-xs" type="button" id="smGpx">GPX</button><button class="btn btn-line btn-xs" type="button" id="smCsv">CSV</button></div></div>
+        <div class="fig-cap" id="smCap"></div>
+      {{ m.fig_close() }}
+    </div>
+  </div>
+</div>
+</div>
+{% endblock %}

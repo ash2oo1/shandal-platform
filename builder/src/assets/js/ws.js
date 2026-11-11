@@ -448,7 +448,7 @@
     d.addEventListener('click', function (e) { var b = e.target.closest('[data-pro-action],#reportBtn'); if (!b || SH.pro()) return; e.preventDefault(); e.stopImmediatePropagation(); SH.needPro(); }, true);
   }
   SH.gate = function () {
-    if (SH.access() === 'sub' && SH.cfg.gate && !SH.session() && d.body.getAttribute('data-pricing')) { location.replace(d.body.getAttribute('data-pricing')); }
+    if (SH.access() === 'sub' && SH.cfg.gate && navigator.onLine !== false && !SH.session() && d.body.getAttribute('data-pricing')) { location.replace(d.body.getAttribute('data-pricing')); }
     lockPro();
     var g = d.getElementById('gate'); if (!g) return true;
     var ok = !SH.cfg.gate || !!SH.session(); g.hidden = ok;

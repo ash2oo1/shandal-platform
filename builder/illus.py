@@ -1102,3 +1102,16 @@ def gasflaring(uid, label):
     return svg(''.join(o), uid, label)
 
 REG.update({'gasflaring': gasflaring})
+
+
+def survivalmap(uid, label):
+    o = ['<rect x="20" y="30" width="300" height="240" rx="10" fill="#EFE8D8"/>']
+    o.append('<path d="M20 200 C80 170 120 210 180 180 S280 150 320 170 L320 270 L20 270Z" fill="#D9CBA8"/><path d="M40 60 C90 110 120 120 150 170 S200 240 210 270" fill="none" stroke="#1F6FB8" stroke-width="4"/>')
+    o.append('<path d="M30 250 L120 200 L190 210 L310 120" fill="none" stroke="#8C6239" stroke-width="3" stroke-dasharray="7 5"/>')
+    o.append('<circle cx="250" cy="90" r="6" fill="#3C4A57" stroke="#fff" stroke-width="2"/><circle cx="110" cy="105" r="7" fill="#0B8FB0" stroke="#fff" stroke-width="2"/>')
+    o.append('<circle cx="170" cy="150" r="20" fill="#1A73E8" fill-opacity=".15"/><circle cx="170" cy="150" r="8" fill="#1A73E8" stroke="#fff" stroke-width="3"/><path d="M170 150 L118 108" stroke="#B08A3E" stroke-width="3" stroke-dasharray="6 4"/>')
+    o.append('<g class="il-chip" transform="translate(340 70)"><rect width="140" height="50" rx="8"/><text x="12" y="20" class="il-small">Nearest spring</text><text x="12" y="40" class="il-value">850 m NW</text></g>')
+    o.append('<g class="il-chip" transform="translate(340 134)"><rect width="140" height="50" rx="8"/><text x="12" y="20" class="il-small">Walk</text><text x="12" y="40" class="il-value">17 min</text></g>')
+    return svg(''.join(o), uid, label)
+
+REG.update({'survivalmap': survivalmap})
