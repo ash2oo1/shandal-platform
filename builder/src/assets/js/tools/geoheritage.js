@@ -16,12 +16,13 @@
   var store = { get: function (k, d) { try { var v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } }, set: function (k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} } };
 
   /* ------------------------------------------------------------------ vocabularies */
-  var GL = { water: 'M2 15c2.5 0 2.5 2 5 2s2.5-2 5-2 2.5 2 5 2 2.5-2 5-2M2 9c2.5 0 2.5 2 5 2s2.5-2 5-2 2.5 2 5 2 2.5-2 5-2', land: 'm3 20 6-10 4 6 2-3 6 7z', cave: 'M3 20c0-7 4-12 9-12s9 5 9 12M9 20c0-3 1.4-5 3-5s3 2 3 5', arch: 'M3 21h18M5 21V10l7-5 7 5v11M9 21v-6h6v6', rel: 'M12 3v4M10 5h4M6 21V11l6-4 6 4v10M3 21h18M10 21v-4a2 2 0 0 1 4 0v4', mus: 'M3 21h18M4 9h16M12 3 3 9M12 3l9 6M6 9v10M10 9v10M14 9v10M18 9v10', park: 'M12 3a5 5 0 0 1 5 5 4 4 0 0 1-2 7H9a4 4 0 0 1-2-7 5 5 0 0 1 5-5zM12 15v6' };
+  var GL = { water: 'M2 15c2.5 0 2.5 2 5 2s2.5-2 5-2 2.5 2 5 2 2.5-2 5-2M2 9c2.5 0 2.5 2 5 2s2.5-2 5-2 2.5 2 5 2 2.5-2 5-2', land: 'm3 20 6-10 4 6 2-3 6 7z', cave: 'M3 20c0-7 4-12 9-12s9 5 9 12M9 20c0-3 1.4-5 3-5s3 2 3 5', arch: 'M3 21h18M5 21V10l7-5 7 5v11M9 21v-6h6v6', rel: 'M12 3v4M10 5h4M6 21V11l6-4 6 4v10M3 21h18M10 21v-4a2 2 0 0 1 4 0v4', mus: 'M3 21h18M4 9h16M12 3 3 9M12 3l9 6M6 9v10M10 9v10M14 9v10M18 9v10', park: 'M12 3a5 5 0 0 1 5 5 4 4 0 0 1-2 7H9a4 4 0 0 1-2-7 5 5 0 0 1 5-5zM12 15v6', lay: 'M3 7h18M3 12h18M3 17h18M8 7v5M15 12v5', fold: 'M2 19c3-12 17-12 20 0M6 19c2-6 10-6 12 0', fault: 'M3 6h7l4 12h7M3 14h5M16 10h5', gem: 'M6 3h12l4 6-10 12L2 9zM2 9h20M12 21 8 9l4-6 4 6z' };
   var CAT = {
     nature: ['#2F7D5B', t('Nature and geology', 'الطبيعة والجيولوجيا'), t('waterfalls, caves, lakes, rivers', 'شلالات، كهوف، بحيرات، أنهار'), 'land'],
     archaeo: ['#B0702A', t('Archaeology and heritage', 'الآثار والتراث'), t('ancient cities, citadels, minarets', 'مدن قديمة، قلاع، منائر'), 'arch'],
     religious: ['#2E6FA8', t('Religious sites', 'المواقع الدينية'), t('shrines, mosques, churches', 'مراقد، جوامع، كنائس'), 'rel'],
-    museum: ['#8A4FA3', t('Museums and monuments', 'المتاحف والنُّصب'), t('museums, monuments, parks', 'متاحف، نُصب، متنزهات'), 'mus']
+    museum: ['#8A4FA3', t('Museums and monuments', 'المتاحف والنُّصب'), t('museums, monuments, parks', 'متاحف، نُصب، متنزهات'), 'mus'],
+    geosite: ['#3C4A57', t('Geosites: formations, folds, faults', 'مواقع جيولوجية: تكاوين، طيات، فوالق'), t('type sections, ophiolites, anticlines, faults', 'مقاطع نمطية، أوفيولايت، طيات، فوالق'), 'lay']
   };
   var TY = {
     waterfall: [t('Waterfall', 'شلال'), 'water'], gorge: [t('Gorge', 'مضيق'), 'land'], cave: [t('Cave', 'كهف'), 'cave'], mountain: [t('Mountain', 'جبل'), 'land'], resort: [t('Mountain resort', 'مصيف جبلي'), 'land'],
@@ -29,7 +30,8 @@
     spring: [t('Spring and seep', 'عين ونضح'), 'water'], sinkhole: [t('Sinkhole', 'خسفة'), 'cave'], valley: [t('Desert valley', 'وادٍ صحراوي'), 'land'], outcrop: [t('Rock outcrop', 'مكشف صخري'), 'land'],
     archaeo: [t('Archaeological site', 'موقع أثري'), 'arch'], ziggurat: [t('Ziggurat', 'زقورة'), 'arch'], relief: [t('Rock relief', 'منحوتة صخرية'), 'arch'], palace: [t('Palace', 'قصر'), 'arch'], citadel: [t('Citadel and fortress', 'قلعة وحصن'), 'arch'],
     minaret: [t('Minaret and mosque', 'منارة وجامع'), 'arch'], bridge: [t('Old bridge', 'جسر قديم'), 'arch'], khan: [t('Caravanserai', 'خان'), 'arch'], heritage: [t('Historic quarter and building', 'حي ومبنى تراثي'), 'arch'], market: [t('Historic market', 'سوق تراثي'), 'arch'],
-    religious: [t('Shrine and mosque', 'مرقد وجامع'), 'rel'], church: [t('Church and monastery', 'كنيسة ودير'), 'rel'], museum: [t('Museum', 'متحف'), 'mus'], monument: [t('Monument', 'نصب'), 'mus'], park: [t('Park and corniche', 'متنزه وكورنيش'), 'park']
+    religious: [t('Shrine and mosque', 'مرقد وجامع'), 'rel'], church: [t('Church and monastery', 'كنيسة ودير'), 'rel'], museum: [t('Museum', 'متحف'), 'mus'], monument: [t('Monument', 'نصب'), 'mus'], park: [t('Park and corniche', 'متنزه وكورنيش'), 'park'],
+    formation: [t('Formation and type section', 'تكوين ومقطع نمطي'), 'lay'], fold: [t('Fold (anticline)', 'طية محدبة'), 'fold'], fault: [t('Fault and thrust', 'فالق وزحف'), 'fault'], mineral: [t('Mineral deposit', 'راسب معدني'), 'gem']
   };
   var GOV = { Duhok: 'دهوك', Erbil: 'أربيل', Sulaymaniyah: 'السليمانية', Halabja: 'حلبجة', Nineveh: 'نينوى', Kirkuk: 'كركوك', Saladin: 'صلاح الدين', Diyala: 'ديالى', Anbar: 'الأنبار', Baghdad: 'بغداد', Babil: 'بابل', Karbala: 'كربلاء', Najaf: 'النجف', Wasit: 'واسط', 'Al-Qadisiyyah': 'القادسية', Maysan: 'ميسان', 'Dhi Qar': 'ذي قار', Muthanna: 'المثنى', Basra: 'البصرة' };
   var GORD = Object.keys(GOV);
@@ -42,15 +44,18 @@
     western: ['#B3563F', t('Western Desert', 'الصحراء الغربية'), t('A stable plateau of nearly flat limestone, dolomite and sandstone rising towards the Rutba uplift, cut by long wadis and the Euphrates valley.', 'هضبة مستقرة من الحجر الجيري والدولومايت والحجر الرملي شبه الأفقية، ترتفع نحو نهوض الرطبة وتقطعها وديان طويلة ووادي الفرات.'), 'Paleozoic–Neogene platform rocks of the Stable Shelf'],
     desert: ['#C7A04A', t('Southern Desert and Abu Jir margin', 'الصحراء الجنوبية وحافة أبو جير'), t('The edge of the desert plateau west of the Euphrates, with escarpments, closed depressions, lakes and springs along the Abu Jir fault zone.', 'حافة هضبة الصحراء غرب الفرات، فيها جروف ومنخفضات مغلقة وبحيرات وينابيع على امتداد نطاق فالق أبو جير.'), 'Eocene–Miocene limestone and Dibdibba gravels']
   };
+  /* status: established (no field), discovered or first excavated since about 2010, expected / proposed */
+  var ST = { known: ['#55616B', t('Established', 'معروف ومثبت')], new: ['#1F7A4D', t('Recent discovery', 'اكتشاف حديث')], exp: ['#B26A00', t('Expected / proposed', 'متوقَّع / مقترح')] }, STEN = { known: 'Established', new: 'Recent discovery', exp: 'Expected / proposed' };
+  var stOf = function (p) { return p.st || 'known'; };
   var ZORD = ['thrust', 'hfz', 'foothill', 'jazira', 'mesop', 'desert', 'western'];
   var DIRS = AR ? ['شمالاً', 'شمال شرق', 'شرقاً', 'جنوب شرق', 'جنوباً', 'جنوب غرب', 'غرباً', 'شمال غرب'] : ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
 
-  var P = [], BY = {}, MK = {}, me = null, meMk = null, sel = null, LIST = [], shown = 60, trip = store.get('sh_gh_trip', []), cats = { nature: 1, archaeo: 1, religious: 1, museum: 1 };
+  var P = [], BY = {}, MK = {}, LN = {}, me = null, meMk = null, sel = null, LIST = [], shown = 60, trip = store.get('sh_gh_trip', []), cats = { nature: 1, archaeo: 1, religious: 1, museum: 1, geosite: 1 };
   var nm = function (p, en) { return (AR && !en ? p.ar : p.en).name; };
   var gname = function (g, en) { return AR && !en ? GOV[g] || g : g; };
   var enT = {}; Object.keys(TY).forEach(function (k) { enT[k] = TY[k][0]; });
-  if (AR) { var TYEN = { waterfall: 'Waterfall', gorge: 'Gorge', cave: 'Cave', mountain: 'Mountain', resort: 'Mountain resort', lake: 'Lake', depression: 'Depression', marsh: 'Marsh', river: 'River and river landform', island: 'River island', spring: 'Spring and seep', sinkhole: 'Sinkhole', valley: 'Desert valley', outcrop: 'Rock outcrop', archaeo: 'Archaeological site', ziggurat: 'Ziggurat', relief: 'Rock relief', palace: 'Palace', citadel: 'Citadel and fortress', minaret: 'Minaret and mosque', bridge: 'Old bridge', khan: 'Caravanserai', heritage: 'Historic quarter and building', market: 'Historic market', religious: 'Shrine and mosque', church: 'Church and monastery', museum: 'Museum', monument: 'Monument', park: 'Park and corniche' }; enT = TYEN; }
-  var CATEN = { nature: 'Nature and geology', archaeo: 'Archaeology and heritage', religious: 'Religious sites', museum: 'Museums and monuments' };
+  if (AR) { var TYEN = { waterfall: 'Waterfall', gorge: 'Gorge', cave: 'Cave', mountain: 'Mountain', resort: 'Mountain resort', lake: 'Lake', depression: 'Depression', marsh: 'Marsh', river: 'River and river landform', island: 'River island', spring: 'Spring and seep', sinkhole: 'Sinkhole', valley: 'Desert valley', outcrop: 'Rock outcrop', archaeo: 'Archaeological site', ziggurat: 'Ziggurat', relief: 'Rock relief', palace: 'Palace', citadel: 'Citadel and fortress', minaret: 'Minaret and mosque', bridge: 'Old bridge', khan: 'Caravanserai', heritage: 'Historic quarter and building', market: 'Historic market', religious: 'Shrine and mosque', church: 'Church and monastery', museum: 'Museum', monument: 'Monument', park: 'Park and corniche', formation: 'Formation and type section', fold: 'Fold (anticline)', fault: 'Fault and thrust', mineral: 'Mineral deposit' }; enT = TYEN; }
+  var CATEN = { nature: 'Nature and geology', archaeo: 'Archaeology and heritage', religious: 'Religious sites', museum: 'Museums and monuments', geosite: 'Geosites: formations, folds, faults' };
   var ZEN = { thrust: 'Zagros Thrust Zone', hfz: 'High Folded Zone', foothill: 'Foothill (Low Folded) Zone', jazira: 'Jazira plain', mesop: 'Mesopotamian Plain', western: 'Western Desert', desert: 'Southern Desert and Abu Jir margin' };
   var km = function (m) { return m < 1e4 ? SH.fmt(m / 1000, 1) : SH.fmt(m / 1000, 0); }, KM = t(' km', ' كم');
   var bearing = function (a, b) { var f1 = SH.rad(a.lat), f2 = SH.rad(b.lat), dl = SH.rad(b.lon - a.lon), y = Math.sin(dl) * Math.cos(f2), x = Math.cos(f1) * Math.sin(f2) - Math.sin(f1) * Math.cos(f2) * Math.cos(dl); return (Math.atan2(y, x) * 180 / Math.PI + 360) % 360; };
@@ -79,7 +84,7 @@
     SH.getJSON(SH.base + 'assets/data/iraq-outline.json').then(function (r) { var ring = r.map(function (q) { return [q[1], q[0]]; });
       L.polygon([[[-89, -179], [-89, 179], [89, 179], [89, -179]], ring], { pane: 'ghMask', stroke: false, fillColor: '#0B1218', fillOpacity: .32, interactive: false }).addTo(map);
       L.polyline(ring.concat([ring[0]]), { pane: 'ghLine', color: '#C9A227', weight: 2.4, opacity: .95, interactive: false }).addTo(map); }).catch(function () {}); }
-  var geoL = L ? L.tileLayer('https://tiles.macrostrat.org/carto/{z}/{x}/{y}.png', { opacity: .62, maxZoom: 16, attribution: 'Geology © Macrostrat' }) : null;
+  var geoL = L ? L.tileLayer('https://tiles.macrostrat.org/carto/{z}/{x}/{y}.png', { opacity: .62, maxZoom: 16, attribution: 'Geological map' }) : null;
   $('#hGeoL').addEventListener('click', function () { if (!map) return; var on = this.getAttribute('aria-pressed') !== 'true'; this.setAttribute('aria-pressed', on); if (on) geoL.addTo(map); else map.removeLayer(geoL); });
   var pinIcon = function (p, on) { var c = CAT[p.cat][0]; return L.divIcon({ className: '', iconSize: [30, 30], iconAnchor: [15, 29], html: '<div class="gh-pin' + (on ? ' on' : '') + '" style="background:' + c + '">' + svgI(glyph(p)) + '</div>' }); };
   $('#hLeg').innerHTML = '<b>' + t('Kind of place', 'نوع المكان') + '</b>' + Object.keys(CAT).map(function (k) { return '<span><i style="background:' + CAT[k][0] + '"></i>' + CAT[k][1] + '</span>'; }).join('');
@@ -87,28 +92,29 @@
   /* ------------------------------------------------------------------ controls */
   $('#hCats').innerHTML = Object.keys(CAT).map(function (k) { return '<button type="button" class="gh-cat" data-cat="' + k + '" aria-pressed="true"><i style="background:' + CAT[k][0] + '">' + svgI(CAT[k][3], '#fff', 16) + '</i><span><b>' + CAT[k][1] + '</b><small data-cn="' + k + '"></small></span></button>'; }).join('');
   $('#hGov').innerHTML = '<option value="">' + t('All governorates', 'كل المحافظات') + '</option>' + GORD.map(function (g) { return '<option value="' + g + '">' + gname(g) + '</option>'; }).join('');
+  $('#hSt').innerHTML = '<option value="">' + t('Any status', 'كل الحالات') + '</option>' + Object.keys(ST).map(function (k) { return '<option value="' + k + '">' + ST[k][1] + '</option>'; }).join('');
   $('#hZone').innerHTML = '<option value="">' + t('All zones', 'كل النطاقات') + '</option>' + ZORD.map(function (z) { return '<option value="' + z + '">' + ZONE[z][1] + '</option>'; }).join('');
   function typeOpts() { var v = SH.val('hType'), have = {}; P.forEach(function (p) { if (cats[p.cat]) have[p.type] = (have[p.type] || 0) + 1; });
     $('#hType').innerHTML = '<option value="">' + t('All types', 'كل الأنواع') + '</option>' + Object.keys(TY).filter(function (k) { return have[k]; }).map(function (k) { return '<option value="' + k + '"' + (k === v ? ' selected' : '') + '>' + TY[k][0] + ' (' + have[k] + ')</option>'; }).join(''); }
   $('#hCats').addEventListener('click', function (e) { var b = e.target.closest('[data-cat]'); if (!b) return; var k = b.getAttribute('data-cat'), on = Object.keys(cats).filter(function (c) { return cats[c]; });
-    if (on.length === 4) { Object.keys(cats).forEach(function (c) { cats[c] = c === k ? 1 : 0; }); } else if (cats[k] && on.length === 1) { Object.keys(cats).forEach(function (c) { cats[c] = 1; }); } else cats[k] = cats[k] ? 0 : 1;
+    if (on.length === Object.keys(CAT).length) { Object.keys(cats).forEach(function (c) { cats[c] = c === k ? 1 : 0; }); } else if (cats[k] && on.length === 1) { Object.keys(cats).forEach(function (c) { cats[c] = 1; }); } else cats[k] = cats[k] ? 0 : 1;
     $$('#hCats [data-cat]').forEach(function (x) { x.setAttribute('aria-pressed', !!cats[x.getAttribute('data-cat')]); }); typeOpts(); refresh(true); });
-  ['hType', 'hGov', 'hZone', 'hRad'].forEach(function (id) { $('#' + id).addEventListener('change', function () { refresh(true); }); });
+  ['hType', 'hSt', 'hGov', 'hZone', 'hRad'].forEach(function (id) { $('#' + id).addEventListener('change', function () { refresh(true); }); });
   $('#hUn').addEventListener('change', function () { refresh(true); });
   var qT; $('#hQ').addEventListener('input', function () { clearTimeout(qT); qT = setTimeout(function () { refresh(false); }, 180); });
-  $('#hReset').addEventListener('click', function () { Object.keys(cats).forEach(function (c) { cats[c] = 1; }); $$('#hCats [data-cat]').forEach(function (x) { x.setAttribute('aria-pressed', 'true'); }); ['hType', 'hGov', 'hZone', 'hQ'].forEach(function (id) { $('#' + id).value = ''; }); $('#hRad').value = '0'; $('#hUn').checked = false; typeOpts(); refresh(true); });
+  $('#hReset').addEventListener('click', function () { Object.keys(cats).forEach(function (c) { cats[c] = 1; }); $$('#hCats [data-cat]').forEach(function (x) { x.setAttribute('aria-pressed', 'true'); }); ['hType', 'hSt', 'hGov', 'hZone', 'hQ'].forEach(function (id) { $('#' + id).value = ''; }); $('#hRad').value = '0'; $('#hUn').checked = false; typeOpts(); refresh(true); });
 
   var norm = function (s) { return String(s || '').toLowerCase().replace(/[\u064B-\u0652\u0640]/g, '').replace(/[أإآ]/g, 'ا').replace(/ة/g, 'ه').replace(/ى/g, 'ي'); };
   function filtered() {
-    var ty = SH.val('hType'), gv = SH.val('hGov'), zn = SH.val('hZone'), q = norm(SH.val('hQ')), un = $('#hUn').checked, rad = +SH.val('hRad') || 0;
-    var a = P.filter(function (p) { if (!cats[p.cat]) return false; if (ty && p.type !== ty) return false; if (gv && p.gov !== gv) return false; if (zn && p.zone !== zn) return false; if (un && !p.unesco) return false;
+    var ty = SH.val('hType'), sv = SH.val('hSt'), gv = SH.val('hGov'), zn = SH.val('hZone'), q = norm(SH.val('hQ')), un = $('#hUn').checked, rad = +SH.val('hRad') || 0;
+    var a = P.filter(function (p) { if (!cats[p.cat]) return false; if (ty && p.type !== ty) return false; if (sv && stOf(p) !== sv) return false; if (gv && p.gov !== gv) return false; if (zn && p.zone !== zn) return false; if (un && !p.unesco) return false;
       if (q && p._q.indexOf(q) < 0) return false; if (me && rad && p._d > rad * 1000) return false; return true; });
     if (me) a.sort(function (x, y) { return x._d - y._d; }); else a.sort(function (x, y) { return y.lat - x.lat; });
     return a;
   }
   function refresh(fit) {
     LIST = filtered(); shown = 60; var vis = {}; LIST.forEach(function (p) { vis[p.id] = 1; });
-    if (map) Object.keys(MK).forEach(function (k) { if (vis[k] || k === (sel && sel.id)) { if (!map.hasLayer(MK[k])) MK[k].addTo(map); } else if (map.hasLayer(MK[k])) map.removeLayer(MK[k]); });
+    if (map) Object.keys(MK).forEach(function (k) { var on = vis[k] || k === (sel && sel.id); [MK[k], LN[k]].forEach(function (l) { if (!l) return; if (on) { if (!map.hasLayer(l)) l.addTo(map); } else if (map.hasLayer(l)) map.removeLayer(l); }); });
     var cn = {}; P.forEach(function (p) { cn[p.cat] = (cn[p.cat] || 0) + 1; }); Object.keys(CAT).forEach(function (k) { var el = $('[data-cn="' + k + '"]'); if (el) el.textContent = (cn[k] || 0) + ' ' + t('places', 'مكاناً') + ' · ' + CAT[k][2]; });
     $('#hCount').textContent = LIST.length + ' ' + t(LIST.length === 1 ? 'place' : 'places', 'مكاناً') + (me ? t(', nearest first', '، الأقرب أولاً') : t(', north to south', '، من الشمال إلى الجنوب'));
     $('#hMapStat').innerHTML = '<b>' + LIST.length + '</b> ' + t('places on the map', 'مكاناً على الخريطة');
@@ -118,7 +124,7 @@
     if (fit && map && LIST.length) map.fitBounds(L.latLngBounds(LIST.map(function (p) { return [p.lat, p.lon]; })).pad(.12), { maxZoom: 11 });
   }
   function liHTML(p) { var c = CAT[p.cat][0], ph = photoURL(p, 120);
-    return '<button type="button" class="gh-li' + (sel && sel.id === p.id ? ' on' : '') + '" data-id="' + p.id + '"><span class="ph" style="' + (ph ? 'background-image:url(\'' + ph + '\')' : 'background:' + c) + '">' + (ph ? '' : svgI(glyph(p), '#fff', 22)) + '</span><span><b>' + E(nm(p)) + '</b><small>' + TY[p.type][0] + ' · ' + gname(p.gov) + (p.unesco ? ' · ' + t('World Heritage', 'تراث عالمي') : '') + '</small></span>' +
+    return '<button type="button" class="gh-li' + (sel && sel.id === p.id ? ' on' : '') + '" data-id="' + p.id + '"><span class="ph" style="' + (ph ? 'background-image:url(\'' + ph + '\')' : 'background:' + c) + '">' + (ph ? '' : svgI(glyph(p), '#fff', 22)) + '</span><span><b>' + E(nm(p)) + '</b><small>' + TY[p.type][0] + ' · ' + gname(p.gov) + (p.st ? ' · <b style="color:' + ST[p.st][0] + '">' + ST[p.st][1] + '</b>' : '') + (p.unesco ? ' · ' + t('World Heritage', 'تراث عالمي') : '') + '</small></span>' +
       (me ? '<span class="d">' + km(p._d) + KM + '<br><small style="text-align:end">' + dir8(p._b) + '</small></span>' : '<span></span>') + '</button>'; }
   function list() {
     if (!LIST.length) { $('#hList').innerHTML = '<div style="padding:16px" class="gh-cap">' + t('No place matches all the filters. Clear one of them, or use “Clear filters”.', 'لا يوجد مكان يطابق كل الفلاتر. امسح أحدها أو استخدم «مسح الفلاتر».') + '</div>'; return; }
@@ -154,17 +160,19 @@
   function open(id, fly) {
     var p = BY[id]; if (!p) return; sel = p; var my = ++tok, d = AR ? p.ar : p.en, c = CAT[p.cat][0], z = ZONE[p.zone], ph = photoURL(p, 960), inTrip = trip.indexOf(p.id) > -1;
     try { history.replaceState(null, '', '#' + id); } catch (e) {}
-    highlight(p); if (map && fly !== false) map.flyTo([p.lat, p.lon], Math.max(map.getZoom(), p.cat === 'nature' && /river|marsh|mountain|valley/.test(p.type) ? 9 : 13), { duration: .8 });
+    highlight(p); if (map && fly !== false && p.line) map.flyToBounds(L.latLngBounds(p.line).pad(.15), { duration: .8, maxZoom: 10 }); else if (map && fly !== false) map.flyTo([p.lat, p.lon], Math.max(map.getZoom(), p.cat === 'nature' && /river|marsh|mountain|valley/.test(p.type) ? 9 : 13), { duration: .8 });
     var near = P.filter(function (q) { return q !== p; }).map(function (q) { return { q: q, d: SH.dist(p, q), b: bearing(p, q) }; }).filter(function (x) { return x.d < 60000; }).sort(function (a, b) { return a.d - b.d; }).slice(0, 8);
     var h = '<button type="button" class="gh-back" id="hBack">' + ARR + ' ' + t('All places', 'كل الأماكن') + '</button>' +
-      '<div class="gh-hero" id="hHero" style="' + grad(c) + (ph ? ';background-image:linear-gradient(transparent,transparent),url(\'' + ph + '\')' : '') + '"><div class="in"><div class="gh-pills"><span style="background:' + c + '">' + TY[p.type][0] + '</span><span>' + gname(p.gov) + '</span>' + (p.unesco ? '<span class="u">' + t('UNESCO World Heritage', 'تراث عالمي – يونسكو') + '</span>' : '') + '</div><h2>' + E(d.name) + '</h2></div></div>' +
+      '<div class="gh-hero" id="hHero" style="' + grad(c) + (ph ? ';background-image:linear-gradient(transparent,transparent),url(\'' + ph + '\')' : '') + '"><div class="in"><div class="gh-pills"><span style="background:' + c + '">' + TY[p.type][0] + '</span><span>' + gname(p.gov) + '</span>' + (p.st ? '<span style="background:' + ST[p.st][0] + ';color:#fff">' + ST[p.st][1] + '</span>' : '') + (p.unesco ? '<span class="u">' + t('UNESCO World Heritage', 'تراث عالمي – يونسكو') + '</span>' : '') + '</div><h2>' + E(d.name) + '</h2></div></div>' +
       '<p class="gh-txt">' + E(d.desc) + '</p>' +
+      (p.st === 'exp' ? '<p class="gh-cap" style="border-inline-start:3px solid ' + ST.exp[0] + ';padding-inline-start:10px">' + t('Expected or proposed: the evidence points to this place, but it is not yet confirmed by excavation or by a mapped surface break. Treat the location as a working hypothesis.', 'متوقَّع أو مقترح: تشير الأدلة إلى هذا المكان لكنه لم يُثبَت بعد بالتنقيب أو بأثر سطحي مرسوم. تعامل مع الموقع على أنه فرضية عمل.') + '</p>' : '') +
+      (p.line ? '<p class="gh-cap">' + t('The line on the map is a generalised trace for orientation, not a surveyed position.', 'الخط على الخريطة أثر معمّم للتوجيه وليس موقعاً مساحياً.') + '</p>' : '') +
       (d.geo ? '<div class="gh-lb">' + svgI('land', 'currentColor', 14) + t('The geology of the place', 'جيولوجيا المكان') + '</div><p class="gh-geo">' + E(d.geo) + '</p>' : '') +
       '<div class="gh-lb">' + svgI('arch', 'currentColor', 14) + t('Key facts', 'معلومات أساسية') + '</div><div class="gh-facts">' +
       '<div class="gh-fact w"><span>' + t('Geological zone', 'النطاق الجيولوجي') + '</span><b><i style="display:inline-block;width:9px;height:9px;border-radius:50%;background:' + z[0] + ';margin-inline-end:6px"></i>' + z[1] + '</b><small class="gh-cap" style="display:block">' + z[2] + '</small></div>' +
       '<div class="gh-fact w"><span>' + t('Rock at the surface (geological map)', 'الصخر على السطح (الخريطة الجيولوجية)') + '</span><b id="hRock">' + spin + '</b></div>' +
       '<div class="gh-fact"><span>' + t('Elevation', 'الارتفاع') + '</span><b class="ltr" id="hElev">' + spin + '</b></div>' +
-      '<div class="gh-fact"><span>' + t('Coordinates', 'الإحداثيات') + '</span><b class="ltr">' + p.lat.toFixed(4) + '°N, ' + p.lon.toFixed(4) + '°E</b></div>' +
+      '<div class="gh-fact"><span>' + t('Coordinates', 'الإحداثيات') + '</span><b class="ltr">' + p.lat.toFixed(4) + '°N, ' + p.lon.toFixed(4) + '°E</b>' + (p.prec ? '<small class="gh-cap" style="display:block">' + t('approximate, ± ', 'تقريبية، ± ') + p.prec + KM + '</small>' : '') + '</div>' +
       (me ? '<div class="gh-fact"><span>' + t('Distance from you', 'البعد عنك') + '</span><b class="ltr">' + km(SH.dist(me, p)) + KM + ' · ' + dir8(bearing(me, p)) + '</b></div><div class="gh-fact"><span>' + t('Driving time (approx.)', 'زمن القيادة (تقريبي)') + '</span><b>' + drive(SH.dist(me, p) * 1.3) + '</b></div>' : '') +
       '<div class="gh-fact w"><span>' + t('Fossil sites within 25 km', 'المواقع الأحفورية ضمن 25 كم') + '</span><b id="hFos">' + spin + '</b></div>' +
       (p.unesco ? '<div class="gh-fact w"><span>' + t('World Heritage inscription', 'التسجيل في التراث العالمي') + '</span><b>' + E(p.unesco) + '</b></div>' : '') + '</div>' +
@@ -215,7 +223,7 @@
     $('#hFSum').innerHTML = E(gname(p.gov)) + ' · ' + E(ZONE[p.zone][1]) + ' · <span dir="ltr" style="unicode-bidi:isolate">' + p.lat.toFixed(4) + '° N, ' + p.lon.toFixed(4) + '° E</span>';
     if (L && !mini) { mini = L.map('hMini', { zoomControl: true, attributionControl: true }); mini.attributionControl.setPrefix('Leaflet');
       miniL.sat = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 19, attribution: 'Imagery © Esri, Maxar, Earthstar Geographics' });
-      miniL.geo = L.layerGroup([L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 19, attribution: 'Imagery © Esri' }), L.tileLayer('https://tiles.macrostrat.org/carto/{z}/{x}/{y}.png', { opacity: .7, maxZoom: 16, attribution: 'Geology © Macrostrat' })]);
+      miniL.geo = L.layerGroup([L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 19, attribution: 'Imagery © Esri' }), L.tileLayer('https://tiles.macrostrat.org/carto/{z}/{x}/{y}.png', { opacity: .7, maxZoom: 16, attribution: 'Geological map' })]);
       miniL.topo = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}', { maxZoom: 19, attribution: 'Map © Esri, HERE, Garmin, USGS' });
       miniL.sat.addTo(mini); L.control.scale({ metric: true, imperial: false }).addTo(mini); }
     if (mini) { var zz = /river|marsh|mountain|valley|lake|depression/.test(p.type) ? 11 : 16; mini.setView([p.lat, p.lon], zz); setTimeout(function () { mini.invalidateSize(); }, 80);
@@ -362,11 +370,11 @@
   $('#hTbl').addEventListener('click', function (e) { var th = e.target.closest('th[data-k]'); if (th) { var k = th.getAttribute('data-k'); TS.d = TS.k === k ? -TS.d : 1; TS.k = k; table(); return; } var tr = e.target.closest('tr[data-id]'); if (tr) { open(tr.getAttribute('data-id'), true); var m = $('.wsm'); if (m) m.scrollIntoView({ behavior: 'smooth', block: 'start' }); } });
   $('#hTQ').addEventListener('input', table);
   document.addEventListener('click', function (e) { var b = e.target.closest('[data-tbl]'); if (!b) return; var f = b.getAttribute('data-tbl'), r = rows(true), nmF = 'shandal-iraq-places_' + stamp();
-    var head = ['No.', 'Place (English)', 'Place (Arabic)', 'Type', 'Kind', 'Governorate', 'Geological zone', 'Latitude', 'Longitude', 'World Heritage', 'Description', 'Geology'].concat(me ? ['Distance from you (km)'] : []);
-    var data = r.map(function (x) { var p = x.p; return [x.n, p.en.name, p.ar.name, enT[p.type], CATEN[p.cat], p.gov, ZEN[p.zone], p.lat, p.lon, p.unesco || '', AR ? p.ar.desc : p.en.desc, AR ? p.ar.geo : p.en.geo].concat(me ? [x.dist] : []); });
-    if (f === 'xlsx') xlsx(nmF + '.xlsx', [{ name: 'Places', head: head, rows: data, widths: [6, 34, 30, 22, 22, 16, 26, 11, 11, 30, 80, 80, 14] }]);
+    var head = ['No.', 'Place (English)', 'Place (Arabic)', 'Type', 'Kind', 'Governorate', 'Geological zone', 'Status', 'Position error (km)', 'Latitude', 'Longitude', 'World Heritage', 'Description', 'Geology'].concat(me ? ['Distance from you (km)'] : []);
+    var data = r.map(function (x) { var p = x.p; return [x.n, p.en.name, p.ar.name, enT[p.type], CATEN[p.cat], p.gov, ZEN[p.zone], STEN[stOf(p)], p.prec || 0.5, p.lat, p.lon, p.unesco || '', AR ? p.ar.desc : p.en.desc, AR ? p.ar.geo : p.en.geo].concat(me ? [x.dist] : []); });
+    if (f === 'xlsx') xlsx(nmF + '.xlsx', [{ name: 'Places', head: head, rows: data, widths: [6, 34, 30, 22, 22, 16, 26, 18, 10, 11, 11, 30, 80, 80, 14] }]);
     else if (f === 'csv') SH.download(nmF + '.csv', new Blob(['\ufeff' + [head].concat(data).map(function (rr) { return rr.map(function (v) { v = v == null ? '' : String(v); return /[",\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; }).join(','); }).join('\r\n')], { type: 'text/csv;charset=utf-8' }));
-    else if (f === 'geojson') SH.download(nmF + '.geojson', new Blob([JSON.stringify({ type: 'FeatureCollection', features: r.map(function (x) { var p = x.p; return { type: 'Feature', geometry: { type: 'Point', coordinates: [p.lon, p.lat] }, properties: { name: p.en.name, name_ar: p.ar.name, type: enT[p.type], kind: CATEN[p.cat], governorate: p.gov, zone: ZEN[p.zone], world_heritage: p.unesco || null, description: p.en.desc, description_ar: p.ar.desc, geology: p.en.geo } }; }) }, null, 1)], { type: 'application/geo+json' }));
+    else if (f === 'geojson') SH.download(nmF + '.geojson', new Blob([JSON.stringify({ type: 'FeatureCollection', features: r.map(function (x) { var p = x.p; return { type: 'Feature', geometry: p.line ? { type: 'LineString', coordinates: p.line.map(function (q) { return [q[1], q[0]]; }) } : { type: 'Point', coordinates: [p.lon, p.lat] }, properties: { name: p.en.name, name_ar: p.ar.name, type: enT[p.type], kind: CATEN[p.cat], governorate: p.gov, zone: ZEN[p.zone], status: STEN[stOf(p)], position_error_km: p.prec || 0.5, world_heritage: p.unesco || null, description: p.en.desc, description_ar: p.ar.desc, geology: p.en.geo } }; }) }, null, 1)], { type: 'application/geo+json' }));
     else { var esc = function (s) { return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;'); }; SH.download(nmF + '.kml', new Blob(['<?xml version="1.0" encoding="UTF-8"?><kml xmlns="http://www.opengis.net/kml/2.2"><Document><name>Shandal — places of Iraq</name>' + r.map(function (x) { var p = x.p; return '<Placemark><name>' + esc(nm(p)) + '</name><description>' + esc((AR ? p.ar.desc : p.en.desc)) + '</description><Point><coordinates>' + p.lon + ',' + p.lat + ',0</coordinates></Point></Placemark>'; }).join('') + '</Document></kml>'], { type: 'application/vnd.google-earth.kml+xml' })); }
   });
 
@@ -575,7 +583,8 @@
 
   /* ------------------------------------------------------------------ load */
   SH.getJSON(SH.base + 'assets/data/geoheritage.json').then(function (j) {
-    P = j; P.forEach(function (p) { BY[p.id] = p; p._q = norm([p.en.name, p.ar.name, p.en.desc, p.ar.desc, p.en.geo, p.ar.geo, p.gov, GOV[p.gov], TY[p.type][0], enT[p.type], ZONE[p.zone][1]].join(' '));
+    P = j; P.forEach(function (p) { BY[p.id] = p; p._q = norm([p.en.name, p.ar.name, p.en.desc, p.ar.desc, p.en.geo, p.ar.geo, p.gov, GOV[p.gov], TY[p.type][0], enT[p.type], ZONE[p.zone][1], ST[stOf(p)][1], STEN[stOf(p)]].join(' '));
+      if (map && p.line) LN[p.id] = L.polyline(p.line, { color: CAT[p.cat][0], weight: 3.2, opacity: .9, dashArray: p.st === 'exp' ? '9 7' : (p.type === 'fault' ? null : '2 6'), lineCap: 'round' }).bindTooltip(E(nm(p)), { sticky: true }).on('click', function () { open(p.id, false); }).addTo(map);
       if (map) MK[p.id] = L.marker([p.lat, p.lon], { icon: pinIcon(p), title: nm(p), riseOnHover: true }).bindTooltip(E(nm(p)), { direction: 'top', offset: [0, -26] }).on('click', function () { open(p.id, false); }).addTo(map); });
     typeOpts(); refresh(false); tripView();
     var h = decodeURIComponent((location.hash || '').slice(1)); if (h && BY[h]) open(h, true);
