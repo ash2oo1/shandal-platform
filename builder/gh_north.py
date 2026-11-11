@@ -310,54 +310,6 @@ add('mn_mishraq', 'mineral', G, 'Nineveh', 35.950, 43.330, 'foothill',
      'تكوّن الكبريت الحر حين اختزلت البكتيريا جبس وأنهيدرايت تكوين الفتحة المايوسيني بوجود النفط والغاز الصاعدين من الأسفل (إحلال حيوي للكبريتات بالكبريت والكالسايت).'),
     prec=5)
 
-# ======================================================================= faults (generalised traces)
-add('ft_mzt', 'fault', G, 'Sulaymaniyah', 35.800, 45.780, 'thrust',
-    ('Main Zagros Thrust (Zagros suture, Iraqi segment)',
-     'The great fault where the Arabian Plate passes under Iran runs along the north-eastern border of Iraq, from Haji Omaran through Penjween towards Hawraman.',
-     'The suture of the Neo-Tethys ocean: ophiolites and metamorphic thrust sheets are pushed south-westwards over the Arabian margin. The line is a generalised trace from small-scale maps.'),
-    ('الزحف الرئيس لزاكروس (درز زاكروس، القطاع العراقي)',
-     'يمتد الفالق العظيم الذي تنغرز فيه الصفيحة العربية تحت إيران على طول الحدود الشمالية الشرقية للعراق، من حاجي عمران مروراً ببنجوين نحو هورامان.',
-     'درز محيط التيثس الحديث: صفائح الأوفيولايت والصخور المتحولة مدفوعة نحو الجنوب الغربي فوق حافة الصفيحة العربية. الخط أثر معمّم من خرائط صغيرة المقياس.'),
-    prec=10, line=[[37.10, 44.35], [36.85, 44.80], [36.67, 45.05], [36.35, 45.30], [36.00, 45.55], [35.62, 45.95], [35.35, 46.10], [35.05, 46.30]])
-add('ft_mff', 'fault', G, 'Erbil', 36.270, 44.230, 'foothill',
-    ('Mountain Front Fault (Zagros Mountain Front)',
-     'The line where the high limestone mountains give way to the low foothills, from north of Mosul past Erbil and Sulaymaniyah to the Diyala.',
-     'A mostly buried basement thrust under the Mountain Front Flexure; it raises the High Folded Zone about 2–3 km relative to the foothills and is one of the main sources of earthquakes in northern Iraq. Generalised trace.'),
-    ('فالق الجبهة الجبلية (جبهة جبال زاكروس)',
-     'الخط الذي تنتهي عنده الجبال الجيرية العالية وتبدأ التلال الواطئة، من شمال الموصل مروراً بأربيل والسليمانية حتى ديالى.',
-     'زحف في القاعدة مدفون في معظمه تحت انثناء الجبهة الجبلية، يرفع نطاق الطيات العالية نحو 2–3 كم عن التلال، وهو من المصادر الرئيسة للزلازل في شمال العراق. أثر معمّم.'),
-    prec=15, line=[[37.00, 42.55], [36.88, 43.10], [36.75, 43.55], [36.50, 43.95], [36.25, 44.25], [35.95, 44.70], [35.65, 45.05], [35.35, 45.40], [35.05, 45.70], [34.65, 45.95]])
-add('ft_sinjar', 'fault', G, 'Nineveh', 36.380, 41.800, 'jazira',
-    ('Sinjar faults', 'Sinjar mountain is a fold squeezed above an old rift; the bounding faults run along its northern and southern feet.',
-     'Reverse-reactivated normal faults of the Late Cretaceous Sinjar trough, which inverted the trough into the Sinjar anticline. Generalised trace.'),
-    ('فوالق سنجار', 'جبل سنجار طية انضغطت فوق صدع قديم، وتمتد الفوالق المحددة له على قدميه الشمالية والجنوبية.',
-     'فوالق اعتيادية من حوض سنجار الطباشيري المتأخر أعيد تنشيطها عكسياً فقلبت الحوض إلى طية سنجار المحدبة. أثر معمّم.'),
-    prec=8, line=[[36.42, 41.35], [36.38, 41.80], [36.34, 42.25]])
-add('ft_hamrin', 'fault', G, 'Saladin', 34.800, 44.000, 'foothill',
-    ('Hamrin–Makhul thrust', 'The south-western foot of the Hamrin and Makhul ridges follows a thrust that pushes the foothills over the Mesopotamian plain.',
-     'A blind thrust with surface folding of Miocene–Pliocene beds; the outermost active structure of the Zagros fold belt in Iraq. Generalised trace.'),
-    ('زحف حمرين–مكحول', 'تتبع القدم الجنوبية الغربية لحافتي حمرين ومكحول زحفاً يدفع التلال فوق السهل الرسوبي.',
-     'زحف أعمى مع طي سطحي لطبقات مايوسينية–بلايوسينية، وهو أبعد تركيب نشط لحزام طيات زاكروس في العراق. أثر معمّم.'),
-    prec=8, line=[[35.30, 43.35], [35.10, 43.55], [34.80, 44.00], [34.45, 44.55], [34.15, 45.05]])
-add('ft_aqd', 'fault', G, 'Erbil', 36.000, 44.800, 'foothill',
-    ('Anah–Qalat Dizeh fault (inferred)', 'A deep basement fault interpreted to cross Iraq from Anah on the Euphrates to Qalat Dizeh near the Iranian border.',
-     'A transversal NE–SW basement fault inferred from gravity, magnetics and offsets of fold axes; it has no clear surface break, so its position is uncertain by tens of kilometres.'),
-    ('فالق عانة–قلعة دزه (مستنتج)', 'فالق عميق في القاعدة يُفسَّر بأنه يعبر العراق من عانة على الفرات إلى قلعة دزه قرب الحدود الإيرانية.',
-     'فالق مستعرض شمال شرق–جنوب غرب في القاعدة استنتج من الجاذبية والمغناطيسية وإزاحة محاور الطيات، وليس له أثر سطحي واضح، لذلك يحتمل خطأ موقعه عشرات الكيلومترات.'),
-    st='exp', prec=20, line=[[36.18, 45.12], [35.70, 44.20], [35.20, 43.30], [34.75, 42.55], [34.40, 41.95]])
-add('ft_tigris', 'fault', G, 'Nineveh', 35.900, 43.250, 'foothill',
-    ('Tigris fault (inferred)', 'The course of the Tigris between Mosul and Samarra is thought to follow a deep fault zone in the basement.',
-     'A longitudinal basement fault inferred from subsurface data and the straight river course; its exact position and movement are debated. Generalised trace.'),
-    ('فالق دجلة (مستنتج)', 'يُعتقد أن مجرى دجلة بين الموصل وسامراء يتبع نطاق فالق عميق في القاعدة.',
-     'فالق طولي في القاعدة استنتج من بيانات تحت سطحية واستقامة مجرى النهر، وموقعه الدقيق وحركته موضع نقاش. أثر معمّم.'),
-    st='exp', prec=15, line=[[36.65, 42.80], [36.30, 43.15], [35.45, 43.27], [34.80, 43.60], [34.20, 43.87]])
-add('ft_khanaqin', 'fault', G, 'Diyala', 34.400, 45.400, 'foothill',
-    ('Khanaqin fault (inferred)', 'A transversal basement fault interpreted near Khanaqin, where the trend of the folds changes.',
-     'NE–SW fault inferred from the bend of fold axes and subsurface data; no single surface break. Generalised trace with large uncertainty.'),
-    ('فالق خانقين (مستنتج)', 'فالق مستعرض في القاعدة يُفسَّر قرب خانقين حيث يتغير اتجاه الطيات.',
-     'فالق شمال شرق–جنوب غرب استنتج من انحناء محاور الطيات وبيانات تحت سطحية، ولا يوجد له أثر سطحي واحد. أثر معمّم بخطأ كبير.'),
-    st='exp', prec=20, line=[[35.00, 45.85], [34.35, 45.39], [33.80, 44.90]])
-
 # ======================================================================= archaeology
 A = 'archaeo'
 add('a_qalatga', 'citadel', A, 'Sulaymaniyah', 36.2135, 44.9773, 'hfz',
@@ -541,11 +493,11 @@ add('a_maltai', 'relief', A, 'Duhok', 36.890, 43.010, 'hfz',
      'محفورة على جرف طية دهوك المحدبة في حجر جيري باليوجيني.'),
     prec=3)
 add('a_canal', 'archaeo', A, 'Nineveh', 36.560, 43.300, 'foothill',
-    ('Sennacherib\'s canal system (Khinis–Jerwan–Nineveh)', 'The Assyrian king Sennacherib brought water to Nineveh by canals from the mountains, crossing valleys on aqueducts such as Jerwan. The line shows the main course.',
-     'The canal heads at the Khinis gorge where the Gomel river leaves the mountains and follows the slope of the foothills to Nineveh. Generalised course; parts are known from survey and satellite imagery.'),
-    ('منظومة قنوات سنحاريب (خنس–جروانة–نينوى)', 'جلب الملك الآشوري سنحاريب الماء إلى نينوى بقنوات من الجبال عبرت الوديان على جسور مائية مثل جروانة، ويبين الخط المسار الرئيس.',
-     'تبدأ القناة عند مضيق خنس حيث يخرج نهر گومل من الجبال وتتبع انحدار التلال إلى نينوى. مسار معمّم، وعرفت أجزاؤه بالمسح والصور الفضائية.'),
-    prec=3, line=[[36.764, 43.425], [36.670, 43.394], [36.520, 43.280], [36.360, 43.160]])
+    ('Sennacherib\'s canal system (Khinis–Jerwan–Nineveh)', 'The Assyrian king Sennacherib brought water to Nineveh by canals from the mountains, crossing valleys on aqueducts such as Jerwan. ',
+     'The canal heads at the Khinis gorge where the Gomel river leaves the mountains and follows the slope of the foothills to Nineveh. Parts of its course are known from survey and satellite imagery.'),
+    ('منظومة قنوات سنحاريب (خنس–جروانة–نينوى)', 'جلب الملك الآشوري سنحاريب الماء إلى نينوى بقنوات من الجبال عبرت الوديان على جسور مائية مثل جروانة، ',
+     'تبدأ القناة عند مضيق خنس حيث يخرج نهر گومل من الجبال وتتبع انحدار التلال إلى نينوى. وعرفت أجزاء مسارها بالمسح والصور الفضائية.'),
+    prec=3)
 add('a_gaugamela', 'archaeo', A, 'Nineveh', 36.56, 43.44, 'foothill',
     ('Gaugamela battlefield (proposed location)', 'Where Alexander the Great defeated Darius III in 331 BC. The battlefield is placed on the plain near Tell Gomel, but the exact location is not proven.',
      'A wide plain of the Foothill Zone suited to cavalry and chariots, between the Gomel and Khazir rivers.'),
