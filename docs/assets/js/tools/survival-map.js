@@ -25,7 +25,7 @@
     ['settle', 'Village or houses', 'قرية أو بيوت', ['twn', 'vil', 'ham']], ['town', 'Town', 'مدينة أو بلدة', ['twn']], ['road', 'Road or track for a car', 'طريق أو درب للسيارة', ['rdM', 'rdm', 'trk']],
     ['paved', 'Main or minor road', 'طريق رئيس أو فرعي', ['rdM', 'rdm']], ['med', 'Clinic or hospital', 'مستوصف أو مستشفى', ['med']], ['pol', 'Police', 'شرطة', ['pol']],
     ['shelter', 'Shelter or lodging', 'ملجأ أو مبيت', ['shl', 'htl']], ['peak', 'High point (signal, view)', 'مرتفع (إشارة وإطلالة)', ['pk']]];
-  var DB = null, PK = null, PACKS = [], POS = null, HEAD = null, CTR = null, PLAN = false, TRK = [], REC = false, WATCH = null, SEL = null, NAME_EN = '', LAST = 0, LASTU = 0, OUTLINE = null, CMP = false, busy = false;
+  var DB = null, PK = null, ACT = [], OV = {}, PACKS = [], POS = null, HEAD = null, CTR = null, PLAN = false, TRK = [], REC = false, WATCH = null, SEL = null, sheetDirty = false, NAME_EN = '', LAST = 0, LASTU = 0, OUTLINE = null, CMP = false, busy = false;
   var IDS = ['smSize', 'smName'], persist = SH.persist('survivalmap', IDS);
 
   /* ---------------------------------------------------------------- storage on the device */
@@ -90,16 +90,17 @@
   map.on('zoomend', lzCls); lzCls();
   function boxOf(c, sz) { var dLa = sz / 2 / 111.32, dLo = dLa / Math.cos(SH.rad(c[0])); return { s: c[0] - dLa, n: c[0] + dLa, w: c[1] - dLo, e: c[1] + dLo }; }
   function drawBox() {
-    if (G.box) map.removeLayer(G.box); G.box = null; if (PK) { G.box = L.rectangle([[PK.a.s, PK.a.w], [PK.a.n, PK.a.e]], { color: '#B08A3E', weight: 2, fill: false, dashArray: '6 5', interactive: false }).addTo(map); return; }
-    if (!CTR) return; var a = boxOf(CTR, +$('#smSize').value); G.box = L.rectangle([[a.s, a.w], [a.n, a.e]], { color: '#B08A3E', weight: 2, fillOpacity: .06, dashArray: '6 5', interactive: false }).addTo(map);
+    if (G.box) map.removeLayer(G.box); G.box = L.featureGroup().addTo(map); G.prev = null;
+    ACT.forEach(function (p) { L.rectangle([[p.a.s, p.a.w], [p.a.n, p.a.e]], { color: '#B08A3E', weight: 2, fill: false, dashArray: '6 5', interactive: false }).addTo(G.box); });
+    if (!CTR) return; var a = boxOf(CTR, +$('#smSize').value); G.prev = L.rectangle([[a.s, a.w], [a.n, a.e]], { color: '#E4007C', weight: 2, fillOpacity: .06, dashArray: '6 5', interactive: false }).addTo(G.box);
     $('#smCtr').textContent = F(CTR[0], 4) + '°, ' + F(CTR[1], 4) + '°';
   }
-  function setCtr(c, name, fit) { CTR = c; if (name === '') NAME_EN = ''; if (name) $('#smName').value = name; drawBox(); if (fit && G.box) map.fitBounds(G.box.getBounds(), { padding: [20, 20] }); }
+  function setCtr(c, name, fit) { CTR = c; if (name === '') NAME_EN = ''; if (name) $('#smName').value = name; drawBox(); if (fit && G.prev) map.fitBounds(G.prev.getBounds(), { padding: [20, 20] }); }
   $('#smPre').innerHTML = PRE.map(function (p) { return '<button type="button" data-k="' + p[0] + '">' + E(AR ? p[2] : p[1]) + '</button>'; }).join('');
-  $('#smPre').addEventListener('click', function (e) { var b = e.target.closest('[data-k]'); if (!b) return; var p = PRE.filter(function (q) { return q[0] === b.getAttribute('data-k'); })[0]; closePack(); NAME_EN = p[1]; $$('#smPre button').forEach(function (x) { x.setAttribute('aria-pressed', x === b); }); setCtr([p[3], p[4]], AR ? p[2] : p[1], true); });
+  $('#smPre').addEventListener('click', function (e) { var b = e.target.closest('[data-k]'); if (!b) return; var p = PRE.filter(function (q) { return q[0] === b.getAttribute('data-k'); })[0]; NAME_EN = p[1]; $$('#smPre button').forEach(function (x) { x.setAttribute('aria-pressed', x === b); }); setCtr([p[3], p[4]], AR ? p[2] : p[1], true); });
   $('#smSize').addEventListener('change', function () { drawBox(); });
-  $('#smMe').addEventListener('click', function () { SH.locate().then(function (p) { closePack(); setCtr([p.lat, p.lon], '', true); }).catch(function (e) { SH.toast(e.message, 'bad'); }); });
-  map.on('click', function (e) { if (PLAN && PK) { setPos({ lat: e.latlng.lat, lon: e.latlng.lng, acc: 0, plan: true }); return; } if (!PK) { NAME_EN = ''; setCtr([e.latlng.lat, e.latlng.lng], null, false); } });
+  $('#smMe').addEventListener('click', function () { SH.locate().then(function (p) { setCtr([p.lat, p.lon], '', true); }).catch(function (e) { SH.toast(e.message, 'bad'); }); });
+  map.on('click', function (e) { if (PLAN && ACT.length) { setPos({ lat: e.latlng.lat, lon: e.latlng.lng, acc: 0, plan: true }); return; } NAME_EN = ''; setCtr([e.latlng.lat, e.latlng.lng], null, false); });
 
   /* ---------------------------------------------------------------- download: features */
   function ovQuery(a) {
@@ -217,7 +218,7 @@
       .then(function () { return terrain(a, function (p) { msg(0.35 + 0.35 * p, t('2/4 · Reading the elevation model…', '2/4 · قراءة نموذج الارتفاع…')); }).catch(function (e) { warn.push(t('No elevation model: ', 'لا يوجد نموذج ارتفاع: ') + e.message); return null; }); })
       .then(function (tr) { pk.t = tr; msg(0.8, t('3/4 · Rain and temperature…', '3/4 · المطر والحرارة…')); return weather(CTR).catch(function () { warn.push(t('Rain and temperature could not be read.', 'تعذرت قراءة المطر والحرارة.')); return null; }); })
       .then(function (wx) { pk.wx = wx; msg(0.92, t('4/4 · Saving on this device…', '4/4 · الحفظ على هذا الجهاز…')); return outline().then(function (o) { pk.border = o; return dbPut('packs', pk); }); })
-      .then(function () { msg(1, t('Saved. This area now works without internet.', 'تم الحفظ. هذه المنطقة تعمل الآن من دون إنترنت.') + (warn.length ? ' ' + warn.join(' ') : '')); SH.toast(t('Area saved for offline use.', 'حُفظت المنطقة للعمل دون إنترنت.'), 'ok'); warm(); return listPacks().then(function () { openPack(pk.id); }); })
+      .then(function () { msg(1, t('Saved. This area now works without internet.', 'تم الحفظ. هذه المنطقة تعمل الآن من دون إنترنت.') + (warn.length ? ' ' + warn.join(' ') : '')); SH.toast(t('Area saved for offline use.', 'حُفظت المنطقة للعمل دون إنترنت.'), 'ok'); warm(); CTR = null; return listPacks().then(function () { return showPack(pk.id, true); }); })
       .catch(function (e) { msg(0, ''); SH.toast(e.message || String(e), 'bad'); })
       .then(function () { busy = false; $('#smGet').disabled = false; });
   });
@@ -225,45 +226,58 @@
 
   /* ---------------------------------------------------------------- saved areas */
   function sizeOf(pk) { var b = JSON.stringify(pk.f || []).length; if (pk.t) b += pk.t.z.byteLength + pk.t.slope.byteLength + pk.t.acc.byteLength + pk.t.img.hs.size + pk.t.img.hz.size + pk.t.img.ch.size; return b / 1048576; }
+  function isOn(id) { return ACT.some(function (p) { return p.id === id; }); }
   function listPacks() {
     return dbAll('packs').then(function (all) {
       PACKS = (all || []).sort(function (x, y) { return x.at < y.at ? 1 : -1; });
-      $('#smPacks').innerHTML = PACKS.length ? PACKS.map(function (p) {
-        return '<div class="sm-pk" data-cur="' + (PK && PK.id === p.id) + '"><b>' + E(p.name) + '</b><small>' + p.size + ' × ' + p.size + t(' km · saved ', ' كم · حُفظت ') + new Date(p.at).toLocaleDateString(AR ? 'ar-IQ' : 'en-GB') + ' · ' + F(sizeOf(p), 1) + ' MB · ' + (p.f || []).length + t(' features', ' معلماً') + '</small><div class="r"><button class="btn btn-ink btn-xs" type="button" data-open="' + p.id + '">' + t('Open', 'افتح') + '</button><button class="btn btn-line btn-xs" type="button" data-del="' + p.id + '">' + t('Delete', 'احذف') + '</button></div></div>';
+      $('#smPacks').innerHTML = PACKS.length ? (PACKS.length > 1 ? '<div class="sm-chips"><button type="button" data-all="1">' + t('Show all on the map', 'اعرض الكل على الخريطة') + '</button><button type="button" data-all="0">' + t('Hide all', 'أخفِ الكل') + '</button></div>' : '') + PACKS.map(function (p) {
+        var on = isOn(p.id);
+        return '<div class="sm-pk" data-cur="' + on + '"><b>' + E(p.name) + '</b><small>' + p.size + ' × ' + p.size + t(' km · saved ', ' كم · حُفظت ') + new Date(p.at).toLocaleDateString(AR ? 'ar-IQ' : 'en-GB') + ' · ' + F(sizeOf(p), 1) + ' MB · ' + (p.f || []).length + t(' features', ' معلماً') + '</small><div class="r"><button class="btn ' + (on ? 'btn-ink' : 'btn-line') + ' btn-xs" type="button" data-tog="' + p.id + '">' + (on ? '✓ ' + t('On the map', 'على الخريطة') : t('Show on the map', 'اعرض على الخريطة')) + '</button>' + (on ? '<button class="btn btn-line btn-xs" type="button" data-fit="' + p.id + '">' + t('Go to', 'انتقل إليها') + '</button>' : '') + '<button class="btn btn-line btn-xs" type="button" data-del="' + p.id + '">' + t('Delete', 'احذف') + '</button></div></div>';
       }).join('') : '<p class="xsmall muted" style="margin:0">' + t('No area saved yet.', 'لم تُحفظ أي منطقة بعد.') + '</p>';
       if (navigator.storage && navigator.storage.estimate) navigator.storage.estimate().then(function (e) { $('#smStore').textContent = t('Used on this device: ', 'المستخدم على هذا الجهاز: ') + F((e.usage || 0) / 1048576, 0) + ' MB' + (e.quota ? t(' of about ', ' من نحو ') + F(e.quota / 1073741824, 1) + ' GB' : ''); });
     }).catch(function () { $('#smPacks').innerHTML = '<p class="xsmall muted">' + t('This browser does not allow saving data (private window?).', 'هذا المتصفح لا يسمح بحفظ البيانات (نافذة خاصة؟).') + '</p>'; });
   }
   $('#smPacks').addEventListener('click', function (e) {
-    var o = e.target.closest('[data-open]'), d = e.target.closest('[data-del]');
-    if (o) openPack(o.getAttribute('data-open'));
-    if (d) Promise.resolve(SH.confirm(t('Delete this saved area from the device? It will not work offline any more.', 'حذف هذه المنطقة المحفوظة من الجهاز؟ لن تعمل بعدها من دون إنترنت.'))).then(function (ok) { if (!ok) return; var id = d.getAttribute('data-del'); if (PK && PK.id === id) closePack(); return Promise.all([dbDel('packs', id), dbDel('tracks', id)]).then(listPacks); });
+    var o = e.target.closest('[data-tog]'), d = e.target.closest('[data-del]'), al = e.target.closest('[data-all]'), fi = e.target.closest('[data-fit]');
+    if (o) { var id = o.getAttribute('data-tog'); if (isOn(id)) hidePack(id); else showPack(id, true); }
+    if (fi) { var p0 = ACT.filter(function (p) { return p.id === fi.getAttribute('data-fit'); })[0]; if (p0) map.fitBounds([[p0.a.s, p0.a.w], [p0.a.n, p0.a.e]], { padding: [10, 10] }); }
+    if (al) { if (al.getAttribute('data-all') === '1') showMany(PACKS.map(function (p) { return p.id; }), true); else hideAll(); }
+    if (d) Promise.resolve(SH.confirm(t('Delete this saved area from the device? It will not work offline any more.', 'حذف هذه المنطقة المحفوظة من الجهاز؟ لن تعمل بعدها من دون إنترنت.'))).then(function (ok) { if (!ok) return; var id = d.getAttribute('data-del'); if (isOn(id)) hidePack(id); return dbDel('packs', id).then(listPacks); });
   });
 
   /* ---------------------------------------------------------------- opening an area */
   function nmOf(f) { return (AR ? f.na || f.n || f.ne : f.ne || f.n || f.na) || ''; }
-  function closePack() {
-    PK = null; TRK = []; SEL = null; ['hs', 'hz', 'ch'].forEach(function (k) { if (G[k]) { map.removeLayer(G[k]); URL.revokeObjectURL(G[k]._url); G[k] = null; } });
-    G.vec.clearLayers(); G.lbl.clearLayers(); G.trk.setLatLngs([]); G.sel.setLatLngs([]); $('#smOut').hidden = true; $('#smEmpty').hidden = false; drawBox(); status(); listPacks();
+  function pkAt(lat, lon) { for (var i = 0; i < ACT.length; i++) { var a = ACT[i].a; if (lat >= a.s && lat <= a.n && lon >= a.w && lon <= a.e) return ACT[i]; } return null; }
+  function allF() { var o = []; ACT.forEach(function (p) { o = o.concat(p.f || []); }); return o; }
+  function remember() { lsSet('shandal_sm_open', JSON.stringify(ACT.map(function (p) { return p.id; }))); }
+  function fitAll() { if (!ACT.length) return; var b = L.latLngBounds([]); ACT.forEach(function (p) { b.extend([[p.a.s, p.a.w], [p.a.n, p.a.e]]); }); map.fitBounds(b, { padding: [10, 10] }); }
+  function addOv(pk) {
+    if (!pk.t || OV[pk.id]) return; var bb = [[pk.a.s, pk.a.w], [pk.a.n, pk.a.e]], o = {};
+    ['hs', 'hz', 'ch'].forEach(function (k) { var u = URL.createObjectURL(pk.t.img[k]), ly = L.imageOverlay(u, bb, { opacity: k === 'hs' ? (navigator.onLine === false ? 1 : 0.6) : 1, interactive: false, className: 'sm-img' }); ly._url = u; o[k] = ly; });
+    OV[pk.id] = o;
   }
-  function openPack(id) {
-    return dbGet('packs', id).then(function (pk) {
-      if (!pk) return; closePack(); PK = pk; lsSet('shandal_sm_last', id); $$('#smPre button').forEach(function (x) { x.setAttribute('aria-pressed', false); });
-      var bb = [[pk.a.s, pk.a.w], [pk.a.n, pk.a.e]];
-      if (pk.t) [['hs', 0], ['hz', 0], ['ch', 0]].forEach(function (q) { var u = URL.createObjectURL(pk.t.img[q[0]]), ly = L.imageOverlay(u, bb, { opacity: q[0] === 'hs' ? (navigator.onLine === false ? 1 : 0.6) : 1, interactive: false, className: 'sm-img' }); ly._url = u; G[q[0]] = ly; });
-      layers(); drawVec(); drawBox(); map.fitBounds(bb, { padding: [10, 10] });
-      return dbGet('tracks', id).then(function (tr) { TRK = (tr && tr.p) || []; G.trk.setLatLngs(TRK.map(function (q) { return [q[0], q[1]]; })); });
-    }).then(function () { if (!PK) return; $('#smOut').hidden = false; $('#smEmpty').hidden = true; status(); weatherCard(); season(); if (!POS) setPos({ lat: PK.c[0], lon: PK.c[1], acc: 0, plan: true, centre: true }); else update(true); listPacks(); });
+  function dropOv(id) { var o = OV[id]; if (!o) return; ['hs', 'hz', 'ch'].forEach(function (k) { map.removeLayer(o[k]); URL.revokeObjectURL(o[k]._url); }); delete OV[id]; }
+  function changed(fit) {
+    remember(); layers(); drawVec(); drawBox(); if (fit) fitAll();
+    if (!ACT.length) { PK = null; SEL = null; G.sel.setLatLngs([]); $('#smOut').hidden = true; $('#smEmpty').hidden = false; status(); listPacks(); return; }
+    $('#smOut').hidden = false; $('#smEmpty').hidden = true; PK = null; if (!POS) setPos({ lat: ACT[0].c[0], lon: ACT[0].c[1], acc: 0, plan: true, centre: true }); else update(true); season(); listPacks();
   }
+  function showMany(ids, fit) {
+    return Promise.all(ids.filter(function (id) { return !isOn(id); }).map(function (id) { return dbGet('packs', id); })).then(function (L0) {
+      L0.forEach(function (pk) { if (pk && !isOn(pk.id)) { ACT.push(pk); addOv(pk); } }); changed(fit);
+    });
+  }
+  function showPack(id, fit) { return showMany([id], false).then(function () { if (!fit) return; var p0 = ACT.filter(function (p) { return p.id === id; })[0]; if (p0) map.fitBounds([[p0.a.s, p0.a.w], [p0.a.n, p0.a.e]], { padding: [10, 10] }); }); }
+  function hidePack(id) { ACT = ACT.filter(function (p) { return p.id !== id; }); dropOv(id); if (POS && POS.centre) POS = null; changed(false); }
+  function hideAll() { ACT.slice().forEach(function (p) { dropOv(p.id); }); ACT = []; changed(false); }
   function layers() {
     $('#smLay').innerHTML = Object.keys(LAY).map(function (k) { return '<button type="button" data-l="' + k + '" aria-pressed="' + !!LAY[k][1] + '">' + LAY[k][0] + '</button>'; }).join('');
-    ['hs', 'hz', 'ch'].forEach(function (k) { if (!G[k]) return; if (LAY[k][1]) G[k].addTo(map); else map.removeLayer(G[k]); });
-    if (G.hs && G.hs._map) G.hs.bringToBack();
+    Object.keys(OV).forEach(function (id) { var o = OV[id]; ['hs', 'hz', 'ch'].forEach(function (k) { if (LAY[k][1]) o[k].addTo(map); else map.removeLayer(o[k]); }); if (o.hs._map) o.hs.bringToBack(); });
     if (LAY.lbl[1]) G.lbl.addTo(map); else map.removeLayer(G.lbl);
   }
   $('#smLay').addEventListener('click', function (e) { var b = e.target.closest('[data-l]'); if (!b) return; var k = b.getAttribute('data-l'); LAY[k][1] = !LAY[k][1]; layers(); });
   function drawVec() {
-    G.vec.clearLayers(); G.lbl.clearLayers(); var F0 = PK.f || [];
+    G.vec.clearLayers(); G.lbl.clearLayers(); var F0 = allF();
     var ln = { riv: [3, null], str: [1.4, null], lak: [1.6, null], rdM: [3.4, null], rdm: [2.4, null], trk: [1.8, '6 4'], pth: [1.3, '2 4'] };
     ['lak', 'str', 'riv', 'pth', 'trk', 'rdm', 'rdM'].forEach(function (k) { F0.forEach(function (f) { if (f.k !== k || !f.g) return;
       var o = { renderer: CANV, color: K[k][2], weight: ln[k][0], opacity: .95, dashArray: k === 'str' && f.x ? '4 4' : ln[k][1], interactive: false };
@@ -303,17 +317,17 @@
       SH.toast(t('Hold the phone flat; the arrows now point where to walk. Move it in a figure of eight to calibrate.', 'أمسك الهاتف أفقياً؛ تشير الأسهم الآن إلى حيث تمشي. حرّكه على شكل رقم 8 للمعايرة.'), 'ok');
       setTimeout(function () { if (HEAD == null) SH.toast(t('No compass found on this device; arrows stay with north up.', 'لا توجد بوصلة في هذا الجهاز؛ تبقى الأسهم والشمال إلى الأعلى.'), 'warn'); }, 2500); });
   });
-  function addTrk() { if (!POS || POS.plan || !PK) return; var l = TRK[TRK.length - 1]; if (POS.acc > 60) return; if (l && dist(l, [POS.lat, POS.lon]) < 15) return; TRK.push([r5(POS.lat), r5(POS.lon), Date.now(), POS.alt != null ? Math.round(POS.alt) : null]); G.trk.setLatLngs(TRK.map(function (q) { return [q[0], q[1]]; })); if (TRK.length % 5 === 1) dbPut('tracks', { id: PK.id, p: TRK }).catch(function () {}); }
+  function addTrk() { if (!POS || POS.plan || !ACT.length) return; var l = TRK[TRK.length - 1]; if (POS.acc > 60) return; if (l && dist(l, [POS.lat, POS.lon]) < 15) return; TRK.push([r5(POS.lat), r5(POS.lon), Date.now(), POS.alt != null ? Math.round(POS.alt) : null]); G.trk.setLatLngs(TRK.map(function (q) { return [q[0], q[1]]; })); if (TRK.length % 5 === 1) dbPut('tracks', { id: 'all', p: TRK }).catch(function () {}); }
   $('#smTrk').addEventListener('click', function () {
-    if (!PK) return SH.toast(t('Open a saved area first.', 'افتح منطقة محفوظة أولاً.'), 'warn');
+    if (!ACT.length) return SH.toast(t('Show a saved area on the map first.', 'اعرض منطقة محفوظة على الخريطة أولاً.'), 'warn');
     REC = !REC; $('#smTrk').setAttribute('aria-pressed', REC); $('#smTrk span').textContent = REC ? t('Stop recording', 'أوقف التسجيل') : t('Record my path', 'سجّل مساري');
-    if (REC) { if (WATCH == null) $('#smGps').click(); addTrk(); SH.toast(t('Recording. The start of your path is added to the list as the way back.', 'جارٍ التسجيل. تُضاف بداية مسارك إلى القائمة كطريق للعودة.'), 'ok'); } else if (PK) dbPut('tracks', { id: PK.id, p: TRK }).catch(function () {});
+    if (REC) { if (WATCH == null) $('#smGps').click(); addTrk(); SH.toast(t('Recording. The start of your path is added to the list as the way back.', 'جارٍ التسجيل. تُضاف بداية مسارك إلى القائمة كطريق للعودة.'), 'ok'); } else dbPut('tracks', { id: 'all', p: TRK }).catch(function () {});
     update(true);
   });
 
   /* ---------------------------------------------------------------- reading the ground */
-  function cellOf(lat, lon) { if (!PK || !PK.t) return -1; var a = PK.a, T = PK.t, c = Math.floor((lon - a.w) / (a.e - a.w) * T.W), r = Math.floor((a.n - lat) / (a.n - a.s) * T.H); return r < 0 || r >= T.H || c < 0 || c >= T.W ? -1 : r * T.W + c; }
-  function elev(lat, lon) { var i = cellOf(lat, lon); return i < 0 ? null : PK.t.z[i]; }
+  function cellOf(lat, lon, pk) { pk = pk || pkAt(lat, lon); if (!pk || !pk.t) return -1; var a = pk.a, T = pk.t, c = Math.floor((lon - a.w) / (a.e - a.w) * T.W), r = Math.floor((a.n - lat) / (a.n - a.s) * T.H); return r < 0 || r >= T.H || c < 0 || c >= T.W ? -1 : r * T.W + c; }
+  function elev(lat, lon) { var pk = pkAt(lat, lon), i = cellOf(lat, lon, pk); return i < 0 ? null : pk.t.z[i]; }
   /* walking time with Tobler's hiking function along the straight line, ×1.25 for a real path */
   function walk(a, b) {
     var d = dist(a, b), n = Math.max(2, Math.min(300, Math.ceil(d / 50))), tm = 0, up = 0, prev = elev(a[0], a[1]);
@@ -322,7 +336,7 @@
   }
   function nearest(kinds) {
     var p = [POS.lat, POS.lon], best = null;
-    (PK.f || []).forEach(function (f) { if (kinds.indexOf(f.k) < 0) return; var d, q;
+    allF().forEach(function (f) { if (kinds.indexOf(f.k) < 0) return; var d, q;
       if (f.p) { d = dist(p, f.p); q = f.p; } else { var r = nearLine(p, f.g); d = r.d; q = r.p; }
       if (!best || d < best.d) best = { d: d, q: q, f: f }; });
     return best;
@@ -334,11 +348,12 @@
     var ll = [POS.lat, POS.lon];
     if (!G.me) G.me = L.marker(ll, { icon: meIcon(), interactive: false, zIndexOffset: 1000 }).addTo(map); else G.me.setLatLng(ll);
     if (G.acc) map.removeLayer(G.acc); G.acc = POS.acc ? L.circle(ll, { radius: POS.acc, color: '#1A73E8', weight: 1, fillOpacity: .08, interactive: false }).addTo(map) : null;
-    if (!PK) return;
-    var u = SH.toUTM(POS.lat, POS.lon), z = elev(POS.lat, POS.lon), inside = POS.lat >= PK.a.s && POS.lat <= PK.a.n && POS.lon >= PK.a.w && POS.lon <= PK.a.e;
+    if (!ACT.length) return;
+    var here0 = pkAt(POS.lat, POS.lon), np = here0 || ACT[0]; if (np !== PK) { PK = np; weatherCard(); status(); if (window.IntersectionObserver) sheetDirty = true; }
+    var u = SH.toUTM(POS.lat, POS.lon), z = elev(POS.lat, POS.lon), inside = !!here0;
     $('#smPos').innerHTML = '<small>' + (POS.plan ? (POS.centre ? t('Centre of the saved area (start the GPS to see your real position)', 'مركز المنطقة المحفوظة (شغّل تحديد الموقع لترى موقعك الحقيقي)') : t('Point chosen on the map', 'نقطة مختارة على الخريطة')) : t('Your position', 'موقعك')) + '</small>' +
       '<b class="big">' + POS.lat.toFixed(5) + '°N  ' + POS.lon.toFixed(5) + '°E</b><small style="direction:ltr;unicode-bidi:isolate">UTM ' + u.zone + u.band + '  ' + Math.round(u.E) + ' E  ' + Math.round(u.N) + ' N</small>' +
-      '<small>' + (POS.acc ? t('Accuracy ± ', 'الدقة ± ') + Math.round(POS.acc) + t(' m', ' م') + ' · ' : '') + (z != null ? t('Height ', 'الارتفاع ') + z + t(' m above sea level', ' م فوق سطح البحر') : '') + (inside ? '' : ' · <b style="color:#C0392B">' + t('Outside the saved area — the map and the distances may miss nearer places.', 'خارج المنطقة المحفوظة — قد تفوت الخريطة والمسافات أماكن أقرب.') + '</b>') + '</small>';
+      '<small>' + (POS.acc ? t('Accuracy ± ', 'الدقة ± ') + Math.round(POS.acc) + t(' m', ' م') + ' · ' : '') + (z != null ? t('Height ', 'الارتفاع ') + z + t(' m above sea level', ' م فوق سطح البحر') : '') + (inside ? '' : ' · <b style="color:#C0392B">' + t('Outside the saved areas — the map and the distances may miss nearer places.', 'خارج المناطق المحفوظة — قد تفوت الخريطة والمسافات أماكن أقرب.') + '</b>') + '</small>';
     NR = NEED.map(function (nd) { var b = nearest(nd[3]); return b ? { id: nd[0], h: AR ? nd[2] : nd[1], b: b } : null; }).filter(Boolean);
     if (TRK.length) NR.push({ id: 'start', h: t('Back to where you started', 'العودة إلى نقطة البداية'), b: { d: dist(ll, TRK[0]), q: [TRK[0][0], TRK[0][1]], f: { k: 'start' } } });
     NR.forEach(function (x) { x.br = brg(ll, x.b.q); x.w = walk(ll, x.b.q); });
@@ -352,11 +367,11 @@
   function selLine() { var x = NR.filter(function (q) { return q.id === SEL; })[0]; G.sel.setLatLngs(x && POS ? [[POS.lat, POS.lon], x.b.q] : []); }
   $('#smNear').addEventListener('click', function (e) { var b = e.target.closest('[data-i]'); if (!b) return; var x = NR[+b.getAttribute('data-i')]; SEL = SEL === x.id ? null : x.id; $$('#smNear .sm-nc').forEach(function (n) { n.setAttribute('aria-pressed', n === b && SEL != null); }); selLine(); if (SEL) map.fitBounds(L.latLngBounds([[POS.lat, POS.lon], x.b.q]).pad(0.3), { maxZoom: 16 }); });
 
-  function borderKm(p) { var o = PK.border; if (!o) return null; var r = nearLine(p, o); return r.d / 1000; }
+  function borderKm(p) { var o = OUTLINE || (ACT.filter(function (q) { return q.border; })[0] || {}).border; if (!o) return null; var r = nearLine(p, o); return r.d / 1000; }
   function here() {
-    var p = [POS.lat, POS.lon], C = [], add = function (lv, h, s) { C.push('<div class="sm-hz ' + lv + '"><h4>' + h + '</h4><p>' + s + '</p></div>'); }, wx = PK.wx, i = cellOf(p[0], p[1]);
-    if (PK.t && i >= 0) {
-      var T = PK.t, W = T.W, r0 = (i / W) | 0, c0 = i - r0 * W, z0 = T.z[i], sMax = 0, cat = 0, cx = 111320 * (PK.a.e - PK.a.w) / W * Math.cos(SH.rad(p[0])), rad = Math.max(1, Math.round(200 / cx)), rch = Math.max(1, Math.round(70 / cx));
+    var p = [POS.lat, POS.lon], C = [], add = function (lv, h, s) { C.push('<div class="sm-hz ' + lv + '"><h4>' + h + '</h4><p>' + s + '</p></div>'); }, wx = PK.wx, pk = pkAt(p[0], p[1]), i = cellOf(p[0], p[1], pk);
+    if (pk && pk.t && i >= 0) {
+      var T = pk.t, W = T.W, r0 = (i / W) | 0, c0 = i - r0 * W, z0 = T.z[i], sMax = 0, cat = 0, cx = 111320 * (pk.a.e - pk.a.w) / W * Math.cos(SH.rad(p[0])), rad = Math.max(1, Math.round(200 / cx)), rch = Math.max(1, Math.round(70 / cx));
       for (var dr = -rad; dr <= rad; dr++) for (var dc = -rad; dc <= rad; dc++) { var r = r0 + dr, c = c0 + dc; if (r < 0 || c < 0 || r >= T.H || c >= W) continue; var j = r * W + c;
         if (T.z[j] > z0 + 5 && T.slope[j] > sMax) sMax = T.slope[j]; if (Math.abs(dr) <= rch && Math.abs(dc) <= rch && T.z[j] <= z0 + 3 && T.acc[j] > cat) cat = T.acc[j]; }
       var s0 = T.slope[i], wet = wx && (wx.r7 >= 20 || (wx.sm != null && wx.sm >= 0.3));
@@ -377,7 +392,7 @@
       wx.days.map(function (d) { var fut = d.d >= today; return '<tr' + (d.d === today ? ' style="font-weight:700"' : '') + '><td>' + new Date(d.d + 'T12:00').toLocaleDateString(AR ? 'ar-IQ' : 'en-GB', { weekday: 'short', day: 'numeric', month: 'short' }) + (fut ? ' <small class="muted">' + t('forecast', 'توقع') + '</small>' : '') + '</td><td>' + (d.p == null ? '—' : F(d.p, 1)) + '</td><td>' + (d.tx == null ? '—' : F(d.tx, 0) + ' / ' + F(d.tn, 0)) + '</td></tr>'; }).join('') + '</table>';
   }
   function season() {
-    var m = new Date().getMonth() + 1, z = PK.t ? PK.t.zmax : 0, L0 = [];
+    var m = new Date().getMonth() + 1, z = Math.max.apply(null, ACT.map(function (q) { return q.t ? q.t.zmax : 0; }).concat([0])), L0 = [];
     L0.push(t('Water: carry at least 3 litres a person; treat spring and stream water (boil, filter or tablets) — villages and herds are often upstream.', 'الماء: احمل 3 لترات للشخص على الأقل، وعالج ماء العيون والجداول (غلي أو فلتر أو أقراص) — فكثيراً ما تكون القرى والقطعان في أعلى المجرى.'));
     if (m >= 4 && m <= 10) L0.push(t('Snakes and scorpions are active: watch where you put hands and feet, shake out boots, do not lift stones with bare hands.', 'الأفاعي والعقارب نشطة: انتبه أين تضع يديك وقدميك، وانفض الحذاء، ولا ترفع الحجارة بيد عارية.'));
     if (m >= 6 && m <= 9) L0.push(t('Heat: work early and late, rest in shade at midday, and watch for heat exhaustion (headache, nausea, no sweating).', 'الحر: اعمل مبكراً ومتأخراً، واسترح في الظل وقت الظهيرة، وانتبه للإنهاك الحراري (صداع وغثيان وتوقف التعرق).'));
@@ -404,15 +419,15 @@
   function status() {
     var on = navigator.onLine !== false;
     $('#smStat').innerHTML = '<span class="' + (on ? 'on' : 'off') + '">' + (on ? t('Online', 'متصل بالإنترنت') : t('Offline — using the saved area', 'دون إنترنت — تُستخدم المنطقة المحفوظة')) + '</span>' +
-      (PK ? '<span>' + E(PK.name) + ' · ' + t('saved ', 'حُفظت ') + new Date(PK.at).toLocaleDateString(AR ? 'ar-IQ' : 'en-GB') + '</span>' : '<span>' + t('No area open', 'لا توجد منطقة مفتوحة') + '</span>') +
+      (ACT.length > 1 ? '<span>' + ACT.length + t(' areas on the map', ' مناطق على الخريطة') + '</span>' : '') + (PK ? '<span>' + E(PK.name) + ' · ' + t('saved ', 'حُفظت ') + new Date(PK.at).toLocaleDateString(AR ? 'ar-IQ' : 'en-GB') + '</span>' : '<span>' + t('No area open', 'لا توجد منطقة مفتوحة') + '</span>') +
       '<span>' + (WATCH != null ? t('GPS on', 'تحديد الموقع يعمل') : t('GPS off', 'تحديد الموقع متوقف')) + '</span>' + (REC ? '<span class="off">' + t('Recording path · ', 'تسجيل المسار · ') + TRK.length + '</span>' : '');
-    if (G.hs) G.hs.setOpacity(on ? 0.6 : 1);
+    Object.keys(OV).forEach(function (id) { OV[id].hs.setOpacity(on ? 0.6 : 1); });
   }
   window.addEventListener('online', status); window.addEventListener('offline', status);
 
   /* ---------------------------------------------------------------- map sheet and exports */
   function sheet() {
-    if (!PK || !P) return; var a = PK.a, W = PK.t ? PK.t.W : 900, H = PK.t ? PK.t.H : 900, k = Math.min(2, 1400 / Math.max(W, H)); W = Math.round(W * k); H = Math.round(H * k);
+    if (!PK || !P) return; sheetDirty = false; var a = PK.a, W = PK.t ? PK.t.W : 900, H = PK.t ? PK.t.H : 900, k = Math.min(2, 1400 / Math.max(W, H)); W = Math.round(W * k); H = Math.round(H * k);
     var mk = function () { var c = document.createElement('canvas'); c.width = W; c.height = H; return c; }, vec = mk(), g = vec.getContext('2d'), X = function (lo) { return (lo - a.w) / (a.e - a.w) * W; }, Y = function (la) { return (a.n - la) / (a.n - a.s) * H; };
     var lw = Math.max(1, W / 900);
     var line = function (pts, col, w, dash) { g.beginPath(); pts.forEach(function (q, i) { if (i) g.lineTo(X(q[1]), Y(q[0])); else g.moveTo(X(q[1]), Y(q[0])); }); g.strokeStyle = col; g.lineWidth = w * lw; g.setLineDash(dash ? dash.map(function (v) { return v * lw; }) : []); g.stroke(); };
@@ -452,5 +467,7 @@
   setTimeout(warm, 4000);
 
   /* ---------------------------------------------------------------- start: open the last area, even offline */
-  status(); listPacks().then(function () { var last = lsGet('shandal_sm_last'); var id = last && PACKS.some(function (p) { return p.id === last; }) ? last : PACKS.length && navigator.onLine === false ? PACKS[0].id : null; if (id) openPack(id).then(function () { if (innerWidth < 900 && location.hash !== '#plan') $('#smStat').scrollIntoView({ block: 'start' }); }); });
+  status(); dbGet('tracks', 'all').then(function (tr) { TRK = (tr && tr.p) || []; G.trk.setLatLngs(TRK.map(function (q) { return [q[0], q[1]]; })); }).catch(function () {});
+  listPacks().then(function () { var ids = []; try { ids = JSON.parse(lsGet('shandal_sm_open') || '[]'); } catch (e) {} var last = lsGet('shandal_sm_last'); if (!ids.length && last) ids = [last]; ids = ids.filter(function (id) { return PACKS.some(function (p) { return p.id === id; }); }); if (!ids.length && PACKS.length && navigator.onLine === false) ids = PACKS.map(function (p) { return p.id; });
+    if (ids.length) showMany(ids, true).then(function () { if (innerWidth < 900 && location.hash !== '#plan') $('#smStat').scrollIntoView({ block: 'start' }); }); });
 })();
