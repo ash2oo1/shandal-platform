@@ -92,11 +92,11 @@
   $('#fsRecClr').addEventListener('click', function () { SH.confirm(t('Delete all recorded readings?', 'احذف كل القراءات المسجلة؟')).then(function (ok) { if (ok) { RECS = []; SH.store.set('shandal_fs_recs', RECS); recs(); } }); });
 
   /* ---------------------------------------------------------------- dossier */
-  var OVP = ['https://overpass-api.de/api/interpreter', 'https://overpass.kumi.systems/api/interpreter'];
-  function overpass(q, i) { i = i || 0; return fetch(OVP[i] + '?data=' + encodeURIComponent(q)).then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); }).catch(function (e) { if (i + 1 < OVP.length) return overpass(q, i + 1); throw e; }); }
+  var OVP = ['https://overpass-api.de/api/interpreter', 'https://overpass.kumi.systems/api/interpreter', 'https://maps.mail.ru/osm/tools/overpass/api/interpreter'];
+  function overpass(q, i) { i = i || 0; return fetch(OVP[i], { method: 'POST', body: 'data=' + encodeURIComponent(q), headers: { 'Content-Type': 'application/x-www-form-urlencoded' } }).then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); }).catch(function (e) { if (i + 1 < OVP.length) return overpass(q, i + 1); throw e; }); }
   function segNear(g, p) { var best = { d: Infinity, ll: null }; for (var i = 0; i < g.length; i++) { var a = g[i], b = g[i + 1] || a, mx = Math.cos(p[0] * RAD), ax = (a.lon - p[1]) * mx, ay = a.lat - p[0], bx = (b.lon - p[1]) * mx, by = b.lat - p[0], dx = bx - ax, dy = by - ay, L2 = dx * dx + dy * dy, u = L2 ? Math.max(0, Math.min(1, -(ax * dx + ay * dy) / L2)) : 0, lat = a.lat + (b.lat - a.lat) * u, lon = a.lon + (b.lon - a.lon) * u, d = dist(p, [lat, lon]); if (d < best.d) best = { d: d, ll: [lat, lon] }; } return best; }
   function nearby(p) {
-    var la = p[0].toFixed(5), lo = p[1].toFixed(5), q = '[out:json][timeout:30];(way(around:4000,' + la + ',' + lo + ')["highway"~"^(motorway|trunk|primary|secondary|tertiary|unclassified|track)$"];way(around:15000,' + la + ',' + lo + ')["waterway"~"^(river|stream|canal)$"];node(around:15000,' + la + ',' + lo + ')["natural"="spring"];node(around:25000,' + la + ',' + lo + ')["place"~"^(city|town|village)$"];node(around:40000,' + la + ',' + lo + ')["natural"="peak"]["name"];node(around:30000,' + la + ',' + lo + ')["natural"="cave_entrance"];);out tags geom;';
+    var la = p[0].toFixed(5), lo = p[1].toFixed(5), q = '[out:json][timeout:40];(way(around:3000,' + la + ',' + lo + ')["highway"~"^(motorway|trunk|primary|secondary|tertiary|unclassified|track)$"];way(around:10000,' + la + ',' + lo + ')["waterway"~"^(river|stream|canal)$"];node(around:12000,' + la + ',' + lo + ')["natural"="spring"];node(around:15000,' + la + ',' + lo + ')["place"~"^(city|town|village)$"];node(around:30000,' + la + ',' + lo + ')["natural"="peak"]["name"];node(around:20000,' + la + ',' + lo + ')["natural"="cave_entrance"];);out tags geom;';
     return overpass(q).then(function (j) {
       var E = (j.elements || []).map(function (e) { var tg = e.tags || {}, nm = (AR && tg['name:ar']) || (!AR && tg['name:en']) || tg.name || '', r; if (e.type === 'node') r = { d: dist(p, [e.lat, e.lon]), ll: [e.lat, e.lon] }; else if (e.geometry) r = segNear(e.geometry, p); else return null;
         var k = tg.highway ? 'road' : tg.waterway ? tg.waterway : tg.natural === 'spring' ? 'spring' : tg.place ? 'place' : tg.natural === 'peak' ? 'peak' : tg.natural === 'cave_entrance' ? 'cave' : 'other';
@@ -137,6 +137,121 @@
   function lithInfo(s) { return LK.filter(function (q) { return q[0].test(s || ''); }); }
   function fmMatch(u) { if (!u) return []; var s = [u.name, u.strat, u.desc].join(' '); return FMS.filter(function (f) { return f.rx.test(s); }); }
 
+  /* ---------------------------------------------------------------- tectonic zone of Iraq from generalised boundary lines */
+  var ZL = { mzt: [[37.10, 44.35], [36.85, 44.80], [36.67, 45.05], [36.35, 45.30], [36.00, 45.55], [35.62, 45.95], [35.35, 46.10], [35.05, 46.30]],
+    mff: [[37.10, 42.30], [37.00, 42.55], [36.88, 43.10], [36.75, 43.55], [36.50, 43.95], [36.25, 44.25], [35.95, 44.70], [35.65, 45.05], [35.35, 45.40], [35.05, 45.70], [34.65, 45.95], [34.20, 46.30]],
+    ham: [[35.60, 43.20], [35.30, 43.35], [35.10, 43.55], [34.80, 44.00], [34.45, 44.55], [34.15, 45.05], [33.75, 45.60], [33.30, 46.10]] };
+  var ZN = { thrust: ['Zagros Thrust Zone', 'نطاق الزحوف'], hfz: ['High Folded Zone', 'نطاق الطيات العالية'], foothill: ['Foothill Zone (low folds)', 'نطاق التلال (الطيات الواطئة)'], mesop: ['Mesopotamian Plain', 'السهل الرسوبي'], west: ['Jazira and Western Desert', 'الجزيرة والصحراء الغربية'] };
+  function side(p, g) { var kx = Math.cos(p[0] * RAD), best = Infinity, sg = 0; for (var i = 0; i < g.length - 1; i++) { var ax = g[i][1] * kx, ay = g[i][0], bx = g[i + 1][1] * kx, by = g[i + 1][0], px = p[1] * kx, py = p[0], dx = bx - ax, dy = by - ay, L2 = dx * dx + dy * dy, u = Math.max(0, Math.min(1, ((px - ax) * dx + (py - ay) * dy) / L2)), qx = ax + u * dx - px, qy = ay + u * dy - py, d2 = qx * qx + qy * qy; if (d2 < best) { best = d2; sg = dx * (py - ay) - dy * (px - ax); } } return { s: sg > 0 ? 1 : -1, d: Math.sqrt(best) * 111.2 }; }
+  function zoneAt(p) {
+    if (p[0] < 29 || p[0] > 37.5 || p[1] < 38.7 || p[1] > 48.7) return null;
+    var a = side(p, ZL.mzt), b = side(p, ZL.mff), c = side(p, ZL.ham), z, nr = [];
+    if (a.s > 0) z = 'thrust'; else if (b.s > 0) z = 'hfz'; else if ((p[1] < 43.1 && p[0] > 34.3) || p[1] < 42.3) z = 'west'; else if (c.s > 0 || p[0] > 35.3) z = 'foothill'; else z = 'mesop';
+    if (a.d < 15) nr.push(a.s > 0 ? 'hfz' : 'thrust'); if (b.d < 15 && z !== 'thrust') nr.push(b.s > 0 ? 'foothill' : 'hfz'); if (c.d < 15 && /foothill|mesop/.test(z)) nr.push(c.s > 0 ? 'mesop' : 'foothill');
+    return { z: z, near: nr };
+  }
+  /* likelihood of each Iraqi formation from the place (zone, mapped age, mapped name) and from the description */
+  var COLS = [['red', 'Brick red', 'أحمر طابوقي', '#B5523B'], ['redbrown', 'Red-brown', 'بني محمر', '#9A5B45'], ['brown', 'Brown', 'بني', '#8B6B4A'], ['buff', 'Buff / yellowish', 'أصفر شاحب', '#D9C28E'], ['white', 'White / cream', 'أبيض / كريمي', '#F1ECDF'], ['lgrey', 'Light grey', 'رمادي فاتح', '#BFC3C2'], ['dgrey', 'Dark grey / black', 'رمادي داكن / أسود', '#45484A'], ['green', 'Green / olive', 'أخضر / زيتوني', '#7E9161'], ['bluegrey', 'Blue-grey', 'رمادي مزرق', '#8796A0'], ['purple', 'Purple', 'بنفسجي', '#7D5A79'], ['mixed', 'Many colours (pebbles)', 'ألوان كثيرة (حصى)', 'conic-gradient(#B5523B,#D9C28E,#7E9161,#45484A,#B5523B)']];
+  var LITHS = [['lst', 'Limestone', 'حجر جيري'], ['dol', 'Dolomite', 'دولومايت'], ['marl', 'Marl', 'مارل'], ['clay', 'Claystone / shale', 'طين / طفل'], ['silt', 'Siltstone', 'غرين'], ['sst', 'Sandstone', 'حجر رملي'], ['cgl', 'Conglomerate / gravel', 'مدملكات / حصى'], ['gyp', 'Gypsum', 'جبس'], ['chert', 'Chert', 'صوان'], ['volc', 'Volcanic rock', 'صخر بركاني'], ['ultra', 'Serpentinite (dark, heavy, shiny green)', 'سربنتينايت (داكن ثقيل أخضر لامع)']];
+  var FEATS = [['gyp', 'Gypsum bands or veins', 'أشرطة أو عروق جبس'], ['cyc', 'Repeated alternating beds', 'تعاقب طبقات متكرر'], ['xbed', 'Cross-bedding', 'تطبق متقاطع'], ['chan', 'Channels or pebble lenses', 'قنوات أو عدسات حصى'], ['cliff', 'Forms cliffs or ridges', 'يكوّن جروفاً أو حافات'], ['thin', 'Thin regular beds', 'طبقات رقيقة منتظمة'], ['nod', 'Chert nodules', 'عقد صوان'], ['shells', 'Shells', 'أصداف'], ['numm', 'Nummulites (coin-shaped fossils)', 'نمّوليت (أحافير بشكل العملة)'], ['rud', 'Rudists (horn-shaped shells)', 'روديست (أصداف قرنية)'], ['coral', 'Corals', 'مرجان'], ['alg', 'Algae or reef debris', 'طحالب أو فتات شعابي'], ['bitum', 'Oil smell or bitumen', 'رائحة نفط أو قير'], ['rad', 'Thin coloured chert ribbons', 'أشرطة صوان ملونة رقيقة'], ['pillow', 'Pillow shapes or gas holes', 'أشكال وسائدية أو فجوات غازية']];
+  var ACID = [['strong', 'Fizzes strongly', 'يفور بقوة'], ['weak', 'Fizzes weakly or only when powdered', 'يفور بضعف أو عند السحق'], ['none', 'No reaction', 'لا يتفاعل']];
+  var SIM = { red: ['redbrown'], redbrown: ['red', 'brown'], brown: ['redbrown', 'buff'], buff: ['white', 'brown'], white: ['buff', 'lgrey'], lgrey: ['white', 'bluegrey'], dgrey: ['bluegrey'], green: ['bluegrey'], bluegrey: ['green', 'lgrey', 'dgrey'], purple: ['redbrown'], mixed: ['brown'] };
+  var DESC = SH.store.get('shandal_fs_desc', { c: [], l: [], f: [], acid: '' }); if (!DESC.c) DESC = { c: [], l: [], f: [], acid: '' };
+  function prior(f, Z, u, named) {
+    var zs = !Z ? 1 : f.zones.indexOf(Z.z) >= 0 ? 1 : Z.near.some(function (z) { return f.zones.indexOf(z) >= 0; }) ? 0.35 : 0.03, ag = 1;
+    if (u && isFinite(u.b) && isFinite(u.tt) && f.ma) { var o = Math.min(u.b, f.ma[0]) - Math.max(u.tt, f.ma[1]); ag = o > 0 ? 1 : -o < 8 ? 0.35 : 0.05; }
+    return zs * ag * (named.indexOf(f) >= 0 ? 4 : 1);
+  }
+  function like(f) {
+    var T = f.tags, s = 0, carb = T.l.some(function (x) { return /lst|dol|marl/.test(x); });
+    DESC.c.forEach(function (c) { s += T.c.indexOf(c) >= 0 ? 1.2 : (SIM[c] || []).some(function (x) { return T.c.indexOf(x) >= 0; }) ? 0.3 : -0.9; });
+    DESC.l.forEach(function (l) { s += T.l.indexOf(l) >= 0 ? 1.4 : -1; });
+    DESC.f.forEach(function (x) { s += T.f.indexOf(x) >= 0 ? 1.3 : -0.5; });
+    if (DESC.acid === 'strong') s += T.l.indexOf('lst') >= 0 ? 1 : carb ? 0.3 : -1.2; else if (DESC.acid === 'weak') s += T.l.indexOf('dol') >= 0 || T.l.indexOf('marl') >= 0 ? 1 : carb ? 0.2 : -0.6; else if (DESC.acid === 'none') s += carb && !T.l.some(function (x) { return /sst|clay|cgl|gyp|chert|volc|ultra|silt/.test(x); }) ? -1.2 : 0.5;
+    return Math.exp(s);
+  }
+  function ranked() {
+    var have = FMS.filter(function (f) { return f.ma && f.tags; }); if (!have.length) return [];
+    var Z = D.p ? zoneAt(D.p) : null, u = D.u, named = u ? fmMatch(u) : [], R0 = have.map(function (f) { return { f: f, w: (D.p ? prior(f, Z, u, named) : 1) * like(f) }; }), tot = R0.reduce(function (a, b) { return a + b.w; }, 0);
+    R0.forEach(function (r) { r.p = r.w / tot; }); return R0.sort(function (a, b) { return b.w - a.w; });
+  }
+  function sw(c) { return '<i style="display:inline-block;width:16px;height:16px;border-radius:4px;border:1px solid rgba(0,0,0,.25);vertical-align:-3px;background:' + c + '"></i>'; }
+  function fCard(f, pct, why) {
+    var cs = f.tags.c.map(function (c) { var q = COLS.filter(function (x) { return x[0] === c; })[0]; return q ? sw(q[3]) : ''; }).join(' ');
+    return '<div class="fs-fm"><div class="fs-fm-h"><i style="background:' + f.colour + '"></i><b>' + (AR ? f.ar : f.en) + '</b>' + (pct != null ? '<span class="fs-pct">' + Math.round(pct * 100) + ' %</span>' : '') + '</div>' +
+      '<p><b>' + t('Age: ', 'العمر: ') + '</b>' + (AR ? f.age[1] : f.age[0]) + (f.ma ? ' (' + F(f.ma[0], f.ma[0] % 1 ? 1 : 0) + '–' + F(f.ma[1], f.ma[1] % 1 ? 1 : 0) + t(' million years', ' مليون سنة') + ')' : '') + '</p>' +
+      '<p><b>' + t('Rocks: ', 'الصخور: ') + '</b>' + (AR ? f.lith[1] : f.lith[0]) + '</p><p><b>' + t('Colour in the field: ', 'اللون في الحقل: ') + '</b>' + cs + ' ' + (AR ? f.col[1] : f.col[0]) + '</p>' +
+      '<p><b>' + t('Fossils: ', 'الأحافير: ') + '</b>' + (AR ? f.fos[1] : f.fos[0]) + '</p><p><b>' + t('How to recognise it: ', 'كيف تعرفه: ') + '</b>' + (AR ? f.feat[1] : f.feat[0]) + '</p>' + (why ? '<p class="xsmall muted">' + why + '</p>' : '') + '</div>';
+  }
+  function rocksHere(u) {
+    var Z = zoneAt(D.p), R0 = ranked(); if (!R0.length) return '';
+    var keep = DESC.c.length + DESC.l.length + DESC.f.length + (DESC.acid ? 1 : 0), saved = DESC; if (keep) DESC = { c: [], l: [], f: [], acid: '' }; var P0 = ranked(); DESC = saved;
+    var top = P0.filter(function (r, i) { return i < 5 && r.p >= 0.04; });
+    return '<div class="fs-zone">' + (Z ? t('Structural zone here: ', 'النطاق التركيبي هنا: ') + '<b>' + (AR ? ZN[Z.z][1] : ZN[Z.z][0]) + '</b>' + (Z.near.length ? t(', close to the ', '، وقريب من ') + Z.near.map(function (z) { return AR ? ZN[z][1] : ZN[z][0]; }).join(t(' and the ', ' و')) : '') + '. ' : '') + t('The formations you are most likely to see around here, with their colours:', 'التكوينات التي يُرجَّح أن تراها هنا، بألوانها:') + '</div>' +
+      '<div class="fs-fms">' + top.map(function (r) { return fCard(r.f, r.p); }).join('') + '</div><p class="xsmall muted" style="margin:6px 0 0">' + t('The global geological map often names only the age here; the Iraqi formations are ranked by the structural zone, the mapped age and name. Describe the outcrop below to confirm which one is in front of you.', 'كثيراً ما تذكر الخريطة الجيولوجية العالمية العمر فقط هنا؛ فتُرتَّب التكوينات العراقية بحسب النطاق التركيبي والعمر والاسم المرسومين. صِف المكشف في الأسفل لتتأكد أيها أمامك.') + '</p>';
+  }
+  /* ---------------------------------------------------------------- describe the outcrop */
+  function chipRow(list, key, multi) { return list.map(function (q) { var on = multi ? DESC[key].indexOf(q[0]) >= 0 : DESC[key] === q[0]; return '<button type="button" data-g="' + key + '" data-v="' + q[0] + '" aria-pressed="' + on + '">' + (q[3] ? sw(q[3]) + ' ' : '') + (AR ? q[2] : q[1]) + '</button>'; }).join(''); }
+  function describe() {
+    var box = $('#fsDesc'); if (!box) return;
+    $('#fsDc').innerHTML = chipRow(COLS, 'c', 1); $('#fsDl').innerHTML = chipRow(LITHS, 'l', 1); $('#fsDf').innerHTML = chipRow(FEATS, 'f', 1); $('#fsDa').innerHTML = chipRow(ACID, 'acid', 0);
+    var n = DESC.c.length + DESC.l.length + DESC.f.length + (DESC.acid ? 1 : 0), R0 = ranked();
+    if (!n) { $('#fsDr').innerHTML = '<p class="muted xsmall">' + t('Choose what you see: colours (fresh and weathered), the rock, the features and fossils, and the reaction with dilute acid.', 'اختر ما تراه: الألوان (الطازجة والمجواة)، ونوع الصخر، والظواهر والأحافير، والتفاعل مع الحامض المخفف.') + '</p>'; return; }
+    var top = R0.slice(0, 4);
+    $('#fsDr').innerHTML = '<p style="margin:0 0 8px"><b>' + t('Most likely: ', 'الأرجح: ') + (AR ? top[0].f.ar : top[0].f.en) + '</b> — ' + Math.round(top[0].p * 100) + ' %' + (D.p ? t(' (place and description together)', ' (المكان والوصف معاً)') : t(' (description only — fix your position to add the place)', ' (الوصف فقط — حدّد موقعك لإضافة المكان)')) + '</p><div class="fs-fms">' + top.map(function (r) {
+      var T = r.f.tags, m = [], x = []; DESC.c.concat(DESC.l, DESC.f).forEach(function (k) { var nm = (COLS.concat(LITHS, FEATS).filter(function (q) { return q[0] === k; })[0] || [k, k, k]); (T.c.indexOf(k) >= 0 || T.l.indexOf(k) >= 0 || T.f.indexOf(k) >= 0 ? m : x).push(AR ? nm[2] : nm[1]); });
+      return fCard(r.f, r.p, (m.length ? t('Matches: ', 'يطابق: ') + m.join('، ') + '. ' : '') + (x.length ? t('Does not fit: ', 'لا يناسب: ') + x.join('، ') + '.' : ''));
+    }).join('') + '</div>';
+  }
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest && e.target.closest('#fsDesc [data-g]'); if (!b) return; var g = b.getAttribute('data-g'), v = b.getAttribute('data-v');
+    if (g === 'acid') DESC.acid = DESC.acid === v ? '' : v; else { var i = DESC[g].indexOf(v); if (i >= 0) DESC[g].splice(i, 1); else DESC[g].push(v); }
+    SH.store.set('shandal_fs_desc', DESC); describe(); if (D.ready) cardFig();
+  });
+  var dClr = $('#fsDclr'); if (dClr) dClr.addEventListener('click', function () { DESC = { c: [], l: [], f: [], acid: '' }; SH.store.set('shandal_fs_desc', DESC); describe(); if (D.ready) cardFig(); });
+  /* ---------------------------------------------------------------- true thickness of a bed */
+  var THK = SH.store.get('shandal_fs_thk', []), TA = null, TB = null, TM = 'gps';
+  function thkMode(m) { TM = m; Array.prototype.forEach.call($('#ftModes').children, function (b) { b.setAttribute('aria-pressed', b.getAttribute('data-t') === m); }); $('#ftGps').hidden = m !== 'gps'; $('#ftTape').hidden = m !== 'tape'; thk(); }
+  function ftFix(which) {
+    var b = $(which === 'A' ? '#ftA' : '#ftB'); b.disabled = true;
+    SH.gpsFix({ ms: 15000, target: 5 }).then(function (f) { var q = { p: [f.lat, f.lon], z: f.alt != null ? f.alt : null, acc: f.acc };
+      return (navigator.onLine !== false ? SH.dem.points([q.p], { source: 'aws' }).then(function (z) { if (z[0] != null) { q.zd = z[0]; } }).catch(function () {}) : Promise.resolve()).then(function () { if (which === 'A') TA = q; else TB = q; thk(); }); })
+      .catch(function (e) { SH.toast(e.message, 'bad'); }).then(function () { b.disabled = false; });
+  }
+  function thk() {
+    if (!$('#ftOut')) return; var dip = parseFloat($('#ftDip').value), dd = parseFloat($('#ftDd').value), dx, dz, how, warn = '';
+    $('#ftAinfo').textContent = TA ? TA.p[0].toFixed(5) + ', ' + TA.p[1].toFixed(5) + (TA.z != null ? ' · GPS ' + F(TA.z, 0) + t(' m', ' م') : '') + (TA.zd != null ? t(' · model ', ' · النموذج ') + F(TA.zd, 0) + t(' m', ' م') : '') : '—';
+    $('#ftBinfo').textContent = TB ? TB.p[0].toFixed(5) + ', ' + TB.p[1].toFixed(5) + (TB.z != null ? ' · GPS ' + F(TB.z, 0) + t(' m', ' م') : '') + (TB.zd != null ? t(' · model ', ' · النموذج ') + F(TB.zd, 0) + t(' m', ' م') : '') : '—';
+    if (!isFinite(dip) || !isFinite(dd)) { $('#ftOut').innerHTML = '<p class="xsmall muted">' + t('Enter the dip and dip direction of the bed (or take them from the last reading “on the bed”).', 'أدخل ميل الطبقة واتجاه ميلها (أو خذهما من آخر قراءة «على الطبقة»).') + '</p>'; return null; }
+    if (TM === 'gps') { if (!TA || !TB) { $('#ftOut').innerHTML = '<p class="xsmall muted">' + t('Stand on the lower contact and press “Base”, then walk to the upper contact and press “Top”.', 'قف على التماس الأسفل واضغط «القاعدة»، ثم امشِ إلى التماس الأعلى واضغط «القمة».') + '</p>'; return null; }
+      var d = dist(TA.p, TB.p), az = brg(TA.p, TB.p), za = TA.zd != null && TB.zd != null ? [TA.zd, TB.zd] : [TA.z, TB.z]; if (za[0] == null || za[1] == null) { $('#ftOut').innerHTML = '<p class="xsmall muted">' + t('No elevation for one of the points.', 'لا يوجد ارتفاع لإحدى النقطتين.') + '</p>'; return null; }
+      dx = d * Math.cos((az - dd) * RAD); dz = za[1] - za[0]; how = 'GPS points ' + F(d, 0) + ' m apart'; if (d < 3 * Math.max(TA.acc || 5, TB.acc || 5)) warn = t('The two points are close compared with the GPS error: use the tape method for thin beds.', 'النقطتان متقاربتان مقارنة بخطأ GPS: استعمل طريقة الشريط للطبقات الرقيقة.');
+    } else { var Lt = parseFloat($('#ftL').value), sg = parseFloat($('#ftS').value) || 0, al = parseFloat($('#ftAz').value); if (!isFinite(Lt) || !isFinite(al)) { $('#ftOut').innerHTML = '<p class="xsmall muted">' + t('Enter the measured length, the slope angle and the direction of the measuring line.', 'أدخل الطول المقيس وزاوية المنحدر واتجاه خط القياس.') + '</p>'; return null; }
+      dx = Lt * Math.cos(sg * RAD) * Math.cos((al - dd) * RAD); dz = Lt * Math.sin(sg * RAD); how = 'tape ' + F(Lt, 1) + ' m at ' + F(sg, 0) + '° slope'; }
+    var T0 = Math.abs(dx * Math.sin(dip * RAD) + dz * Math.cos(dip * RAD)), V0 = dip < 89 ? T0 / Math.cos(dip * RAD) : Infinity;
+    $('#ftOut').innerHTML = '<div class="fs-thk"><div><small>' + t('True thickness', 'السُّمك الحقيقي') + '</small><b>' + F(T0, T0 < 10 ? 2 : 1) + t(' m', ' م') + '</b></div><div><small>' + t('Vertical thickness (in a borehole)', 'السُّمك العمودي (في بئر)') + '</small><b>' + (isFinite(V0) ? F(V0, V0 < 10 ? 2 : 1) + t(' m', ' م') : '—') + '</b></div></div><p class="xsmall muted" style="margin:6px 0 0">t = |Δx·sin δ + Δz·cos δ| · Δx = ' + F(dx, 1) + ' m ' + t('along the dip direction', 'باتجاه الميل') + ', Δz = ' + F(dz, 1) + ' m. ' + warn + '</p>';
+    return { t: T0, dip: dip, dd: dd, how: how };
+  }
+  if ($('#ftModes')) {
+    $('#ftModes').addEventListener('click', function (e) { var b = e.target.closest('[data-t]'); if (b) thkMode(b.getAttribute('data-t')); });
+    ['ftDip', 'ftDd', 'ftL', 'ftS', 'ftAz'].forEach(function (id) { $('#' + id).addEventListener('input', thk); });
+    $('#ftA').addEventListener('click', function () { ftFix('A'); }); $('#ftB').addEventListener('click', function () { ftFix('B'); });
+    $('#ftUse').addEventListener('click', function () { var r = RECS.filter(function (q) { return q.mode === 'plane'; }).slice(-1)[0]; if (!r) return SH.toast(t('No reading “on the bed” yet: lay the phone on the bed and lock a reading.', 'لا توجد قراءة «على الطبقة» بعد: ضع الهاتف على الطبقة وثبّت قراءة.'), 'warn'); $('#ftDip').value = r.dip; $('#ftDd').value = Math.round(r.dd); thk(); });
+    $('#ftAzUse').addEventListener('click', function () { if (!OR.ok) return SH.toast(t('Start the compass first.', 'شغّل البوصلة أولاً.'), 'warn'); $('#ftAz').value = Math.round(cur().tru); thk(); });
+    $('#ftSave').addEventListener('click', function () { var r = thk(); if (!r) return; r.p = D.p || (TA ? TA.p : POS ? [POS.lat, POS.lon] : [0, 0]); r.at = new Date().toISOString(); THK.push(r); SH.store.set('shandal_fs_thk', THK.slice(-50)); SH.toast(t('Saved to the station card.', 'حُفظ في بطاقة المحطة.'), 'ok'); if (D.ready) cardFig(); });
+    thkMode('gps');
+  }
+  /* ---------------------------------------------------------------- places worth visiting near you */
+  var GH = null;
+  function places() {
+    if (!$('#fsPlaces')) return; (GH ? Promise.resolve(GH) : SH.getJSON(SH.base + 'assets/data/geoheritage.json').then(function (j) { GH = j; return j; })).then(function (A) {
+      var CN = { nature: ['Nature', 'طبيعة', '#2F7D5B'], archaeo: ['Archaeology', 'آثار', '#B0702A'], religious: ['Religious', 'ديني', '#2E6FA8'], museum: ['Museum', 'متحف', '#8A4FA3'], geosite: ['Geosite', 'موقع جيولوجي', '#3C4A57'] };
+      var L0 = A.map(function (x) { return { x: x, d: dist(D.p, [x.lat, x.lon]) }; }).filter(function (q) { return q.d < 150000; }).sort(function (a, b) { return a.d - b.d; }).slice(0, 10);
+      var base = location.pathname.replace(/tools\/[^/]+\/app\/?.*$/, 'tools/geoheritage/app/');
+      $('#fsPlaces').innerHTML = L0.length ? L0.map(function (q) { var x = q.x, c = CN[x.cat] || CN.nature, b = brg(D.p, [x.lat, x.lon]); return '<a class="fs-pl" href="' + base + '#' + x.id + '"><i style="background:' + c[2] + '"></i><span><b>' + SH.esc(AR ? x.ar.name : x.en.name) + '</b><small>' + (AR ? c[1] : c[0]) + ' · ' + SH.esc((AR ? x.ar.desc : x.en.desc).slice(0, 110)) + '…</small></span><b class="ltr">' + km(q.d) + '<small>' + dir(b) + '</small></b></a>'; }).join('') : '<p class="muted">' + t('No listed place within 150 km.', 'لا يوجد مكان مدرج ضمن 150 كم.') + '</p>';
+    }).catch(function () { $('#fsPlaces').innerHTML = '<p class="muted">' + t('The list of places could not be read.', 'تعذرت قراءة قائمة الأماكن.') + '</p>'; });
+  }
+
   /* ---------------------------------------------------------------- render */
   var WMO = function (c) { return c === 0 ? t('clear sky', 'صحو') : c <= 3 ? t('partly cloudy', 'غائم جزئياً') : c <= 48 ? t('fog', 'ضباب') : c <= 57 ? t('drizzle', 'رذاذ') : c <= 67 ? t('rain', 'مطر') : c <= 77 ? t('snow', 'ثلج') : c <= 82 ? t('showers', 'زخات مطر') : c <= 86 ? t('snow showers', 'زخات ثلج') : t('thunderstorm', 'عاصفة رعدية'); };
   function WMOen(c) { return c === 0 ? 'clear sky' : c <= 3 ? 'partly cloudy' : c <= 48 ? 'fog' : c <= 57 ? 'drizzle' : c <= 67 ? 'rain' : c <= 77 ? 'snow' : c <= 82 ? 'showers' : c <= 86 ? 'snow showers' : 'thunderstorm'; }
@@ -168,12 +283,13 @@
     }
     $('#fsAlerts').innerHTML = al.join('');
     var items = [['road', n.road, t('Nearest road', 'أقرب طريق'), '#1B232B'], ['track', n.track, t('Nearest track', 'أقرب مسلك ترابي'), '#8A6D1F'], ['river', n.river, t('Nearest river', 'أقرب نهر'), '#2E6FBF'], ['stream', n.stream, t('Nearest stream or canal', 'أقرب جدول أو قناة'), '#4FA3E0'], ['spring', n.spring, t('Nearest spring', 'أقرب نبع'), '#2E8B57'], ['place', n.place, t('Nearest village or town', 'أقرب قرية أو بلدة'), '#7A4F9A'], ['peak', n.peak, t('Nearest named peak', 'أقرب قمة معروفة'), '#B08A3E'], ['cave', n.cave, t('Nearest cave', 'أقرب كهف'), '#55616B']];
-    $('#fsNear').innerHTML = D.nb ? items.filter(function (q) { return q[1]; }).map(function (q) { var e = q[1], b = brg(D.p, e.ll); return '<div><svg viewBox="0 0 26 26"><circle cx="13" cy="13" r="12" fill="' + q[3] + '"/><path d="M13 4l5 13-5-3-5 3z" fill="#fff" transform="rotate(' + b.toFixed(0) + ' 13 13)"/></svg><span><b>' + q[2] + '</b>' + (e.name ? ' — ' + SH.esc(e.name) : '') + '<br><small>' + dir(b) + ' (' + F(b, 0) + '°)' + (e.ele ? ' · ' + F(e.ele, 0) + t(' m high', ' م ارتفاعاً') : '') + '</small></span><b class="ltr">' + km(e.d) + '</b></div>'; }).join('') || '<p class="muted">' + t('No mapped features nearby.', 'لا معالم مخرّطة قريبة.') + '</p>' : '<p class="muted">' + t('Needs a connection.', 'يحتاج اتصالاً.') + '</p>';
+    $('#fsNear').innerHTML = D.nb ? items.filter(function (q) { return q[1]; }).map(function (q) { var e = q[1], b = brg(D.p, e.ll); return '<div><svg viewBox="0 0 26 26"><circle cx="13" cy="13" r="12" fill="' + q[3] + '"/><path d="M13 4l5 13-5-3-5 3z" fill="#fff" transform="rotate(' + b.toFixed(0) + ' 13 13)"/></svg><span><b>' + q[2] + '</b>' + (e.name ? ' — ' + SH.esc(e.name) : '') + '<br><small>' + dir(b) + ' (' + F(b, 0) + '°)' + (e.ele ? ' · ' + F(e.ele, 0) + t(' m high', ' م ارتفاعاً') : '') + '</small></span><b class="ltr">' + km(e.d) + '</b></div>'; }).join('') || '<p class="muted">' + t('No mapped features nearby.', 'لا معالم مخرّطة قريبة.') + '</p>' : '<p class="muted">' + t('The map database did not answer (busy or no connection). ', 'لم تُجب قاعدة بيانات الخريطة (مشغولة أو لا اتصال). ') + '<button class="btn btn-line btn-xs" type="button" id="fsNearRe">' + t('Try again', 'أعد المحاولة') + '</button> · ' + t('Offline, use the Offline Field Survival Map.', 'ودون إنترنت استعمل خريطة النجاة الميدانية.') + '</p>';
     var fm = fmMatch(u), li = lithInfo(u ? u.lith + ' ' + u.name + ' ' + u.desc : ''), s = '';
     if (u) { s += '<p style="margin:0 0 8px;line-height:1.8"><b>' + SH.esc(u.name) + '</b>' + (u.int ? ' — ' + SH.esc(u.int) : '') + (isFinite(u.b) ? ' (' + F(u.b, 1) + '–' + F(u.tt, 1) + t(' million years', ' مليون سنة') + ')' : '') + '. ' + (u.lith ? t('Lithology: ', 'الصخارية: ') + SH.esc(u.lith) + '. ' : '') + (u.desc ? SH.esc(u.desc.slice(0, 260)) : '') + '</p>'; }
     fm.forEach(function (f) { s += '<div style="display:grid;grid-template-columns:14px minmax(0,1fr);gap:8px;margin:6px 0"><i style="width:14px;height:14px;border-radius:3px;margin-top:5px;background:' + f.colour + '"></i><span><b>' + (AR ? f.ar : f.en) + '</b> — ' + (AR ? f.age[1] : f.age[0]) + '. ' + t('Rocks: ', 'الصخور: ') + (AR ? f.lith[1] : f.lith[0]) + '. ' + t('Colour in the field: ', 'اللون في الحقل: ') + (AR ? f.col[1] : f.col[0]) + '. ' + t('Fossils: ', 'المتحجرات: ') + (AR ? f.fos[1] : f.fos[0]) + '.</span></div>'; });
     var aroundU = {}; (D.ar || []).forEach(function (q, j) { if (q && q.name && (!u || q.name !== u.name)) (aroundU[q.name] = aroundU[q.name] || []).push(j * 45); });
     if (Object.keys(aroundU).length) s += '<p style="margin:8px 0 0">' + t('Within about 2.5 km: ', 'ضمن نحو 2.5 كم: ') + Object.keys(aroundU).map(function (nm) { return '<b>' + SH.esc(nm) + '</b> (' + aroundU[nm].map(function (a) { return dir(a); }).join('، ') + ')'; }).join('؛ ') + '.</p>';
+    s += rocksHere(u);
     $('#fsGeo').innerHTML = s || '<p class="muted">' + t('The geological map could not be read here (no connection or no coverage). Save the area beforehand with the geology camera.', 'تعذرت قراءة الخريطة الجيولوجية هنا (لا اتصال أو لا تغطية). احفظ المنطقة مسبقاً بالكاميرا الجيولوجية.') + '</p>';
     var look = []; fm.forEach(function (f) { look.push('<b>' + (AR ? f.ar : f.en) + ':</b> ' + (AR ? f.feat[1] : f.feat[0])); }); li.forEach(function (q) { look.push('<b>' + T2(q[1]) + ':</b> ' + T2(q[3]) + '. ' + t('Colours: ', 'الألوان: ') + T2(q[4]) + '. ' + t('Test: ', 'الاختبار: ') + T2(q[2]) + '.'); });
     look.push(t('Everywhere: measure bedding on both sides of any fold, joint sets (at least 20 readings each), fault planes with slickenlines and their sense of movement, and photograph every station with a scale (hammer or lens cap).', 'في كل مكان: قِس التطبق على جانبي أي طية، ومجموعات الفواصل (20 قراءة على الأقل لكل مجموعة)، ومستويات الفوالق مع تخططاتها واتجاه حركتها، وصوّر كل محطة مع مقياس (المطرقة أو غطاء العدسة).'));
@@ -185,14 +301,14 @@
     w.push(t('No public database gives the water-table depth at a point in Iraq: the vertical electrical sounding lab or a nearby well gives the true depth.', 'لا توجد قاعدة بيانات عامة تعطي عمق منسوب الماء عند نقطة في العراق: مختبر السبر الكهربائي أو بئر قريبة يعطيان العمق الحقيقي.'));
     (D.fa || []).slice(0, 3).forEach(function (f) { w.push(t('Active fault: ', 'فالق نشط: ') + (f.name ? SH.esc(f.name) + ' · ' : '') + ftype(f.type) + ' · ' + km(f.d) + (f.ll ? ' ' + dir(brg(D.p, f.ll)) : '') + (f.dip ? t(' · dip ', ' · الميل ') + F(f.dip, 0) + '°' : '') + (f.rate ? t(' · ', ' · ') + F(f.rate, 1) + ' mm/yr' : '')); });
     $('#fsWater').innerHTML = w.filter(Boolean).map(function (x) { return '<li>' + x + '</li>'; }).join('');
-    mapDraw(); cardFig();
+    mapDraw(); cardFig(); describe(); places(); var re = $('#fsNearRe'); if (re) re.onclick = function () { re.disabled = true; nearby(D.p).then(function (nb) { D.nb = nb; render(); }).catch(function () { re.disabled = false; SH.toast(t('Still no answer; try again in a minute.', 'لا يوجد رد بعد؛ أعد المحاولة بعد دقيقة.'), 'warn'); }); };
   }
   function T2(q) { return AR ? q[1] : q[0]; }
   function mapDraw() {
     if (!map) return; lay.clearLayers(); var n = D.nb || {}; L.circleMarker(D.p, { radius: 8, color: '#fff', weight: 3, fillColor: '#2E8B57', fillOpacity: 1 }).addTo(lay).bindTooltip(t('You', 'أنت'));
     [['road', '#1B232B'], ['river', '#2E6FBF'], ['stream', '#4FA3E0'], ['spring', '#2E8B57'], ['place', '#7A4F9A'], ['peak', '#B08A3E'], ['cave', '#55616B']].forEach(function (q) { var e = n[q[0]]; if (!e) return; L.polyline([D.p, e.ll], { color: q[1], weight: 1.5, dashArray: '4 4' }).addTo(lay); L.circleMarker(e.ll, { radius: 6, color: '#fff', weight: 2, fillColor: q[1], fillOpacity: 1 }).addTo(lay).bindTooltip((e.name || q[0]) + ' · ' + km(e.d)); });
     (D.fa || []).forEach(function (f) { if (f.g) L.polyline(f.g.map(function (g) { return [g.lat, g.lon]; }), { color: '#C0392B', weight: 3 }).addTo(lay).bindTooltip(t('Active fault', 'فالق نشط') + (f.type ? ' · ' + ftype(f.type) : '')); });
-    geoLayer();
+    geoLayer(); setTimeout(function () { map.invalidateSize(); var pts = [D.p]; Object.keys(n).forEach(function (k2) { if (n[k2] && n[k2].ll && n[k2].d < 20000) pts.push(n[k2].ll); }); map.fitBounds(L.latLngBounds(pts).pad(0.2), { maxZoom: 14 }); }, 60);
   }
   function geoLayer() { if (!map) return; if (gov) { map.removeLayer(gov); gov = null; } if ($('#fsGeoOv').checked) gov = L.tileLayer('https://tiles.macrostrat.org/carto/{z}/{x}/{y}.png', { opacity: 0.5, maxZoom: 16 }).addTo(map); }
   $('#fsGeoOv').addEventListener('change', geoLayer);
@@ -208,6 +324,8 @@
     s += G.tx(24, y, 'Geology', { fs: 14, fw: 800 }); y += 20;
     var gl = u ? [(u.name || '') + (u.int ? ' — ' + u.int : '') + (isFinite(u.b) ? ' (' + F(u.b, 1) + '–' + F(u.tt, 1) + ' Ma)' : ''), u.lith ? 'Lithology: ' + u.lith : ''].filter(Boolean) : ['No map unit read'];
     fmMatch(u).forEach(function (f) { gl.push(f.en + ': ' + f.col[0] + '; fossils: ' + f.fos[0]); });
+    var top = ranked()[0]; if (top) gl.push('Most likely formation here: ' + top.f.en + ' (' + top.f.age[0] + ', ' + Math.round(top.p * 100) + ' %' + (DESC.c.length + DESC.l.length + DESC.f.length ? ', from the place and the description' : ', from the place') + ')');
+    THK.filter(function (q) { return dist(D.p, q.p) < 2000; }).slice(-3).forEach(function (q) { gl.push('Bed thickness: true ' + F(q.t, 2) + ' m (dip ' + q.dip + '° to ' + q.dd + '°, ' + q.how + ')'); });
     gl.forEach(function (ln) { G.wrap(ln, 64).forEach(function (w2) { s += G.tx(24, y, w2, { fs: 12 }); y += 17; }); }); y += 8;
     s += G.tx(24, y, 'Nearest features', { fs: 14, fw: 800 }); y += 20;
     [['Road', n.road], ['River', n.river], ['Stream / canal', n.stream], ['Spring', n.spring], ['Settlement', n.place], ['Named peak', n.peak]].forEach(function (q) { if (!q[1]) return; var b = brg(D.p, q[1].ll); s += G.tx(24, y, q[0], { fs: 12, fw: 700, fill: G.MUT }) + G.tx(130, y, (q[1].en || 'unnamed').slice(0, 30) + '  ·  ' + (q[1].d < 1000 ? F(q[1].d, 0) + ' m' : F(q[1].d / 1000, 1) + ' km') + '  ·  ' + card(b) + ' ' + F(b, 0) + '°', { fs: 12 }); y += 18; });

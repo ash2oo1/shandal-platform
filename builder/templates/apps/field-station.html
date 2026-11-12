@@ -24,6 +24,25 @@
 .fs-two{display:grid;grid-template-columns:1fr 1fr;gap:14px}
 @media (max-width:760px){.fs-two{grid-template-columns:1fr}}
 .fs-list{margin:0;padding-inline-start:18px;display:grid;gap:5px;font-size:.9rem;line-height:1.65}
+.fs-zone{font-size:.9rem;line-height:1.7;margin:10px 0 8px;padding:8px 10px;border-radius:10px;background:var(--surface-2)}
+.fs-fms{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px}
+.fs-fm{border:1px solid var(--line);border-radius:12px;padding:10px 12px;background:var(--surface);font-size:.84rem;line-height:1.65}
+.fs-fm p{margin:3px 0}
+.fs-fm-h{display:flex;align-items:center;gap:8px;margin-bottom:4px}
+.fs-fm-h i{width:28px;height:20px;border-radius:5px;border:1px solid rgba(0,0,0,.25);flex:none}
+.fs-fm-h b{font-size:.98rem}
+.fs-pct{margin-inline-start:auto;font-weight:800;color:#8A6D1F;background:color-mix(in srgb,#B08A3E 16%,var(--surface));border-radius:999px;padding:1px 9px}
+.fs-chips{display:flex;flex-wrap:wrap;gap:6px}
+.fs-chips button{appearance:none;border:1px solid var(--line-2);background:var(--surface-2);color:var(--text);font:inherit;font-size:.8rem;padding:5px 10px;border-radius:999px;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+.fs-chips button[aria-pressed=true]{border-color:#B08A3E;background:color-mix(in srgb,#B08A3E 20%,var(--surface));font-weight:700}
+.fs-dg h4{margin:10px 0 6px;font-size:.8rem;color:var(--text-3)}
+.fs-thk{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.fs-thk div{border:1px solid var(--line);border-radius:10px;padding:8px;background:var(--surface-2);text-align:center}
+.fs-thk small{display:block;color:var(--text-3);font-size:.72rem}.fs-thk b{font-size:1.25rem}
+.fs-pl{display:grid;grid-template-columns:12px minmax(0,1fr) auto;gap:10px;align-items:center;border:1px solid var(--line);border-radius:10px;padding:8px 10px;background:var(--surface-2);color:var(--text);text-decoration:none}
+.fs-pl i{width:12px;height:12px;border-radius:50%}.fs-pl small{display:block;color:var(--text-3);font-size:.76rem;font-weight:400}
+.fs-pl>b{text-align:end}
+#fsPlaces{display:grid;gap:6px}
 </style>
 {% endblock %}
 {% block ws %}
@@ -50,7 +69,22 @@
       </div>
       <p class="xsmall muted" id="fsCal" style="margin:0"></p>
     {{ m.panel_close() }}
-    {{ m.panel_open(3, 'Recorded readings', 'القراءات المسجلة') }}
+    {{ m.panel_open(3, 'Bed thickness', 'سُمك الطبقة') }}
+      <div class="fs-modes" id="ftModes" style="grid-template-columns:1fr 1fr"><button type="button" data-t="gps" aria-pressed="true">{{ m.L('Two GPS points', 'نقطتا GPS') }}</button><button type="button" data-t="tape" aria-pressed="false">{{ m.L('Tape or paces', 'شريط أو خطوات') }}</button></div>
+      <div class="row2"><div class="fg"><label for="ftDip">{{ m.L('Dip of the bed (°)', 'ميل الطبقة (°)') }}</label><input id="ftDip" class="eo-in" type="number" min="0" max="90" step="1" inputmode="decimal"></div><div class="fg"><label for="ftDd">{{ m.L('Dip direction (°)', 'اتجاه الميل (°)') }}</label><input id="ftDd" class="eo-in" type="number" min="0" max="360" step="1" inputmode="decimal"></div></div>
+      <button class="btn btn-line btn-xs" id="ftUse" type="button">{{ m.L('Use my last reading “on the bed”', 'استعمل آخر قراءة «على الطبقة»') }}</button>
+      <div id="ftGps" style="display:grid;gap:6px">
+        <div class="fs-btns"><button class="btn btn-ink btn-sm" id="ftA" type="button">{{ m.L('Base contact here', 'القاعدة هنا') }}</button><span class="xsmall muted" id="ftAinfo" style="align-self:center">—</span></div>
+        <div class="fs-btns"><button class="btn btn-ink btn-sm" id="ftB" type="button">{{ m.L('Top contact here', 'القمة هنا') }}</button><span class="xsmall muted" id="ftBinfo" style="align-self:center">—</span></div>
+      </div>
+      <div id="ftTape" hidden style="display:grid;gap:6px">
+        <div class="row2"><div class="fg"><label for="ftL">{{ m.L('Length measured (m)', 'الطول المقيس (م)') }}</label><input id="ftL" class="eo-in" type="number" min="0" step="0.1" inputmode="decimal"></div><div class="fg"><label for="ftS">{{ m.L('Slope (°, + uphill to the top)', 'المنحدر (°، + صعوداً نحو القمة)') }}</label><input id="ftS" class="eo-in" type="number" min="-90" max="90" step="1" inputmode="decimal" value="0"></div></div>
+        <div class="row2"><div class="fg"><label for="ftAz">{{ m.L('Direction of the line, base → top (°)', 'اتجاه الخط من القاعدة إلى القمة (°)') }}</label><input id="ftAz" class="eo-in" type="number" min="0" max="360" step="1" inputmode="decimal"></div><button class="btn btn-line btn-xs" id="ftAzUse" type="button" style="align-self:end">{{ m.L('Use compass', 'من البوصلة') }}</button></div>
+      </div>
+      <div id="ftOut"></div>
+      <button class="btn btn-line btn-xs" id="ftSave" type="button">{{ m.L('Save to the station card', 'احفظ في بطاقة المحطة') }}</button>
+    {{ m.panel_close() }}
+    {{ m.panel_open(4, 'Recorded readings', 'القراءات المسجلة') }}
       <div id="fsRecs" class="xsmall"></div>
       <div class="fs-btns"><button class="btn btn-line btn-xs" id="fsNet" type="button">{{ m.L('Send planes to the stereonet', 'أرسل المستويات إلى المسقط') }}</button><button class="btn btn-line btn-xs" id="fsRecCsv" type="button">CSV</button><button class="btn btn-line btn-xs" id="fsRecClr" type="button">{{ m.L('Clear', 'امسح') }}</button></div>
     {{ m.panel_close() }}
@@ -63,6 +97,14 @@
       <section class="pn"><div class="pn-h">{{ icon('cloud-sun') }}<h2>{{ m.L('Weather for the next 24 hours', 'الطقس للساعات الـ24 القادمة') }}</h2></div><div class="pn-b"><svg class="chart" id="fsWx" viewBox="0 0 760 330" role="img"></svg></div></section>
       <section class="pn"><div class="pn-h">{{ icon('navigation') }}<h2>{{ m.L('Nearest to you', 'الأقرب إليك') }}</h2></div><div class="pn-b fs-near" id="fsNear"></div></section>
       <section class="pn"><div class="pn-h">{{ icon('layers') }}<h2>{{ m.L('The rocks here', 'الصخور هنا') }}</h2></div><div class="pn-b" id="fsGeo"></div></section>
+      <section class="pn" id="fsDesc"><div class="pn-h">{{ icon('search') }}<h2>{{ m.L('What is this outcrop? Describe it', 'ما هذا المكشف؟ صِفه') }}</h2></div><div class="pn-b fs-dg">
+        <h4>{{ m.L('Colours you see (fresh and weathered)', 'الألوان التي تراها (الطازجة والمجواة)') }}</h4><div class="fs-chips" id="fsDc"></div>
+        <h4>{{ m.L('Rock', 'الصخر') }}</h4><div class="fs-chips" id="fsDl"></div>
+        <h4>{{ m.L('Features and fossils', 'الظواهر والأحافير') }}</h4><div class="fs-chips" id="fsDf"></div>
+        <h4>{{ m.L('Drop of dilute acid (10 % HCl)', 'قطرة حامض مخفف (HCl بتركيز 10 %)') }}</h4><div class="fs-chips" id="fsDa"></div>
+        <p style="margin:8px 0"><button class="btn btn-line btn-xs" id="fsDclr" type="button">{{ m.L('Clear the description', 'امسح الوصف') }}</button></p>
+        <div id="fsDr"></div></div></section>
+      <section class="pn"><div class="pn-h">{{ icon('map-pinned') }}<h2>{{ m.L('Places worth visiting near you', 'أماكن تستحق الزيارة قربك') }}</h2></div><div class="pn-b"><div id="fsPlaces"></div><p class="xsmall muted" style="margin:8px 0 0">{{ m.L('Geosites, archaeological, religious and tourist places from the Geo-Heritage section, by straight distance. Tap one to open it there.', 'مواقع جيولوجية وآثارية ودينية وسياحية من قسم السياحة الجيولوجية والآثارية، بحسب المسافة المستقيمة. انقر أياً منها لفتحه هناك.') }}</p></div></section>
       <div class="fs-two">
         <section class="pn"><div class="pn-h">{{ icon('search') }}<h2>{{ m.L('What to look for', 'ما تبحث عنه') }}</h2></div><div class="pn-b"><ul class="fs-list" id="fsLook"></ul></div></section>
         <section class="pn"><div class="pn-h">{{ icon('droplets') }}<h2>{{ m.L('Water and faults', 'الماء والفوالق') }}</h2></div><div class="pn-b"><ul class="fs-list" id="fsWater"></ul></div></section>
