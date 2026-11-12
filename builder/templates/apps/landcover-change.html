@@ -33,6 +33,7 @@
       {{ m.fld('lcName', 'Place name on the maps', 'اسم المنطقة على الخرائط', 'text', '', '', '', '', '', 'any') }}
     {{ m.panel_close() }}
     {{ m.panel_open(2, 'Years', 'السنوات') }}
+      <div class="fg"><label for="lcSrc">{{ m.L('Source of the maps', 'مصدر الخرائط') }}</label><select id="lcSrc" class="eo-in"><option value="s2">{{ m.L('Sentinel-2 land-cover maps, 10 m (2017–2023)', 'خرائط سنتينل-2 للغطاء الأرضي، 10 م (2017–2023)') }}</option><option value="ls">{{ m.L('Landsat, 30 m (1985 to last year) — classified here', 'لاندسات، 30 م (من 1985 حتى السنة الماضية) — مصنّفة هنا') }}</option></select></div>
       <div class="row2">
         {{ m.sel('lcA', 'From', 'من', [('2017', '2017', '2017', true), ('2018', '2018', '2018'), ('2019', '2019', '2019'), ('2020', '2020', '2020'), ('2021', '2021', '2021'), ('2022', '2022', '2022')]) }}
         {{ m.sel('lcB', 'To', 'إلى', [('2018', '2018', '2018'), ('2019', '2019', '2019'), ('2020', '2020', '2020'), ('2021', '2021', '2021'), ('2022', '2022', '2022'), ('2023', '2023', '2023', true)]) }}
@@ -40,7 +41,8 @@
       <div class="chks" style="grid-template-columns:1fr">
         <label class="chk"><input type="checkbox" id="lcStable" checked> {{ m.L('Count a change only if it holds in the following year too', 'احسب التغير فقط إذا ثبت في السنة التالية أيضاً') }}</label>
       </div>
-      <p class="xsmall muted" style="margin:0">{{ m.L('Annual 10 m land-cover maps exist for 2017 to 2023. The stability test removes most of the year-to-year flicker between crops, rangeland and bare ground.', 'خرائط الغطاء الأرضي السنوية بدقة 10 م متوفرة من 2017 إلى 2023. ويزيل اختبار الثبات معظم التذبذب بين المحاصيل والمراعي والأرض الجرداء من سنة لأخرى.') }}</p>
+      <p class="xsmall muted" style="margin:0" id="lcYrNote" hidden>{{ m.L('Landsat years are classified in this tool: the 2017 Sentinel-2 map of the same place teaches a classifier what each class looks like in Landsat images (spring and summer), which is then applied to every year; its agreement with the 2023 map is shown as the accuracy. Coarser (30 m) and less certain than the Sentinel-2 maps; the stability test is not used.', 'سنوات لاندسات تُصنَّف في هذه الأداة: تُعلِّم خريطة سنتينل-2 لسنة 2017 للمكان نفسه مصنِّفاً كيف يبدو كل صنف في صور لاندسات (الربيع والصيف)، ثم يُطبَّق على كل سنة، ويُعرض توافقه مع خريطة 2023 دقةً له. أخشن (30 م) وأقل يقيناً من خرائط سنتينل-2، ولا يُستعمل اختبار الثبات.') }}</p>
+      <p class="xsmall muted" style="margin:0" id="lcS2Note">{{ m.L('Annual 10 m land-cover maps exist for 2017 to 2023. The stability test removes most of the year-to-year flicker between crops, rangeland and bare ground.', 'خرائط الغطاء الأرضي السنوية بدقة 10 م متوفرة من 2017 إلى 2023. ويزيل اختبار الثبات معظم التذبذب بين المحاصيل والمراعي والأرض الجرداء من سنة لأخرى.') }}</p>
     {{ m.panel_close() }}
     <button class="btn btn-gold btn-block" id="lcRun" type="button">{{ icon('layers', 'ico ico-sm') }}{{ m.L('Measure the change', 'قِس التغير') }}</button>
     <section class="sec" data-rp-skip><div class="eo-prog"><i id="lcBar"></i></div><p class="xsmall muted" id="lcMsg" style="margin:6px 0 0"></p></section>
