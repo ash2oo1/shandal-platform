@@ -2,7 +2,7 @@
 {% import "apps/_m.html" as m with context %}
 {% block apphead %}
 <style>
-#smMap{height:62vh;min-height:380px;border-radius:12px;border:1px solid var(--line)}
+#smMap{height:64vh;min-height:400px;border-radius:12px;border:1px solid var(--line)}
 .sm-chips{display:flex;gap:6px;flex-wrap:wrap}
 .sm-chips button{appearance:none;border:1px solid var(--line-2);background:var(--surface-2);color:var(--text);font:inherit;font-size:.8rem;padding:5px 10px;border-radius:999px;cursor:pointer}
 .sm-chips button[aria-pressed=true]{border-color:#B08A3E;background:color-mix(in srgb,#B08A3E 16%,var(--surface))}
@@ -13,22 +13,23 @@
 .sm-bar span{border:1px solid var(--line-2);border-radius:999px;padding:3px 10px;background:var(--surface-2)}
 .sm-bar .on{background:#E6F4EC;color:#1F6B45;border-color:#9CCBB0}.sm-bar .off{background:#FDF0E2;color:#8A4B00;border-color:#E8BE8A}
 .sm-act{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px}
-.sm-act .btn[aria-pressed=true]{outline:2px solid #B08A3E;outline-offset:1px}
+.sm-act .btn[aria-pressed=true],.sm-rt .btn[aria-pressed=true]{outline:2px solid #B08A3E;outline-offset:1px}
 .sm-pos{border:1px solid var(--line);border-radius:14px;padding:14px 16px;background:var(--surface-2);display:grid;gap:4px}
 .sm-pos b.big{font-size:1.45rem;font-variant-numeric:tabular-nums;direction:ltr;unicode-bidi:isolate;letter-spacing:.3px}
 .sm-pos small{color:var(--text-3)}
 .sm-near{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px}
-.sm-nc{appearance:none;text-align:start;font:inherit;color:var(--text);border:1px solid var(--line);border-radius:14px;background:var(--surface);padding:12px;display:grid;grid-template-columns:52px 1fr;gap:10px;align-items:center;cursor:pointer}
+.sm-nc{border:1px solid var(--line);border-radius:14px;background:var(--surface);padding:12px;display:grid;grid-template-columns:52px 1fr;gap:10px;align-items:center}
 .sm-nc[aria-pressed=true]{border-color:#B08A3E;box-shadow:0 0 0 2px color-mix(in srgb,#B08A3E 35%,transparent)}
-.sm-nc .ar{width:52px;height:52px;border-radius:50%;background:var(--surface-2);display:grid;place-items:center;border:1px solid var(--line-2)}
+.sm-nc .ar{width:52px;height:52px;border-radius:50%;background:var(--surface-2);display:grid;place-items:center;border:1px solid var(--line-2);cursor:pointer}
 .sm-nc .ar svg{width:34px;height:34px;transition:transform .25s}
 .sm-nc h4{margin:0;font-size:.78rem;color:var(--text-3);font-weight:700}
 .sm-nc b{display:block;font-size:.98rem;margin:1px 0}
 .sm-nc small{color:var(--text-3);font-size:.76rem}
+.sm-nc .go{display:flex;gap:6px;margin-top:6px;flex-wrap:wrap}
 .sm-here{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px}
 .sm-hz{border:1px solid var(--line);border-inline-start:5px solid #7A8590;border-radius:12px;padding:10px 12px;background:var(--surface)}
 .sm-hz h4{margin:0 0 4px;font-size:.86rem}.sm-hz p{margin:0;font-size:.82rem;color:var(--text-2)}
-.sm-hz.ok{border-inline-start-color:#2F7D5B}.sm-hz.mid{border-inline-start-color:#E08A00}.sm-hz.hi{border-inline-start-color:#C0392B}
+.sm-hz.ok{border-inline-start-color:#2F7D5B}.sm-hz.mid{border-inline-start-color:#E08A00}.sm-hz.hi{border-inline-start-color:#C0392B}.sm-hz.info{border-inline-start-color:#2E6FA8}
 .sm-tbl{width:100%;border-collapse:collapse;font-size:.82rem}.sm-tbl th,.sm-tbl td{border-bottom:1px solid var(--line);padding:5px 6px;text-align:start}
 .sm-packs{display:grid;gap:8px}
 .sm-pk{border:1px solid var(--line);border-radius:12px;padding:8px 10px;background:var(--surface-2);display:grid;gap:6px}
@@ -38,12 +39,23 @@
 .sm-me{width:22px;height:22px;position:relative}
 .sm-me i{position:absolute;inset:5px;border-radius:50%;background:#1A73E8;border:2px solid #fff;box-shadow:0 0 0 1px rgba(0,0,0,.3)}
 .sm-me svg{position:absolute;left:-14px;top:-14px;width:50px;height:50px;pointer-events:none}
-.sm-lbl{background:rgba(255,255,255,.85);border:0;box-shadow:none;padding:0 4px;font-size:11px;font-weight:700;color:#1d2731;border-radius:4px}
-.sm-lbl:before{display:none}
-.lz-lo .sm-lbl.v{display:none}
-.sm-pk-ic{width:16px;height:16px;display:grid;place-items:center;font-size:10px;font-weight:800;color:#fff;border-radius:50%;border:1.5px solid #fff;box-shadow:0 0 0 1px rgba(0,0,0,.35)}
 .sm-eo{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:8px}
 .sm-season{display:grid;gap:6px;margin:0;padding-inline-start:18px;font-size:.86rem}
+.sm-leg{display:grid;gap:10px}
+.sm-leg h5{margin:0 0 4px;font-size:.74rem;color:var(--text-3);font-weight:800;letter-spacing:.02em}
+.sm-leg .g{display:flex;flex-wrap:wrap;gap:6px}
+.sm-leg button{appearance:none;display:inline-flex;align-items:center;gap:7px;border:1px solid var(--line-2);background:var(--surface);color:var(--text);font:inherit;font-size:.78rem;padding:4px 10px 4px 8px;border-radius:999px;cursor:pointer}
+.sm-leg button[aria-pressed=false]{opacity:.45;text-decoration:line-through}
+.sm-leg svg{width:22px;height:16px;flex:none}
+.sm-rt{border:1px solid var(--line);border-radius:14px;padding:12px 14px;background:var(--surface);display:grid;gap:8px}
+.sm-rt .r{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.sm-rt b.big{font-size:1.15rem}
+.sm-mk{display:grid;gap:6px}
+.sm-mk .it{display:flex;gap:8px;align-items:center;justify-content:space-between;border:1px solid var(--line);border-radius:10px;padding:6px 10px;background:var(--surface-2);font-size:.84rem}
+.sm-mk .it .r{display:flex;gap:6px}
+.sm-pop b{display:block;font-size:.92rem}.sm-pop small{color:#55616B;display:block;margin:2px 0 6px}
+.sm-pop .r{display:flex;gap:6px;flex-wrap:wrap}
+.sm-pop button{appearance:none;border:1px solid #c9c2b2;background:#f6f2e8;border-radius:999px;font:inherit;font-size:.76rem;padding:3px 9px;cursor:pointer}
 </style>
 {% endblock %}
 {% block ws %}
@@ -51,27 +63,34 @@
 <div class="ws wide-side">
   <aside class="ws-side">
     {{ m.panel_open(1, 'Area to keep offline', 'المنطقة التي تُحفظ للعمل دون إنترنت') }}
-      <p class="xsmall muted" style="margin:0">{{ m.L('Do this at home or in the hotel while you have internet. Choose a ready area, or tap the map to set the centre of your own area.', 'افعل هذا في البيت أو الفندق وأنت متصل بالإنترنت. اختر منطقة جاهزة، أو انقر على الخريطة لتحديد مركز منطقتك.') }}</p>
+      <p class="xsmall muted" style="margin:0">{{ m.L('Do this at home or in the hotel while you have internet. Choose a ready area, or tap the map to set the centre of your own area. Areas larger than 50 km are saved as squares of up to 50 km, one after the other.', 'افعل هذا في البيت أو الفندق وأنت متصل بالإنترنت. اختر منطقة جاهزة، أو انقر على الخريطة لتحديد مركز منطقتك. وتُحفظ المناطق الأكبر من 50 كم مربعاتٍ لا يزيد ضلعها على 50 كم واحداً بعد الآخر.') }}</p>
       <div class="sm-chips" id="smPre"></div>
-      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center"><button class="btn btn-line btn-sm" id="smMe" type="button">{{ icon('locate-fixed', 'ico ico-sm') }}{{ m.L('Centre on my location', 'المركز عند موقعي') }}</button><span class="xsmall muted" id="smCtr" style="align-self:center"></span></div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center"><button class="btn btn-line btn-sm" id="smMe" type="button">{{ icon('locate-fixed', 'ico ico-sm') }}{{ m.L('Centre on my location', 'المركز عند موقعي') }}</button><span class="xsmall muted" id="smCtr"></span></div>
       <div class="row2">
-        <div class="fg"><label for="smSize">{{ m.L('Size of the square', 'ضلع المربع') }}</label><select id="smSize" class="sm-in"><option value="10">10 km</option><option value="20">20 km</option><option value="30" selected>30 km</option><option value="40">40 km</option><option value="50">50 km</option></select></div>
+        <div class="fg"><label for="smSize">{{ m.L('Size of the square', 'ضلع المربع') }}</label><select id="smSize" class="sm-in"><option value="10">10 km</option><option value="20">20 km</option><option value="30" selected>30 km</option><option value="40">40 km</option><option value="50">50 km</option><option value="100">100 km (4 × 50)</option><option value="150">150 km (9 × 50)</option><option value="200">200 km (16 × 50)</option><option value="300">300 km (36 × 50)</option><option value="400">400 km (64 × 50)</option><option value="500">500 km (100 × 50)</option></select></div>
         {{ m.fld('smName', 'Name of the area', 'اسم المنطقة', 'text', '', '', '', '', '', 'any') }}
       </div>
+      <p class="xsmall muted" id="smEst" style="margin:0"></p>
       <button class="btn btn-gold btn-block" id="smGet" type="button">{{ icon('download', 'ico ico-sm') }}{{ m.L('Save this area on my phone', 'احفظ هذه المنطقة على هاتفي') }}</button>
+      <button class="btn btn-line btn-block" id="smResume" type="button" hidden>{{ icon('download', 'ico ico-sm') }}<span></span></button>
       <div class="sm-prog"><i id="smBarI"></i></div>
       <p class="xsmall muted" id="smMsg" style="margin:0"></p>
-      <p class="xsmall muted" style="margin:0">{{ m.L('On iPhone and iPad add the system to the home screen (Share → Add to Home Screen) and open it from there, otherwise Safari may delete saved areas that are not opened for some days.', 'على الآيفون والآيباد أضف النظام إلى الشاشة الرئيسية (مشاركة ← إضافة إلى الشاشة الرئيسية) وافتحه منها، وإلا فقد يحذف سفاري المناطق المحفوظة التي لا تُفتح لعدة أيام.') }}</p>
+      <p class="xsmall muted" style="margin:0">{{ m.L('On iPhone and iPad add the system to the home screen (Share → Add to Home Screen) and open it from there, otherwise Safari may delete saved areas that are not opened for some days. Keep the screen on while a large area is saving.', 'على الآيفون والآيباد أضف النظام إلى الشاشة الرئيسية (مشاركة ← إضافة إلى الشاشة الرئيسية) وافتحه منها، وإلا فقد يحذف سفاري المناطق المحفوظة التي لا تُفتح لعدة أيام. وأبقِ الشاشة مضاءة أثناء حفظ منطقة كبيرة.') }}</p>
     {{ m.panel_close() }}
     {{ m.panel_open(2, 'Saved areas', 'المناطق المحفوظة') }}
       <div class="sm-packs" id="smPacks"></div>
       <p class="xsmall muted" id="smStore" style="margin:0"></p>
     {{ m.panel_close() }}
+    {{ m.panel_open(3, 'My landmarks', 'معالمي') }}
+      <p class="xsmall muted" style="margin:0">{{ m.L('Mark the camp, the car, a sample site or any place to come back to. They stay on the device and work offline.', 'علّم المخيم أو السيارة أو موقع عينة أو أي مكان تريد العودة إليه. تبقى على الجهاز وتعمل دون إنترنت.') }}</p>
+      <div class="sm-act"><button class="btn btn-line btn-sm" id="smMkHere" type="button">{{ icon('map-pinned', 'ico ico-sm') }}{{ m.L('Mark where I am', 'علّم مكاني الآن') }}</button><button class="btn btn-line btn-sm" id="smMkMap" type="button">{{ icon('crosshair', 'ico ico-sm') }}{{ m.L('Mark a point on the map', 'علّم نقطة على الخريطة') }}</button></div>
+      <div class="sm-mk" id="smMarks"></div>
+    {{ m.panel_close() }}
   </aside>
   <div class="ws-main" style="display:grid;gap:16px;align-content:start">
     <div class="sm-bar" id="smStat"></div>
     <div class="map" id="smMap" data-rp-skip></div>
-    <div class="sm-chips" id="smLay"></div>
+    <section class="pn"><div class="pn-h">{{ icon('layers') }}<h2>{{ m.L('Map key — tap to show or hide', 'مفتاح الخريطة — انقر للإظهار أو الإخفاء') }}</h2></div><div class="pn-b"><div class="sm-leg" id="smLeg"></div></div></section>
     <div class="sm-act">
       <button class="btn btn-ink btn-sm" id="smGps" type="button">{{ icon('crosshair', 'ico ico-sm') }}<span>{{ m.L('Start GPS', 'شغّل تحديد الموقع') }}</span></button>
       <button class="btn btn-line btn-sm" id="smCmp" type="button">{{ icon('navigation', 'ico ico-sm') }}{{ m.L('Compass arrows', 'أسهم البوصلة') }}</button>
@@ -80,12 +99,20 @@
       <button class="btn btn-line btn-sm" id="smSms" type="button">{{ icon('message-square-text', 'ico ico-sm') }}{{ m.L('Send my location by SMS', 'أرسل موقعي برسالة SMS') }}</button>
       <button class="btn btn-line btn-sm" id="smCopy" type="button">{{ icon('copy', 'ico ico-sm') }}{{ m.L('Copy my location', 'انسخ موقعي') }}</button>
     </div>
-    <div id="smEmpty" class="pn">{{ m.empty('life-buoy', 'Your map when there is no network', 'خريطتك حين لا توجد شبكة', 'Save an area before the trip. In the field, with no internet, the system shows where you are, the nearest water, village, road, clinic and high ground with an arrow, the distance and the walking time, the steep slopes and stream beds to avoid, the rain of the last week, the sunset and the way back along your own path.', 'احفظ المنطقة قبل الرحلة. وفي الميدان ومن دون إنترنت يُظهر النظام أين أنت، وأقرب ماء وقرية وطريق ومستوصف ومرتفع بسهم ومسافة وزمن مشي، والمنحدرات الشديدة وبطون الوديان التي يجب تجنبها، وأمطار الأسبوع الأخير، ووقت الغروب، وطريق العودة على مسارك نفسه.') }}</div>
+    <div class="sm-rt" id="smRt">
+      <div class="r"><b>{{ m.L('Route', 'المسار') }}</b>
+        <button class="btn btn-line btn-xs" type="button" data-rm="car" aria-pressed="true">{{ m.L('By car', 'بالسيارة') }}</button>
+        <button class="btn btn-line btn-xs" type="button" data-rm="walk" aria-pressed="false">{{ m.L('On foot', 'مشياً') }}</button>
+        <button class="btn btn-line btn-xs" type="button" id="smRtPick">{{ m.L('Choose a destination on the map', 'اختر وجهة على الخريطة') }}</button>
+        <button class="btn btn-line btn-xs" type="button" id="smRtClr" hidden>{{ m.L('Clear the route', 'امسح المسار') }}</button></div>
+      <div id="smRtOut" class="xsmall muted">{{ m.L('Tap “Route” on any place below, on a landmark, or on a point of the map. Car routes follow the saved roads and tracks; walking routes also use footpaths and follow the slope.', 'انقر «المسار» على أي مكان أدناه أو على معلم أو على نقطة في الخريطة. يتبع مسار السيارة الطرق والدروب المحفوظة، ويستعمل مسار المشي ممرات المشاة أيضاً ويتبع الانحدار.') }}</div>
+    </div>
+    <div id="smEmpty" class="pn">{{ m.empty('life-buoy', 'Your map when there is no network', 'خريطتك حين لا توجد شبكة', 'Save an area before the trip. In the field, with no internet, the system shows where you are, the nearest water, village, road, clinic, high ground and likely phone signal with an arrow, the distance and the walking time, a route by car or on foot, the steep slopes, stream beds and recent snow, the sunset and the way back along your own path.', 'احفظ المنطقة قبل الرحلة. وفي الميدان ومن دون إنترنت يُظهر النظام أين أنت، وأقرب ماء وقرية وطريق ومستوصف ومرتفع وإشارة هاتف محتملة بسهم ومسافة وزمن مشي، ومساراً بالسيارة أو مشياً، والمنحدرات الشديدة وبطون الوديان والثلوج الأخيرة، ووقت الغروب، وطريق العودة على مسارك نفسه.') }}</div>
     <div id="smOut" hidden style="display:grid;gap:16px">
       <div class="sm-pos" id="smPos"></div>
       <section class="pn"><div class="pn-h">{{ icon('droplet') }}<h2>{{ m.L('Nearest to you', 'الأقرب إليك') }}</h2></div><div class="pn-b"><div class="sm-near" id="smNear"></div><p class="xsmall muted" id="smNearN" style="margin:8px 0 0"></p></div></section>
       <section class="pn"><div class="pn-h">{{ icon('triangle-alert') }}<h2>{{ m.L('The ground where you stand', 'الأرض حيث تقف') }}</h2></div><div class="pn-b"><div class="sm-here" id="smHere"></div></div></section>
-      <section class="pn"><div class="pn-h">{{ icon('cloud-rain') }}<h2>{{ m.L('Rain and temperature', 'المطر والحرارة') }}</h2></div><div class="pn-b" id="smWx"></div></section>
+      <section class="pn"><div class="pn-h">{{ icon('cloud-rain') }}<h2>{{ m.L('Rain, snow and temperature', 'المطر والثلج والحرارة') }}</h2></div><div class="pn-b" id="smWx"></div></section>
       <section class="pn"><div class="pn-h">{{ icon('life-buoy') }}<h2>{{ m.L('This season in the field', 'هذا الموسم في الحقل') }}</h2></div><div class="pn-b" id="smSeason"></div></section>
       {{ m.fig_open('fsm1', '1', 'Offline field map sheet', 'لوحة الخريطة الميدانية') }}
         <div class="fig-b"><div style="background:#fff;border-radius:12px;overflow:hidden;border:1px solid var(--line)"><canvas id="smCv" width="1500" height="1400" style="width:100%;height:auto;display:block"></canvas></div>
