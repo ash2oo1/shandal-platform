@@ -401,8 +401,8 @@ TOOLS = [
           'Brilha, J. (2016). Inventory and quantitative assessment of geosites and geodiversity sites: a review. Geoheritage, 8, 119–134.',
           'UNESCO World Heritage Centre. World Heritage List: Iraq (Hatra, Ashur, Samarra, Erbil Citadel, Babylon, the Ahwar of Southern Iraq).',
           'Wikipedia (English and Arabic editions) and Wikimedia Commons — place descriptions and photographs, CC BY-SA.',
-          'Macrostrat geological map database (Peters, S.E., Husson, J.M. & Czaplewski, J., 2018, Geochem. Geophys. Geosyst., 19, 1393–1409).',
-          'Copernicus GLO-90 digital elevation model via the Open-Meteo elevation service.',
+          'Integrated global geological map database.',
+          'Copernicus GLO-90 digital elevation model.',
           'Norwegian Meteorological Institute (MET Norway): Locationforecast and Sunrise services, CC BY 4.0.',
           'Paleobiology Database (paleobiodb.org) — fossil collections, CC BY 4.0.',
           'Esri World Imagery, World Topographic Map and Light Gray Canvas basemaps.'],
@@ -512,6 +512,8 @@ TOOLS = [_all[k] for k in ORDER]
 # interpretation, maps, downloads and reports are for subscribers). 'open' is used where the upstream data
 # service permits only non-commercial use, so the paid part of the tool is the analysis, not the data.
 OPEN_DATA = {'air-quality', 'env-monitoring', 'hydro-alert'}
+# decided 2026-11: only the unit converter is free; every other tool is for subscribers
+FREE_TOOLS = {'unit-converter'}
 # sections (2026-10): remote sensing, geophysics, water, atmosphere and climate are separate sections
 CAT_OF = {'geomorphology-contour': 'terrain', 'spectral-indices': 'remote', 'magnetic-lab': 'geophysics', 'geothermal-lab': 'geophysics',
           'hydro-alert': 'water', 'potential-zones': 'water', 'archaeo-potential': 'remote', 'lineament-extraction': 'remote', 'mineral-prospectivity': 'remote', 'air-quality': 'atmosphere', 'env-monitoring': 'climate'}
@@ -521,8 +523,10 @@ for _t in TOOLS:
     _t.setdefault('gate', True)
     if _t['slug'] in OPEN_DATA:
         _t['access'] = 'open'; _t['gate'] = False
+    elif _t['slug'] in FREE_TOOLS:
+        _t['access'] = 'free'; _t['gate'] = False
     else:
-        _t.setdefault('access', 'sub' if _t['gate'] is not False else 'free')
+        _t['access'] = 'sub'; _t['gate'] = True
 
 from content_tools3 import OVERRIDES as _OV
 for _t in TOOLS:
