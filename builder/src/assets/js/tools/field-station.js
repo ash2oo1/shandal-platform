@@ -176,10 +176,11 @@
     R0.forEach(function (r) { r.p = r.w / tot; }); return R0.sort(function (a, b) { return b.w - a.w; });
   }
   function sw(c) { return '<i style="display:inline-block;width:16px;height:16px;border-radius:4px;border:1px solid rgba(0,0,0,.25);vertical-align:-3px;background:' + c + '"></i>'; }
+  function maF(x) { return F(x, !(x % 1) ? 0 : x < 1 ? 2 : 1); }
   function fCard(f, pct, why) {
     var cs = f.tags.c.map(function (c) { var q = COLS.filter(function (x) { return x[0] === c; })[0]; return q ? sw(q[3]) : ''; }).join(' ');
     return '<div class="fs-fm"><div class="fs-fm-h"><i style="background:' + f.colour + '"></i><b>' + (AR ? f.ar : f.en) + '</b>' + (pct != null ? '<span class="fs-pct">' + Math.round(pct * 100) + ' %</span>' : '') + '</div>' +
-      '<p><b>' + t('Age: ', 'العمر: ') + '</b>' + (AR ? f.age[1] : f.age[0]) + (f.ma ? ' (' + F(f.ma[0], f.ma[0] % 1 ? 1 : 0) + '–' + F(f.ma[1], f.ma[1] % 1 ? 1 : 0) + t(' million years', ' مليون سنة') + ')' : '') + '</p>' +
+      '<p><b>' + t('Age: ', 'العمر: ') + '</b>' + (AR ? f.age[1] : f.age[0]) + (f.ma ? ' (' + maF(f.ma[0]) + '–' + maF(f.ma[1]) + t(' million years', ' مليون سنة') + ')' : '') + '</p>' +
       '<p><b>' + t('Rocks: ', 'الصخور: ') + '</b>' + (AR ? f.lith[1] : f.lith[0]) + '</p><p><b>' + t('Colour in the field: ', 'اللون في الحقل: ') + '</b>' + cs + ' ' + (AR ? f.col[1] : f.col[0]) + '</p>' +
       '<p><b>' + t('Fossils: ', 'الأحافير: ') + '</b>' + (AR ? f.fos[1] : f.fos[0]) + '</p><p><b>' + t('How to recognise it: ', 'كيف تعرفه: ') + '</b>' + (AR ? f.feat[1] : f.feat[0]) + '</p>' + (why ? '<p class="xsmall muted">' + why + '</p>' : '') + '</div>';
   }
@@ -200,7 +201,7 @@
     var top = R0.slice(0, 4);
     $('#fsDr').innerHTML = '<p style="margin:0 0 8px"><b>' + t('Most likely: ', 'الأرجح: ') + (AR ? top[0].f.ar : top[0].f.en) + '</b> — ' + Math.round(top[0].p * 100) + ' %' + (D.p ? t(' (place and description together)', ' (المكان والوصف معاً)') : t(' (description only — fix your position to add the place)', ' (الوصف فقط — حدّد موقعك لإضافة المكان)')) + '</p><div class="fs-fms">' + top.map(function (r) {
       var T = r.f.tags, m = [], x = []; DESC.c.concat(DESC.l, DESC.f).forEach(function (k) { var nm = (COLS.concat(LITHS, FEATS).filter(function (q) { return q[0] === k; })[0] || [k, k, k]); (T.c.indexOf(k) >= 0 || T.l.indexOf(k) >= 0 || T.f.indexOf(k) >= 0 ? m : x).push(AR ? nm[2] : nm[1]); });
-      return fCard(r.f, r.p, (m.length ? t('Matches: ', 'يطابق: ') + m.join('، ') + '. ' : '') + (x.length ? t('Does not fit: ', 'لا يناسب: ') + x.join('، ') + '.' : ''));
+      return fCard(r.f, r.p, (m.length ? t('Matches: ', 'يطابق: ') + m.join(t(', ', '، ')) + '. ' : '') + (x.length ? t('Does not fit: ', 'لا يناسب: ') + x.join(t(', ', '، ')) + '.' : ''));
     }).join('') + '</div>';
   }
   document.addEventListener('click', function (e) {

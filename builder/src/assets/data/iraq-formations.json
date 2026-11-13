@@ -9,25 +9,25 @@
 "البلايوسين–البلايستوسين"
 ],
 "lith": [
-"Conglomerate, reddish-brown sandstone, siltstone and claystone",
-"مدملكات ورمل بني محمر وغرين وطين"
+"Conglomerate with sandstone, siltstone and claystone",
+"مدملكات مع حجر رملي وغريني وطيني"
 ],
 "colour": "#9C7B5B",
 "col": [
-"brown to reddish brown; pebbles of grey limestone and coloured chert",
-"بني إلى بني محمر؛ حصى من حجر جيري رمادي وصوان ملون"
+"varicoloured pebbles; claystone light reddish brown or pale brown; sandstone grey, light greenish grey or light brown",
+"حصى متعدد الألوان؛ والطين بني محمر فاتح أو بني شاحب؛ والحجر الرملي رمادي أو رمادي مخضر فاتح أو بني فاتح"
 ],
 "fos": [
-"Mostly barren; rare plant and vertebrate remains",
-"فقيرة غالباً؛ بقايا نباتية وفقرية نادرة"
+"Very rare: ostracods, charophytes, bryozoa and mammal bones",
+"نادرة جداً: أوستراكودا وكارافايت وحزازيات وعظام لبائن"
 ],
 "feat": [
-"Channel-fill conglomerates, imbricated pebbles, fining-upward cycles, badlands",
-"مدملكات مالئة للقنوات، وحصى متراكب، ودورات تتناعم نحو الأعلى، وأراضٍ رديئة"
+"Freshwater molasse laid down as alluvial fans from the mountains; 100–640 m thick",
+"مولاس عذب ترسّب مراوحَ غرينية من الجبال؛ سمكه 100–640 م"
 ],
 "ma": [
-4.0,
-0.8
+5.33,
+0.0117
 ],
 "zones": [
 "foothill",
@@ -35,20 +35,22 @@
 ],
 "tags": {
 "c": [
-"brown",
 "redbrown",
+"brown",
+"lgrey",
 "mixed"
 ],
 "l": [
 "cgl",
 "sst",
+"silt",
 "clay"
 ],
-"f": [
-"chan",
-"xbed"
+"f": []
+},
+"src": [
+"hfz"
 ]
-}
 },
 {
 "k": "mk",
@@ -60,25 +62,25 @@
 "المايوسين المتأخر–البلايوسين"
 ],
 "lith": [
-"Cyclic grey sandstone, siltstone and claystone, some pebbly",
-"رمل وغرين وطين رمادي دوري، بعضه حصوي"
+"Sandstone, claystone and siltstone",
+"حجر رملي وطيني وغريني"
 ],
 "colour": "#9A958A",
 "col": [
-"grey to buff sandstone with red-brown claystone",
-"رمل رمادي إلى أصفر شاحب مع طين بني محمر"
+"mainly grey: sandstone light to dark grey or light greenish grey; claystone light or pale brown",
+"رمادي غالباً: الحجر الرملي رمادي فاتح إلى داكن أو رمادي مخضر فاتح؛ والطين بني فاتح أو شاحب"
 ],
 "fos": [
-"Mostly barren; plant remains",
-"فقيرة غالباً؛ بقايا نباتية"
+"Hipparion and other mammal remains, freshwater ostracods, charophytes, gastropods and bivalves",
+"هيباريون وبقايا لبائن أخرى، وأوستراكودا مياه عذبة، وكارافايت، وبطنيات وذوات مصراعين"
 ],
 "feat": [
-"Cross-bedded channel sandstones, fining-upward cycles",
-"رمال قنوات متقاطعة التطبق، ودورات تتناعم نحو الأعلى"
+"River deposits of a fast-sinking foredeep; 100–350 m near Darbandikhan, 600 m near Halabja",
+"رواسب نهرية في حوض أمامي سريع الهبوط؛ سمكه 100–350 م قرب دربندخان و600 م قرب حلبجة"
 ],
 "ma": [
-9.0,
-3.6
+11.63,
+2.58
 ],
 "zones": [
 "foothill",
@@ -87,21 +89,20 @@
 "tags": {
 "c": [
 "lgrey",
-"buff",
-"redbrown"
+"dgrey",
+"green",
+"brown"
 ],
 "l": [
 "sst",
-"cgl",
 "clay",
 "silt"
 ],
-"f": [
-"xbed",
-"chan",
-"cyc"
+"f": []
+},
+"src": [
+"hfz"
 ]
-}
 },
 {
 "k": "inj",
@@ -113,25 +114,25 @@
 "المايوسين المتأخر"
 ],
 "lith": [
-"Cyclic reddish-brown sandstone, siltstone and claystone",
-"رمل وغرين وطين بني محمر دوري"
+"Claystone, siltstone and sandstone",
+"طين وغرين وحجر رملي"
 ],
 "colour": "#A0614A",
 "col": [
-"reddish brown, with grey-green sandstone beds",
-"بني محمر، مع طبقات رمل رمادي مخضر"
+"reddish brown, brown, greenish grey, olive green, violet or blue",
+"بني محمر أو بني أو رمادي مخضر أو أخضر زيتوني أو بنفسجي أو أزرق"
 ],
 "fos": [
-"Mostly barren",
-"فقيرة غالباً"
+"Very rare: gastropods and bivalves",
+"نادرة جداً: بطنيات وذوات مصراعين"
 ],
 "feat": [
-"Fining-upward cycles, ripple marks, mud cracks, cross-bedding",
-"دورات تتناعم نحو الأعلى، وعلامات تموج، وتشققات طينية، وتطبق متقاطع"
+"River deposits, very shallow to land in the lower part; 100–620 m thick",
+"رواسب نهرية، وضحلة جداً إلى قارية في أسفلها؛ سمكه 100–620 م"
 ],
 "ma": [
-11.6,
-7.0
+11.63,
+5.33
 ],
 "zones": [
 "foothill",
@@ -141,19 +142,21 @@
 "tags": {
 "c": [
 "redbrown",
+"brown",
 "green",
-"lgrey"
+"purple",
+"bluegrey"
 ],
 "l": [
 "clay",
 "silt",
 "sst"
 ],
-"f": [
-"cyc",
-"xbed"
+"f": []
+},
+"src": [
+"hfz"
 ]
-}
 },
 {
 "k": "fat",
@@ -165,25 +168,25 @@
 "المايوسين الأوسط"
 ],
 "lith": [
-"Cyclic green marl, limestone, claystone and gypsum; red claystone and sandstone above",
-"مارل أخضر وحجر جيري وطين وجبس بصورة دورية؛ وطين ورمل أحمر في الأعلى"
+"Cycles of marl, claystone, limestone and gypsum; red claystone dominates in the north-east",
+"دورات من المارل والطين والحجر الجيري والجبس؛ ويغلب الطين الأحمر في الشمال الشرقي"
 ],
 "colour": "#9AA58A",
 "col": [
-"green-grey marl with white gypsum bands; red beds in the upper part",
-"مارل رمادي مخضر مع أشرطة جبس بيضاء؛ وطبقات حمراء في الجزء الأعلى"
+"claystone reddish brown or pale brown; marl pale to olive or yellowish green; limestone light grey or white; gypsum white to grey",
+"الطين بني محمر أو بني شاحب؛ والمارل أخضر شاحب إلى زيتوني أو أخضر مصفر؛ والحجر الجيري رمادي فاتح أو أبيض؛ والجبس أبيض إلى رمادي"
 ],
 "fos": [
-"Few: shells in thin limestone beds",
-"قليلة: أصداف في طبقات الحجر الجيري الرقيقة"
+"Ammonia, Elphidium and miliolid foraminifera; oysters (Ostrea), Clausinella, algae",
+"فورامنيفرا الأمونيا والإلفيديوم والميليوليد؛ ومحار (أوستريا) وكلاوزينيلا وطحالب"
 ],
 "feat": [
-"Evaporite cycles, satin-spar gypsum veins, dissolution collapse, salt and sulphur in places",
-"دورات تبخرية، وعروق جبس ليفي، وانهيارات ذوبان، وملح وكبريت في بعض الأماكن"
+"Repeated cycles laid in a closed salty lagoon; near Halabja red marl and grey sandstone with no gypsum",
+"دورات متكررة ترسّبت في لاغون مغلق شديد الملوحة؛ وقرب حلبجة مارل أحمر وحجر رملي رمادي بلا جبس"
 ],
 "ma": [
-16.0,
-11.6
+15.98,
+11.63
 ],
 "zones": [
 "foothill",
@@ -192,24 +195,28 @@
 ],
 "tags": {
 "c": [
+"redbrown",
+"brown",
 "green",
 "lgrey",
-"white",
-"redbrown"
+"white"
 ],
 "l": [
+"clay",
 "marl",
-"gyp",
 "lst",
-"clay"
+"gyp"
 ],
 "f": [
 "gyp",
 "cyc",
-"shells",
-"thin"
+"shells"
 ]
-}
+},
+"src": [
+"hfz",
+"jaz"
+]
 },
 {
 "k": "ps",
@@ -221,25 +228,25 @@
 "الإيوسين الأوسط–المتأخر"
 ],
 "lith": [
-"Well-bedded hard limestone and dolostone, rare marl",
-"حجر جيري ودولومايت صلد جيد التطبق مع قليل من المارل"
+"Well-bedded limestone, dolomitic and chalky limestone, dolostone and marl",
+"حجر جيري جيد التطبق، وحجر جيري دولوميتي وطباشيري، ودولوستون ومارل"
 ],
 "colour": "#CDBA92",
 "col": [
-"white, cream to buff; forms bold ridges and cliffs",
-"أبيض وكريمي إلى أصفر شاحب؛ يكوّن حافات وجروفاً بارزة"
+"white to yellowish grey; weathers white and chalky",
+"أبيض إلى رمادي مصفر؛ ويتجوّى أبيض طباشيرياً"
 ],
 "fos": [
-"Algae, corals, bryozoa and other bioclasts",
-"طحالب ومرجان وحزازيات وفتات حيوي آخر"
+"Miliolids, peneroplids, Rhapydionina, Alveolina and algae",
+"ميليوليد وبينيروبليد ورابيديونينا وألفيولينا وطحالب"
 ],
 "feat": [
-"Cliff-forming ridges, joints, small faults with slickensides, karst",
-"حافات وجروف، وفواصل، وفوالق صغيرة بمرايا فالقية، وكارست"
+"Lagoonal limestone of a restricted to semi-restricted platform; chert nodules near Dohuk; bituminous beds at the type section; 70–190 m",
+"حجر جيري لاغوني من رصيف مغلق إلى شبه مغلق؛ عقد صوان قرب دهوك؛ وطبقات قيرية في المقطع النموذجي؛ سمكه 70–190 م"
 ],
 "ma": [
-46.0,
-36.0
+47.8,
+33.9
 ],
 "zones": [
 "hfz",
@@ -248,18 +255,23 @@
 "tags": {
 "c": [
 "white",
-"buff"
+"buff",
+"lgrey"
 ],
 "l": [
 "lst",
-"dol"
+"dol",
+"marl"
 ],
 "f": [
-"cliff",
+"nod",
 "alg",
-"coral"
+"bitum"
 ]
-}
+},
+"src": [
+"hfz"
+]
 },
 {
 "k": "ger",
@@ -271,45 +283,51 @@
 "الإيوسين المبكر–الأوسط"
 ],
 "lith": [
-"Red claystone with siltstone, sandstone and conglomerate lenses",
-"طين أحمر مع غرين ورمل وعدسات مدملكة"
+"Red claystone and shale with sandstone, siltstone, gritty marl and conglomerate lenses; gypsum in places",
+"طين وطفل أحمر مع حجر رملي وغريني ومارل حصوي وعدسات مدملكات؛ وجبس في أماكن"
 ],
 "colour": "#8E3B2E",
 "col": [
-"bright brick-red to purple",
-"أحمر طابوقي زاهٍ إلى بنفسجي"
+"red, brick red, reddish brown and purple",
+"أحمر وأحمر طابوقي وبني محمر وبنفسجي"
 ],
 "fos": [
-"Mostly barren (continental red beds)",
-"فقيرة غالباً (طبقات حمراء قارية)"
+"Mostly barren: radiolaria and ostracods; some foraminifera near Shaqlawa",
+"فقيرة غالباً: راديولاريا وأوستراكودا؛ وبعض الفورامنيفرا قرب شقلاوة"
 ],
 "feat": [
-"Red beds, channel sandstones, basal conglomerate, soft slopes",
-"طبقات حمراء، ورمال قنوات، ومدملكات قاعدية، ومنحدرات طرية"
+"Molasse of a broad sinking foredeep; 35–120 m from Bazian to Qara Dagh, more than 200 m near Darbandikhan",
+"مولاس حوض أمامي واسع هابط؛ سمكه 35–120 م من بازيان إلى قره داغ، وأكثر من 200 م قرب دربندخان"
 ],
 "ma": [
-52.0,
-46.0
+56.0,
+37.71
 ],
 "zones": [
 "hfz"
 ],
 "tags": {
 "c": [
-"redbrown",
 "red",
+"redbrown",
 "purple"
 ],
 "l": [
 "clay",
-"silt",
 "sst",
+"silt",
+"marl",
 "cgl"
 ],
 "f": [
-"chan"
+"chan",
+"gyp"
 ]
-}
+},
+"src": [
+"hfz",
+"dbk"
+]
 },
 {
 "k": "sin",
@@ -321,25 +339,25 @@
 "الباليوسين المتأخر–الإيوسين المبكر"
 ],
 "lith": [
-"Massive reef and lagoonal limestone",
-"حجر جيري كتلي شعابي ولاغوني"
+"Massive recrystallised reef, lagoonal and nummulitic limestone",
+"حجر جيري كتلي معاد التبلور شعابي ولاغوني ونيمولايتي"
 ],
 "colour": "#C9C3B3",
 "col": [
-"light grey to milky white, massive",
-"رمادي فاتح إلى أبيض حليبي، كتلي"
+"yellowish (type section); pale grey or milky near Qara Dagh and Darbandikhan",
+"مصفر (المقطع النموذجي)؛ ورمادي شاحب أو حليبي قرب قره داغ ودربندخان"
 ],
 "fos": [
-"Nummulites, Alveolina, Discocyclina, corals and algae",
-"نمّوليت وألفيولينا وديسكوسايكلينا ومرجان وطحالب"
+"Alveolina, Nummulites, Dictyoconus, miliolids and algae",
+"ألفيولينا ونيمولايت وديكتيوكونس وميليوليد وطحالب"
 ],
 "feat": [
-"Massive ridges, reef bodies, large benthic foraminifera visible with a hand lens",
-"حافات كتلية، وأجسام شعابية، وفورامنيفرا قاعية كبيرة تُرى بالعدسة"
+"Algal reef, lagoonal and nummulitic shoal facies of a warm, shallow, lit platform; 15–65 m from Bazian to Darbandikhan",
+"سحنات شعاب طحلبية ولاغونات وضحاضح نيمولايتية على رصيف دافئ ضحل مضاء؛ سمكه 15–65 م من بازيان إلى دربندخان"
 ],
 "ma": [
-59.0,
-50.0
+59.2,
+47.8
 ],
 "zones": [
 "hfz",
@@ -348,6 +366,7 @@
 ],
 "tags": {
 "c": [
+"buff",
 "lgrey",
 "white"
 ],
@@ -355,12 +374,14 @@
 "lst"
 ],
 "f": [
-"cliff",
 "numm",
-"coral",
 "alg"
 ]
-}
+},
+"src": [
+"hfz",
+"dbk"
+]
 },
 {
 "k": "kol",
@@ -368,36 +389,37 @@
 "en": "Kolosh",
 "ar": "كولوش",
 "age": [
-"Paleocene",
-"الباليوسين"
+"Paleocene–Early Eocene",
+"الباليوسين–الإيوسين المبكر"
 ],
 "lith": [
-"Black to grey shale, claystone, sandstone and marl",
-"طفل وطين أسود إلى رمادي ورمل ومارل"
+"Shale and fine sandstone made of green-rock, chert and radiolarite grains; marl; thin silicified marly limestone",
+"طفل وحجر رملي ناعم من حبيبات صخور خضراء وصوان وراديولاريت؛ ومارل؛ وحجر جيري مارلي مسلكن رقيق"
 ],
 "colour": "#4E5254",
 "col": [
-"dark grey to black",
-"رمادي داكن إلى أسود"
+"black or very dark green shale; greenish grey thin clastics; yellowish white silicified beds",
+"طفل أسود أو أخضر داكن جداً؛ وفتاتيات رقيقة رمادية مخضرة؛ وطبقات مسلكنة بيضاء مصفرة"
 ],
 "fos": [
-"Planktonic foraminifera and nannofossils",
-"فورامنيفرا طافية ومتحجرات نانوية"
+"Miscellanea, Lockhartia and other benthic foraminifera; planktonic Globorotalia",
+"ميسيلانيا ولوكهارتيا وفورامنيفرا قاعية أخرى؛ وغلوبوروتاليا الطافية"
 ],
 "feat": [
-"Flysch with graded sandstone beds and sole marks; soft valleys",
-"فليش مع طبقات رمل متدرجة وآثار قواعد؛ وديان طرية"
+"Rhythmic graded sandstone and shale (turbidites) of a foreland trough; about 400 m near Darbandikhan",
+"تعاقب إيقاعي متدرج من الحجر الرملي والطفل (تيارات عكرة) في حوض أمامي؛ سمكه نحو 400 م قرب دربندخان"
 ],
 "ma": [
-61.0,
-56.0
+66.0,
+47.8
 ],
 "zones": [
 "hfz"
 ],
 "tags": {
 "c": [
-"dgrey"
+"dgrey",
+"green"
 ],
 "l": [
 "clay",
@@ -405,10 +427,14 @@
 "marl"
 ],
 "f": [
-"plank",
+"cyc",
 "thin"
 ]
-}
+},
+"src": [
+"hfz",
+"dbk"
+]
 },
 {
 "k": "tan",
@@ -416,28 +442,28 @@
 "en": "Tanjero",
 "ar": "تانجيرو",
 "age": [
-"Middle–Late Maastrichtian",
-"الماسترختي الأوسط–المتأخر"
+"Late Campanian–Maastrichtian",
+"الكامباني المتأخر–الماستريختي"
 ],
 "lith": [
-"Flysch: alternating sandstone, claystone, shale and conglomerate",
-"فليش: تعاقب رمل وطين وطفل ومدملكات"
+"Lower globigerinal marl; upper silty marl, siltstone, sandstone, conglomerate and organic detrital limestone",
+"مارل غلوبيجيريني في الأسفل؛ ومارل غريني وحجر غريني ورملي ومدملكات وحجر جيري فتاتي عضوي في الأعلى"
 ],
 "colour": "#6E7556",
 "col": [
-"olive green to dark yellowish green",
-"أخضر زيتوني إلى أخضر مصفر داكن"
+"olive green, dark olive green or greenish black",
+"أخضر زيتوني أو زيتوني داكن أو أسود مخضر"
 ],
 "fos": [
-"Fossiliferous limestone beds in the upper part",
-"طبقات حجر جيري غنية بالمتحجرات في الجزء الأعلى"
+"Loftusia, Omphalocyclus and Siderolites; rudists (Hippurites) and oysters (Gryphaea) in the upper part",
+"لوفتوسيا وأومفالوسيكلس وسيديروليتس؛ وروديست (هيپوريتس) ومحار (گريفيا) في الأعلى"
 ],
 "feat": [
-"Turbidite beds, graded bedding, flute and groove casts, conglomerate channels",
-"طبقات تيارات عكرة، وتطبق متدرج، وقوالب أخاديد وحزوز، وقنوات مدملكة"
+"Turbidites fed from the rising mountains to the north-east; concretions up to 1 m; up to 2000 m thick",
+"تيارات عكرة تغذّت من الجبال الصاعدة في الشمال الشرقي؛ عقيدات حتى 1 م؛ سمكه حتى 2000 م"
 ],
 "ma": [
-70.0,
+83.6,
 66.0
 ],
 "zones": [
@@ -445,18 +471,25 @@
 ],
 "tags": {
 "c": [
-"green"
+"green",
+"dgrey"
 ],
 "l": [
+"marl",
+"silt",
 "sst",
-"clay",
-"cgl"
+"cgl",
+"lst"
 ],
 "f": [
 "cyc",
-"thin"
+"rud",
+"shells"
 ]
-}
+},
+"src": [
+"hfz"
+]
 },
 {
 "k": "shi",
@@ -464,29 +497,29 @@
 "en": "Shiranish",
 "ar": "شيرانش",
 "age": [
-"Campanian–Early Maastrichtian",
-"الكامباني–الماسترختي المبكر"
+"Late Campanian–Maastrichtian",
+"الكامباني المتأخر–الماستريختي"
 ],
 "lith": [
-"Soft grey-green marlstone and marly limestone",
-"مارل وحجر جيري مارلي طري رمادي مخضر"
+"Blue marl above thin-bedded marly limestone",
+"مارل أزرق فوق حجر جيري مارلي رقيق التطبق"
 ],
 "colour": "#A3A890",
 "col": [
-"blue-grey to grey-green, weathers pale",
-"رمادي مزرق إلى رمادي مخضر، يتجوى فاتحاً"
+"dark blue fresh (black where bituminous), weathering pale blue; white and grey limestone low down near Zakho",
+"أزرق داكن على السطح الطازج (أسود حيث يكون قيرياً)، ويتجوّى أزرق شاحباً؛ وحجر جيري أبيض ورمادي في أسفله قرب زاخو"
 ],
 "fos": [
-"Planktonic foraminifera",
-"فورامنيفرا طافية"
+"Globotruncana, Rugoglobigerina and other planktonic foraminifera; Inoceramus",
+"گلوبوترنكانا ورگوگلوبيجيرينا وفورامنيفرا طافية أخرى؛ وإينوسيراموس"
 ],
 "feat": [
-"Thin regular bedding, soft slopes, slumps",
-"تطبق رقيق منتظم، ومنحدرات طرية، وانزلاقات"
+"Deep quiet sea, deeper than 150 m; about 230–300 m thick",
+"بحر عميق هادئ أعمق من 150 م؛ سمكه نحو 230–300 م"
 ],
 "ma": [
 83.6,
-68.0
+66.0
 ],
 "zones": [
 "hfz",
@@ -496,18 +529,22 @@
 "tags": {
 "c": [
 "bluegrey",
-"green",
-"lgrey"
+"dgrey",
+"lgrey",
+"white"
 ],
 "l": [
 "marl",
 "lst"
 ],
 "f": [
-"plank",
-"thin"
+"thin",
+"bitum"
 ]
-}
+},
+"src": [
+"hfz"
+]
 },
 {
 "k": "kom",
@@ -515,29 +552,29 @@
 "en": "Kometan",
 "ar": "كوميتان",
 "age": [
-"Late Turonian–Early Campanian",
-"التوروني المتأخر–الكامباني المبكر"
+"Turonian–Early Campanian",
+"التوروني–الكامباني المبكر"
 ],
 "lith": [
-"Well-bedded grey fine-grained limestone",
-"حجر جيري رمادي دقيق الحبيبات جيد التطبق"
+"Thin-bedded fine pelagic (globigerinal–oligosteginal) limestone, silicified with chert in places",
+"حجر جيري بحري عميق ناعم رقيق التطبق (غلوبيجيريني–أوليگوستيجيني)، مسلكن مع صوان في أماكن"
 ],
 "colour": "#BFC1BE",
 "col": [
-"light grey to white, chalky",
-"رمادي فاتح إلى أبيض، طباشيري"
+"light grey, weathering white; white and hard near Surdash",
+"رمادي فاتح يتجوّى أبيض؛ وأبيض صلب قرب سورداش"
 ],
 "fos": [
-"Planktonic foraminifera and calcispheres (oligosteginids)",
-"فورامنيفرا طافية وكرات كلسية (أوليغوستيجينا)"
+"Oligostegina, Globigerina and other planktonic foraminifera; radiolaria, sponge spicules, Inoceramus",
+"أوليگوستيجينا وغلوبيجيرينا وفورامنيفرا طافية أخرى؛ وراديولاريا وأشواك إسفنج وإينوسيراموس"
 ],
 "feat": [
-"Thin regular beds, chert nodules, stylolites, folds and boudinage",
-"طبقات رقيقة منتظمة، وعقد صوان، وستايلولايت، وطيات وتبودن"
+"Well-bedded white limestone with chert nodules in the upper part; 36–500 m",
+"حجر جيري أبيض جيد التطبق مع عقد صوان في أعلاه؛ سمكه 36–500 م"
 ],
 "ma": [
-92.0,
-80.0
+93.9,
+72.1
 ],
 "zones": [
 "hfz"
@@ -548,14 +585,18 @@
 "lgrey"
 ],
 "l": [
-"lst"
+"lst",
+"chert"
 ],
 "f": [
 "thin",
-"plank",
 "nod"
 ]
-}
+},
+"src": [
+"hfz",
+"kom"
+]
 },
 {
 "k": "bal",
@@ -567,25 +608,25 @@
 "الفالانجيني–التوروني"
 ],
 "lith": [
-"Light grey well-bedded limestone and marly limestone",
-"حجر جيري ومارلي رمادي فاتح جيد التطبق"
+"Thin-bedded globigerinal and radiolarian limestone above blue ammonite limestone, olive green marl and dark blue shale",
+"حجر جيري غلوبيجيريني وراديولاري رقيق التطبق فوق حجر جيري أزرق بالأمونايت ومارل أخضر زيتوني وطفل أزرق داكن"
 ],
 "colour": "#B7BAB9",
 "col": [
-"light grey, thin to medium beds",
-"رمادي فاتح، طبقات رقيقة إلى متوسطة"
+"grey weathering white; blue limestone, olive green marl and dark blue shale in the lower part",
+"رمادي يتجوّى أبيض؛ وحجر جيري أزرق ومارل أخضر زيتوني وطفل أزرق داكن في الأسفل"
 ],
 "fos": [
-"Calcareous nannofossils, radiolaria",
-"متحجرات نانوية كلسية وراديولاريا"
+"Globotruncana, Rotalipora and Ticinella; ammonites (Crioceras, Neocomites); Inoceramus",
+"گلوبوترنكانا وروتاليپورا وتيسينيلا؛ وأمونايت (كريوسيراس ونيوكومايتس)؛ وإينوسيراموس"
 ],
 "feat": [
-"Rhythmic bedding, chert bands, tight folds",
-"تطبق إيقاعي، وأشرطة صوان، وطيات مشدودة"
+"Deep-sea thin limestone; 320–760 m thick",
+"حجر جيري رقيق من بحر عميق؛ سمكه 320–760 م"
 ],
 "ma": [
-140.0,
-92.0
+139.8,
+89.8
 ],
 "zones": [
 "hfz",
@@ -593,17 +634,23 @@
 ],
 "tags": {
 "c": [
-"lgrey"
+"lgrey",
+"white",
+"bluegrey",
+"green"
 ],
 "l": [
 "lst",
-"marl"
+"marl",
+"clay"
 ],
 "f": [
-"thin",
-"plank"
+"thin"
 ]
-}
+},
+"src": [
+"hfz"
+]
 },
 {
 "k": "sar",
@@ -611,29 +658,29 @@
 "en": "Sarmord",
 "ar": "سارمورد",
 "age": [
-"Berriasian–Barremian",
-"البرياسي–الباريمي"
+"Hauterivian–Barremian",
+"الهوتريفي–الباريمي"
 ],
 "lith": [
-"Brownish marly limestone and grey to bluish marl",
-"حجر جيري مارلي بني ومارل رمادي إلى مزرق"
+"Marl alternating with marly limestone",
+"مارل يتعاقب مع حجر جيري مارلي"
 ],
 "colour": "#8F8A7A",
 "col": [
-"brownish grey to bluish grey",
-"رمادي بني إلى رمادي مزرق"
+"brown and bluish marl weathering buff; light grey marly limestone and bluish grey marl near Surdash",
+"مارل بني ومزرق يتجوّى أصفر شاحباً؛ وجيري مارلي رمادي فاتح ومارل رمادي مزرق قرب سورداش"
 ],
 "fos": [
-"Calcareous nannofossils",
-"متحجرات نانوية كلسية"
+"Echinoids (Heteraster) and bivalves in the upper 80 m; algae",
+"قنافذ بحر (هيتيراستر) وذوات مصراعين في الـ80 م العليا؛ وطحالب"
 ],
 "feat": [
-"Soft marl in fold cores, alternating with marly limestone",
-"مارل طري في ألباب الطيات يتعاقب مع حجر جيري مارلي"
+"About 400–455 m thick",
+"سمكه نحو 400–455 م"
 ],
 "ma": [
-145.0,
-125.0
+132.6,
+121.4
 ],
 "zones": [
 "hfz"
@@ -641,16 +688,22 @@
 "tags": {
 "c": [
 "brown",
-"bluegrey"
+"bluegrey",
+"lgrey",
+"buff"
 ],
 "l": [
 "marl",
 "lst"
 ],
 "f": [
-"thin"
+"cyc",
+"shells"
 ]
-}
+},
+"src": [
+"hfz"
+]
 },
 {
 "k": "qam",
@@ -658,47 +711,50 @@
 "en": "Qamchuqa",
 "ar": "قمجوقة",
 "age": [
-"Early Cretaceous",
-"الطباشيري المبكر"
+"Early Aptian–Early Cenomanian",
+"الأپتي المبكر–السينوماني المبكر"
 ],
 "lith": [
-"Massive dolomitised limestone",
-"حجر جيري كتلي متدلمت"
+"Limestone and dolostone, saccharoidal dolomite in the middle; marl in places",
+"حجر جيري ودولوستون، ودولومايت سكري في الوسط؛ ومارل في أماكن"
 ],
 "colour": "#C2B9A3",
 "col": [
-"buff to grey, massive",
-"أصفر شاحب إلى رمادي، كتلي"
+"grey and brown limestone, brown to greyish brown dolostone; dark grey massive limestone and yellowish green marl near Surdash",
+"حجر جيري رمادي وبني، ودولوستون بني إلى بني رمادي؛ وحجر جيري كتلي رمادي داكن ومارل أخضر مصفر قرب سورداش"
 ],
 "fos": [
-"Orbitolina and rudist fragments",
-"أوربيتولينا وشظايا روديست"
+"Orbitolina, Choffatella, Pseudochrysalidina and algae",
+"أوربيتولينا وشوفاتيلا وبسودوكريساليدينا وطحالب"
 ],
 "feat": [
-"Gorges and cliffs, karst, dolomitisation",
-"مضائق وجروف، وكارست، وتدلمت"
+"Thick carbonate: up to about 1000 m near Rawanduz",
+"كاربونات سميكة: حتى نحو 1000 م قرب راوندوز"
 ],
 "ma": [
-135.0,
-100.0
+121.4,
+93.9
 ],
 "zones": [
 "hfz"
 ],
 "tags": {
 "c": [
-"buff",
-"lgrey"
+"lgrey",
+"dgrey",
+"brown",
+"green"
 ],
 "l": [
 "lst",
-"dol"
+"dol",
+"marl"
 ],
-"f": [
-"cliff",
-"rud"
+"f": []
+},
+"src": [
+"hfz"
 ]
-}
 },
 {
 "k": "qua",
@@ -706,28 +762,28 @@
 "en": "Quaternary deposits",
 "ar": "رسوبيات العصر الرباعي",
 "age": [
-"Pleistocene–Holocene (river terraces, fans, flood plains)",
-"البلايستوسين–الهولوسين (مصاطب نهرية ومراوح وسهول فيضية)"
+"Pleistocene–Holocene",
+"البلايستوسين–الهولوسين"
 ],
 "lith": [
-"Loose gravel, sand, silt and clay; gypcrete and calcrete crusts",
-"حصى ورمل وغرين وطين غير ملتحمة؛ وقشور جبسية وكلسية"
+"River terraces (2–4 levels) of pebbles 1–25 cm; alluvial fans; calcrete; flood-plain sand and clay; valley fill; residual soil",
+"مصاطب نهرية (2–4 مستويات) من حصى 1–25 سم؛ ومراوح غرينية؛ وكالكريت؛ ورمل وطين سهول فيضية؛ ومالئات أودية؛ وتربة متبقية"
 ],
 "colour": "#D8C9A3",
 "col": [
-"brown, buff or grey; pebbles of every colour of the rocks upstream",
-"بني أو أصفر شاحب أو رمادي؛ وحصى بكل ألوان صخور أعلى المجرى"
+"residual soil brown to reddish brown, locally black",
+"التربة المتبقية بنية إلى بنية محمرة، وسوداء في أماكن"
 ],
 "fos": [
-"Land snails, plant remains, rare bones; archaeological material",
-"قواقع برية وبقايا نباتية وعظام نادرة؛ ومواد أثرية"
+"Cave deposits with Neanderthal skeletons (Shanidar)",
+"رواسب كهفية فيها هياكل إنسان النياندرتال (شانيدر)"
 ],
 "feat": [
-"Terrace steps along rivers, alluvial fans at mountain fronts, pebbles that reveal the source rocks (green serpentinite and red radiolarite from the Zagros)",
-"مصاطب متدرجة على الأنهار، ومراوح غرينية عند الجبهات الجبلية، وحصى يكشف صخور المصدر (سربنتينايت أخضر وراديولاريت أحمر من زاكروس)"
+"Terraces along the Greater and Lesser Zab and the Diyala (Sirwan); clayey fans around Dokan and Darbandikhan lakes",
+"مصاطب على الزابين الكبير والصغير وديالى (سيروان)؛ ومراوح طينية حول بحيرتي دوكان ودربندخان"
 ],
 "ma": [
-2.6,
+2.58,
 0.0
 ],
 "zones": [
@@ -740,8 +796,7 @@
 "tags": {
 "c": [
 "brown",
-"buff",
-"lgrey",
+"redbrown",
 "mixed"
 ],
 "l": [
@@ -750,10 +805,11 @@
 "silt",
 "clay"
 ],
-"f": [
-"chan"
+"f": []
+},
+"src": [
+"hfz"
 ]
-}
 },
 {
 "k": "dib",
@@ -765,25 +821,25 @@
 "البلايوسين–البلايستوسين"
 ],
 "lith": [
-"Sand and gravel with pebbles of igneous rocks",
-"رمل وحصى مع حصى من صخور نارية"
+"Poorly sorted sand, sandstone and gravel with pebbles of granite, rhyolite, andesite and quartz",
+"رمل وحجر رملي وحصى رديء الفرز مع حصى من الگرانيت والرايولايت والأنديزايت والكوارتز"
 ],
 "colour": "#D9C28E",
 "col": [
-"buff to light grey",
-"أصفر شاحب إلى رمادي فاتح"
+"yellowish grey, whitish grey, grey to brownish grey",
+"رمادي مصفر أو رمادي مبيض أو رمادي إلى رمادي بني"
 ],
 "fos": [
-"Barren",
-"خالية"
+"Mostly barren; vertebrate remains, charophytes, ostracods and Planorbis snails north of Busaiya",
+"خالية غالباً؛ وبقايا فقريات وكارافايت وأوستراكودا وقواقع پلانوربيس شمال البصية"
 ],
 "feat": [
-"Wide gravel plains in the south-west, cross-bedding",
-"سهول حصوية واسعة في الجنوب الغربي، وتطبق متقاطع"
+"River sheets and old alluvial fans in the south",
+"رواسب نهرية صفائحية ومراوح غرينية قديمة في الجنوب"
 ],
 "ma": [
-5.0,
-1.0
+5.33,
+0.0117
 ],
 "zones": [
 "mesop",
@@ -792,16 +848,19 @@
 "tags": {
 "c": [
 "buff",
-"lgrey"
+"lgrey",
+"white",
+"brown"
 ],
 "l": [
 "sst",
 "cgl"
 ],
-"f": [
-"xbed"
+"f": []
+},
+"src": [
+"sd"
 ]
-}
 },
 {
 "k": "eup",
@@ -809,29 +868,29 @@
 "en": "Euphrates",
 "ar": "الفرات",
 "age": [
-"Early Miocene",
-"المايوسين المبكر"
+"Early Miocene (Burdigalian)",
+"المايوسين المبكر (البورديگالي)"
 ],
 "lith": [
-"Shelly, chalky and recrystallised limestone, dolomite and marl",
-"حجر جيري صدفي وطباشيري ومعاد التبلور ودولومايت ومارل"
+"Shelly, chalky, recrystallised limestone and dolostone with green marl; basal conglomerate",
+"حجر جيري صدفي طباشيري معاد التبلور ودولوستون مع مارل أخضر؛ ومدملك قاعدي"
 ],
 "colour": "#E6DDC4",
 "col": [
-"white, cream and light grey",
-"أبيض وكريمي ورمادي فاتح"
+"white, pale grey, yellowish grey or pink; green marl beds",
+"أبيض أو رمادي شاحب أو رمادي مصفر أو وردي؛ مع طبقات مارل أخضر"
 ],
 "fos": [
-"Abundant shells, corals, algae and miliolid foraminifera",
-"أصداف ومرجان وطحالب وفورامنيفرا ميليولية بكثرة"
+"Miogypsina, Peneroplis, Borelis and miliolid foraminifera; many bivalves and gastropods",
+"ميوجيبسينا وبينيروبليس وبوريليس وميليوليد؛ وذوات مصراعين وبطنيات كثيرة"
 ],
 "feat": [
-"Low plateaus and scarps along the Euphrates; shell beds and coral heads",
-"هضاب وحافات واطئة على الفرات؛ طبقات أصداف ورؤوس مرجانية"
+"Reef and back-reef sea 10–50 m deep; shelly cross-bedded beds",
+"بحر شعابي وخلف شعابي بعمق 10–50 م؛ طبقات صدفية متقاطعة التطبق"
 ],
 "ma": [
-23.0,
-17.0
+20.44,
+15.98
 ],
 "zones": [
 "west"
@@ -839,8 +898,9 @@
 "tags": {
 "c": [
 "white",
+"lgrey",
 "buff",
-"lgrey"
+"green"
 ],
 "l": [
 "lst",
@@ -849,10 +909,14 @@
 ],
 "f": [
 "shells",
-"coral",
-"alg"
+"xbed"
 ]
-}
+},
+"src": [
+"jaz",
+"lfz",
+"sd"
+]
 },
 {
 "k": "jer",
@@ -860,48 +924,48 @@
 "en": "Jeribe",
 "ar": "الجريبي",
 "age": [
-"Early–Middle Miocene",
-"المايوسين المبكر–الأوسط"
+"Early or Middle Miocene (authors differ)",
+"المايوسين المبكر أو الأوسط (يختلف الباحثون)"
 ],
 "lith": [
-"Recrystallised, dolomitised and chalky limestone",
-"حجر جيري معاد التبلور ومتدلمت وطباشيري"
+"Recrystallised and dolomitised limestone, generally massive",
+"حجر جيري معاد التبلور ومُدلمت، كتلي غالباً"
 ],
 "colour": "#E3D7B8",
 "col": [
-"white to buff, massive",
-"أبيض إلى أصفر شاحب، كتلي"
+"Colour not stated in the published descriptions",
+"لم يُذكر اللون في الأوصاف المنشورة"
 ],
 "fos": [
-"Algae, miliolids and shell fragments",
-"طحالب وميليولايد وشظايا أصداف"
+"Borelis melo, Peneroplis, Meandropsina, miliolids and algae",
+"بوريليس ميلو وبينيروبليس وميندروبسينا وميليوليد وطحالب"
 ],
 "feat": [
-"Forms the hard crest of foothill anticlines below the Fatha gypsum",
-"يكوّن القمة الصلبة لطيات التلال تحت جبس الفتحة"
+"Lagoonal limestone of warm salty water; about 70 m thick",
+"حجر جيري لاغوني من ماء دافئ مالح؛ سمكه نحو 70 م"
 ],
 "ma": [
-19.0,
-16.0
+23.03,
+11.63
 ],
 "zones": [
 "foothill",
 "west"
 ],
 "tags": {
-"c": [
-"white",
-"buff"
-],
+"c": [],
 "l": [
 "lst",
 "dol"
 ],
 "f": [
-"cliff",
 "alg"
 ]
-}
+},
+"src": [
+"hfz",
+"jaz"
+]
 },
 {
 "k": "aqr",
@@ -909,28 +973,28 @@
 "en": "Aqra and Bekhme",
 "ar": "عقرة وبخمة",
 "age": [
-"Late Cretaceous (Campanian–Maastrichtian)",
-"الطباشيري المتأخر (الكامباني–الماستريختي)"
+"Late Campanian–Maastrichtian",
+"الكامباني المتأخر–الماستريختي"
 ],
 "lith": [
-"Reef and fore-reef limestone and dolomite",
-"حجر جيري ودولومايت شعابي وأمام شعابي"
+"Reef limestone complex with rudist shoals and fore-reef detrital limestone; bituminous dolomite at Bekhme",
+"معقد حجر جيري شعابي مع ضحاضح روديست وحجر جيري فتاتي أمام الشعاب؛ ودولومايت قيري في بخمة"
 ],
 "colour": "#DCD3BE",
 "col": [
-"white to light grey, massive cliffs",
-"أبيض إلى رمادي فاتح، جروف كتلية"
+"light grey and brown limestone and dolostone",
+"حجر جيري ودولوستون رمادي فاتح وبني"
 ],
 "fos": [
-"Rudist bivalves, corals, large foraminifera (Loftusia, Omphalocyclus)",
-"محاريات رودية ومرجان وفورامنيفرا كبيرة (لوفتوسيا وأومفالوسايكلس)"
+"Rudists, Loftusia, Omphalocyclus, Orbitoides, Siderolites; algae, corals and miliolids",
+"روديست ولوفتوسيا وأومفالوسيكلس وأوربيتويدس وسيديروليتس؛ وطحالب ومرجان وميليوليد"
 ],
 "feat": [
-"Great white cliffs of Akre, Bekhme and Rawanduz gorges; karst caves and springs",
-"الجروف البيض العظيمة في عقرة وبخمة ومضيق راوندوز؛ كهوف وعيون كارستية"
+"Isolated reef build-up on a tectonic high; 740 m at Aqra, 315 m at Bekhme",
+"بناء شعابي منعزل على مرتفع تكتوني؛ سمكه 740 م في عقرة و315 م في بخمة"
 ],
 "ma": [
-80.0,
+83.6,
 66.0
 ],
 "zones": [
@@ -938,20 +1002,23 @@
 ],
 "tags": {
 "c": [
-"white",
 "lgrey",
-"buff"
+"brown"
 ],
 "l": [
 "lst",
 "dol"
 ],
 "f": [
-"cliff",
 "rud",
-"coral"
+"coral",
+"alg",
+"bitum"
 ]
-}
+},
+"src": [
+"hfz"
+]
 },
 {
 "k": "sgl",
@@ -959,29 +1026,29 @@
 "en": "Sargelu",
 "ar": "سارگلو",
 "age": [
-"Middle Jurassic",
-"الجوراسي الأوسط"
+"Middle Jurassic (Bajocian–Bathonian)",
+"الجوراسي الأوسط (الباجوسي–الباثوني)"
 ],
 "lith": [
-"Black bituminous limestone and papery shale with chert",
-"حجر جيري أسود قيري وطفل ورقي مع صوان"
+"Thin-bedded bituminous limestone, dolomitic limestone and papery shale with thin chert streaks",
+"حجر جيري قيري رقيق التطبق وحجر جيري دولوميتي وطفل ورقي مع خيوط صوان رقيقة"
 ],
 "colour": "#4A4A48",
 "col": [
-"black to dark grey, thin-bedded",
-"أسود إلى رمادي داكن، رقيق التطبق"
+"black",
+"أسود"
 ],
 "fos": [
-"Thin-shelled bivalves (Bositra), ammonites",
-"محار رقيق الصدفة (بوسيترا) وأمونايت"
+"Thin-shelled bivalves (Posidonia), ammonites (Parkinsonia, Stephanoceras), brachiopods",
+"ذوات مصراعين رقيقة الصدفة (بوسيدونيا)، وأمونايت (باركنسونيا وستيفانوسيراس)، وعضديات الأرجل"
 ],
 "feat": [
-"Smells of oil when broken; source rock of northern Iraq oil",
-"تفوح منه رائحة النفط عند كسره؛ الصخر المصدري لنفط شمال العراق"
+"Black bituminous beds 65–300 m thick",
+"طبقات سوداء قيرية سمكها 65–300 م"
 ],
 "ma": [
-174.0,
-163.0
+170.9,
+165.3
 ],
 "zones": [
 "hfz"
@@ -992,15 +1059,18 @@
 ],
 "l": [
 "lst",
+"dol",
 "clay",
 "chert"
 ],
 "f": [
 "bitum",
-"thin",
-"shells"
+"thin"
 ]
-}
+},
+"src": [
+"hfz"
+]
 },
 {
 "k": "krc",
@@ -1008,29 +1078,29 @@
 "en": "Kurra Chine and Geli Khana",
 "ar": "كورا جيني وگلي خانة",
 "age": [
-"Triassic",
-"الترياسي"
+"Middle–Late Triassic",
+"الترياسي الأوسط–المتأخر"
 ],
 "lith": [
-"Dolomite, limestone and dark shale",
-"دولومايت وحجر جيري وطفل داكن"
+"Geli Khana: dolomites, dark grey limestone, olive green shale and yellow-brown marl. Kurra Chine: dark limestone with dolostone and papery shale",
+"گلي خانة: دولومايت وحجر جيري رمادي داكن وطفل أخضر زيتوني ومارل بني مصفر. كورا جيني: حجر جيري داكن مع دولوستون وطفل ورقي"
 ],
 "colour": "#7C7A72",
 "col": [
-"dark grey to grey, well bedded",
-"رمادي داكن إلى رمادي، جيد التطبق"
+"dark brown, black and dark grey; blue limestone and black dolostone near Halabja",
+"بني داكن وأسود ورمادي داكن؛ وحجر جيري أزرق ودولوستون أسود قرب حلبجة"
 ],
 "fos": [
-"Bivalves and ammonoids in places",
-"محاريات وأمونويدات في بعض الأماكن"
+"Bivalves (Myophoria, Posidonia), Estheria, Lingula, small foraminifera and ostracods",
+"ذوات مصراعين (ميوفوريا وبوسيدونيا) وإستيريا ولينگولا وفورامنيفرا صغيرة وأوستراكودا"
 ],
 "feat": [
-"Core of the high anticlines near Amadiya",
-"لب الطيات العالية قرب العمادية"
+"Foetid (smelly) dolomites; about 400–830 m near Halabja and Amadiya",
+"دولومايت ذو رائحة كريهة؛ سمكه نحو 400–830 م قرب حلبجة والعمادية"
 ],
 "ma": [
-242.0,
-201.0
+247.2,
+201.4
 ],
 "zones": [
 "hfz"
@@ -1038,17 +1108,23 @@
 "tags": {
 "c": [
 "dgrey",
-"lgrey"
+"brown",
+"bluegrey",
+"green"
 ],
 "l": [
-"dol",
 "lst",
-"clay"
+"dol",
+"clay",
+"marl"
 ],
 "f": [
-"thin"
+"bitum"
 ]
-}
+},
+"src": [
+"hfz"
+]
 },
 {
 "k": "qul",
@@ -1056,29 +1132,29 @@
 "en": "Qulqula (radiolarites)",
 "ar": "قلقلة (راديولاريت)",
 "age": [
-"Early Cretaceous",
-"الطباشيري المبكر"
+"Middle Jurassic–Cenomanian (radiolarian dating)",
+"الجوراسي الأوسط–السينوماني (بتأريخ الراديولاريا)"
 ],
 "lith": [
-"Thin beds of radiolarian chert, siliceous shale and limestone",
-"طبقات رقيقة من صوان راديولاري وطفل سيليسي وحجر جيري"
+"Deformed thick slices of radiolarian chert and siliceous limestone with red radiolarian claystone and siliceous mudstone",
+"شرائح سميكة مشوّهة من صوان راديولاري وحجر جيري سيليسي مع طين راديولاري أحمر وطين سيليسي"
 ],
 "colour": "#A2554A",
 "col": [
-"brick red, green and grey, finely banded",
-"أحمر طابوقي وأخضر ورمادي، بأشرطة رقيقة"
+"mainly red and reddish green",
+"أحمر وأحمر مخضر غالباً"
 ],
 "fos": [
 "Radiolaria (microscopic)",
 "راديولاريا (مجهرية)"
 ],
 "feat": [
-"Very hard, splintery chert ribbons folded tightly",
-"أشرطة صوانية صلدة جداً تتشظى، مطوية بشدة"
+"In the suture zone south and east of Sulaimani: Naurabab, Penjween and Hawraman",
+"في نطاق الدرز جنوب السليمانية وشرقها: نوره باب وبنجوين وهورامان"
 ],
 "ma": [
-145.0,
-95.0
+170.9,
+93.9
 ],
 "zones": [
 "thrust"
@@ -1086,8 +1162,7 @@
 "tags": {
 "c": [
 "red",
-"green",
-"lgrey"
+"green"
 ],
 "l": [
 "chert",
@@ -1098,7 +1173,10 @@
 "rad",
 "thin"
 ]
-}
+},
+"src": [
+"qul"
+]
 },
 {
 "k": "wal",
@@ -1106,51 +1184,45 @@
 "en": "Walash and Naopurdan",
 "ar": "ولاش وناوپردان",
 "age": [
-"Paleocene–Oligocene",
-"الباليوسين–الأوليگوسين"
+"Eocene (Walash) – Oligocene (Naopurdan)",
+"الإيوسين (ولاش) – الأوليگوسين (ناوپردان)"
 ],
 "lith": [
-"Basaltic and andesitic lavas, pillow lavas, tuffs, red beds and limestone lenses",
-"لابات بازلتية وأنديسايتية، ولابات وسائدية، وطفوف، وطبقات حمراء، وعدسات جيرية"
+"Basalt and andesitic basalt with marine sandstones rich in volcanic fragments",
+"بازلت وبازلت أنديزيتي مع أحجار رملية بحرية غنية بفتات بركاني"
 ],
 "colour": "#5E6B4E",
 "col": [
-"dark green, purple and red",
-"أخضر داكن وبنفسجي وأحمر"
+"Colour not stated in the published descriptions",
+"لم يُذكر اللون في الأوصاف المنشورة"
 ],
 "fos": [
-"Nummulites in the limestone lenses",
-"نمّوليت في العدسات الجيرية"
+"Not described in the sources used",
+"لم توصف في المصادر المعتمدة"
 ],
 "feat": [
-"Pillow shapes, vesicles, no reaction with acid except the limestone",
-"أشكال وسائدية وفجوات غازية، ولا تفاعل مع الحامض عدا الحجر الجيري"
+"Back-arc and island-arc volcanic–sedimentary sequences of the suture zone",
+"تتابعات بركانية رسوبية من حوض خلف القوس والقوس الجزري في نطاق الدرز"
 ],
 "ma": [
-65.0,
-30.0
+56.0,
+23.03
 ],
 "zones": [
 "thrust"
 ],
 "tags": {
-"c": [
-"green",
-"purple",
-"redbrown",
-"dgrey"
-],
+"c": [],
 "l": [
 "volc",
-"clay",
-"sst",
-"lst"
+"sst"
 ],
-"f": [
-"pillow",
-"numm"
+"f": []
+},
+"src": [
+"wal",
+"maw"
 ]
-}
 },
 {
 "k": "oph",
@@ -1158,44 +1230,46 @@
 "en": "Ophiolite and igneous complexes (Mawat, Penjween, Bulfat)",
 "ar": "الأوفيولايت والمعقدات النارية (ماوت وبنجوين وبولفات)",
 "age": [
-"Late Cretaceous",
-"الطباشيري المتأخر"
+"Cretaceous (Mawat metamorphism dated 107–95 million years)",
+"الطباشيري (أُرِّخ تحوّل ماوات بـ107–95 مليون سنة)"
 ],
 "lith": [
-"Serpentinite, peridotite, gabbro, basalt and diorite",
-"سربنتينايت وبيريدوتايت وگابرو وبازلت ودايورايت"
+"Gabbro and basalt with minor dunite, harzburgite and pyroxenite; mafic tuff and lava with marble; pillow lava, sheeted dykes and layered gabbro at Penjween and Bulfat",
+"گابرو وبازلت مع قليل من الدونايت والهارزبيرگايت والبيروكسينايت؛ وتوف وحمم مافية مع رخام؛ وحمم وسائدية وقواطع متراصة وگابرو طبقي في بنجوين وبلفات"
 ],
 "colour": "#3F5A44",
 "col": [
-"dark green to black, shiny green surfaces",
-"أخضر داكن إلى أسود، بسطوح خضراء لامعة"
+"Colour not stated in the published descriptions",
+"لم يُذكر اللون في الأوصاف المنشورة"
 ],
 "fos": [
-"None",
-"لا يوجد"
+"Igneous rocks: no fossils",
+"صخور نارية: لا أحافير"
 ],
 "feat": [
-"Heavy, magnetic in places (magnetite, chromite), slippery polished serpentine surfaces",
-"ثقيلة، ومغناطيسية في بعض الأماكن (مگنتايت وكرومايت)، وسطوح سربنتين مصقولة زلقة"
+"Mawat is mainly mafic and lacks a typical ophiolite sequence; Penjween and Bulfat show a complete one",
+"ماوات مافي غالباً ولا يُظهر تتابعاً أوفيولايتياً نموذجياً؛ أما بنجوين وبلفات فيُظهران تتابعاً كاملاً"
 ],
 "ma": [
-100.0,
-80.0
+107.0,
+92.0
 ],
 "zones": [
 "thrust"
 ],
 "tags": {
-"c": [
-"green",
-"dgrey"
-],
+"c": [],
 "l": [
 "ultra",
 "volc"
 ],
-"f": []
-}
+"f": [
+"pillow"
+]
+},
+"src": [
+"maw"
+]
 },
 {
 "k": "dhi",
@@ -1207,42 +1281,42 @@
 "المايوسين المبكر"
 ],
 "lith": [
-"Anhydrite and gypsum with thin limestone",
-"أنهيدرايت وجبس مع حجر جيري رقيق"
+"Anhydrite and gypsum; halite reported in wells",
+"أنهيدرايت وجبس؛ وسُجّل الهاليت في الآبار"
 ],
 "colour": "#EFEDE6",
 "col": [
-"white to light grey",
-"أبيض إلى رمادي فاتح"
+"Colour not stated in the published descriptions",
+"لم يُذكر اللون في الأوصاف المنشورة"
 ],
 "fos": [
-"Rare",
-"نادرة"
+"None listed",
+"لم تُذكر أحافير"
 ],
 "feat": [
-"Massive gypsum, dissolution hollows",
-"جبس كتلي وتجاويف ذوبان"
+"Salt-flat (sabkha) evaporites between the Euphrates and Jeribe limestones",
+"متبخرات سبخة بين حجري الفرات والجريبي الجيريين"
 ],
 "ma": [
-20.0,
-18.0
+23.03,
+15.98
 ],
 "zones": [
 "foothill",
 "west"
 ],
 "tags": {
-"c": [
-"white",
-"lgrey"
-],
+"c": [],
 "l": [
-"gyp",
-"lst"
+"gyp"
 ],
 "f": [
 "gyp"
 ]
-}
+},
+"src": [
+"jaz",
+"lfz"
+]
 }
 ]
