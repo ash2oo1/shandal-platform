@@ -75,8 +75,8 @@
 "هيباريون وبقايا لبائن أخرى، وأوستراكودا مياه عذبة، وكارافايت، وبطنيات وذوات مصراعين"
 ],
 "feat": [
-"River deposits of a fast-sinking foredeep; 100–350 m near Darbandikhan, 600 m near Halabja",
-"رواسب نهرية في حوض أمامي سريع الهبوط؛ سمكه 100–350 م قرب دربندخان و600 م قرب حلبجة"
+"River deposits of a fast-sinking foredeep; 50–2000 m thick",
+"رواسب نهرية في حوض أمامي سريع الهبوط؛ سمكه 50–2000 م"
 ],
 "ma": [
 11.63,
@@ -168,8 +168,8 @@
 "المايوسين الأوسط"
 ],
 "lith": [
-"Cycles of marl, claystone, limestone and gypsum; red claystone dominates in the north-east",
-"دورات من المارل والطين والحجر الجيري والجبس؛ ويغلب الطين الأحمر في الشمال الشرقي"
+"Cycles of marl, claystone, limestone and gypsum",
+"دورات من المارل والطين والحجر الجيري والجبس"
 ],
 "colour": "#9AA58A",
 "col": [
@@ -181,8 +181,8 @@
 "فورامنيفرا الأمونيا والإلفيديوم والميليوليد؛ ومحار (أوستريا) وكلاوزينيلا وطحالب"
 ],
 "feat": [
-"Repeated cycles laid in a closed salty lagoon; near Halabja red marl and grey sandstone with no gypsum",
-"دورات متكررة ترسّبت في لاغون مغلق شديد الملوحة؛ وقرب حلبجة مارل أحمر وحجر رملي رمادي بلا جبس"
+"Repeated cycles laid in a closed salty lagoon; towards the mountains the gypsum thins out and red claystone dominates",
+"دورات متكررة ترسّبت في لاغون مغلق شديد الملوحة؛ ونحو الجبال يقلّ الجبس ويغلب الطين الأحمر"
 ],
 "ma": [
 15.98,
@@ -241,8 +241,8 @@
 "ميليوليد وبينيروبليد ورابيديونينا وألفيولينا وطحالب"
 ],
 "feat": [
-"Lagoonal limestone of a restricted to semi-restricted platform; chert nodules near Dohuk; bituminous beds at the type section; 70–190 m",
-"حجر جيري لاغوني من رصيف مغلق إلى شبه مغلق؛ عقد صوان قرب دهوك؛ وطبقات قيرية في المقطع النموذجي؛ سمكه 70–190 م"
+"Lagoonal limestone of a restricted to semi-restricted platform; chert nodules in places; bituminous beds at the type section; 70–190 m",
+"حجر جيري لاغوني من رصيف مغلق إلى شبه مغلق؛ عقد صوان في أماكن؛ وطبقات قيرية في المقطع النموذجي؛ سمكه 70–190 م"
 ],
 "ma": [
 47.8,
@@ -292,12 +292,12 @@
 "أحمر وأحمر طابوقي وبني محمر وبنفسجي"
 ],
 "fos": [
-"Mostly barren: radiolaria and ostracods; some foraminifera near Shaqlawa",
-"فقيرة غالباً: راديولاريا وأوستراكودا؛ وبعض الفورامنيفرا قرب شقلاوة"
+"Mostly barren: radiolaria and ostracods; some foraminifera in places",
+"فقيرة غالباً: راديولاريا وأوستراكودا؛ وبعض الفورامنيفرا في أماكن"
 ],
 "feat": [
-"Molasse of a broad sinking foredeep; 35–120 m from Bazian to Qara Dagh, more than 200 m near Darbandikhan",
-"مولاس حوض أمامي واسع هابط؛ سمكه 35–120 م من بازيان إلى قره داغ، وأكثر من 200 م قرب دربندخان"
+"Molasse of a broad sinking foredeep; 35–840 m thick",
+"مولاس حوض أمامي واسع هابط؛ سمكه 35–840 م"
 ],
 "ma": [
 56.0,
@@ -325,8 +325,7 @@
 ]
 },
 "src": [
-"hfz",
-"dbk"
+"hfz"
 ]
 },
 {
@@ -344,16 +343,16 @@
 ],
 "colour": "#C9C3B3",
 "col": [
-"yellowish (type section); pale grey or milky near Qara Dagh and Darbandikhan",
-"مصفر (المقطع النموذجي)؛ ورمادي شاحب أو حليبي قرب قره داغ ودربندخان"
+"yellowish (type section); pale grey or milky elsewhere",
+"مصفر (المقطع النموذجي)؛ ورمادي شاحب أو حليبي في أماكن أخرى"
 ],
 "fos": [
 "Alveolina, Nummulites, Dictyoconus, miliolids and algae",
 "ألفيولينا ونيمولايت وديكتيوكونس وميليوليد وطحالب"
 ],
 "feat": [
-"Algal reef, lagoonal and nummulitic shoal facies of a warm, shallow, lit platform; 15–65 m from Bazian to Darbandikhan",
-"سحنات شعاب طحلبية ولاغونات وضحاضح نيمولايتية على رصيف دافئ ضحل مضاء؛ سمكه 15–65 م من بازيان إلى دربندخان"
+"Algal reef, lagoonal and nummulitic shoal facies of a warm, shallow, lit platform; 15–176 m thick",
+"سحنات شعاب طحلبية ولاغونات وضحاضح نيمولايتية على رصيف دافئ ضحل مضاء؛ سمكه 15–176 م"
 ],
 "ma": [
 59.2,
@@ -379,8 +378,7 @@
 ]
 },
 "src": [
-"hfz",
-"dbk"
+"hfz"
 ]
 },
 {
@@ -406,8 +404,8 @@
 "ميسيلانيا ولوكهارتيا وفورامنيفرا قاعية أخرى؛ وغلوبوروتاليا الطافية"
 ],
 "feat": [
-"Rhythmic graded sandstone and shale (turbidites) of a foreland trough; about 400 m near Darbandikhan",
-"تعاقب إيقاعي متدرج من الحجر الرملي والطفل (تيارات عكرة) في حوض أمامي؛ سمكه نحو 400 م قرب دربندخان"
+"Rhythmic graded sandstone and shale (turbidites) of a foreland trough; 150–777 m thick",
+"تعاقب إيقاعي متدرج من الحجر الرملي والطفل (تيارات عكرة) في حوض أمامي؛ سمكه 150–777 م"
 ],
 "ma": [
 66.0,
@@ -432,8 +430,7 @@
 ]
 },
 "src": [
-"hfz",
-"dbk"
+"hfz"
 ]
 },
 {
@@ -506,8 +503,8 @@
 ],
 "colour": "#A3A890",
 "col": [
-"dark blue fresh (black where bituminous), weathering pale blue; white and grey limestone low down near Zakho",
-"أزرق داكن على السطح الطازج (أسود حيث يكون قيرياً)، ويتجوّى أزرق شاحباً؛ وحجر جيري أبيض ورمادي في أسفله قرب زاخو"
+"dark blue fresh (black where bituminous), weathering pale blue; white and grey limestone low down in places",
+"أزرق داكن على السطح الطازج (أسود حيث يكون قيرياً)، ويتجوّى أزرق شاحباً؛ وحجر جيري أبيض ورمادي في أسفله في أماكن"
 ],
 "fos": [
 "Globotruncana, Rugoglobigerina and other planktonic foraminifera; Inoceramus",
@@ -561,8 +558,8 @@
 ],
 "colour": "#BFC1BE",
 "col": [
-"light grey, weathering white; white and hard near Surdash",
-"رمادي فاتح يتجوّى أبيض؛ وأبيض صلب قرب سورداش"
+"light grey, weathering white; white and hard in places",
+"رمادي فاتح يتجوّى أبيض؛ وأبيض صلب في أماكن"
 ],
 "fos": [
 "Oligostegina, Globigerina and other planktonic foraminifera; radiolaria, sponge spicules, Inoceramus",
@@ -667,8 +664,8 @@
 ],
 "colour": "#8F8A7A",
 "col": [
-"brown and bluish marl weathering buff; light grey marly limestone and bluish grey marl near Surdash",
-"مارل بني ومزرق يتجوّى أصفر شاحباً؛ وجيري مارلي رمادي فاتح ومارل رمادي مزرق قرب سورداش"
+"brown and bluish marl weathering buff; light grey marly limestone and bluish grey marl in places",
+"مارل بني ومزرق يتجوّى أصفر شاحباً؛ وجيري مارلي رمادي فاتح ومارل رمادي مزرق في أماكن"
 ],
 "fos": [
 "Echinoids (Heteraster) and bivalves in the upper 80 m; algae",
@@ -720,16 +717,16 @@
 ],
 "colour": "#C2B9A3",
 "col": [
-"grey and brown limestone, brown to greyish brown dolostone; dark grey massive limestone and yellowish green marl near Surdash",
-"حجر جيري رمادي وبني، ودولوستون بني إلى بني رمادي؛ وحجر جيري كتلي رمادي داكن ومارل أخضر مصفر قرب سورداش"
+"grey and brown limestone, brown to greyish brown dolostone; dark grey massive limestone and yellowish green marl in places",
+"حجر جيري رمادي وبني، ودولوستون بني إلى بني رمادي؛ وحجر جيري كتلي رمادي داكن ومارل أخضر مصفر في أماكن"
 ],
 "fos": [
 "Orbitolina, Choffatella, Pseudochrysalidina and algae",
 "أوربيتولينا وشوفاتيلا وبسودوكريساليدينا وطحالب"
 ],
 "feat": [
-"Thick carbonate: up to about 1000 m near Rawanduz",
-"كاربونات سميكة: حتى نحو 1000 م قرب راوندوز"
+"Thick carbonate: 50 m to about 1000 m",
+"كاربونات سميكة: من 50 م إلى نحو 1000 م"
 ],
 "ma": [
 121.4,
@@ -775,12 +772,12 @@
 "التربة المتبقية بنية إلى بنية محمرة، وسوداء في أماكن"
 ],
 "fos": [
-"Cave deposits with Neanderthal skeletons (Shanidar)",
-"رواسب كهفية فيها هياكل إنسان النياندرتال (شانيدر)"
+"Cave deposits with Neanderthal skeletons in places",
+"رواسب كهفية فيها هياكل إنسان النياندرتال في أماكن"
 ],
 "feat": [
-"Terraces along the Greater and Lesser Zab and the Diyala (Sirwan); clayey fans around Dokan and Darbandikhan lakes",
-"مصاطب على الزابين الكبير والصغير وديالى (سيروان)؛ ومراوح طينية حول بحيرتي دوكان ودربندخان"
+"Terraces along the major rivers; fans at mountain fronts, clayey around lakes",
+"مصاطب على الأنهار الكبيرة؛ ومراوح عند جبهات الجبال، طينية حول البحيرات"
 ],
 "ma": [
 2.58,
@@ -830,12 +827,12 @@
 "رمادي مصفر أو رمادي مبيض أو رمادي إلى رمادي بني"
 ],
 "fos": [
-"Mostly barren; vertebrate remains, charophytes, ostracods and Planorbis snails north of Busaiya",
-"خالية غالباً؛ وبقايا فقريات وكارافايت وأوستراكودا وقواقع پلانوربيس شمال البصية"
+"Mostly barren; vertebrate remains, charophytes, ostracods and Planorbis snails in places",
+"خالية غالباً؛ وبقايا فقريات وكارافايت وأوستراكودا وقواقع پلانوربيس في أماكن"
 ],
 "feat": [
-"River sheets and old alluvial fans in the south",
-"رواسب نهرية صفائحية ومراوح غرينية قديمة في الجنوب"
+"River sheets and old alluvial fans in southern Iraq",
+"رواسب نهرية صفائحية ومراوح غرينية قديمة في جنوب العراق"
 ],
 "ma": [
 5.33,
@@ -990,8 +987,8 @@
 "روديست ولوفتوسيا وأومفالوسيكلس وأوربيتويدس وسيديروليتس؛ وطحالب ومرجان وميليوليد"
 ],
 "feat": [
-"Isolated reef build-up on a tectonic high; 740 m at Aqra, 315 m at Bekhme",
-"بناء شعابي منعزل على مرتفع تكتوني؛ سمكه 740 م في عقرة و315 م في بخمة"
+"Isolated reef build-up on a tectonic high; 50–740 m thick",
+"بناء شعابي منعزل على مرتفع تكتوني؛ سمكه 50–740 م"
 ],
 "ma": [
 83.6,
@@ -1087,16 +1084,16 @@
 ],
 "colour": "#7C7A72",
 "col": [
-"dark brown, black and dark grey; blue limestone and black dolostone near Halabja",
-"بني داكن وأسود ورمادي داكن؛ وحجر جيري أزرق ودولوستون أسود قرب حلبجة"
+"dark brown, black and dark grey; blue limestone and black dolostone in places",
+"بني داكن وأسود ورمادي داكن؛ وحجر جيري أزرق ودولوستون أسود في أماكن"
 ],
 "fos": [
 "Bivalves (Myophoria, Posidonia), Estheria, Lingula, small foraminifera and ostracods",
 "ذوات مصراعين (ميوفوريا وبوسيدونيا) وإستيريا ولينگولا وفورامنيفرا صغيرة وأوستراكودا"
 ],
 "feat": [
-"Foetid (smelly) dolomites; about 400–830 m near Halabja and Amadiya",
-"دولومايت ذو رائحة كريهة؛ سمكه نحو 400–830 م قرب حلبجة والعمادية"
+"Foetid (smelly) dolomites; about 400–830 m thick",
+"دولومايت ذو رائحة كريهة؛ سمكه نحو 400–830 م"
 ],
 "ma": [
 247.2,
@@ -1149,8 +1146,8 @@
 "راديولاريا (مجهرية)"
 ],
 "feat": [
-"In the suture zone south and east of Sulaimani: Naurabab, Penjween and Hawraman",
-"في نطاق الدرز جنوب السليمانية وشرقها: نوره باب وبنجوين وهورامان"
+"Deformed slices in the Zagros suture zone of north-eastern Iraq",
+"شرائح مشوّهة في نطاق درز زاكروس شمال شرق العراق"
 ],
 "ma": [
 170.9,
