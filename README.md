@@ -12,7 +12,7 @@
 
 جاء نظام شندل ليجمع هذا العمل في أداة محمولة واحدة، من القراءة الأولى حتى التقرير النهائي، دون مغادرة الموقع. والاسم يعبّر عن جوهره: «المسح» لجمع البيانات المكانية بدقة، و«الميداني» لأنه يرافق الجيولوجي حيث يعمل.
 
-يضم النظام اليوم 64 أداة في الجيولوجيا والتضاريس والتحسس النائي والجيوفيزياء والهندسة والمياه والبيئة والمخاطر الطبيعية والمختبرات البترولية، تعمل في المتصفح على الهاتف والجهاز اللوحي والحاسوب دون تثبيت، وتصدر خرائط مُخرجة وتقارير PDF.
+يضم النظام اليوم 65 أداة في الجيولوجيا والتضاريس والتحسس النائي والجيوفيزياء والهندسة والمياه والبيئة والمخاطر الطبيعية والمختبرات البترولية، تعمل في المتصفح على الهاتف والجهاز اللوحي والحاسوب دون تثبيت، وتصدر خرائط مُخرجة وتقارير PDF.
 
 - **المؤسس والمصمم:** الجيولوجي علي شندل الجنابي، متخصص في التحسس النائي والجيوفيزياء، بغداد، العراق.
 - **التأسيس:** 2025 · **الإطلاق الرسمي:** 5 نيسان 2026.
@@ -115,7 +115,7 @@ For decades, field geology meant scattered tools: readings taken by hand, long c
 
 The Shandal System brings that work into one portable tool, from the first reading to the final report, without leaving the site. The name says what it does: survey, to collect spatial data precisely; field, because it goes where the geologist goes.
 
-The system now has 64 tools for geology, terrain, remote sensing, geophysics, engineering, water, environment, natural hazards and petroleum laboratories. They run in the browser on phones, tablets and computers with nothing to install, and export finished map sheets and PDF reports.
+The system now has 65 tools for geology, terrain, remote sensing, geophysics, engineering, water, environment, natural hazards and petroleum laboratories. They run in the browser on phones, tablets and computers with nothing to install, and export finished map sheets and PDF reports.
 
 - **Founder and designer:** Ali Shandal Al-Janabi, Iraqi geologist (remote sensing and geophysics), Baghdad, Iraq.
 - **Founded:** 2025 · **Official launch:** 5 April 2026.

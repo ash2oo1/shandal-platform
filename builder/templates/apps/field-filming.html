@@ -1,0 +1,108 @@
+{% extends "app_base.html" %}
+{% import "apps/_m.html" as m with context %}
+{% block apphead %}
+<style>
+.ff-stops{display:grid;gap:8px}
+.ff-stop{display:grid;grid-template-columns:1fr auto;gap:6px;border:1px solid var(--line);border-radius:10px;padding:8px;background:var(--surface-2)}
+.ff-stop .r{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.ff-stop input,.ff-stop select,.ff-add select{height:34px;border:1px solid var(--line-2);border-radius:8px;padding:0 6px;background:var(--bg);color:var(--text);font:inherit;font-size:.84rem;min-width:0;width:100%}
+.ff-stop .b{display:grid;gap:4px;align-content:start}
+.ff-stop .b button,.ff-shot .acts button,.ff-clip button{appearance:none;border:1px solid var(--line-2);background:var(--bg);color:var(--text);border-radius:8px;font:inherit;font-size:.74rem;font-weight:700;padding:5px 8px;cursor:pointer;min-width:30px}
+.ff-add{display:grid;grid-template-columns:1fr auto;gap:6px}
+.ff-list{display:grid;gap:14px}
+.ff-sh{display:flex;gap:8px;align-items:center;margin:0 0 6px;font-size:.95rem}
+.ff-sh i{display:inline-grid;place-items:center;min-width:26px;height:26px;border-radius:50%;color:#fff;font-style:normal;font-size:.8rem;font-weight:800}
+.ff-shot{display:grid;grid-template-columns:auto 1fr;gap:4px 10px;border:1px solid var(--line);border-radius:10px;padding:8px 10px;background:var(--surface-2);margin-bottom:6px}
+.ff-shot.done{border-color:#2E8B57;background:color-mix(in srgb,#2E8B57 8%,var(--surface-2))}
+.ff-shot .n{grid-row:span 3;display:grid;place-items:center;align-self:start;width:34px;height:34px;border-radius:8px;color:#fff;font-weight:800;font-size:.8rem}
+.ff-shot .h{display:flex;gap:8px;flex-wrap:wrap;align-items:baseline;font-weight:800;font-size:.86rem}
+.ff-shot .h .s{font-weight:700;color:var(--text-3);font-size:.78rem}
+.ff-shot p{margin:0;font-size:.82rem;line-height:1.6;color:var(--text-2)}
+.ff-shot .acts{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}
+.ff-shot .acts .rec{background:#C0392B;border-color:#C0392B;color:#fff}
+.ff-shot .ok{color:#2E8B57;font-size:.76rem;font-weight:700}
+.ff-clips{display:grid;gap:8px}
+.ff-clip{display:grid;grid-template-columns:1fr auto;gap:6px;align-items:center;border:1px solid var(--line);border-radius:10px;padding:8px 10px;background:var(--surface-2);font-size:.82rem}
+.ff-clip .bt{display:flex;gap:6px;flex-wrap:wrap}
+.ff-cam{position:fixed;inset:0;z-index:9999;background:#000;color:#fff;display:grid;grid-template-rows:auto 1fr auto}
+.ff-cam[hidden]{display:none}
+.ff-cam video{width:100%;height:100%;object-fit:contain;background:#000;grid-row:1/4;grid-column:1}
+.ff-cam .grid{grid-row:1/4;grid-column:1;pointer-events:none;background-image:linear-gradient(to right,transparent 33.2%,rgba(255,255,255,.35) 33.3%,transparent 33.5%,transparent 66.5%,rgba(255,255,255,.35) 66.6%,transparent 66.8%),linear-gradient(to bottom,transparent 33.2%,rgba(255,255,255,.35) 33.3%,transparent 33.5%,transparent 66.5%,rgba(255,255,255,.35) 66.6%,transparent 66.8%)}
+.ff-cam .lvl{grid-row:1/4;grid-column:1;align-self:center;justify-self:center;width:60%;height:0;border-top:2px solid #F5C04A;pointer-events:none}
+.ff-cam .lvl.ok{border-color:#3ED37A}
+.ff-cam .top,.ff-cam .bot{grid-column:1;z-index:2;padding:10px 14px;background:linear-gradient(rgba(0,0,0,.75),rgba(0,0,0,.35))}
+.ff-cam .top{grid-row:1}
+.ff-cam .bot{grid-row:3;background:linear-gradient(rgba(0,0,0,.35),rgba(0,0,0,.8));display:grid;gap:8px}
+.ff-cam .top b{display:block;font-size:1rem}
+.ff-cam .top p{margin:4px 0 0;font-size:.86rem;line-height:1.55;color:#E8E8E8}
+.ff-cam .ph{font-size:1.05rem;font-weight:800;text-align:center}
+.ff-cam .bar{height:8px;border-radius:5px;background:rgba(255,255,255,.2);overflow:hidden}
+.ff-cam .bar i{display:block;height:100%;width:0;background:#F5C04A}
+.ff-cam .ctl{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.ff-cam .ctl button{appearance:none;border:2px solid #fff;background:transparent;color:#fff;font:inherit;font-weight:800;border-radius:999px;padding:10px 18px;font-size:.9rem;cursor:pointer}
+.ff-cam .ctl .go{background:#C0392B;border-color:#C0392B}
+.ff-cam .meta{font-size:.74rem;color:#CFCFCF;text-align:center}
+</style>
+{% endblock %}
+{% block ws %}
+<div class="ws-wrap">
+<div class="ws wide-side">
+  <aside class="ws-side">
+    {{ m.panel_open(1, 'The film', 'الفيلم') }}
+      {{ m.fld('ffTitle', 'Title', 'العنوان', 'text', '', '', '', '', 'Field day', 'any') }}
+      <div class="row2">
+        {{ m.sel('ffLen', 'Target length', 'المدة المستهدفة', [['30', '30 s', '30 ث'], ['60', '60 s', '60 ث', 1], ['90', '90 s', '90 ث'], ['120', '2 min', 'دقيقتان'], ['180', '3 min', '3 دقائق']], 'The length of the finished video. Shots are timed to add up to it.', 'مدة الفيديو النهائي. تُوزَّع مدد اللقطات لتساويها.') }}
+        {{ m.sel('ffOr', 'Frame', 'الإطار', [['v', 'Vertical 9:16 (reels)', 'عمودي 9:16 (ريلز)', 1], ['h', 'Horizontal 16:9', 'أفقي 16:9']]) }}
+      </div>
+      {{ m.sel('ffPad', 'Spare seconds per shot', 'ثوانٍ احتياطية لكل لقطة', [['3', '3 s before and after', '3 ث قبل وبعد', 1], ['2', '2 s before and after', '2 ث قبل وبعد'], ['0', 'None', 'بلا']], 'Extra still seconds at the start and end of each shot make cutting easier in editing; they are not counted in the target length.', 'ثوانٍ ثابتة إضافية في بداية كل لقطة ونهايتها تسهّل القطع في المونتاج؛ ولا تُحسب في المدة المستهدفة.') }}
+    {{ m.panel_close() }}
+    {{ m.panel_open(2, 'Stops', 'المحطات') }}
+      <div class="ff-stops" id="ffStops"></div>
+      <div class="ff-add">
+        <select id="ffType" aria-label="{{ m.L('Kind of stop', 'نوع المحطة') }}"></select>
+        <button class="btn btn-gold btn-sm" id="ffAdd" type="button">{{ icon('plus', 'ico ico-sm') }}{{ m.L('Add stop', 'أضف محطة') }}</button>
+      </div>
+      <p class="xsmall muted" style="margin:0">{{ m.L('Add the stops in the order you will film them. An opening and a closing shot are added to the film.', 'أضف المحطات بترتيب تصويرها. وتُضاف إلى الفيلم لقطة افتتاح ولقطة ختام.') }}</p>
+    {{ m.panel_close() }}
+    {{ m.panel_open(3, 'Save and share', 'الحفظ والمشاركة') }}
+      <div class="row2">
+        <button class="btn btn-line btn-xs" id="ffCsv" type="button">{{ m.L('Shot log (CSV)', 'سجل اللقطات (CSV)') }}</button>
+        <button class="btn btn-line btn-xs" id="ffJson" type="button">{{ icon('save', 'ico ico-sm') }}{{ m.L('Project file', 'ملف المشروع') }}</button>
+      </div>
+      <div class="row2">
+        <label class="btn btn-line btn-xs" style="cursor:pointer">{{ icon('file-up', 'ico ico-sm') }}{{ m.L('Open project', 'افتح مشروعاً') }}<input type="file" id="ffOpen" accept=".json,application/json" hidden></label>
+        <button class="btn btn-line btn-xs" id="ffNew" type="button">{{ icon('x', 'ico ico-sm') }}{{ m.L('New film', 'فيلم جديد') }}</button>
+      </div>
+      <p class="xsmall muted" style="margin:0">{{ m.L('The plan, the log and the clips stay on this device and work without a network. Clips are saved to the phone only when you tap «Save to device».', 'تبقى الخطة والسجل والمقاطع على هذا الجهاز وتعمل دون شبكة. ولا تُحفظ المقاطع في معرض الهاتف إلا حين تنقر «احفظ في الجهاز».') }}</p>
+    {{ m.panel_close() }}
+  </aside>
+  <div class="ws-main">
+    <div class="kpis" id="ffKpis"></div>
+    <section class="pn" data-rp-skip><div class="pn-h">{{ icon('list-video') }}<h2>{{ m.L('Shot list', 'قائمة اللقطات') }}</h2></div><div class="pn-b">
+      <p class="xsmall muted" style="margin:0 0 10px">{{ m.L('Each shot says what to film, what to point at and for how many seconds. «Film» opens the camera with the instruction on screen and stops by itself; «Done» logs a shot you filmed with the phone camera. Both record the time, position and the direction the phone faced.', 'تقول كل لقطة ماذا تصوّر، وإلى ماذا تشير، وكم ثانية. «صوّر» يفتح الكاميرا والتعليمات على الشاشة ويتوقف وحده؛ و«تمّت» تسجّل لقطة صوّرتها بكاميرا الهاتف. وكلاهما يسجّل الوقت والموقع والاتجاه الذي واجهه الهاتف.') }}</p>
+      <div class="ff-list" id="ffList"></div>
+    </div></section>
+    <section class="pn" data-rp-skip><div class="pn-h">{{ icon('film') }}<h2>{{ m.L('Clips on this device', 'المقاطع على هذا الجهاز') }}</h2></div><div class="pn-b"><div class="ff-clips" id="ffClips"></div></div></section>
+    {{ m.fig_open('ffF1', '1', 'Where each shot was filmed', 'أين صُوّرت كل لقطة', '<span data-egfig="ffMap"></span>') }}
+      <div class="fig-b"><svg class="chart" id="ffMap" viewBox="0 0 760 620" role="img"></svg></div>
+      <div class="fig-cap">{{ m.L('Each filmed shot at its position, numbered in filming order, with an arrow in the direction the phone faced and the colour of its stop.', 'كل لقطة مصوَّرة في موقعها، مرقّمة بترتيب التصوير، مع سهم باتجاه الهاتف ولون محطتها.') }}</div>
+    {{ m.fig_close() }}
+    {{ m.fig_open('ffF2', '2', 'Planned and filmed time per stop', 'الوقت المخطط والمصوَّر لكل محطة', '<span data-egfig="ffTime"></span>') }}
+      <div class="fig-b"><svg class="chart" id="ffTime" viewBox="0 0 760 420" role="img"></svg></div>
+      <div class="fig-cap">{{ m.L('For each stop, the planned seconds of each shot (upper bar) and the seconds actually filmed without the spare seconds (lower bar), against the target length.', 'لكل محطة، الثواني المخططة لكل لقطة (الشريط الأعلى) والثواني المصوَّرة فعلاً دون الثواني الاحتياطية (الشريط الأدنى)، مقابل المدة المستهدفة.') }}</div>
+    {{ m.fig_close() }}
+  </div>
+</div>
+</div>
+<div class="ff-cam" id="ffCam" hidden>
+  <video id="ffVid" playsinline muted autoplay></video>
+  <div class="grid"></div><div class="lvl" id="ffLvl"></div>
+  <div class="top"><b id="ffCamH"></b><p id="ffCamP"></p></div>
+  <div class="bot">
+    <div class="ph" id="ffPh"></div>
+    <div class="bar"><i id="ffBar"></i></div>
+    <div class="ctl"><button type="button" id="ffGo" class="go">{{ m.L('Start', 'ابدأ') }}</button><button type="button" id="ffStop">{{ m.L('Stop', 'أوقف') }}</button><button type="button" id="ffNext">{{ m.L('Next shot', 'اللقطة التالية') }}</button><button type="button" id="ffClose">{{ m.L('Close', 'أغلق') }}</button></div>
+    <div class="meta" id="ffMeta"></div>
+  </div>
+</div>
+{% endblock %}

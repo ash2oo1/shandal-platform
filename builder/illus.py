@@ -1115,3 +1115,15 @@ def survivalmap(uid, label):
     return svg(''.join(o), uid, label)
 
 REG.update({'survivalmap': survivalmap})
+
+def fieldfilming(uid, label):
+    o = ['<rect x="20" y="30" width="190" height="250" rx="16" fill="#141C24"/><rect x="30" y="44" width="170" height="210" rx="6" fill="#A9B39A"/>']
+    o.append('<path d="M30 120C80 108 130 128 200 112V44H30Z" fill="#E6E0C8"/><path d="M30 180C90 170 140 186 200 170V112C130 128 80 108 30 120Z" fill="#B5523B" fill-opacity=".75"/><path d="M30 254H200V170C140 186 90 170 30 180Z" fill="#45484A" fill-opacity=".75"/>')
+    o.append('<g stroke="#fff" stroke-opacity=".5"><path d="M87 44V254M143 44V254M30 114H200M30 184H200"/></g><path d="M60 149H170" stroke="#3ED37A" stroke-width="2.5"/>')
+    o.append('<rect x="38" y="230" width="154" height="7" rx="3.5" fill="#fff" fill-opacity=".3"/><rect x="38" y="230" width="96" height="7" rx="3.5" fill="#C0392B"/><circle cx="115" cy="266" r="9" fill="#C0392B" stroke="#fff" stroke-width="2"/>')
+    o.append('<g class="il-chip" transform="translate(240 50)"><rect width="230" height="62" rx="8"/><text x="12" y="22" class="il-small">Shot 3 · Close-up · 4 s</text><text x="12" y="46" class="il-value">Point at the contact</text></g>')
+    o.append('<g class="il-chip" transform="translate(240 128)"><rect width="230" height="62" rx="8"/><text x="12" y="22" class="il-small">Logged 10:42</text><text x="12" y="46" class="il-value">33.31520, 44.36610 · 312°</text></g>')
+    o.append('<g class="il-chip" transform="translate(240 206)"><rect width="230" height="62" rx="8"/><text x="12" y="22" class="il-small">Film</text><text x="12" y="46" class="il-value">58 / 60 s</text></g>')
+    return svg(''.join(o), uid, label)
+
+REG.update({'fieldfilming': fieldfilming})
