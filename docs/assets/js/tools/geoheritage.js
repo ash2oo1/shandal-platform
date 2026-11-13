@@ -84,7 +84,7 @@
     SH.getJSON(SH.base + 'assets/data/iraq-outline.json').then(function (r) { var ring = r.map(function (q) { return [q[1], q[0]]; });
       L.polygon([[[-89, -179], [-89, 179], [89, 179], [89, -179]], ring], { pane: 'ghMask', stroke: false, fillColor: '#0B1218', fillOpacity: .32, interactive: false }).addTo(map);
       L.polyline(ring.concat([ring[0]]), { pane: 'ghLine', color: '#C9A227', weight: 2.4, opacity: .95, interactive: false }).addTo(map); }).catch(function () {}); }
-  var geoL = L ? L.tileLayer('https://tiles.macrostrat.org/carto/{z}/{x}/{y}.png', { opacity: .62, maxZoom: 16, attribution: 'Geological map' }) : null;
+  var geoL = L ? L.tileLayer('https://tiles.macrostrat.org/carto/{z}/{x}/{y}.png', { opacity: .62, maxZoom: 16, attribution: 'Geology © Macrostrat (CC BY 4.0)' }) : null;
   $('#hGeoL').addEventListener('click', function () { if (!map) return; var on = this.getAttribute('aria-pressed') !== 'true'; this.setAttribute('aria-pressed', on); if (on) geoL.addTo(map); else map.removeLayer(geoL); });
   var pinIcon = function (p, on) { var c = CAT[p.cat][0]; return L.divIcon({ className: '', iconSize: [30, 30], iconAnchor: [15, 29], html: '<div class="gh-pin' + (on ? ' on' : '') + '" style="background:' + c + '">' + svgI(glyph(p)) + '</div>' }); };
   $('#hLeg').innerHTML = '<b>' + t('Kind of place', 'نوع المكان') + '</b>' + Object.keys(CAT).map(function (k) { return '<span><i style="background:' + CAT[k][0] + '"></i>' + CAT[k][1] + '</span>'; }).join('');
@@ -223,8 +223,8 @@
     $('#hFSum').innerHTML = E(gname(p.gov)) + ' · ' + E(ZONE[p.zone][1]) + ' · <span dir="ltr" style="unicode-bidi:isolate">' + p.lat.toFixed(4) + '° N, ' + p.lon.toFixed(4) + '° E</span>';
     if (L && !mini) { mini = L.map('hMini', { zoomControl: true, attributionControl: true }); mini.attributionControl.setPrefix('Leaflet');
       miniL.sat = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 19, attribution: 'Imagery © Esri, Maxar, Earthstar Geographics' });
-      miniL.geo = L.layerGroup([L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 19, attribution: 'Imagery © Esri' }), L.tileLayer('https://tiles.macrostrat.org/carto/{z}/{x}/{y}.png', { opacity: .7, maxZoom: 16, attribution: 'Geological map' })]);
-      miniL.topo = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}', { maxZoom: 19, attribution: 'Map © Esri, HERE, Garmin, USGS' });
+      miniL.geo = L.layerGroup([L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 19, attribution: 'Imagery © Esri' }), L.tileLayer('https://tiles.macrostrat.org/carto/{z}/{x}/{y}.png', { opacity: .7, maxZoom: 16, attribution: 'Geology © Macrostrat (CC BY 4.0)' })]);
+      miniL.topo = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}', { maxZoom: 19, attribution: 'Map © Esri, HERE, Garmin, USGS, © OpenStreetMap contributors' });
       miniL.sat.addTo(mini); L.control.scale({ metric: true, imperial: false }).addTo(mini); }
     if (mini) { var zz = /river|marsh|mountain|valley|lake|depression/.test(p.type) ? 11 : 16; mini.setView([p.lat, p.lon], zz); setTimeout(function () { mini.invalidateSize(); }, 80);
       if (miniMk) miniMk.setLatLng([p.lat, p.lon]); else miniMk = L.marker([p.lat, p.lon], { icon: L.divIcon({ className: '', iconSize: [30, 30], iconAnchor: [15, 29], html: '<div class="gh-pin on" style="background:#C0392B">' + svgI('arch') + '</div>' }) }).addTo(mini); }

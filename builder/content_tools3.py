@@ -78,8 +78,8 @@ OVERRIDES = {
  'overview': [
    L('Enter S<sub>S</sub> and S<sub>1</sub> from your national code map, or let the fault scenario give a screening estimate. Site class, risk category and lateral-force system then lead to S<sub>DS</sub>, S<sub>D1</sub>, the spectrum, the design category, system restrictions and the base shear.',
      'أدخل S<sub>S</sub> وS<sub>1</sub> من خريطة الكود الوطني، أو دع سيناريو الصدع يعطي تقديراً أولياً. ثم يقود صنف الموقع وفئة الخطورة ونظام مقاومة القوى الجانبية إلى S<sub>DS</sub> وS<sub>D1</sub> والطيف وفئة التصميم وقيود الأنظمة وقوة القص القاعدي.'),
-   L('Active faults come from the GEM Global Active Faults Database. For the nearest faults the tool estimates a characteristic magnitude from rupture length and a median PGA at your site class, a quick check against the code values.',
-     'تأتي الصدوع النشطة من قاعدة بيانات GEM العالمية للصدوع النشطة. ولأقرب الصدوع تقدّر الأداة قدراً مميزاً من طول التمزق وPGA وسيطياً عند صنف الموقع، كفحص سريع مقابل قيم الكود.'),
+   L('Active faults come from a global active-fault database. For the nearest faults the tool estimates a characteristic magnitude from rupture length and a median PGA at your site class, a quick check against the code values.',
+     'تأتي الصدوع النشطة من قاعدة بيانات عالمية للصدوع النشطة. ولأقرب الصدوع تقدّر الأداة قدراً مميزاً من طول التمزق وPGA وسيطياً عند صنف الموقع، كفحص سريع مقابل قيم الكود.'),
  ],
  'inputs': [L('Site location (GPS, map or coordinates)', 'موقع المشروع (GPS أو الخريطة أو الإحداثيات)'), L('Mapped S<sub>S</sub>, S<sub>1</sub> and T<sub>L</sub>', 'القيم المرجعية S<sub>S</sub> وS<sub>1</sub> وT<sub>L</sub>'), L('Site class A–F and risk category I–IV', 'صنف الموقع A–F وفئة الخطورة I–IV'),
             L('Lateral-force system, height and seismic weight', 'نظام القوى الجانبية والارتفاع والوزن الزلزالي'), L('SPT (N<sub>1</sub>)<sub>60</sub>, fines, water table and magnitude for liquefaction', 'قيمة SPT (N<sub>1</sub>)<sub>60</sub> والناعم ومنسوب المياه والقدر لفحص التميع')],
@@ -93,7 +93,7 @@ OVERRIDES = {
  ],
  'refs': ['ASCE/SEI 7-16. Minimum Design Loads and Associated Criteria for Buildings and Other Structures. American Society of Civil Engineers.', 'Youd, T.L. et al. (2001). Liquefaction resistance of soils: summary report from the 1996 NCEER and 1998 NCEER/NSF workshops. J. Geotech. Geoenviron. Eng., 127(10), 817–833.',
           'Wells, D.L. & Coppersmith, K.J. (1994). New empirical relationships among magnitude, rupture length, rupture width, rupture area, and surface displacement. BSSA, 84(4), 974–1002.', 'Boore, D.M., Joyner, W.B. & Fumal, T.E. (1997). Equations for estimating horizontal response spectra and peak acceleration from western North American earthquakes. SRL, 68(1), 128–153.',
-          'Styron, R. & Pagani, M. (2020). The GEM Global Active Faults Database. Earthquake Spectra, 36(1_suppl), 160–180.'],
+          ],
  'exports': L('CSV of nearest faults, PNG spectrum, PDF report', 'ملف CSV لأقرب الصدوع، طيف PNG، تقرير PDF'),
 },
 'contour-lab': {

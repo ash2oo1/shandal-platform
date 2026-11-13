@@ -61,7 +61,7 @@
   <div class="ws-main">
     {{ m.fig_open('fs0', '1', 'Site and nearby active faults', 'الموقع والصدوع النشطة القريبة') }}
       <div class="fig-b pad0" style="position:relative"><div class="map" id="sMap"></div></div>
-      <div class="fig-cap" id="sMapCap">{{ m.L('Active faults from the GEM Global Active Faults Database (CC BY-SA 4.0), coloured by slip type. Click the map to place the site.', 'الصدوع النشطة من قاعدة بيانات GEM العالمية للصدوع النشطة (CC BY-SA 4.0)، ملونة حسب نوع الانزلاق. انقر الخريطة لتحديد الموقع.') }}</div>
+      <div class="fig-cap" id="sMapCap">{{ m.L('Active faults from a global active-fault database, coloured by slip type. Click the map to place the site.', 'الصدوع النشطة من قاعدة بيانات عالمية للصدوع النشطة، ملونة حسب نوع الانزلاق. انقر الخريطة لتحديد الموقع.') }}</div>
     {{ m.fig_close() }}
     <div id="sEmpty" class="pn">{{ m.empty('activity', 'Evaluate a site', 'قيّم موقعاً', 'Place the site, enter the mapped accelerations or use the fault scenario, choose the site class and structure, then evaluate.', 'حدد الموقع، وأدخل التسارعات المرجعية أو استخدم سيناريو الصدع، واختر صنف الموقع والمنشأة، ثم قيّم.') }}</div>
     <div id="sOut" hidden style="display:grid;gap:18px">
