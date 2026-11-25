@@ -1,0 +1,90 @@
+{% extends "app_base.html" %}
+{% import "apps/_m.html" as m with context %}
+{% block apphead %}
+<style>
+#bMap{height:320px}
+.eo-chips{display:flex;gap:6px;flex-wrap:wrap}
+.eo-chips button{appearance:none;border:1px solid var(--line-2);background:var(--surface-2);color:var(--text);font:inherit;font-size:.8rem;padding:5px 10px;border-radius:999px;cursor:pointer}
+.eo-chips button[aria-pressed=true]{border-color:#B08A3E;background:color-mix(in srgb,#B08A3E 16%,var(--surface))}
+.eo-in{height:38px;border:1px solid var(--line-2);border-radius:10px;padding:0 10px;background:var(--bg);color:var(--text);font:inherit;width:100%;min-width:0}
+.eo-view{background:#fff;border-radius:12px;overflow:hidden;border:1px solid var(--line)}
+.eo-view canvas{width:100%;height:auto;display:block}
+.eo-prog{height:8px;border-radius:99px;background:var(--surface-2);overflow:hidden;border:1px solid var(--line)}
+.eo-prog i{display:block;height:100%;width:0;background:linear-gradient(90deg,#2E6FBF,#33C2FF);transition:width .3s}
+.eo-dl{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:8px}
+.bt-scenes{display:grid;gap:6px;max-height:260px;overflow:auto}
+.bt-scenes button{appearance:none;display:grid;grid-template-columns:56px 1fr;gap:8px;align-items:center;text-align:start;border:1px solid var(--line-2);background:var(--surface-2);color:var(--text);border-radius:10px;padding:5px;font:inherit;font-size:.78rem;cursor:pointer}
+.bt-scenes button[aria-pressed=true]{border-color:#B08A3E;background:color-mix(in srgb,#B08A3E 14%,var(--surface))}
+.bt-scenes img{width:56px;height:56px;object-fit:cover;border-radius:6px;background:#ccc}
+.bt-pts{display:grid;gap:4px;max-height:200px;overflow:auto;font-size:.78rem}
+.bt-pts div{display:grid;grid-template-columns:1fr auto auto;gap:6px;align-items:center;border:1px solid var(--line);border-radius:8px;padding:4px 8px;background:var(--surface-2)}
+.bt-pts button{appearance:none;border:1px solid var(--line-2);background:var(--bg);color:var(--text);border-radius:6px;font:inherit;font-size:.72rem;padding:2px 7px;cursor:pointer}
+.bt-pts input{width:64px;height:28px;border:1px solid var(--line-2);border-radius:6px;background:var(--bg);color:var(--text);font:inherit;padding:0 4px}
+textarea.eo-in{height:76px;padding:6px 10px;font-family:ui-monospace,monospace;font-size:.78rem}
+</style>
+{% endblock %}
+{% block ws %}
+<div class="ws-wrap">
+<div class="ws wide-side">
+  <aside class="ws-side">
+    {{ m.panel_open(1, 'Water body', 'المسطح المائي') }}
+      <div class="row2" style="grid-template-columns:minmax(0,1fr) auto;align-items:end"><div class="fg"><label for="bQ">{{ m.L('Search any lake, river or coast', 'ابحث عن أي بحيرة أو نهر أو ساحل') }}</label><input id="bQ" class="eo-in" type="search"></div><button class="btn btn-ink btn-sm" id="bGo" type="button">{{ icon('search', 'ico ico-sm') }}{{ m.L('Find', 'ابحث') }}</button></div>
+      <div class="eo-chips" id="bRes"></div>
+      <div class="eo-chips" id="bPre"></div>
+      <div class="row2"><button class="btn btn-ink btn-sm" id="bDraw" type="button">{{ icon('square-dashed', 'ico ico-sm') }}{{ m.L('Draw your own area', 'ارسم منطقتك') }}</button><span class="xsmall muted" id="bAoi" style="align-self:center"></span></div>
+      <p class="xsmall muted" id="bHint" hidden style="margin:0">{{ m.L('Drag a rectangle on the map, or tap two opposite corners.', 'اسحب مستطيلاً على الخريطة، أو انقر ركنين متقابلين.') }}</p>
+      <div class="map" id="bMap" data-rp-skip></div>
+      {{ m.fld('bName', 'Place name on the maps', 'اسم المنطقة على الخرائط', 'text', '', '', '', '', '', 'any') }}
+    {{ m.panel_close() }}
+    {{ m.panel_open(2, 'Satellite image', 'الصورة الفضائية') }}
+      <div class="row2">
+        {{ m.fld('bFrom', 'From', 'من', 'date', '') }}
+        {{ m.fld('bTo', 'To', 'إلى', 'date', '') }}
+      </div>
+      {{ m.fld('bCloud', 'Largest cloud cover of the tile', 'أكبر غطاء غيوم للبلاطة', 'number', '10', '%', 'Calm, clear days without haze give the deepest and most even results. Prefer images where the water looks dark and smooth in the thumbnail.', 'الأيام الهادئة الصافية بلا غبار تعطي أعمق النتائج وأكثرها انتظاماً. فضّل الصور التي يبدو فيها الماء داكناً أملس في الصورة المصغرة.', '', '1') }}
+      <button class="btn btn-ink btn-sm btn-block" id="bFind" type="button">{{ icon('search', 'ico ico-sm') }}{{ m.L('Find Sentinel-2 images', 'ابحث عن صور Sentinel-2') }}</button>
+      <div class="bt-scenes" id="bScenes"></div>
+    {{ m.panel_close() }}
+    {{ m.panel_open(3, 'Known depths', 'الأعماق المعروفة') }}
+      <p class="xsmall muted" style="margin:0">{{ m.L('Depths measured by sounding, echo sounder or a chart turn the relative depth into metres. Five or more points spread from shallow to deep are best. Without them the map shows relative depth only.', 'الأعماق المقيسة بالسبر أو جهاز الصدى أو من خريطة ملاحية تحوّل العمق النسبي إلى أمتار. الأفضل خمس نقاط أو أكثر موزعة من الضحل إلى العميق. ومن دونها تعرض الخريطة عمقاً نسبياً فقط.') }}</p>
+      <div class="row2"><button class="btn btn-line btn-xs" id="bAddPt" type="button">{{ icon('map-pin', 'ico ico-sm') }}{{ m.L('Add a point on the map', 'أضف نقطة على الخريطة') }}</button><button class="btn btn-line btn-xs" id="bClrPt" type="button">{{ icon('x', 'ico ico-sm') }}{{ m.L('Clear all', 'امسح الكل') }}</button></div>
+      <label class="xsmall" for="bPaste">{{ m.L('Or paste lines of latitude, longitude, depth (m)', 'أو الصق أسطراً: خط العرض، خط الطول، العمق (م)') }}</label>
+      <textarea id="bPaste" class="eo-in" placeholder="31.312, 45.010, 2.4"></textarea>
+      <div class="row2"><button class="btn btn-line btn-xs" id="bPasteGo" type="button">{{ m.L('Add the pasted points', 'أضف النقاط الملصقة') }}</button><label class="btn btn-line btn-xs" style="cursor:pointer">{{ icon('upload', 'ico ico-sm') }}{{ m.L('CSV file', 'ملف CSV') }}<input type="file" id="bCsvIn" accept=".csv,.txt,text/csv" hidden></label></div>
+      <div class="bt-pts" id="bPts"></div>
+    {{ m.panel_close() }}
+    {{ m.panel_open(4, 'Method', 'الطريقة') }}
+      {{ m.sel('bRatio', 'Band ratio', 'نسبة الحزم', [['green', 'Blue / green — deeper water', 'أزرق / أخضر — المياه الأعمق', 1], ['red', 'Blue / red — very shallow water', 'أزرق / أحمر — المياه الضحلة جداً'], ['switch', 'Switch: red below 5 m, green deeper', 'تبديل: الأحمر دون 5 م والأخضر أعمق']], 'The blue/green ratio reaches deeper in clear water; the blue/red ratio separates the first few metres better. The switch uses the red model where it gives less than 5 m and the green model elsewhere.', 'نسبة الأزرق إلى الأخضر تصل أعمق في المياه الصافية؛ ونسبة الأزرق إلى الأحمر تميّز الأمتار الأولى أفضل. والتبديل يستخدم نموذج الأحمر حيث يعطي أقل من 5 م ونموذج الأخضر في غيره.') }}
+      {{ m.fld('bMax', 'Deepest depth to trust', 'أعمق عمق يُعتمد', 'number', '', 'm', 'Depths beyond this are drawn as «beyond the reliable range». Left empty, it is the deepest known depth plus 20 %.', 'تُرسم الأعماق التي تتجاوزه «خارج المدى الموثوق». وإن تُرك فارغاً فهو أعمق عمق معروف مضافاً إليه 20 %.', '', '0.1') }}
+      <label class="chk" style="display:flex;gap:8px;align-items:center;font-size:.84rem"><input type="checkbox" id="bGlint"> {{ m.L('Remove sun glint using a deep-water sample', 'أزل وهج الشمس بعيّنة من مياه عميقة') }}</label>
+      <button class="btn btn-line btn-xs" id="bGlintDraw" type="button" hidden>{{ icon('square-dashed', 'ico ico-sm') }}{{ m.L('Draw the deep-water sample', 'ارسم عيّنة المياه العميقة') }}</button>
+      <p class="xsmall muted" id="bGlintInfo" hidden style="margin:0"></p>
+    {{ m.panel_close() }}
+    <button class="btn btn-gold btn-block" id="bRun" type="button">{{ icon('anchor', 'ico ico-sm') }}{{ m.L('Map the depths', 'ارسم الأعماق') }}</button>
+    <section class="sec" data-rp-skip><div class="eo-prog"><i id="bBar"></i></div><p class="xsmall muted" id="bMsg" style="margin:6px 0 0"></p></section>
+  </aside>
+  <div class="ws-main">
+    <div id="bEmpty" class="pn">{{ m.empty('anchor', 'Water depth from space', 'عمق المياه من الفضاء', 'Choose a lake, a river reach or a coast and a clear Sentinel-2 image. Light at the blue end of the spectrum reaches deeper into the water than green or red light, so the ratio between them follows depth over any kind of bottom. With a few known depths the ratio becomes a depth map in metres, with its error; without them it is a map of relative depth. It works in clear, shallow water — to about 20 m in the clearest water and much less in muddy rivers.', 'اختر بحيرة أو جزءاً من نهر أو ساحلاً وصورة Sentinel-2 صافية. يصل الضوء في الطرف الأزرق من الطيف إلى عمق أكبر في الماء من الضوء الأخضر أو الأحمر، فتتبع النسبة بينهما العمق فوق أي نوع من القاع. ومع بضعة أعماق معروفة تصير النسبة خريطة أعماق بالأمتار مع خطئها؛ ومن دونها تكون خريطة عمق نسبي. وتعمل في المياه الصافية الضحلة — حتى نحو 20 م في أصفى المياه وأقل بكثير في الأنهار الطينية.') }}</div>
+    <div id="bOut" hidden style="display:grid;gap:18px">
+      <div class="kpis" id="bKpis"></div>
+      <div id="bVerd" style="display:grid;gap:10px"></div>
+      {{ m.fig_open('fb1', '1', 'Depth map', 'خريطة الأعماق') }}
+        <div class="fig-b"><div class="eo-view"><canvas id="bCv" width="1200" height="1100"></canvas></div>
+          <div class="eo-dl no-print"><button class="btn btn-line btn-xs" type="button" data-cv="bCv" data-fmt="png">PNG</button><button class="btn btn-line btn-xs" type="button" data-cv="bCv" data-fmt="jpg">JPG</button><button class="btn btn-line btn-xs" type="button" data-cv="bCv" data-fmt="pdf">PDF</button><button class="btn btn-line btn-xs" type="button" id="bTif">GeoTIFF</button><button class="btn btn-line btn-xs" type="button" id="bXyz">{{ m.L('Depth points (CSV)', 'نقاط الأعماق (CSV)') }}</button></div></div>
+        <div class="fig-cap" id="bCap"></div>
+      {{ m.fig_close() }}
+      {{ m.fig_open('fb2', '2', 'Calibration against the known depths', 'المعايرة بالأعماق المعروفة', '<span data-egfig="bCal"></span>') }}
+        <div class="fig-b"><svg class="chart" id="bCal" viewBox="0 0 760 520" role="img"></svg></div>
+        <div class="fig-cap" id="bCalCap"></div>
+        <div class="eo-dl no-print"><button class="btn btn-line btn-xs" type="button" id="bPtsCsv">{{ m.L('Known depths with residuals (CSV)', 'الأعماق المعروفة مع الفروق (CSV)') }}</button></div>
+      {{ m.fig_close() }}
+      {{ m.fig_open('fb3', '3', 'Depth profile', 'مقطع الأعماق', '<span data-egfig="bProf"></span>') }}
+        <div class="eo-dl no-print" style="margin:0 0 8px"><button class="btn btn-ink btn-xs" type="button" id="bProfDraw">{{ icon('spline', 'ico ico-sm') }}{{ m.L('Draw a line on the map', 'ارسم خطاً على الخريطة') }}</button><span class="xsmall muted" id="bProfHint"></span></div>
+        <div class="fig-b"><svg class="chart" id="bProf" viewBox="0 0 760 400" role="img"></svg></div>
+        <div class="fig-cap">{{ m.L('Depth below the water surface on the day of the image along the line drawn on the map, from its first point (A) to its last (B).', 'العمق تحت سطح الماء يوم التقاط الصورة على امتداد الخط المرسوم على الخريطة، من نقطته الأولى (A) إلى الأخيرة (B).') }}</div>
+      {{ m.fig_close() }}
+    </div>
+  </div>
+</div>
+</div>
+{% endblock %}

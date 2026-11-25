@@ -1127,3 +1127,14 @@ def fieldfilming(uid, label):
     return svg(''.join(o), uid, label)
 
 REG.update({'fieldfilming': fieldfilming})
+
+def satbathy(uid, label):
+    o = ['<rect x="20" y="30" width="250" height="250" rx="10" fill="#E2DCCD"/><path d="M40 60C90 40 170 50 240 80C260 140 250 220 200 260C140 270 70 250 50 200C30 150 30 100 40 60Z" fill="#C6ECF5"/>']
+    o.append('<path d="M70 90C110 80 170 90 210 110C220 160 205 210 175 230C130 236 90 220 80 185C70 150 66 115 70 90Z" fill="#6EC4E2"/><path d="M105 125C130 118 165 126 182 140C186 170 176 195 158 205C132 208 112 196 106 175C100 155 100 138 105 125Z" fill="#2A8CC8"/><path d="M128 150C140 147 156 152 162 160C162 174 156 184 146 186C134 186 126 178 124 168Z" fill="#16509F"/>')
+    o.append('<g fill="#E2C27A" stroke="#fff" stroke-width="1.5"><circle cx="90" cy="110" r="5"/><circle cx="150" cy="170" r="5"/><circle cx="200" cy="200" r="5"/><circle cx="120" cy="215" r="5"/></g><path d="M60 230L235 110" stroke="#141C24" stroke-width="2" stroke-dasharray="5 4"/>')
+    o.append('<g class="il-chip" transform="translate(290 50)"><rect width="180" height="62" rx="8"/><text x="12" y="22" class="il-small">pSDB = ln(nB)/ln(nG)</text><text x="12" y="46" class="il-value">R² 0.94</text></g>')
+    o.append('<g class="il-chip" transform="translate(290 128)"><rect width="180" height="62" rx="8"/><text x="12" y="22" class="il-small">Error (LOO)</text><text x="12" y="46" class="il-value">±0.6 m</text></g>')
+    o.append('<g class="il-chip" transform="translate(290 206)"><rect width="180" height="62" rx="8"/><text x="12" y="22" class="il-small">Sentinel-2 · 10 m</text><text x="12" y="46" class="il-value">0–12 m</text></g>')
+    return svg(''.join(o), uid, label)
+
+REG.update({'satbathy': satbathy})
