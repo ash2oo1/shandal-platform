@@ -111,6 +111,22 @@
   /* geologist name shared by all tools (field #geoName), and the ownership stamp printed at the foot of every downloaded image */
   SH.geologist = function () { var e = d.getElementById('geoName'), v = e && e.value.trim(); if (v) return v; try { return localStorage.getItem('shandal_geologist') || ''; } catch (er) { return ''; } };
   d.addEventListener('change', function (e) { if (e.target && e.target.id === 'geoName') try { localStorage.setItem('shandal_geologist', e.target.value.trim()); } catch (er) {} });
+
+  /* on wide screens the map where the area is chosen sits in the middle column, above the results; on phones it stays in its panel */
+  (function () {
+    var mq = w.matchMedia ? w.matchMedia('(min-width: 900px)') : null;
+    function place() {
+      var side = d.querySelector('.ws-side'), main = d.querySelector('.ws-main'); if (!side || !main) return;
+      var el = d.querySelector('.map-host .map') || side.querySelector('.map:not([data-side-keep])'); if (!el) return;
+      if (!el._home) { el._home = d.createComment('map'); el.parentNode.insertBefore(el._home, el); }
+      var host = main.querySelector(':scope > .map-host');
+      if (mq && mq.matches) { if (!host) { host = d.createElement('section'); host.className = 'pn map-host'; main.insertBefore(host, main.firstChild); } if (el.parentNode !== host) host.appendChild(el); }
+      else if (el._home.parentNode && el.parentNode !== el._home.parentNode) { el._home.parentNode.insertBefore(el, el._home.nextSibling); if (host) host.remove(); }
+      if (el._shMap) setTimeout(function () { el._shMap.invalidateSize(); }, 60);
+    }
+    d.addEventListener('DOMContentLoaded', place);
+    if (mq) (mq.addEventListener ? mq.addEventListener('change', place) : mq.addListener(place));
+  })();
   d.addEventListener('DOMContentLoaded', function () { var e = d.getElementById('geoName'); if (e && !e.value) try { e.value = localStorage.getItem('shandal_geologist') || ''; } catch (er) {} });
   var EMB = null; function emblem() { return EMB || (EMB = new Promise(function (res) { var i = new Image(); i.onload = function () { res(i); }; i.onerror = function () { res(null); }; i.src = SH.base + 'assets/img/emblem-192.png'; })); }
   SH.stamp = function (cv) {

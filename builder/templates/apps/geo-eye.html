@@ -29,7 +29,7 @@
     {{ m.panel_open(1, 'Where are you?', 'أين أنت؟') }}
       <button class="btn btn-gold btn-block" id="eyGps" type="button">{{ icon('locate-fixed', 'ico ico-sm') }}{{ m.L('Use my position', 'استعمل موقعي') }}</button>
       <p class="xsmall muted" style="margin:0">{{ m.L('Or tap the map to study any place before going.', 'أو انقر الخريطة لدراسة أي مكان قبل الذهاب إليه.') }}</p>
-      <div class="map" id="eyMap" data-rp-skip></div>
+      <div class="map" id="eyMap" data-side-keep data-rp-skip></div>
       <p class="xsmall" id="eyPos" style="margin:0"></p>
     {{ m.panel_close() }}
     {{ m.panel_open(2, 'Prepare for no network', 'التحضير للعمل دون شبكة') }}

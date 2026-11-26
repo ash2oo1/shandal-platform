@@ -362,3 +362,5 @@ html body .map.map-full{position:fixed!important;inset:0!important;width:100vw!i
 html.map-full-on,html.map-full-on body{overflow:hidden}
 /* side-panel maps where an area is drawn: taller on wide screens */
 @media (min-width:900px){.ws-side .map{height:420px!important}}
+.map-host{padding:0;overflow:hidden}
+.ws-main > .map-host .map{height:560px!important;border-radius:inherit}
