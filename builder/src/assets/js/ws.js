@@ -314,6 +314,18 @@
       } });
       new Loc().addTo(m);
     }
+    if (opts.full !== false) {
+      var FULL = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>', SMALL = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 14h6v6M20 10h-6V4M14 10l7-7M3 21l7-7"/></svg>';
+      var Fs = L.Control.extend({ options: { position: 'topleft' }, onAdd: function () {
+        var b = L.DomUtil.create('div', 'leaflet-bar'), a = d.createElement('a'); a.href = '#'; a.setAttribute('role', 'button'); a.style.cssText = 'display:grid;place-items:center'; b.appendChild(a);
+        function set() { var on = el.classList.contains('map-full'); a.innerHTML = on ? SMALL : FULL; a.title = on ? SH.t('Back to the page', 'العودة إلى الصفحة') : SH.t('Enlarge the map', 'كبّر الخريطة'); a.setAttribute('aria-label', a.title); }
+        function tog(on) { el.classList.toggle('map-full', on); d.documentElement.classList.toggle('map-full-on', !!d.querySelector('.map-full')); set(); setTimeout(function () { m.invalidateSize(); }, 60); }
+        L.DomEvent.on(a, 'click', function (e) { L.DomEvent.preventDefault(e); L.DomEvent.stopPropagation(e); tog(!el.classList.contains('map-full')); });
+        d.addEventListener('keydown', function (e) { if (e.key === 'Escape' && el.classList.contains('map-full')) tog(false); });
+        set(); return b;
+      } });
+      new Fs().addTo(m);
+    }
     d.addEventListener('themechange', function () {
       if (opts.fixedBase || (m._shBase !== 'light' && m._shBase !== 'dark')) return;
       var want = SH.isDark() ? 'dark' : 'light'; if (want === m._shBase) return;

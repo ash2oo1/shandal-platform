@@ -356,3 +356,9 @@ bdi.u{unicode-bidi:isolate}
 .sh-wmsload[hidden]{display:none}
 .sh-wmsload .sp{width:13px;height:13px;border:2px solid var(--line);border-top-color:#B08A3E;border-radius:50%;animation:shSpin .8s linear infinite}
 @keyframes shSpin{to{transform:rotate(360deg)}}
+
+/* enlarge any map to the whole screen (button under the zoom on every map) */
+html body .map.map-full{position:fixed!important;inset:0!important;width:100vw!important;height:100vh!important;height:100dvh!important;max-height:none!important;z-index:3000!important;border-radius:0!important;margin:0!important}
+html.map-full-on,html.map-full-on body{overflow:hidden}
+/* side-panel maps where an area is drawn: taller on wide screens */
+@media (min-width:900px){.ws-side .map{height:420px!important}}
